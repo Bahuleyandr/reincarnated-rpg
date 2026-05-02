@@ -12,6 +12,9 @@ const config: Config = {
   },
   // `uuid` v14 ships pure ESM; let Jest transform it via next/jest's SWC.
   transformIgnorePatterns: ["node_modules/(?!(uuid)/)"],
+  // DB-backed suites share one Postgres and TRUNCATE on each beforeEach.
+  // Serialize so suites don't wipe each other's session rows.
+  maxWorkers: 1,
   collectCoverageFrom: [
     "src/lib/**/*.ts",
     "!src/lib/db/migrations/**",
