@@ -1,0 +1,380 @@
+/**
+ * Tool registry — Zod validators per ToolCall + atomicity wrapper.
+ *
+ * The orchestrator (day 6's turn.ts) hands off the model's emitted tool
+ * calls to `applyTools`. Behavior:
+ *
+ *   1. Validate every tool's payload via its Zod schema.
+ *   2. For tools whose validity depends on projection state
+ *      (e.g. `remove_inventory` of an item not held), run a precondition
+ *      check.
+ *   3. Convert each ToolCall to its Event counterpart.
+ *   4. Append the whole batch in a single Postgres transaction (via
+ *      `events.appendEvents`). Either all events land or none do — that's
+ *      the all-or-nothing guarantee in ADR-011.
+ *   5. On any validation/precondition failure: skip the batch, append
+ *      a single `tool_validation_failed` event, return the error so the
+ *      orchestrator can re-prompt (max 1 retry per ADR-011).
+ *
+ * The narrate_only tool is a no-op event-wise; it exists so the model
+ * can signal "nothing mechanical this turn" without spuriously calling
+ * a state-mutating tool to look compliant.
+ */
+import { z } from "zod";
+import type { drizzle } from "drizzle-orm/postgres-js";
+
+import { uuidv7 } from "../util/uuidv7";
+
+import { appendEvents, type AppendedEvent } from "./events";
+import type { Event, Projection, ToolCall } from "./types";
+
+type Db = ReturnType<typeof drizzle>;
+
+const targetSchema = z.string().min(1);
+const slugSchema = z.string().regex(/^[a-z0-9-]+$/i, "lowercase-kebab slug");
+const nonEmptyString = z.string().min(1);
+
+const toolSchemas = {
+  apply_damage: z.object({
+    name: z.literal("apply_damage"),
+    target: targetSchema,
+    amount: z.number().int().min(0).max(99),
+    source: nonEmptyString,
+    vital: z.string().optional(),
+  }),
+  heal: z.object({
+    name: z.literal("heal"),
+    target: targetSchema,
+    amount: z.number().int().min(0).max(99),
+    vital: z.string().optional(),
+  }),
+  change_form_state: z.object({
+    name: z.literal("change_form_state"),
+    field: nonEmptyString,
+    delta: z.number().int().min(-99).max(99),
+  }),
+  add_inventory: z.object({
+    name: z.literal("add_inventory"),
+    itemId: slugSchema,
+    qty: z.number().int().min(1).max(99),
+  }),
+  remove_inventory: z.object({
+    name: z.literal("remove_inventory"),
+    itemId: slugSchema,
+    qty: z.number().int().min(1).max(99),
+  }),
+  absorb: z.object({
+    name: z.literal("absorb"),
+    itemId: slugSchema,
+    into: nonEmptyString,
+  }),
+  move_to: z.object({
+    name: z.literal("move_to"),
+    roomId: slugSchema,
+  }),
+  pass_time: z.object({
+    name: z.literal("pass_time"),
+    ticks: z.number().int().min(1).max(99),
+  }),
+  sense: z.object({
+    name: z.literal("sense"),
+    modality: z.enum(["vibration", "chemical", "thermal", "light"]),
+    detail: nonEmptyString,
+  }),
+  discover_location: z.object({
+    name: z.literal("discover_location"),
+    locationId: slugSchema,
+  }),
+  introduce_npc: z.object({
+    name: z.literal("introduce_npc"),
+    templateId: slugSchema,
+    attitude: z.number().int().min(-3).max(3),
+  }),
+  update_relationship: z.object({
+    name: z.literal("update_relationship"),
+    npcId: slugSchema,
+    delta: z.number().int().min(-3).max(3),
+    reason: nonEmptyString,
+  }),
+  update_quest_objective: z.object({
+    name: z.literal("update_quest_objective"),
+    questId: slugSchema,
+    objective: nonEmptyString,
+    status: z.enum(["open", "done", "failed"]),
+  }),
+  grant_xp: z.object({
+    name: z.literal("grant_xp"),
+    amount: z.number().int().min(0).max(999),
+    reason: nonEmptyString,
+  }),
+  create_memory: z.object({
+    name: z.literal("create_memory"),
+    summary: nonEmptyString,
+    salience: z.number().min(0).max(1).optional(),
+  }),
+  narrate_only: z.object({
+    name: z.literal("narrate_only"),
+  }),
+} as const;
+
+export const toolCallSchema = z.discriminatedUnion("name", [
+  toolSchemas.apply_damage,
+  toolSchemas.heal,
+  toolSchemas.change_form_state,
+  toolSchemas.add_inventory,
+  toolSchemas.remove_inventory,
+  toolSchemas.absorb,
+  toolSchemas.move_to,
+  toolSchemas.pass_time,
+  toolSchemas.sense,
+  toolSchemas.discover_location,
+  toolSchemas.introduce_npc,
+  toolSchemas.update_relationship,
+  toolSchemas.update_quest_objective,
+  toolSchemas.grant_xp,
+  toolSchemas.create_memory,
+  toolSchemas.narrate_only,
+]);
+
+export type ToolValidationFailure = {
+  tool: string;
+  error: string;
+};
+
+export type ApplyToolsResult =
+  | { ok: true; events: AppendedEvent[] }
+  | { ok: false; failure: ToolValidationFailure };
+
+/**
+ * Validate every tool call (schema + state preconditions), then either:
+ *   - convert to events and append in one tx (success path), OR
+ *   - append a single `tool_validation_failed` event and return the
+ *     failure so the orchestrator can re-prompt (failure path).
+ *
+ * The model receives at most one retry; orchestrator policy lives in
+ * turn.ts. This function is one half of the retry loop.
+ */
+export async function applyTools(
+  db: Db,
+  sessionId: string,
+  projection: Projection,
+  tools: ToolCall[],
+): Promise<ApplyToolsResult> {
+  if (tools.length === 0) {
+    return { ok: true, events: [] };
+  }
+
+  for (const tool of tools) {
+    const parsed = toolCallSchema.safeParse(tool);
+    if (!parsed.success) {
+      const message = parsed.error.issues
+        .map((i) => `${i.path.join(".")}: ${i.message}`)
+        .join("; ");
+      const failure: ToolValidationFailure = {
+        tool: (tool as { name?: string }).name ?? "unknown",
+        error: message,
+      };
+      await appendEvents(db, sessionId, [
+        {
+          kind: "tool_validation_failed",
+          tool: failure.tool,
+          error: failure.error,
+        },
+      ]);
+      return { ok: false, failure };
+    }
+    const precondError = checkPrecondition(parsed.data, projection);
+    if (precondError) {
+      const failure: ToolValidationFailure = {
+        tool: parsed.data.name,
+        error: precondError,
+      };
+      await appendEvents(db, sessionId, [
+        {
+          kind: "tool_validation_failed",
+          tool: failure.tool,
+          error: failure.error,
+        },
+      ]);
+      return { ok: false, failure };
+    }
+  }
+
+  const events: Event[] = [];
+  for (const tool of tools) {
+    const evt = toolToEvent(tool, projection);
+    if (evt) events.push(evt);
+  }
+  const inserted = await appendEvents(db, sessionId, events);
+  return { ok: true, events: inserted };
+}
+
+/**
+ * Per-tool precondition checks against the current projection.
+ * Returns null on pass, error string on fail.
+ *
+ * Day-4 scope: the cheap, obvious checks. Beat triggers and form-card
+ * verb whitelisting plug in later (day 5/6).
+ */
+export function checkPrecondition(
+  tool: ToolCall,
+  projection: Projection,
+): string | null {
+  switch (tool.name) {
+    case "remove_inventory": {
+      const held = projection.inventory.find((i) => i.itemId === tool.itemId);
+      if (!held) return `inventory.removed: item not held: ${tool.itemId}`;
+      if (held.qty < tool.qty) {
+        return `inventory.removed: only ${held.qty} held, asked ${tool.qty}`;
+      }
+      return null;
+    }
+    case "absorb": {
+      const held = projection.inventory.find((i) => i.itemId === tool.itemId);
+      if (!held) return `absorb: item not held: ${tool.itemId}`;
+      return null;
+    }
+    case "update_relationship": {
+      if (!projection.npcs[tool.npcId]) {
+        return `update_relationship: unknown npc: ${tool.npcId}`;
+      }
+      return null;
+    }
+    case "apply_damage":
+    case "heal": {
+      if (tool.target === "$SELF" && tool.vital) {
+        const exists = tool.vital in projection.form.vitals;
+        if (!exists) {
+          return `${tool.name}: form has no vital '${tool.vital}'`;
+        }
+      }
+      return null;
+    }
+    case "change_form_state":
+    case "add_inventory":
+    case "move_to":
+    case "pass_time":
+    case "sense":
+    case "discover_location":
+    case "introduce_npc":
+    case "update_quest_objective":
+    case "grant_xp":
+    case "create_memory":
+    case "narrate_only":
+      return null;
+  }
+}
+
+/**
+ * Convert a validated ToolCall into the corresponding Event.
+ * Returns null for `narrate_only` (logged separately as
+ * `narration.emitted` by the orchestrator).
+ */
+export function toolToEvent(
+  tool: ToolCall,
+  projection: Projection,
+): Event | null {
+  switch (tool.name) {
+    case "apply_damage":
+      return {
+        kind: "damage.applied",
+        target: tool.target,
+        amount: tool.amount,
+        source: tool.source,
+        ...(tool.vital ? { vital: tool.vital } : {}),
+      };
+    case "heal":
+      return {
+        kind: "healed",
+        target: tool.target,
+        amount: tool.amount,
+        ...(tool.vital ? { vital: tool.vital } : {}),
+      };
+    case "change_form_state":
+      return {
+        kind: "form_state.changed",
+        field: tool.field,
+        delta: tool.delta,
+      };
+    case "add_inventory":
+      return {
+        kind: "inventory.added",
+        itemId: tool.itemId,
+        qty: tool.qty,
+      };
+    case "remove_inventory":
+      return {
+        kind: "inventory.removed",
+        itemId: tool.itemId,
+        qty: tool.qty,
+      };
+    case "absorb":
+      return {
+        kind: "absorbed",
+        itemId: tool.itemId,
+        into: tool.into,
+      };
+    case "move_to":
+      return {
+        kind: "moved",
+        fromRoom: projection.location.roomId,
+        toRoom: tool.roomId,
+      };
+    case "pass_time":
+      return { kind: "time.passed", ticks: tool.ticks };
+    case "sense":
+      return {
+        kind: "sensed",
+        modality: tool.modality,
+        detail: tool.detail,
+      };
+    case "discover_location":
+      return {
+        kind: "location.discovered",
+        locationId: tool.locationId,
+      };
+    case "introduce_npc": {
+      // npcId on the event is a fresh slug derived from templateId; the
+      // orchestrator may resolve a known instance. For day 4 we assume
+      // each introduce creates a new instance (rare collisions OK).
+      const npcId = `${tool.templateId}-${uuidv7().slice(0, 8)}`;
+      return {
+        kind: "npc.introduced",
+        npcId,
+        data: {
+          name: tool.templateId,
+          relationship: tool.attitude,
+          templateId: tool.templateId,
+        },
+      };
+    }
+    case "update_relationship":
+      return {
+        kind: "relationship.updated",
+        npcId: tool.npcId,
+        delta: tool.delta,
+        reason: tool.reason,
+      };
+    case "update_quest_objective":
+      return {
+        kind: "quest.objectiveUpdated",
+        questId: tool.questId,
+        objective: tool.objective,
+        status: tool.status,
+      };
+    case "grant_xp":
+      return {
+        kind: "xp.granted",
+        amount: tool.amount,
+        reason: tool.reason,
+      };
+    case "create_memory":
+      return {
+        kind: "memory.created",
+        memoryId: uuidv7(),
+        summary: tool.summary,
+      };
+    case "narrate_only":
+      return null;
+  }
+}
