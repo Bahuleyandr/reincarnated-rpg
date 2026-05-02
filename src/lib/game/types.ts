@@ -95,8 +95,14 @@ export type Event =
 export type EventKind = Event["kind"];
 
 export type ToolCall =
-  | { name: "apply_damage"; target: Target; amount: number; source: string }
-  | { name: "heal"; target: Target; amount: number }
+  | {
+      name: "apply_damage";
+      target: Target;
+      amount: number;
+      source: string;
+      vital?: string;
+    }
+  | { name: "heal"; target: Target; amount: number; vital?: string }
   | { name: "change_form_state"; field: string; delta: number }
   | { name: "add_inventory"; itemId: string; qty: number }
   | { name: "remove_inventory"; itemId: string; qty: number }
