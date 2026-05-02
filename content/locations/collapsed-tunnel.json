@@ -1,0 +1,136 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Slime-POV starting location for the v0.1 'survive the night' quest. Five rooms; one exit out, one branch toward danger. Ambient prose pool is form-agnostic (room itself, not the player) so the words `eyes`, `voice`, `walk` etc. may appear about NPCs but the pool itself does not narrate the player. The narrator merges these strings into prose. Edit room.connections only with eval re-runs (scenarios 16, 17, 19)."
+  },
+
+  "id": "collapsed-tunnel",
+  "displayName": "Collapsed Tunnel",
+  "tagline": "A wound in the rock the dungeon does not remember it has.",
+
+  "ambientPool": [
+    "Far above and far away, a slow heaviness shifts through the stone. Something walks the floors of a deeper dungeon than this.",
+    "The air here is older than weather. It has not seen a wind in a long time.",
+    "Somewhere a single drop of water finds the floor and is forgotten.",
+    "The schist holds heat poorly; whatever was warm here has gone cold and stayed.",
+    "A faint vibration pulses through the rock at intervals — slower than a heart, faster than a tide."
+  ],
+
+  "entryRoomId": "seam-of-the-collapse",
+
+  "rooms": [
+    {
+      "id": "seam-of-the-collapse",
+      "displayName": "Seam of the Collapse",
+      "summary": "A narrow seam where two slabs of schist met badly when the ceiling came down. The space is cold and wet and smells of iron from a thin trail of dried blood.",
+      "ambientPool": [
+        "The seam tightens around you as you settle. The two slabs above press their weight into the air.",
+        "Iron tastes the strongest here. Whatever bled, bled close.",
+        "From down-tunnel comes the sound of a single drop of water finding the floor, then another.",
+        "The stone is colder against your forward edge than it is behind."
+      ],
+      "hazards": [
+        { "id": "low-ceiling", "kind": "passive", "narrative": "The slabs are heavier than they look." }
+      ],
+      "exits": [
+        { "verb": "ooze", "toRoomId": "pebble-slope", "narrative": "The seam opens downward into a sloping run of loose stone." }
+      ]
+    },
+
+    {
+      "id": "pebble-slope",
+      "displayName": "Pebble Slope",
+      "summary": "A long, gentle downward run scattered with loose schist pebbles. The walls feel close. The floor is dry where the seam was wet.",
+      "ambientPool": [
+        "Pebbles loosen and skitter ahead of you, betraying every shift of mass.",
+        "Air moves here, thinly. Somewhere ahead is open space.",
+        "The slope is steeper than your awareness reads — gravity does much of the deciding.",
+        "Old bone-dust mixes with the rock; something ate something here, long ago."
+      ],
+      "hazards": [
+        { "id": "loose-scree", "kind": "noise", "narrative": "Movement here carries through stone." }
+      ],
+      "exits": [
+        { "verb": "ooze", "toRoomId": "seam-of-the-collapse", "narrative": "Back up the slope toward the seam.", "modifier": -1 },
+        { "verb": "ooze", "toRoomId": "dripping-cavern", "narrative": "Down the slope into open air and the sound of water." }
+      ]
+    },
+
+    {
+      "id": "dripping-cavern",
+      "displayName": "Dripping Cavern",
+      "summary": "A cavern wide enough that returning vibrations take a moment. A stagnant pool covers the western quarter of the floor. Water finds the pool from somewhere above and somewhere distant.",
+      "ambientPool": [
+        "A single drop falls from a great height, then another at a different interval. The pool answers with a ring you can feel in the floor.",
+        "The pool's chemistry is wrong: rust, oil, faint sourness. You should not drink here.",
+        "Something furred and warm lives nearby. Its breathing reaches you through the rock as a slow rhythm.",
+        "Fungus crusts a far wall in a low band; the chemistry of it is mild, almost kind.",
+        "The cavern is large enough that you cannot taste the whole of it from one place."
+      ],
+      "hazards": [
+        { "id": "tainted-pool", "kind": "toxic", "narrative": "Absorbing pool-water risks the absorb_something_toxic hard-move." },
+        { "id": "predator-listening", "kind": "encounter-trigger", "narrative": "Loud actions here may alert what dens to the east." }
+      ],
+      "exits": [
+        { "verb": "ooze", "toRoomId": "pebble-slope", "narrative": "Back up the slope you came down." },
+        { "verb": "ooze", "toRoomId": "mossy-alcove", "narrative": "Toward the dim band of fungus on the west wall." },
+        { "verb": "ooze", "toRoomId": "predator-den", "narrative": "Toward the warm breathing in the east passage.", "modifier": -1 }
+      ]
+    },
+
+    {
+      "id": "mossy-alcove",
+      "displayName": "Mossy Alcove",
+      "summary": "A shallow recess in the cavern's western wall. The bioluminescent fungus glows weakly here. The chemistry is gentle. The air is warmer.",
+      "ambientPool": [
+        "The fungus pulses a slow, almost breathing light. You do not perceive light, but you feel the small chemical shifts of its respiration.",
+        "There is no predator-scent here. Whatever made this alcove safe, made it safe a long time ago.",
+        "The wall behind the fungus is thinner than the rest of the cavern; vibrations from beyond carry a different tenor.",
+        "A patch of warmer stone retains the memory of something living."
+      ],
+      "hazards": [],
+      "exits": [
+        { "verb": "ooze", "toRoomId": "dripping-cavern", "narrative": "Back into the open cavern." },
+        { "verb": "ooze", "toRoomId": "outside-fissure", "narrative": "Through the thin wall behind the fungus, into a draft and an unfamiliar chemistry.", "modifier": -1, "discoverable": true, "discoverHint": "The fungus-warm wall is thin. A sense_tremor or dissolve roll exposes the way through." }
+      ]
+    },
+
+    {
+      "id": "predator-den",
+      "displayName": "Predator Den",
+      "summary": "A low chamber with a single dry sleeping-shape worn into the rock. The chemistry of bone, fur, and rancid oil is dense here. Something lives here. Something is watching.",
+      "ambientPool": [
+        "The musk is intolerable to your essence. Hostile chemistry pulses with the breathing of the thing that beds here.",
+        "Bone-shards pepper the floor. Some are old. Some are fresh.",
+        "The thing has not noticed you yet. The pause cannot last.",
+        "There is a draft from the rear of the den; somewhere it leads upward."
+      ],
+      "hazards": [
+        { "id": "tunnel-predator-resident", "kind": "creature", "narrative": "A tunnel-predator beds here. Entry without a successful sense_tremor risks immediate attention." }
+      ],
+      "exits": [
+        { "verb": "ooze", "toRoomId": "dripping-cavern", "narrative": "Back into the open cavern, faster than caution.", "modifier": -1 }
+      ]
+    },
+
+    {
+      "id": "outside-fissure",
+      "displayName": "The Fissure",
+      "summary": "A vertical fissure leading up to where the air is unfamiliar — dry, faintly green. The chemistry of the surface, or close to it. A way out, for a slime that survives the climb.",
+      "ambientPool": [
+        "The air here moves. It has not been still in a long time.",
+        "The chemistry is wrong, but in a new way: pollen, distant smoke, growing things.",
+        "The fissure climbs further than your essence wants to commit, but it climbs.",
+        "Behind you, the cavern is already a memory."
+      ],
+      "hazards": [],
+      "exits": [
+        { "verb": "ooze", "toRoomId": "mossy-alcove", "narrative": "Back through the warm wall." }
+      ],
+      "isExit": true,
+      "exitNarrative": "You have left the collapsed tunnel. The night, for now, has been survived."
+    }
+  ]
+}

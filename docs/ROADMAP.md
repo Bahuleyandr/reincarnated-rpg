@@ -8,9 +8,9 @@ Goal: TemplateNarrator playable end-to-end (no AI). Anonymous player completes a
 
 | Day | Status | Output |
 |---|---|---|
-| 1 | **in progress (2026-05-03)** | Repo init, deps installed, configs/docs/CLAUDE/README authored, `content/forms/lesser-slime.json` authored in full (negative vocab + hard-move menu + sample corpus), private GitHub repo created. Baseline commit. |
-| 2 | pending | Drizzle schema (10 tables), migrations applied locally, `scripts/seed.ts`, `content/locations/collapsed-tunnel.json`. Schema round-trip unit test. |
-| 3 | pending | Event log: `events.ts` append/readLog with seq guards. `projection.ts` reducer + snapshot writer. ≥10 reducer unit tests. Postgres rule blocks DELETE/UPDATE on events. |
+| 1 | done (2026-05-03) | Repo init, deps installed, configs/docs/CLAUDE/README authored, `content/forms/lesser-slime.json` authored in full (negative vocab + hard-move menu + sample corpus), private GitHub repo created. Baseline commit. |
+| 2 | done (2026-05-03) | Drizzle schema (10 tables) at `src/lib/db/schema.ts`. Migration `0000_init.sql` enables pgvector, creates tables/enums/indexes, and installs the events append-only trigger (raises on UPDATE/DELETE). `scripts/seed.ts` + `scripts/load-env.ts` (tiny dotenv replacement). `content/locations/collapsed-tunnel.json` (6 rooms incl. exit fissure). 11 schema-round-trip tests passing. `.env.example` documents the WSL2 localhost-forwarding gotcha. |
+| 3 | **in progress (2026-05-03)** | Event log: `events.ts` append/readLog with seq guards. `projection.ts` reducer + snapshot writer. ≥10 reducer unit tests. (Postgres append-only enforcement landed early in day 2.) |
 | 4 | pending | Rules engine: `rules.ts` 2d6 + modifier + bands, seeded PRNG. Tool registry + Zod validators + atomicity wrapper. `sanitize.ts`. Eval harness skeleton. |
 | 5 | pending | TemplateNarrator phrase-bank. Beat matcher. Author 5 beats × roll outcomes for "survive the night". Beat unit tests. |
 | 6 | pending | Turn orchestrator: classify (regex) → roll → memory (stub) → narrate → validate → append → project. API routes `/api/session`, `/api/turn`. Signed cookie session. |
