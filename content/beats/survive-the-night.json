@@ -1,0 +1,119 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Five beats for the v0.1 'survive the night' arc on the slime in the collapsed tunnel. Triggers branch on prior actions (location, NPC introduction, vital state) — not pure turn order — per PLAN.md's brief. Each beat fires a small set of events that the orchestrator (day 6) appends as side-effects; narration text is a hint for the narrator and may be ignored or rewritten."
+  },
+
+  "id": "survive-the-night",
+  "displayName": "Survive the Night",
+  "questId": "survive-the-night",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-awakening",
+      "displayName": "Awakening",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "Awareness gathers. The dark tastes of iron.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "survive-the-night",
+          "objective": "leave-the-seam",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-rat",
+      "displayName": "The Rat Arrives",
+      "trigger": {
+        "all": [
+          { "location.roomId": "==dripping-cavern" },
+          { "turn": ">=2" }
+        ]
+      },
+      "narrative": "Claws clatter. Something panicked is fleeing toward you.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "tunnel-rat-1",
+          "data": {
+            "name": "tunnel rat",
+            "relationship": -1,
+            "templateId": "tunnel-rat"
+          }
+        }
+      ]
+    },
+    {
+      "id": "03-the-choice",
+      "displayName": "The Choice",
+      "trigger": {
+        "all": [{ "npcKnown": "tunnel-rat-1" }]
+      },
+      "narrative": "Whatever sent the rat is closer than the rat.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "survive-the-night",
+          "objective": "decide-on-the-rat",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "04-predator-stirs",
+      "displayName": "Predator Stirs",
+      "trigger": {
+        "any": [
+          { "turn": ">=6" },
+          { "location.roomId": "==predator-den" }
+        ]
+      },
+      "narrative": "The breathing in the east passage shifts. Something heavy is awake.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "vibration",
+          "detail": "a slow, deliberate weight crossing stone"
+        }
+      ]
+    },
+    {
+      "id": "05-dawn",
+      "displayName": "Dawn",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          {
+            "any": [
+              { "location.roomId": "==mossy-alcove" },
+              { "location.roomId": "==outside-fissure" }
+            ]
+          }
+        ]
+      },
+      "narrative": "The chemistry of the air turns: distant smoke, growing things, pollen. The night is ending.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "survive-the-night",
+          "objective": "survive-until-dawn",
+          "status": "done"
+        },
+        {
+          "kind": "session.ended",
+          "reason": "win"
+        }
+      ]
+    }
+  ]
+}
