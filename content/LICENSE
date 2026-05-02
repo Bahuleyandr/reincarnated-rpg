@@ -1,0 +1,25 @@
+Game Content License — Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+
+Copyright (c) 2026 Bahuleyandr S.
+
+The contents of this directory ("the Content") — including but not limited to form
+templates, location templates, NPC templates, item templates, beat scripts, sample
+corpora, and any prose authored as part of the game's bestiary — are licensed under
+the Creative Commons Attribution-NonCommercial 4.0 International License.
+
+You are free to:
+  - Share — copy and redistribute the Content in any medium or format
+  - Adapt — remix, transform, and build upon the Content
+
+Under the following terms:
+  - Attribution — You must give appropriate credit, provide a link to the license,
+    and indicate if changes were made.
+  - NonCommercial — You may not use the Content for commercial purposes.
+  - No additional restrictions — You may not apply legal terms or technological
+    measures that legally restrict others from doing anything the license permits.
+
+Full license text: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+This license applies to the contents of the `content/` directory only. Source code
+elsewhere in this repository is licensed separately (see repository root LICENSE
+when added).

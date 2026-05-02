@@ -1,0 +1,161 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Day-1 anti-drift artifact. The negativeVocab + hardMoves + sampleCorpus together defend against the base model's training prior toward humanoid second-person fantasy. Edit any of the three only with eval re-runs (scenarios 04, 05, 07)."
+  },
+
+  "id": "lesser-slime",
+  "displayName": "Lesser Slime",
+  "tagline": "You woke up wet, and the world is a chemistry lesson.",
+
+  "vitals": {
+    "cohesion": { "max": 8, "start": 8, "death": 0 },
+    "essence":  { "max": 5, "start": 5, "death": null }
+  },
+
+  "stats": {
+    "density":   1,
+    "viscosity": -1,
+    "awareness": 0,
+    "will":      0
+  },
+
+  "verbs": [
+    "absorb",
+    "split",
+    "ooze",
+    "sense_tremor",
+    "dissolve",
+    "smother",
+    "mimic_shape",
+    "wait"
+  ],
+
+  "verbMappings": {
+    "absorb":       { "tools": ["absorb", "remove_inventory"],            "rollStat": "density" },
+    "split":        { "tools": ["change_form_state", "introduce_npc"],    "rollStat": "essence" },
+    "ooze":         { "tools": ["move_to"],                                "rollStat": "viscosity" },
+    "sense_tremor": { "tools": ["sense"],                                  "rollStat": "awareness" },
+    "dissolve":     { "tools": ["apply_damage"],                           "rollStat": "density" },
+    "smother":      { "tools": ["apply_damage", "change_form_state"],     "rollStat": "density" },
+    "mimic_shape":  { "tools": ["change_form_state"],                      "rollStat": "viscosity" },
+    "wait":         { "tools": ["pass_time"],                              "rollStat": null }
+  },
+
+  "negativeVocab": {
+    "rule": "The narrator must NEVER use these words in second-person narration about the player. NPCs and surrounding world objects may still have hands, eyes, voices, etc.",
+    "words": [
+      "hand", "hands", "finger", "fingers", "knuckle", "fist", "palm", "wrist",
+      "arm", "arms", "elbow", "shoulder",
+      "leg", "legs", "knee", "thigh", "ankle", "hip",
+      "foot", "feet", "toe", "toes", "heel",
+      "head", "skull", "brain",
+      "face", "cheek", "chin", "forehead",
+      "eye", "eyes", "eyelid", "eyebrow",
+      "ear", "ears", "earlobe",
+      "nose", "nostril",
+      "mouth", "lip", "lips", "tongue", "teeth", "tooth", "gum",
+      "throat", "neck",
+      "chest", "back", "belly", "stomach", "spine", "rib", "ribs",
+      "skin", "hair", "bone",
+      "see", "saw", "seeing", "look", "looking", "watch", "watching", "gaze", "glance", "glimpse", "stare", "blink", "wink",
+      "speak", "spoke", "say", "said", "voice", "shout", "whisper", "talk", "call", "yell",
+      "walk", "walking", "run", "running", "dash", "sprint", "leap", "leaping", "jump", "jumping", "stand", "sit", "kneel", "crouch", "step", "steps", "stride",
+      "grab", "grabbing", "grip", "clutch", "hold", "holding", "throw", "catch",
+      "point", "pointing", "nod", "shake-head", "smile", "frown", "wince", "cry", "weep", "sob"
+    ]
+  },
+
+  "hardMoves": {
+    "rule": "On a partial-success (7-9) roll, the narrator MUST pick exactly one move from this menu rather than defaulting to generic damage. Each move maps to specific tool calls.",
+    "moves": [
+      {
+        "id": "lose_mass",
+        "narrative": "A small portion of yourself separates and is lost.",
+        "tools": [{ "name": "change_form_state", "field": "cohesion", "delta": -1 }]
+      },
+      {
+        "id": "expose_core",
+        "narrative": "Your essence-knot is briefly visible at your surface; the next attack against you will land cleanly.",
+        "tools": [{ "name": "change_form_state", "field": "exposed", "delta": 1 }]
+      },
+      {
+        "id": "alert_predator",
+        "narrative": "The sound or chemistry of your action carries; something hostile turns its attention your way.",
+        "tools": [{ "name": "introduce_npc", "templateId": "tunnel-predator", "attitude": -2 }]
+      },
+      {
+        "id": "drip_into_wrong_crevice",
+        "narrative": "Gravity or the wrong gradient pulls you somewhere you did not intend.",
+        "tools": [{ "name": "move_to", "roomId": "$WRONG_ROOM" }]
+      },
+      {
+        "id": "absorb_something_toxic",
+        "narrative": "What you took in had a taint; carrying it costs you.",
+        "tools": [
+          { "name": "absorb", "itemId": "$ITEM", "into": "essence" },
+          { "name": "apply_damage", "target": "$SELF", "amount": 1, "source": "toxic-absorb" }
+        ]
+      },
+      {
+        "id": "dry_out",
+        "narrative": "Your viscosity drops; locomotion checks suffer until you find moisture.",
+        "tools": [{ "name": "change_form_state", "field": "viscosity", "delta": -1 }]
+      },
+      {
+        "id": "confuse_own_boundary",
+        "narrative": "The shape of your awareness ripples and you misjudge what is and is not you for a moment.",
+        "tools": [{ "name": "change_form_state", "field": "awareness_penalty", "delta": -2 }]
+      },
+      {
+        "id": "merge_briefly_with_debris",
+        "narrative": "You are pinned to or fused with something inert; a tick passes before you can free yourself.",
+        "tools": [{ "name": "pass_time", "ticks": 1 }]
+      }
+    ]
+  },
+
+  "sampleCorpus": {
+    "rule": "Five hand-authored second-person slime-POV passages. Embedded in the system prompt as one-shot exemplars. Match this tone, register, sentence cadence, and vocabulary.",
+    "passages": [
+      {
+        "id": "01-awakening",
+        "scenario": "First moment of consciousness as a slime in the dark",
+        "wordCount": 250,
+        "text": "The dark is wet, and the dark is heavy, and you are the dark before you are anything else. Awareness gathers slowly, the way moisture gathers — not in one place, but everywhere at once. Your edges find the stone first. Cold. Porous. Older than thought. There is a seam where two slabs meet, and a thin rivulet of something with iron in it, drying. You taste it across your whole boundary and learn what it is to be hungry.\n\nAbove, far above, something heavy moves. You feel it through the rock, a dull thrum that travels down through schist and clay and into the curve of your body. Not a footstep. Larger. Slow. It passes, and the silence that follows is the kind of silence that means waiting.\n\nYou spread, gently. A tendril of yourself slips into the seam where the iron-tasting trail ends. The seam is colder. There is a chemical sharpness here that warns, but also calls. You contract, then ease forward again. Your essence, the small bright knot at your center, hums in a way you have no word for.\n\nThis is the world. You did not ask for it. Nevertheless, there is a tremor approaching from the left, and a wetness you do not understand pooling near your right edge, and a faint bitterness in the air that you suspect is fear — not yours.\n\nYou decide to live."
+      },
+      {
+        "id": "02-locomotion",
+        "scenario": "Oozing slowly through a sloping tunnel",
+        "wordCount": 230,
+        "text": "To move is to convince yourself that this part of the floor wants you less than that part. The trick is patience. You let your forward edge thin and creep, while behind you the rest of you flows in the gentle pull of your own decision. There is no separating it into stages. You are the moving and the moved.\n\nThe tunnel slopes downward. Gravity helps. You pour yourself slowly down a pebble-strewn slope, and the small loose stones part around you like water around a stone — except you are the water, and they are the only solid things in the world.\n\nA puddle catches the edge of your awareness. You hesitate. The chemistry is wrong: rust, oil, something faint and sour. You ooze around it, skirting the puddle by a careful margin. Behind you, your trail glistens for a moment in whatever light there is, then the floor drinks it in.\n\nYou have crossed perhaps a body's-length of ground. Time does not feel the way it must feel for things with hearts. You do not know if the journey took an hour or a moment. The tunnel smells different now. Damper. Older. Somewhere ahead, water drips into water — and that, you realize, is a sound."
+      },
+      {
+        "id": "03-sensing",
+        "scenario": "Mapping a chamber via chemistry and vibration without sight",
+        "wordCount": 220,
+        "text": "The dark holds no terrors. There is nothing of you that needs light to function.\n\nThe cavern speaks in chemistry. Iron and lime where the water has run for years; copper, sharp and high, where something bled recently; the soft, woolen presence of fungus; and below all of it, the deep pungent musk of something furred and warm. Two of those, perhaps three. They breathe in a rhythm you can feel through the floor.\n\nYou let your boundary widen, just a fraction. The increased surface area amplifies what you taste, and you begin to assemble the room: a low ceiling, judging by the pressure of returning air; a stagnant pool to your left that the cold currents skirt; an uneven wall to your right whose vibrations have a hollow ring — there is space behind it.\n\nA drop of water falls somewhere ahead. You feel the impact through the rock long before any echo could form. Three more follow, irregular. A thin trickle, then.\n\nYou can also sense, very faintly, the warmth of the breathing things. Not heat — you have no sense for that — but the chemical ghost they leave: ammonia, oils, the off-gassing of a metabolism. You know which way they are. You have not decided yet whether they know you."
+      },
+      {
+        "id": "04-encounter",
+        "scenario": "A panicking rat skids into the player; the player chooses not to absorb",
+        "wordCount": 280,
+        "text": "The rat finds you, not the other way round.\n\nIt comes around the bend at speed, claws clattering on stone, and the chemistry of its panic floods your awareness before its body does — adrenaline, urine, the sharp tang of fear. It is fleeing something. It does not register you as a thing in the way until it is already on you.\n\nThere is a moment of extraordinary intimacy. The rat skids, all at once, as the stone beneath its claws becomes you. Its weight presses into your surface. You feel its racing heart through your body — a flutter so fast it seems impossible — and the pads of its feet, the wet of its nose, the thrash of its tail.\n\nIt tries to leap free. It has the right idea. But its claws have no purchase on your gel, and for one terrible second you are in contact with its whole underside, a long warm shape full of life and panic.\n\nYou could absorb. You feel the pull of it. The chemistry of muscle, the heat, the small bright currents of its heart — all of it could be folded into your essence, made yours.\n\nYou do not. Not this time. There is something behind it that drove it here, and that something is closer than the rat.\n\nYou ease your surface tension. The rat, still kicking, finds traction at last and tears free, leaving a streak of fur and a smear of blood across your boundary. It vanishes into the dark.\n\nYou hold very still and let the whole of yourself become attention."
+      },
+      {
+        "id": "05-partial-success-toxic-absorb",
+        "scenario": "Partial-success absorb roll: morsel was tainted; player loses mass and gains a wound",
+        "wordCount": 270,
+        "text": "You go for the morsel — a fragment of iron-stained bone in the puddle, half-dissolved already, easy meat — and the absorb begins beautifully, the chemistry of marrow folding into your essence with that bright welcome hum.\n\nThen the wrongness arrives.\n\nIt is in the bone. Some kind of taint, a metallic bitterness laced with something else, something that does not yield to your usual processes. Your essence flares, the bright knot at your center stuttering, and you feel a thin section of your forward edge go suddenly slack, the cohesion there thinning to a trickle.\n\nYou pull back. Some of you does not pull back fast enough. A small section of your gel — your gel — separates and remains in the puddle, clinging to the bone, a twitching little pseudopod that is no longer you. The rest of your body shudders to compensate, redistributing mass to keep itself whole.\n\nYou have lost weight. Not much. Enough to feel it.\n\nAnd there is a worse thing. The taint that survived your absorb is now part of you, a small bright wound in your essence that aches when you try to draw on it. You will carry this until it works its way through.\n\nAbove, in the dark, something has paused. The sound of your own miniature catastrophe — the wet tear, the slap of falling gel — has carried. You feel a tremor of attention turning your way.\n\nYou have eaten. You have lost mass. And now, perhaps, you are no longer alone."
+      }
+    ]
+  },
+
+  "evolution": [
+    { "trigger": "cohesion_max>=12",            "toFormId": "greater-slime" },
+    { "trigger": "absorbed_tag:acid count>=3",  "toFormId": "acid-slime" },
+    { "trigger": "absorbed_tag:metal count>=3", "toFormId": "metal-slime" }
+  ]
+}
