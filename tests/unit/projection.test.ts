@@ -195,6 +195,54 @@ describe("damage and heal", () => {
     });
     expect(next.form.vitals.cohesion).toBe(5);
   });
+
+  test("damage with explicit `vital: 'essence'` hits essence", () => {
+    const next = reduce(fresh(), {
+      kind: "damage.applied",
+      target: "$SELF",
+      amount: 2,
+      source: "drain",
+      vital: "essence",
+    });
+    expect(next.form.vitals.essence).toBe(3);
+    expect(next.form.vitals.cohesion).toBe(8);
+  });
+
+  test("damage to a non-death vital (essence) draining to 0 leaves status='active'", () => {
+    const seed: Projection = {
+      ...fresh(),
+      form: {
+        ...fresh().form,
+        vitals: { ...fresh().form.vitals, essence: 1 },
+      },
+    };
+    const next = reduce(seed, {
+      kind: "damage.applied",
+      target: "$SELF",
+      amount: 5,
+      source: "drain",
+      vital: "essence",
+    });
+    expect(next.form.vitals.essence).toBe(0);
+    expect(next.status).toBe("active");
+  });
+
+  test("healed with explicit vital='essence' clamps at vitalsMax.essence", () => {
+    const seed: Projection = {
+      ...fresh(),
+      form: {
+        ...fresh().form,
+        vitals: { ...fresh().form.vitals, essence: 3 },
+      },
+    };
+    const next = reduce(seed, {
+      kind: "healed",
+      target: "$SELF",
+      amount: 100,
+      vital: "essence",
+    });
+    expect(next.form.vitals.essence).toBe(5);
+  });
 });
 
 describe("inventory", () => {

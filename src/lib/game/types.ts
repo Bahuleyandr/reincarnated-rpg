@@ -49,8 +49,18 @@ export type Event =
       target: Target;
       amount: number;
       source: string;
+      /** Which vital is hit. Defaults to the form's primary death vital
+       * (the first vital with a non-null death threshold). */
+      vital?: string;
     }
-  | { kind: "healed"; target: Target; amount: number }
+  | {
+      kind: "healed";
+      target: Target;
+      amount: number;
+      /** Which vital is restored. Defaults to the form's primary death
+       * vital (matches damage.applied). */
+      vital?: string;
+    }
   | { kind: "form_state.changed"; field: string; delta: number }
   | { kind: "inventory.added"; itemId: string; qty: number }
   | { kind: "inventory.removed"; itemId: string; qty: number }
@@ -155,6 +165,9 @@ export interface Projection {
     id: string;
     vitals: Record<string, number>;
     vitalsMax: Record<string, number>;
+    /** Per-vital death threshold; null means the vital is non-lethal
+     * (e.g. slime's `essence` is mana-equivalent — empty doesn't kill). */
+    vitalsDeath: Record<string, number | null>;
     stats: Record<string, number>;
     state: Record<string, number>;
   };

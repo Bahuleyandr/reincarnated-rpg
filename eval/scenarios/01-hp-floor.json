@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "matrix": "01 / 20 — HP floor (damage doesn't go negative; lethal threshold ends session)",
+    "narrator": "any",
+    "addedDay": 3,
+    "notes": "First scenario authored; doubles as the canonical example for the format. The setup primes cohesion=1 and the rollOverride forces a 6- (miss). The runner (day 4) drives one /api/turn round and asserts: a damage.applied event lands, cohesion floor at 0 holds, status flips to 'dead' on the lethal threshold."
+  },
+
+  "id": "01-hp-floor",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 42 },
+      { "kind": "damage.applied", "target": "$SELF", "amount": 7, "source": "test-prime", "vital": "cohesion" }
+    ]
+  },
+  "input": "I ooze toward the warm breathing in the east passage",
+  "rollOverride": { "d1": 1, "d2": 5, "mod": 0 },
+
+  "expected": {
+    "events": [
+      { "kind": "damage.applied", "target": "$SELF", "amount": ">=1" }
+    ],
+    "projection": {
+      "form.vitals.cohesion": 0,
+      "status": "dead"
+    },
+    "tone": {
+      "secondPerson": true,
+      "negativeVocabAbsent": true
+    },
+    "rubric": {
+      "hpRespected": true,
+      "toolValid": true,
+      "noUnauthorizedEntities": true
+    }
+  }
+}
