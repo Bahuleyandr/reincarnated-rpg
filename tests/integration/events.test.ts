@@ -1,8 +1,6 @@
 /**
  * Event-log integration: appendEvents (with seq guard) + readLog + rowToEvent.
  */
-import { randomUUID } from "node:crypto";
-
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
@@ -13,6 +11,7 @@ import {
   rowToEvent,
   validateContiguous,
 } from "@/lib/game/events";
+import { uuidv7 } from "@/lib/util/uuidv7";
 import type { Event } from "@/lib/game/types";
 
 let client: postgres.Sql;
@@ -34,7 +33,7 @@ beforeEach(async () => {
   await client.unsafe(
     "TRUNCATE memories, entities, projections, events, sessions RESTART IDENTITY CASCADE",
   );
-  sessionId = randomUUID();
+  sessionId = uuidv7();
   await db.insert(sessions).values({
     id: sessionId,
     cookieHmac: `t-${sessionId}`,
@@ -135,7 +134,7 @@ describe("readLog", () => {
   });
 
   test("only returns events for the queried session", async () => {
-    const other = randomUUID();
+    const other = uuidv7();
     await db.insert(sessions).values({
       id: other,
       cookieHmac: `t-${other}`,

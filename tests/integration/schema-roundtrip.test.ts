@@ -2,25 +2,15 @@
  * Schema round-trip — Day 2 acceptance for the Drizzle layer.
  *
  * Hits a real Postgres (loaded by `jest.setup.ts` from .env.local DATABASE_URL).
- * Lives under tests/unit/ per docs/PLAN.md, even though it touches a DB —
- * for this project the Drizzle schema is *the* unit and there's no point
- * mocking it.
- *
  * Each test starts from a clean session row; truncating with CASCADE wipes
  * dependent tables but bypasses the events append-only trigger (TRUNCATE
  * fires BEFORE TRUNCATE triggers, not BEFORE DELETE).
  */
-import { randomUUID } from "node:crypto";
-
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
-// `uuid` v14 ships pure ESM and currently breaks under next/jest's SWC config.
-// `crypto.randomUUID()` (UUID v4) is sufficient for these schema-shape tests;
-// we'll wire UUID v7 in production code (turn.ts, day 6) and revisit jest then.
-const uuidv7 = randomUUID;
-
+import { uuidv7 } from "@/lib/util/uuidv7";
 import {
   entities,
   events,

@@ -15,13 +15,12 @@
  * diagnostics; production paths shouldn't need it because the trigger
  * + unique index + transaction make gaps impossible.
  */
-import { randomUUID } from "node:crypto";
-
 import { and, asc, eq, gt, max } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/postgres-js";
 
 import { events as eventsTable } from "../db/schema";
 import type { EventRow, NewEventRow } from "../db/schema";
+import { uuidv7 } from "../util/uuidv7";
 
 import type { Event, EventKind } from "./types";
 
@@ -52,7 +51,7 @@ export async function appendEvents(
       seq += 1;
       const { kind, payload, seed } = splitEvent(event);
       return {
-        id: randomUUID(),
+        id: uuidv7(),
         sessionId,
         seq,
         kind,

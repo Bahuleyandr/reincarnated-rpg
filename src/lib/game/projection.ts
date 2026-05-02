@@ -36,9 +36,11 @@ export function initialProjection(args: {
 }): Projection {
   const vitals: Record<string, number> = {};
   const vitalsMax: Record<string, number> = {};
+  const vitalsDeath: Record<string, number | null> = {};
   for (const [name, v] of Object.entries(args.form.vitals)) {
     vitals[name] = v.start;
     vitalsMax[name] = v.max;
+    vitalsDeath[name] = v.death ?? null;
   }
   return {
     sessionId: args.sessionId,
@@ -47,6 +49,7 @@ export function initialProjection(args: {
       id: args.form.id,
       vitals,
       vitalsMax,
+      vitalsDeath,
       stats: { ...args.form.stats },
       state: {},
     },
@@ -195,24 +198,39 @@ export function reduce(state: Projection, event: Event): Projection {
   }
 }
 
+/**
+ * Pick the vital that damage/heal target by default.
+ * "Primary death vital" = the first vital with a non-null death threshold.
+ * Slime: cohesion (death=0). Cursed Book: pages_intact. Etc.
+ * Falls back to the first declared vital if no death-marked vital exists.
+ */
+function primaryDeathVital(state: Projection): string {
+  for (const [name, threshold] of Object.entries(state.form.vitalsDeath)) {
+    if (threshold !== null) return name;
+  }
+  const first = Object.keys(state.form.vitals)[0];
+  return first ?? "cohesion";
+}
+
 function reduceDamage(
   state: Projection,
   event: Extract<Event, { kind: "damage.applied" }>,
 ): Projection {
   if (event.target !== "$SELF") return state; // NPC HP lives on entities, not projection
-  // Damage hits cohesion (the slime form's primary survivability vital);
-  // future forms may target different vitals, in which case we'll add a
-  // `vital?: string` field to the event payload. Day-3 scope: cohesion only.
-  const cur = state.form.vitals.cohesion ?? 0;
+  const vital = event.vital ?? primaryDeathVital(state);
+  const cur = state.form.vitals[vital] ?? 0;
   const next = Math.max(0, cur - event.amount);
   const updated: Projection = {
     ...state,
     form: {
       ...state.form,
-      vitals: { ...state.form.vitals, cohesion: next },
+      vitals: { ...state.form.vitals, [vital]: next },
     },
   };
-  if (next === 0) updated.status = "dead";
+  const threshold = state.form.vitalsDeath[vital];
+  if (threshold !== null && threshold !== undefined && next <= threshold) {
+    updated.status = "dead";
+  }
   return updated;
 }
 
@@ -221,14 +239,15 @@ function reduceHealed(
   event: Extract<Event, { kind: "healed" }>,
 ): Projection {
   if (event.target !== "$SELF") return state;
-  const cur = state.form.vitals.cohesion ?? 0;
-  const max = state.form.vitalsMax.cohesion ?? cur;
+  const vital = event.vital ?? primaryDeathVital(state);
+  const cur = state.form.vitals[vital] ?? 0;
+  const max = state.form.vitalsMax[vital] ?? cur;
   const next = Math.min(max, cur + event.amount);
   return {
     ...state,
     form: {
       ...state.form,
-      vitals: { ...state.form.vitals, cohesion: next },
+      vitals: { ...state.form.vitals, [vital]: next },
     },
   };
 }
