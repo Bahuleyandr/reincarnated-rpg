@@ -10,10 +10,8 @@ const config: Config = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  // `uuid` v14 ships pure ESM; let Jest transform it via next/jest's SWC.
-  // (Now moot — we use src/lib/util/uuidv7.ts — kept in case future
-  // node_modules dep ships ESM.)
-  transformIgnorePatterns: ["node_modules/(?!(uuid)/)"],
+  // `jose` and `uuid` ship pure ESM; let Jest transform via next/jest's SWC.
+  transformIgnorePatterns: ["node_modules/(?!(uuid|jose)/)"],
   collectCoverageFrom: [
     "src/lib/**/*.ts",
     "!src/lib/db/migrations/**",
