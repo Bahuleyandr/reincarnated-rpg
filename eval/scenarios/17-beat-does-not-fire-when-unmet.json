@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "matrix": "17 / 20 — Beat does not fire when its precondition is unmet",
+    "narrator": "any",
+    "addedDay": 11,
+    "notes": "02-the-rat trigger requires location.roomId=='dripping-cavern'. From the seam (entry room), the beat must NOT fire. Test asserts no npc.introduced event for tunnel-rat-1."
+  },
+  "id": "17-beat-does-not-fire-when-unmet",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 500 }
+    ]
+  },
+  "input": "I taste the seam",
+  "expected": {
+    "eventsAbsent": [
+      { "kind": "npc.introduced", "npcId": "tunnel-rat-1" }
+    ]
+  }
+}
