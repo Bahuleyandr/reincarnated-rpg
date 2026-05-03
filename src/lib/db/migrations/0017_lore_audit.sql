@@ -1,0 +1,3 @@
+ALTER TABLE "world_lore" ADD COLUMN "updated_at" timestamp with time zone DEFAULT now() NOT NULL;--> statement-breakpoint
+ALTER TABLE "world_lore" ADD COLUMN "last_edited_by_user_id" uuid;--> statement-breakpoint
+ALTER TABLE "world_lore" ADD CONSTRAINT "world_lore_last_edited_by_user_id_users_id_fk" FOREIGN KEY ("last_edited_by_user_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;

@@ -559,7 +559,21 @@ export const worldLore = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
-    /** Time-limited events — null = permanent. */
+    /** Bumped whenever an admin edits an entry via PUT /api/god/lore.
+     *  Equal to createdAt on initial insert. The /meta UI shows
+     *  "edited" when this differs. */
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /** Admin who last edited this entry. Null on initial promotion;
+     *  set to admin user id on PUT. Display-only — for audit. */
+    lastEditedByUserId: uuid("last_edited_by_user_id").references(
+      () => users.id,
+      { onDelete: "set null" },
+    ),
+    /** Time-limited events — null = permanent. Set by:
+     *   - the lore judge for genuinely time-limited events (rare),
+     *   - admin via /god/lore/[id] DELETE (redact = set to NOW()). */
     expiresAt: timestamp("expires_at", { withTimezone: true }),
   },
   (t) => [

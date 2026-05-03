@@ -64,11 +64,40 @@ export default function GodPage() {
   } | null>(null);
   const [pinTheme, setPinTheme] = useState<string>("");
 
+  // Lore admin
+  interface AdminLoreRow {
+    id: string;
+    summary: string;
+    prose: string | null;
+    salience: number;
+    category: string | null;
+    tags: string[];
+    sourceUserId: string | null;
+    sourceFormId: string | null;
+    sourceLocationId: string | null;
+    sourcePhase: string | null;
+    createdAt: string;
+    updatedAt: string;
+    lastEditedByUserId: string | null;
+    expiresAt: string | null;
+    isRedacted: boolean;
+    isEdited: boolean;
+  }
+  const [loreList, setLoreList] = useState<AdminLoreRow[]>([]);
+  const [loreShowRedacted, setLoreShowRedacted] = useState(false);
+  const [editingLore, setEditingLore] = useState<AdminLoreRow | null>(null);
+  const [newLoreSummary, setNewLoreSummary] = useState("");
+  const [newLoreProse, setNewLoreProse] = useState("");
+  const [newLoreCategory, setNewLoreCategory] = useState("city-event");
+  const [newLoreTags, setNewLoreTags] = useState("");
+  const [newLoreSalience, setNewLoreSalience] = useState(0.85);
+
   async function load() {
     setLoading(true);
-    const [r, w] = await Promise.all([
+    const [r, w, l] = await Promise.all([
       fetch("/api/god"),
       fetch("/api/world"),
+      fetch("/api/god/lore?limit=50"),
     ]);
     if (r.status === 403) {
       setForbidden(true);
@@ -93,7 +122,108 @@ export default function GodPage() {
       });
       setPinTheme(wd.overrideActive ? wd.activeTheme.id : "");
     }
+    if (l.ok) {
+      const ld = (await l.json()) as { lore: AdminLoreRow[] };
+      setLoreList(ld.lore);
+    }
     setLoading(false);
+  }
+
+  async function writeLore() {
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const r = await fetch("/api/god/lore", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          summary: newLoreSummary,
+          prose: newLoreProse || undefined,
+          salience: newLoreSalience,
+          category: newLoreCategory,
+          tags: newLoreTags
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean),
+        }),
+      });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        setError(d.error ?? `lore write failed (${r.status})`);
+        setBusy(false);
+        return;
+      }
+      setSuccess("lore entry written.");
+      setNewLoreSummary("");
+      setNewLoreProse("");
+      setNewLoreTags("");
+      await load();
+      setBusy(false);
+    } catch (e) {
+      setError(`network: ${e instanceof Error ? e.message : "?"}`);
+      setBusy(false);
+    }
+  }
+
+  async function saveEdit(row: AdminLoreRow) {
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const r = await fetch(`/api/god/lore/${row.id}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          summary: row.summary,
+          prose: row.prose,
+          salience: row.salience,
+          category: row.category,
+          tags: row.tags,
+          expiresAt: row.expiresAt,
+        }),
+      });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        setError(d.error ?? `edit failed (${r.status})`);
+        setBusy(false);
+        return;
+      }
+      setSuccess(`edited ${row.id.slice(0, 8)}…`);
+      setEditingLore(null);
+      await load();
+      setBusy(false);
+    } catch (e) {
+      setError(`network: ${e instanceof Error ? e.message : "?"}`);
+      setBusy(false);
+    }
+  }
+
+  async function redact(id: string) {
+    if (
+      !confirm(
+        "Redact this lore entry? It will fall out of recall immediately. The row stays for audit; redactions are recoverable by setting expiresAt to null in /god lore-edit.",
+      )
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const r = await fetch(`/api/god/lore/${id}`, { method: "DELETE" });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        setError(d.error ?? `redact failed (${r.status})`);
+        setBusy(false);
+        return;
+      }
+      setSuccess(`redacted ${id.slice(0, 8)}…`);
+      await load();
+      setBusy(false);
+    } catch (e) {
+      setError(`network: ${e instanceof Error ? e.message : "?"}`);
+      setBusy(false);
+    }
   }
 
   async function pinThemeId(themeId: string | null) {
@@ -413,6 +543,269 @@ export default function GodPage() {
 
         {error && <p className="text-red-400 text-xs">{error}</p>}
         {success && <p className="text-emerald-400 text-xs">{success}</p>}
+
+        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+          <h2 className="text-stone-100 text-sm flex items-baseline justify-between">
+            <span>chronicle (the central lore)</span>
+            <label className="text-[10px] text-stone-500 font-normal flex items-center gap-1.5">
+              <input
+                type="checkbox"
+                checked={loreShowRedacted}
+                onChange={(e) => setLoreShowRedacted(e.target.checked)}
+              />
+              show redacted
+            </label>
+          </h2>
+          <p className="text-[11px] text-stone-500 leading-5">
+            Salience decays with a 30-day half-life so old entries
+            don't crowd out recent ones. Redact to drop an entry from
+            recall immediately (audit-preserving). Edit to fix the
+            judge's regrettable wording.
+          </p>
+
+          <details className="border border-stone-800 bg-stone-950/50">
+            <summary className="px-3 py-2 text-xs text-stone-400 cursor-pointer hover:text-stone-200">
+              + write lore entry directly (bypass the judge)
+            </summary>
+            <div className="p-3 space-y-3 border-t border-stone-800">
+              <textarea
+                value={newLoreSummary}
+                onChange={(e) => setNewLoreSummary(e.target.value)}
+                rows={2}
+                placeholder="canonical summary (1-2 sentences, past tense, third person)"
+                maxLength={500}
+                className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 text-xs"
+              />
+              <textarea
+                value={newLoreProse}
+                onChange={(e) => setNewLoreProse(e.target.value)}
+                rows={3}
+                placeholder="optional richer prose for the public feed"
+                maxLength={1500}
+                className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 text-xs"
+              />
+              <div className="grid grid-cols-3 gap-3">
+                <label className="block space-y-1">
+                  <span className="text-[10px] uppercase tracking-widest text-stone-600">
+                    category
+                  </span>
+                  <select
+                    value={newLoreCategory}
+                    onChange={(e) => setNewLoreCategory(e.target.value)}
+                    className="w-full bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs"
+                  >
+                    {[
+                      "city-event",
+                      "artifact",
+                      "npc-fate",
+                      "cult",
+                      "plague",
+                      "wyrm-event",
+                      "natural-disaster",
+                      "discovery",
+                      "other",
+                    ].map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-[10px] uppercase tracking-widest text-stone-600">
+                    salience (0-1)
+                  </span>
+                  <input
+                    type="number"
+                    step="0.05"
+                    min={0}
+                    max={1}
+                    value={newLoreSalience}
+                    onChange={(e) =>
+                      setNewLoreSalience(Number(e.target.value))
+                    }
+                    className="w-full bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs"
+                  />
+                </label>
+                <label className="block space-y-1">
+                  <span className="text-[10px] uppercase tracking-widest text-stone-600">
+                    tags (comma-sep)
+                  </span>
+                  <input
+                    type="text"
+                    value={newLoreTags}
+                    onChange={(e) => setNewLoreTags(e.target.value)}
+                    placeholder="tower-fell, salt"
+                    className="w-full bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs"
+                  />
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={writeLore}
+                disabled={busy || !newLoreSummary.trim()}
+                className="border border-amber-700 text-amber-300 py-1 px-4 hover:bg-amber-950 transition-colors disabled:opacity-50 text-xs"
+              >
+                write to the chronicle
+              </button>
+            </div>
+          </details>
+
+          <ul className="space-y-2 text-xs">
+            {loreList
+              .filter((l) => loreShowRedacted || !l.isRedacted)
+              .slice(0, 30)
+              .map((l) => {
+                const isEditing = editingLore?.id === l.id;
+                const display = isEditing ? editingLore : l;
+                return (
+                  <li
+                    key={l.id}
+                    className={`border px-3 py-2 ${
+                      l.isRedacted
+                        ? "border-stone-900 bg-stone-950/40 opacity-60"
+                        : "border-stone-800 bg-stone-950"
+                    }`}
+                  >
+                    <div className="flex items-baseline gap-2 mb-1">
+                      {l.category && (
+                        <span className="text-[10px] uppercase tracking-widest text-amber-500">
+                          {l.category}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-stone-600">
+                        {(l.salience * 100).toFixed(0)} ·{" "}
+                        {new Date(l.createdAt).toLocaleDateString()}
+                      </span>
+                      {l.isEdited && (
+                        <span
+                          className="text-[10px] text-stone-500 italic"
+                          title={`updated ${new Date(l.updatedAt).toLocaleString()}`}
+                        >
+                          edited
+                        </span>
+                      )}
+                      {l.isRedacted && (
+                        <span className="text-[10px] text-red-400">
+                          redacted
+                        </span>
+                      )}
+                      <span className="text-[10px] text-stone-700 ml-auto">
+                        {l.id.slice(0, 8)}…
+                      </span>
+                    </div>
+                    {isEditing ? (
+                      <div className="space-y-2">
+                        <textarea
+                          value={display.summary}
+                          onChange={(e) =>
+                            setEditingLore({
+                              ...display,
+                              summary: e.target.value,
+                            })
+                          }
+                          rows={2}
+                          className="w-full bg-stone-900 border border-stone-700 px-2 py-1 text-stone-100 text-[11px]"
+                        />
+                        <textarea
+                          value={display.prose ?? ""}
+                          onChange={(e) =>
+                            setEditingLore({
+                              ...display,
+                              prose: e.target.value || null,
+                            })
+                          }
+                          rows={3}
+                          placeholder="(optional prose)"
+                          className="w-full bg-stone-900 border border-stone-700 px-2 py-1 text-stone-100 text-[11px]"
+                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            step="0.05"
+                            min={0}
+                            max={1}
+                            value={display.salience}
+                            onChange={(e) =>
+                              setEditingLore({
+                                ...display,
+                                salience: Number(e.target.value),
+                              })
+                            }
+                            className="bg-stone-900 border border-stone-700 px-2 py-1 text-stone-100 text-[11px] w-20"
+                          />
+                          <input
+                            type="text"
+                            value={display.tags.join(", ")}
+                            onChange={(e) =>
+                              setEditingLore({
+                                ...display,
+                                tags: e.target.value
+                                  .split(",")
+                                  .map((t) => t.trim())
+                                  .filter(Boolean),
+                              })
+                            }
+                            className="flex-1 bg-stone-900 border border-stone-700 px-2 py-1 text-stone-100 text-[11px]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => saveEdit(display)}
+                            disabled={busy}
+                            className="border border-stone-300 text-stone-100 py-0.5 px-2 hover:bg-stone-100 hover:text-stone-950 text-[11px]"
+                          >
+                            save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingLore(null)}
+                            className="border border-stone-700 text-stone-400 py-0.5 px-2 hover:border-stone-500 text-[11px]"
+                          >
+                            cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-stone-300">{l.summary}</div>
+                        {l.prose && (
+                          <div className="text-stone-500 text-[11px] mt-1 italic">
+                            {l.prose}
+                          </div>
+                        )}
+                        <div className="text-[10px] text-stone-700 mt-1 flex items-center gap-2">
+                          <span>
+                            {l.sourceFormId ?? "?"} ·{" "}
+                            {l.sourceLocationId ?? "?"} ·{" "}
+                            {l.sourcePhase ?? "?"}
+                          </span>
+                          {l.tags.length > 0 && (
+                            <span>{l.tags.join(" · ")}</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setEditingLore(l)}
+                            className="ml-auto text-stone-500 hover:text-stone-300 underline underline-offset-2"
+                          >
+                            edit
+                          </button>
+                          {!l.isRedacted && (
+                            <button
+                              type="button"
+                              onClick={() => redact(l.id)}
+                              className="text-red-500 hover:text-red-300 underline underline-offset-2"
+                            >
+                              redact
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </li>
+                );
+              })}
+          </ul>
+        </section>
 
         <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
           <h2 className="text-stone-100 text-sm">
