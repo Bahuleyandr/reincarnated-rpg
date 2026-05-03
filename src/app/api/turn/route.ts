@@ -9,6 +9,10 @@ import {
   loadLocation,
 } from "@/lib/game/content";
 import { runTurn } from "@/lib/game/turn";
+import {
+  getCurrentArc,
+  phaseForProgress,
+} from "@/lib/meta/long-wyrm";
 import { makeNarrator } from "@/lib/narrator";
 import { TemplateNarrator } from "@/lib/narrator/template";
 import {
@@ -75,6 +79,27 @@ export async function POST(req: NextRequest) {
     });
     const presetForTelemetry =
       resolved.source === "env-default" ? null : resolved.source;
+    // Pre-fetch the current meta-arc phase so the narrator's system
+    // prompt carries today's world-state. One indexed PK lookup.
+    let metaArcFlavor:
+      | { phase: string; label: string; flavor: string }
+      | null = null;
+    try {
+      const arc = await getCurrentArc(db);
+      if (arc) {
+        const p = phaseForProgress(arc.progress);
+        metaArcFlavor = {
+          phase: p.phase,
+          label: p.label,
+          flavor: p.ambientFlavor,
+        };
+      }
+    } catch (err) {
+      log.warn("turn.meta_arc_fetch_failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
     const narrator = makeNarrator({
       form,
       location,
@@ -84,6 +109,7 @@ export async function POST(req: NextRequest) {
       sessionId,
       userId: verified.userId ?? null,
       presetId: presetForTelemetry,
+      metaArcFlavor,
     });
 
     // Safety net: deterministic template-narrator that runs offline.

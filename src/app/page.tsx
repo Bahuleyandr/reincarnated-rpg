@@ -158,7 +158,13 @@ export default function Home() {
           )}
         </div>
 
-        <div className="text-[10px] text-stone-600">
+        <div className="text-[10px] text-stone-600 flex items-center gap-4">
+          <Link
+            href="/meta"
+            className="underline underline-offset-2 hover:text-amber-400"
+          >
+            the long wyrm →
+          </Link>
           <Link
             href="/leaderboard"
             className="underline underline-offset-2 hover:text-stone-400"

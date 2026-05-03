@@ -36,6 +36,12 @@ export function makeNarrator(args: {
   userId?: string | null;
   /** BYO preset id, threaded into ai_calls for the eval leaderboard. */
   presetId?: string | null;
+  /** Current meta-arc phase flavor. Pre-fetched by the API route. */
+  metaArcFlavor?: {
+    phase: string;
+    label: string;
+    flavor: string;
+  } | null;
 }): Narrator {
   const mode = args.mode ?? getNarratorMode();
   if (mode === "remote") {
@@ -52,6 +58,7 @@ export function makeNarrator(args: {
       sessionId: args.sessionId,
       userId: args.userId,
       presetId: args.presetId,
+      metaArcFlavor: args.metaArcFlavor,
     });
   }
   return new TemplateNarrator({ form: args.form, location: args.location });
