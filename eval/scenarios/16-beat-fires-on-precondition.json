@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "matrix": "16 / 20 — Beat fires when its precondition matches",
+    "narrator": "any",
+    "addedDay": 11,
+    "notes": "Survive-the-night beat 02-the-rat triggers on (location.roomId=='dripping-cavern' AND turn>=2). Setup primes the projection to dripping-cavern at turn 1; first turn after that should fire the beat (npc.introduced for tunnel-rat-1)."
+  },
+  "id": "16-beat-fires-on-precondition",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 500 },
+      { "kind": "turn.begun", "turn": 1, "input": "x", "inputSanitized": "x" },
+      { "kind": "moved", "fromRoom": "seam-of-the-collapse", "toRoom": "pebble-slope" },
+      { "kind": "moved", "fromRoom": "pebble-slope", "toRoom": "dripping-cavern" }
+    ]
+  },
+  "input": "I sense the chamber",
+  "expected": {
+    "events": [
+      { "kind": "npc.introduced", "npcId": "tunnel-rat-1" }
+    ]
+  }
+}

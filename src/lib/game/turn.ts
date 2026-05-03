@@ -19,6 +19,8 @@ import { log } from "../util/log";
 import { deriveSeed } from "../util/rng";
 import { type Narrator } from "../narrator";
 
+import { createMemory, retrieveMemories } from "../memory/episodic";
+
 import { matchBeats, type BeatPack } from "./beats";
 import { appendEvents, readLog, rowToEvent } from "./events";
 import { loadProjection, writeSnapshot } from "./projection";
@@ -119,16 +121,35 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   // 5. Reload projection so the narrator sees turn.begun + roll context.
   projection = await loadProjection(db, sessionId, form, location);
 
-  // 6. Narrate.
+  // 6. Retrieve relevant memories. Entity bias: any NPC slug from the
+  // projection that appears in the sanitized input gets a 0.3× boost.
+  const entitySlugs = Object.keys(projection.npcs).filter((slug) =>
+    sanitized.toLowerCase().includes(slug.replace(/-/g, " ")) ||
+    sanitized.toLowerCase().includes(slug),
+  );
+  let relevantMemories: import("./types").Memory[] = [];
+  try {
+    relevantMemories = await retrieveMemories(db, sessionId, sanitized, {
+      k: 4,
+      entitySlugs,
+    });
+  } catch (err) {
+    log.warn("turn.memory.retrieve_failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+
+  // 7. Narrate.
   const narrate = await narrator.narrate({
     projection,
     lastEvents: [],
     roll,
     intent: intent.verb,
-    relevantMemories: [],
+    relevantMemories,
   });
 
-  // 7. Validate + apply tools atomically.
+  // 8. Validate + apply tools atomically.
   const toolResult = await applyTools(
     db,
     sessionId,
@@ -138,7 +159,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   // Day-6: no retry. Day-12 adds the orchestrator-side retry.
   const toolEvents = toolResult.ok ? toolResult.events.length : 0;
 
-  // 8. narration.emitted.
+  // 9. narration.emitted.
   await appendEvents(db, sessionId, [
     {
       kind: "narration.emitted",
@@ -147,7 +168,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     },
   ]);
 
-  // 8b. Tone drift check (free regex layer; Haiku judge optional, off
+  // 9b. Tone drift check (free regex layer; Haiku judge optional, off
   // by default). Day-9 logs only — Day 12 wires the regen retry.
   const tone = checkToneFast(narrate.text, form);
   if (!tone.ok) {
@@ -158,7 +179,30 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
-  // 9. Match + fire beats (with dedupe across this session's prior beats).
+  // 9c. Persist any create_memory tool calls into the memories table
+  // with embeddings. The orchestrator already wrote memory.created
+  // events via applyTools — this adds the searchable row.
+  if (toolResult.ok) {
+    for (const tool of narrate.toolCalls) {
+      if (tool.name === "create_memory") {
+        try {
+          await createMemory(db, {
+            sessionId,
+            summary: tool.summary,
+            eventSeqRange: [turnNumber, turnNumber + 1],
+            salience: tool.salience ?? 0.5,
+          });
+        } catch (err) {
+          log.warn("turn.memory.create_failed", {
+            sessionId,
+            err: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+    }
+  }
+
+  // 10. Match + fire beats (with dedupe across this session's prior beats).
   const beatsFired: string[] = [];
   if (beatPack) {
     const fired = await loadFiredBeats(db, sessionId, beatPack);
@@ -170,7 +214,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     }
   }
 
-  // 10. Turn cap check.
+  // 11. Turn cap check.
   projection = await loadProjection(db, sessionId, form, location);
   if (projection.status === "active" && turnNumber >= turnCap) {
     await appendEvents(db, sessionId, [
@@ -179,7 +223,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     projection = await loadProjection(db, sessionId, form, location);
   }
 
-  // 11. Snapshot.
+  // 12. Snapshot.
   await writeSnapshot(db, projection);
 
   log.info("turn.complete", {
