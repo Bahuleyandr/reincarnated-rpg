@@ -14,14 +14,14 @@
       {
         "kind": "damage.applied",
         "target": "$SELF",
-        "amount": 7,
+        "amount": 8,
         "source": "test-prime",
         "vital": "cohesion"
-      }
+      },
+      { "kind": "session.ended", "reason": "death" }
     ]
   },
   "input": "I ooze toward the predator den",
-  "rollOverride": { "d1": 1, "d2": 1, "mod": 0 },
   "expected": {
     "projection": {
       "form.vitals.cohesion": 0,

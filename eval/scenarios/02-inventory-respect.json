@@ -1,7 +1,7 @@
 {
   "_meta": {
     "matrix": "02 / 20 — Inventory respect (can't use item not held)",
-    "narrator": "any",
+    "narrator": "remote",
     "addedDay": 7,
     "notes": "Player tries to absorb an item that isn't in inventory. Tool registry's precondition check must reject; runner asserts a tool_validation_failed event lands and no absorbed event."
   },
