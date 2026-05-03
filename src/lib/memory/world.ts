@@ -34,6 +34,7 @@ import { sessions, worldMemories, worldNpcs } from "../db/schema";
 import type { Event, Memory, Projection } from "../game/types";
 import { embedText } from "./episodic";
 import { rowToEvent, readLog } from "../game/events";
+import { recordContribution as recordMetaContribution } from "../meta/long-wyrm";
 import { uuidv7 } from "../util/uuidv7";
 import { log } from "../util/log";
 
@@ -264,6 +265,25 @@ export async function persistRunToWorld(
       npcsUpserted,
       tags,
     });
+
+    // Meta-arc contribution (the Long Wyrm). Best-effort — never
+    // throws back into the player's turn.
+    try {
+      await recordMetaContribution(db, events, {
+        userId: opts.userId,
+        sessionId: opts.sessionId,
+        campaignId: opts.campaignId ?? null,
+        formId: opts.formId,
+        locationId: opts.locationId,
+      });
+    } catch (err) {
+      log.warn("meta.contribution_failed", {
+        userId: opts.userId,
+        sessionId: opts.sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return { npcsUpserted, memoriesWritten: 1 };
   } catch (err) {
     log.error("world.persist_failed", {

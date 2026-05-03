@@ -262,6 +262,14 @@ interface RemoteNarratorArgs {
   userId?: string | null;
   /** BYO preset id (for ai_calls.preset_id). */
   presetId?: string | null;
+  /** Current meta-arc phase flavor — injected as a separate system
+   *  block. Pre-fetched once per turn by the API route to avoid an
+   *  extra DB roundtrip from inside narrate(). */
+  metaArcFlavor?: {
+    phase: string;
+    label: string;
+    flavor: string;
+  } | null;
 }
 
 export class RemoteNarrator implements Narrator {
@@ -274,6 +282,11 @@ export class RemoteNarrator implements Narrator {
   private sessionId?: string;
   private userId?: string | null;
   private presetId?: string | null;
+  private metaArcFlavor?: {
+    phase: string;
+    label: string;
+    flavor: string;
+  } | null;
 
   constructor(args: RemoteNarratorArgs) {
     this.provider = args.provider ?? getProvider();
@@ -284,6 +297,7 @@ export class RemoteNarrator implements Narrator {
     this.sessionId = args.sessionId;
     this.userId = args.userId ?? null;
     this.presetId = args.presetId ?? null;
+    this.metaArcFlavor = args.metaArcFlavor ?? null;
 
     const formJson = JSON.parse(
       readFileSync(
@@ -329,6 +343,15 @@ export class RemoteNarrator implements Narrator {
           ? `Specific reincarnation declared by the player: "${reincarnatedAs}". Use this to flavor every narration — the form template above is a generic frame; the player wakes specifically as the thing above. Match register, anatomy (or lack thereof), and the kinds of verbs that thing would use.`
           : `Specific identity declared by the player within this typed form: "${reincarnatedAs}". The form template above is canonical for mechanics (vitals, verbs, negativeVocab, hard moves). The declaration above is for FLAVOR — let it color names, references, and small specific details. Do not let it override the form's mechanics or vocabulary rules.`;
       blocks.push({ type: "text", text });
+    }
+    // Meta-arc phase: shared world state. Every player's turn carries
+    // this same block (modulo phase). Lets multiple players' actions
+    // ripple into each other's prose without explicit cross-talk.
+    if (this.metaArcFlavor) {
+      blocks.push({
+        type: "text",
+        text: `WORLD-STATE (the Long Wyrm meta-arc): currently ${this.metaArcFlavor.label} (phase: ${this.metaArcFlavor.phase}). ${this.metaArcFlavor.flavor} Weave one or two ambient details from this into the narration when natural — a draft, a tremor, a smell, a half-heard thing — but DO NOT name the Wyrm directly unless the player attempts a wyrm-* verb (those are signature moves and the only ones that should make the meta-arc explicit).`,
+      });
     }
     return blocks;
   }

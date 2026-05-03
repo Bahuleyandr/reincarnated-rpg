@@ -71,6 +71,13 @@
       "when": 1777810199641,
       "tag": "0009_campaign_arc_id",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1777810457150,
+      "tag": "0010_meta_arcs",
+      "breakpoints": true
     }
   ]
 }

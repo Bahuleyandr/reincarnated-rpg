@@ -19,6 +19,10 @@ export default function Play() {
   const [error, setError] = useState<string | null>(null);
   const [llmBanner, setLlmBanner] = useState<string | null>(null);
   const [arcTagline, setArcTagline] = useState<string | null>(null);
+  const [metaArc, setMetaArc] = useState<{
+    phaseLabel: string;
+    phase: string;
+  } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -51,6 +55,15 @@ export default function Play() {
       }
     }
     load();
+    // Lightweight meta-arc poll for the indicator (no auth needed).
+    fetch("/api/meta")
+      .then((r) => r.json())
+      .then((d: { arc?: { phaseLabel: string; phase: string } }) => {
+        if (!cancelled && d.arc) {
+          setMetaArc({ phaseLabel: d.arc.phaseLabel, phase: d.arc.phase });
+        }
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -210,6 +223,20 @@ export default function Play() {
       <StatusSidebar projection={projection} />
 
       <section className="flex flex-col min-h-screen md:min-h-0">
+        {metaArc && (
+          <Link
+            href="/meta"
+            className="px-6 py-1.5 border-b border-stone-800 bg-stone-900/60 text-[10px] flex items-center justify-between text-stone-500 hover:text-stone-300 hover:bg-stone-900"
+          >
+            <span>
+              the long wyrm:{" "}
+              <span className="text-amber-400">{metaArc.phaseLabel}</span>
+            </span>
+            <span className="text-stone-600 group-hover:text-stone-400">
+              meta →
+            </span>
+          </Link>
+        )}
         {arcTagline && entries.length === 0 && (
           <div className="px-6 py-3 border-b border-stone-800 bg-stone-900/40">
             <div className="text-[10px] uppercase tracking-widest text-stone-600 mb-1">

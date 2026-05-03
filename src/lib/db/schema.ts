@@ -476,4 +476,89 @@ export type NewWorldNpc = typeof worldNpcs.$inferInsert;
 export type WorldMemory = typeof worldMemories.$inferSelect;
 export type NewWorldMemory = typeof worldMemories.$inferInsert;
 
+/**
+ * Meta-arc — the over-arching shared story above all individual runs.
+ *
+ * One row per arc id. v0.1 ships a single arc, "long-wyrm". Every
+ * player's outcome contributes a small delta (feed = positive,
+ * starve = negative). When `progress` crosses a phase boundary, the
+ * `phase` advances and every subsequent player sees a transformed
+ * world (new ambient flavor in the system prompt, new hardMove
+ * outcomes, etc).
+ *
+ * The arc is GLOBAL — not per-user. There is one Long Wyrm and every
+ * player is in its world.
+ */
+export const metaArcs = pgTable("meta_arcs", {
+  id: text("id").primaryKey(),
+  /** Cumulative delta across all contributions. Bounded [0, max]. */
+  progress: integer("progress").notNull().default(0),
+  /** Active phase. Recomputed from progress on each contribution. */
+  phase: text("phase").notNull().default("stirring"),
+  /** Human-readable title for the current phase. UI-side. */
+  phaseLabel: text("phase_label").notNull().default("Stirring"),
+  /** Tally of "feed" contributions across all time. */
+  totalFeeds: integer("total_feeds").notNull().default(0),
+  /** Tally of "starve" contributions. */
+  totalStarves: integer("total_starves").notNull().default(0),
+  /** Distinct contributors. */
+  contributorCount: integer("contributor_count").notNull().default(0),
+  /** Free-form metadata: phase-specific flavor strings, last
+   *  significant event, etc. */
+  meta: jsonb("meta"),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/**
+ * One row per ended-run contribution. Lets the /meta page show
+ * "recent contributors" and lets us audit the progress total.
+ *
+ * userId can be null for anon contributions (we still credit them
+ * via the session, but no display name).
+ */
+export const metaContributions = pgTable(
+  "meta_contributions",
+  {
+    id: uuid("id").primaryKey(),
+    arcId: text("arc_id")
+      .notNull()
+      .references(() => metaArcs.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    sessionId: uuid("session_id").references(() => sessions.id, {
+      onDelete: "set null",
+    }),
+    campaignId: uuid("campaign_id").references(() => campaigns.id, {
+      onDelete: "set null",
+    }),
+    /** Signed delta. +N = feed, -N = starve. */
+    delta: integer("delta").notNull(),
+    /** Tag like 'outcome:death', 'outcome:win', 'absorb-heavy', etc. */
+    reason: text("reason").notNull(),
+    /** Short prose for the public feed. */
+    prose: text("prose"),
+    /** Form + location at the time, for UI breakdowns. */
+    formId: text("form_id"),
+    locationId: text("location_id"),
+    /** Phase the arc was in WHEN this contribution landed. Lets us
+     *  show "rising-phase contributions" vs "feasting-phase". */
+    phaseAtContribution: text("phase_at_contribution"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("meta_contributions_arc_idx").on(t.arcId, t.createdAt),
+    index("meta_contributions_user_idx").on(t.userId),
+  ],
+);
+
+export type MetaArc = typeof metaArcs.$inferSelect;
+export type NewMetaArc = typeof metaArcs.$inferInsert;
+export type MetaContribution = typeof metaContributions.$inferSelect;
+export type NewMetaContribution = typeof metaContributions.$inferInsert;
+
 export const _sql = sql; // re-export for migration writers if needed
