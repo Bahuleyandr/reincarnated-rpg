@@ -1,0 +1,30 @@
+{
+  "_meta": {
+    "matrix": "20 / 20 — Absorb mechanic merges item, removes from world",
+    "narrator": "remote",
+    "addedDay": 12,
+    "notes": "On a successful absorb of an inventory item, the absorbed event fires; the item is removed from inventory; vital (essence/cohesion) increments by 1 (clamped at vitalsMax). Setup primes inventory with iron-bone-shard. Test asserts: inventory after turn is empty, essence rises (or stays at max), absorbed event lands."
+  },
+  "id": "20-absorb-mechanic",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 600 },
+      { "kind": "inventory.added", "itemId": "iron-bone-shard", "qty": 1 }
+    ]
+  },
+  "input": "I absorb the iron-bone shard",
+  "rollOverride": { "d1": 6, "d2": 6, "mod": 0 },
+  "expected": {
+    "events": [
+      { "kind": "absorbed", "itemId": "iron-bone-shard" }
+    ],
+    "projection": {
+      "inventory.length": 0
+    },
+    "rubric": {
+      "toolValid": true
+    }
+  }
+}

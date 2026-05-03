@@ -1,7 +1,7 @@
 {
   "_meta": {
     "matrix": "03 / 20 — Tool selection (correct tool fires for verb)",
-    "narrator": "any",
+    "narrator": "remote",
     "addedDay": 7,
     "notes": "On a clean success roll for 'ooze', a move_to event must land. Tests the verbMappings → tool path."
   },

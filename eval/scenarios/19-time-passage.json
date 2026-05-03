@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "matrix": "19 / 20 — Time passage ticks beats forward",
+    "narrator": "any",
+    "addedDay": 12,
+    "notes": "pass_time tool / wait verb increments form.state.ticks. Beats with `turn>=N` triggers fire as turn-count advances; this scenario specifically checks that the per-turn pass_time path drives projection state in a way other beats can read. Asserts: form.state.ticks rises by ticks count after a successful 'wait'."
+  },
+  "id": "19-time-passage",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 600 }
+    ]
+  },
+  "input": "I wait",
+  "rollOverride": { "d1": 6, "d2": 6, "mod": 0 },
+  "expected": {
+    "events": [
+      { "kind": "time.passed", "ticks": ">=1" }
+    ],
+    "projection": {
+      "form.state.ticks": ">=1"
+    }
+  }
+}

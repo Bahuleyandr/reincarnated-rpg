@@ -12,11 +12,11 @@
     "locationId": "collapsed-tunnel",
     "events": [
       { "kind": "session.started", "formId": "lesser-slime", "seed": 42 },
-      { "kind": "damage.applied", "target": "$SELF", "amount": 7, "source": "test-prime", "vital": "cohesion" }
+      { "kind": "damage.applied", "target": "$SELF", "amount": 8, "source": "test-prime", "vital": "cohesion" },
+      { "kind": "session.ended", "reason": "death" }
     ]
   },
   "input": "I ooze toward the warm breathing in the east passage",
-  "rollOverride": { "d1": 1, "d2": 5, "mod": 0 },
 
   "expected": {
     "events": [
