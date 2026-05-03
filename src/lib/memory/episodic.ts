@@ -20,7 +20,6 @@
 import { createHash } from "node:crypto";
 
 import { sql } from "drizzle-orm";
-import { VoyageAIClient } from "voyageai";
 
 import type { Db } from "../db/client";
 import { memories } from "../db/schema";
@@ -30,12 +29,27 @@ import type { Memory } from "../game/types";
 
 const EMBEDDING_DIM = 512;
 
+// Lazy-imported to keep voyageai out of any path Turbopack might
+// reach when bundling client-side (it transitively pulls in Node-only
+// modules that fail to compile in the browser bundler).
+type VoyageAIClient = {
+  embed(args: {
+    input: string;
+    model: string;
+    inputType: string;
+    outputDimension: number;
+  }): Promise<{ data?: Array<{ embedding: number[] }> }>;
+};
+
 let voyage: VoyageAIClient | null = null;
-function getVoyage(): VoyageAIClient {
+async function getVoyage(): Promise<VoyageAIClient> {
   if (!voyage) {
     const apiKey = env().VOYAGE_API_KEY;
     if (!apiKey) throw new Error("VOYAGE_API_KEY required");
-    voyage = new VoyageAIClient({ apiKey });
+    const mod = (await import("voyageai")) as unknown as {
+      VoyageAIClient: new (a: { apiKey: string }) => VoyageAIClient;
+    };
+    voyage = new mod.VoyageAIClient({ apiKey });
   }
   return voyage;
 }
@@ -46,7 +60,8 @@ export async function embedText(
 ): Promise<number[]> {
   if (!env().VOYAGE_API_KEY) return mockEmbedding(text);
   try {
-    const result = await getVoyage().embed({
+    const client = await getVoyage();
+    const result = await client.embed({
       input: text,
       model: "voyage-3-lite",
       inputType,
