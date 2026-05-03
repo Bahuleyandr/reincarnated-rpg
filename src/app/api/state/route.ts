@@ -42,6 +42,8 @@ export async function GET(req: NextRequest) {
       sessionId,
       projection,
       narrations,
+      // For the recap "save this run" link — only show if anon.
+      hasAccount: !!verified.userId,
     });
   } catch (err) {
     log.error("state.failed", {
