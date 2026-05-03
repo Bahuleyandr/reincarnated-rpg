@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
 import { campaigns, userLlmPrefs } from "@/lib/db/schema";
+import { pickArc } from "@/lib/game/arc-routing";
 import {
   AVAILABLE_LOCATIONS,
   pickFormId,
@@ -111,6 +112,11 @@ export async function POST(req: NextRequest) {
       }
     : { pinnedPresetId: null, pinnedNarrationModel: null };
 
+  // Arc roll: random pick from the (formId, locationId)-compatible
+  // beat packs. Two players landing on the same start get different
+  // stories. Null → free-form run, no scripted beats.
+  const arcPick = pickArc(formId, locationId);
+
   const id = uuidv7();
   await db.insert(campaigns).values({
     id,
@@ -119,6 +125,7 @@ export async function POST(req: NextRequest) {
     formId,
     locationId,
     reincarnatedAs,
+    arcId: arcPick?.arcId ?? null,
     ...pin,
   });
   return NextResponse.json({
@@ -129,6 +136,8 @@ export async function POST(req: NextRequest) {
       formId,
       locationId,
       reincarnatedAs,
+      arcId: arcPick?.arcId ?? null,
+      arcTagline: arcPick?.tagline ?? null,
       status: "active",
       ...pin,
     },

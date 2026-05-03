@@ -1,0 +1,108 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Five beats for a cursed-book run in the Sunless Spire. The book wakes in the spire-archive (mid-landing's east room), open to a page it didn't choose. Someone left it open here recently — there is a still-warm candle in the room. The arc is to figure out who, and either reveal them or refuse them, before the thing at the top of the spire descends. Win condition: reach a clear judgment about the binder via marginalia + decode passages within 10 turns. Lose: the binder stays unknown and the spire-top thing finds you first."
+  },
+
+  "id": "find-the-binder",
+  "displayName": "Find the Binder",
+  "questId": "find-the-binder",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-still-warm-candle",
+      "displayName": "Still-Warm Candle",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "You wake open to a page you did not choose. The candle on the table is still warm. Someone left this room minutes ago — maybe seconds. The page they left you on is the page they wanted seen.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "find-the-binder",
+          "objective": "identify-the-binder",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-marginalia-arrives",
+      "displayName": "Marginalia",
+      "trigger": {
+        "all": [
+          { "turn": ">=2" },
+          { "location.roomId": "==spire-archive" }
+        ]
+      },
+      "narrative": "On a shelf in the archive, three identical bound volumes. The middle one carries a single marginal note in fresh charcoal: a name half-finished — three letters and a comma — that is unmistakably yours, partial.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "page-edge",
+          "detail": "a charcoal mark; a name half-rendered, fresh enough to smudge"
+        }
+      ]
+    },
+    {
+      "id": "03-footstep-returns",
+      "displayName": "A Step on the Stair",
+      "trigger": {
+        "any": [
+          { "turn": ">=4" },
+          { "form.state.wyrm_attuned": ">=1" }
+        ]
+      },
+      "narrative": "A footstep on the stair below the landing. It is not careful. It is not hurried. It is the footstep of someone who knows where you are.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-binder",
+          "data": {
+            "name": "the binder",
+            "relationship": 0,
+            "templateId": "the-binder"
+          }
+        }
+      ]
+    },
+    {
+      "id": "04-spire-top-stirs",
+      "displayName": "The Top Stirs",
+      "trigger": { "any": [{ "turn": ">=7" }] },
+      "narrative": "The breathing above the upper stair changes pitch. It is older than the binder and it is not on anyone's side. If the binder is going to be found, it must happen now.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "vertical-pressure",
+          "detail": "a draft from above, carrying salt and something metabolic"
+        }
+      ]
+    },
+    {
+      "id": "05-the-binder-shown",
+      "displayName": "The Binder Shown",
+      "trigger": {
+        "all": [
+          { "npcKnown": "the-binder" },
+          { "form.state.binder_revealed": ">=1" }
+        ]
+      },
+      "narrative": "The page settles. The marginalia clarifies. The binder stands revealed — to you, to themselves, and to whatever waits above. You have been used and you have used. This is the conclusion of one strand.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "find-the-binder",
+          "objective": "identify-the-binder",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}

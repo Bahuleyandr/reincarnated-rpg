@@ -1,0 +1,121 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Form-agnostic five-beat arc for the Forsaken Village. The villagers fled mid-everything; the player, in whatever form, has to figure out WHY before the thing that drove them out comes back. The chapel altar holds the first clue. Win: clue_count>=3 AND turn>=5. Designed to work for slime / book / egg / core / generic-creature without form-specific phrasing — beats describe events, not actions, so the narrator reframes them per form."
+  },
+
+  "id": "read-the-room",
+  "displayName": "Read the Room",
+  "questId": "read-the-room",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-quiet",
+      "displayName": "The Quiet",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "Nothing has happened for a half-day, and that is itself the wrongest thing about this place. There were people here this morning. There aren't now. Whatever called them away did not stop to be polite about it.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "read-the-room",
+          "objective": "find-three-clues",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-altar-clue",
+      "displayName": "The Altar",
+      "trigger": {
+        "all": [
+          { "location.roomId": "==chapel" }
+        ]
+      },
+      "narrative": "On the altar, something that should not be on an altar. It is still wet. Whatever was placed here was placed recently, and it is the most recent honest thing in this village.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "discovery",
+          "detail": "altar offering, fresh; one clue gathered"
+        },
+        {
+          "kind": "form_state.changed",
+          "field": "clue_count",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "03-tavern-coins",
+      "displayName": "Coins on Tables",
+      "trigger": {
+        "all": [
+          { "location.roomId": "==tavern" }
+        ]
+      },
+      "narrative": "On three tables in the tavern, coins. The patrons did not pay as they left — not because they could not, but because paying was not what their minds were doing. They are running.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "inference",
+          "detail": "pattern of unpaid drinks; one clue gathered"
+        },
+        {
+          "kind": "form_state.changed",
+          "field": "clue_count",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "04-edge-evidence",
+      "displayName": "The Road's Direction",
+      "trigger": {
+        "all": [
+          { "location.roomId": "==village-edge" }
+        ]
+      },
+      "narrative": "Hoofprints in the dust on the western road, all going one way. Everyone — every one — went west. The road's other direction is empty in the way roads do not usually choose to be.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "trail",
+          "detail": "all tracks west; one clue gathered"
+        },
+        {
+          "kind": "form_state.changed",
+          "field": "clue_count",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-the-pattern",
+      "displayName": "The Pattern",
+      "trigger": {
+        "all": [
+          { "form.state.clue_count": ">=3" },
+          { "turn": ">=5" }
+        ]
+      },
+      "narrative": "Three pieces are enough. The villagers were not driven from the village by something that came in. They were called from it by something that asked. The asking happened from the west.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "read-the-room",
+          "objective": "find-three-clues",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}

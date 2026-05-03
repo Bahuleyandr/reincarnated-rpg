@@ -30,6 +30,11 @@
     "weave_illusion",
     "drain_mana",
     "bleed_integrity",
+    "deepen_chamber",
+    "siphon_intruder",
+    "false_room",
+    "bind_minion",
+    "wyrm_signal",
     "wait"
   ],
 
@@ -41,7 +46,20 @@
     "weave_illusion":   { "tools": ["change_form_state"],                    "rollStat": "will" },
     "drain_mana":       { "tools": ["change_form_state", "apply_damage"],    "rollStat": "mana_recovery" },
     "bleed_integrity":  { "tools": ["apply_damage"],                          "rollStat": "will" },
+    "deepen_chamber":   { "tools": ["change_form_state"],                    "rollStat": "domain_size" },
+    "siphon_intruder":  { "tools": ["apply_damage", "change_form_state"],    "rollStat": "will" },
+    "false_room":       { "tools": ["change_form_state", "introduce_npc"],   "rollStat": "will" },
+    "bind_minion":      { "tools": ["update_relationship", "change_form_state"], "rollStat": "will" },
+    "wyrm_signal":      { "tools": ["sense", "change_form_state"],           "rollStat": "awareness" },
     "wait":             { "tools": ["pass_time"],                              "rollStat": null }
+  },
+
+  "_meta_verbs": {
+    "deepen_chamber":   "Push the dungeon's stone outward by half a meter. Costs mana. Useful for buying space, hiding minions, or making a corridor longer than an adventurer expects.",
+    "siphon_intruder":  "Pull a small thread of life from an adventurer who has lingered too long in your domain. They feel a chill; you feel a tickle of their warmth.",
+    "false_room":       "Conjure a stable persistent illusion of a room that does not exist. Adventurers can enter and find nothing — but their TIME has been spent.",
+    "bind_minion":      "Forge a stronger relationship with a specific minion so it can act with delegated will, away from the chamber, without immediate guidance.",
+    "wyrm_signal":      "A signature move. Send a low resonant pulse through the dungeon's mineral skeleton toward the world below. The Long Wyrm is older than dungeons. It registers when you call. Whether it answers depends on the world's current phase."
   },
 
   "negativeVocab": {
@@ -113,6 +131,19 @@
         "id": "tick_passes",
         "narrative": "Your effort drained the chamber's air for a moment; nothing happened. The clock moves anyway.",
         "tools": [{ "name": "pass_time", "ticks": 1 }]
+      },
+      {
+        "id": "wyrm_resonance",
+        "narrative": "The dungeon's deepest stone hums in response to something far below it. The hum is not yours. The hum is older than dungeon-cores have a name for. Your awareness reaches sideways without meaning to.",
+        "tools": [
+          { "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 },
+          { "name": "sense", "tag": "$WYRM_PHASE" }
+        ]
+      },
+      {
+        "id": "wyrm_marked",
+        "narrative": "A facet of you brightens — a single facet, briefly — and the brightness is not blue. The Long Wyrm has reached up through the rock and laid a mark on your crystal lattice. Adventurers who come now will sense the wrongness of you more easily.",
+        "tools": [{ "name": "change_form_state", "field": "wyrm_marked", "delta": 1 }]
       }
     ]
   },

@@ -18,6 +18,7 @@ export default function Play() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [llmBanner, setLlmBanner] = useState<string | null>(null);
+  const [arcTagline, setArcTagline] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export default function Play() {
         if (cancelled) return;
         setProjection(data.projection);
         setHasAccount(!!data.hasAccount);
+        setArcTagline(data.arcTagline ?? null);
         setEntries(
           (data.narrations as string[]).map((text) => ({
             kind: "narration" as const,
@@ -208,6 +210,14 @@ export default function Play() {
       <StatusSidebar projection={projection} />
 
       <section className="flex flex-col min-h-screen md:min-h-0">
+        {arcTagline && entries.length === 0 && (
+          <div className="px-6 py-3 border-b border-stone-800 bg-stone-900/40">
+            <div className="text-[10px] uppercase tracking-widest text-stone-600 mb-1">
+              your arc
+            </div>
+            <div className="text-sm text-stone-300 leading-6">{arcTagline}</div>
+          </div>
+        )}
         {llmBanner && (
           <div className="px-4 py-2 border-b border-amber-900/60 bg-amber-950/40 text-amber-300 text-xs flex items-center gap-3">
             <span className="flex-1">{llmBanner}</span>

@@ -1,0 +1,115 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Five beats for a dragon-egg run in the Forsaken Village. The egg sits in a banked hearth in the smithy. The smith Berra fled with everyone else mid-stroke; the fire is dying. The arc is to keep heartbeat alive long enough to be found by someone — anyone — who recognizes what an egg this size means. Win: heartbeat>=6 at turn>=8 AND a sympathetic NPC introduced. Lose: warmth==0 from the cold getting in. Multiple sub-beats track who comes back."
+  },
+
+  "id": "keep-the-warmth",
+  "displayName": "Keep the Warmth",
+  "questId": "keep-the-warmth",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-banked-hearth",
+      "displayName": "Banked Hearth",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "The smithy is warm in patches and cold in others. The hearth is banked, just barely. Berra was here — her hammer is on the anvil, mid-stroke — but she is not here now. Whatever called the village left her in a hurry.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "keep-the-warmth",
+          "objective": "keep-heartbeat-alive",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-cold-arrives",
+      "displayName": "The Cold Arrives",
+      "trigger": {
+        "any": [
+          { "turn": ">=3" },
+          { "form.state.warmth": "<=4" }
+        ]
+      },
+      "narrative": "A draft finds the smithy through a crack in the door. It is colder than the day outside. The colder cold is the cold of a place you do not want to be from.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "thermal-gradient",
+          "detail": "a draft from the western road carrying air older than the day"
+        }
+      ]
+    },
+    {
+      "id": "03-someone-returns",
+      "displayName": "Someone Returns",
+      "trigger": {
+        "any": [
+          { "turn": ">=5" },
+          { "form.state.kindling": ">=2" }
+        ]
+      },
+      "narrative": "Footsteps on the village square. A single set, careful — not Berra's, but they smell of leather and an oil you almost recognize. Whoever it is paused, then turned toward the smithy.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "village-finder",
+          "data": {
+            "name": "the finder",
+            "relationship": 1,
+            "templateId": "village-finder"
+          }
+        }
+      ]
+    },
+    {
+      "id": "04-finder-decides",
+      "displayName": "The Finder Decides",
+      "trigger": {
+        "all": [
+          { "npcKnown": "village-finder" },
+          { "turn": ">=6" }
+        ]
+      },
+      "narrative": "The finder stands over the hearth. Their breath is shallow. They have understood what you are. The next move is theirs.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "keep-the-warmth",
+          "objective": "be-recognized",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "05-tended",
+      "displayName": "Tended",
+      "trigger": {
+        "all": [
+          { "form.state.heartbeat": ">=6" },
+          { "npcKnown": "village-finder" },
+          { "turn": ">=8" }
+        ]
+      },
+      "narrative": "The finder kneels. They place a hand-warm of something close to the shell — not enough to stir you, just enough to keep what you have. The cold loses its appetite. You are not yet alone in this world.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "keep-the-warmth",
+          "objective": "keep-heartbeat-alive",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}

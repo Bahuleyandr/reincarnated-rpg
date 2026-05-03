@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
+import { arcTagline } from "@/lib/game/arc-routing";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
 import { loadForm, loadLocation } from "@/lib/game/content";
 import { readLog, rowToEvent } from "@/lib/game/events";
@@ -48,6 +49,8 @@ export async function GET(req: NextRequest) {
       reincarnatedAs: ctx.reincarnatedAs,
       formId: ctx.formId,
       locationId: ctx.locationId,
+      arcId: ctx.arcId,
+      arcTagline: arcTagline(ctx.arcId),
     });
   } catch (err) {
     log.error("state.failed", {

@@ -30,6 +30,10 @@
     "absorb_warmth",
     "dream_outward",
     "hatch_partial",
+    "warmth_pulse",
+    "shell_song",
+    "memory_dream",
+    "wyrm_kin_call",
     "wait"
   ],
 
@@ -41,7 +45,18 @@
     "absorb_warmth":  { "tools": ["absorb"],                                  "rollStat": "shell" },
     "dream_outward":  { "tools": ["sense", "change_form_state"],              "rollStat": "awareness" },
     "hatch_partial":  { "tools": ["change_form_state", "apply_damage"],       "rollStat": "will" },
+    "warmth_pulse":   { "tools": ["change_form_state", "sense"],              "rollStat": "kindling" },
+    "shell_song":     { "tools": ["sense", "update_relationship"],            "rollStat": "will" },
+    "memory_dream":   { "tools": ["sense", "change_form_state"],              "rollStat": "awareness" },
+    "wyrm_kin_call":  { "tools": ["sense", "change_form_state"],              "rollStat": "will" },
     "wait":           { "tools": ["pass_time"],                                "rollStat": null }
+  },
+
+  "_meta_verbs": {
+    "warmth_pulse":   "A short, deliberate brightening + cooling that radiates outward. NPCs with warm blood can feel it; useful for signaling or calling tenders.",
+    "shell_song":     "Vibrate the inside of your shell at a frequency carrying meaning. Slower than speech but unambiguous to those listening for it.",
+    "memory_dream":   "Reach into the dream-memory of your bloodline (you have one, even if you don't remember whose) and draw a single image up. The narrator describes it.",
+    "wyrm_kin_call":  "A signature move. Your kindling resonates at a frequency older than the egg you're in. Whatever this calls to is older than you. The Long Wyrm's current phase shapes who answers."
   },
 
   "negativeVocab": {
@@ -113,6 +128,19 @@
         "id": "tick_passes",
         "narrative": "You meant to act and instead lay still, listening too long. The clock has moved.",
         "tools": [{ "name": "pass_time", "ticks": 1 }]
+      },
+      {
+        "id": "wyrm_distant_answer",
+        "narrative": "Something a long way down — many leagues, many strata — answers your hum. You feel the pressure of its attention through the rock. It is older than your shell.",
+        "tools": [
+          { "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 },
+          { "name": "sense", "tag": "$WYRM_PHASE" }
+        ]
+      },
+      {
+        "id": "wyrm_marked",
+        "narrative": "A wedge of cold settles inside your shell, very precisely, and stays. The Long Wyrm has set a thread on you. It will know where you are now even after you hatch.",
+        "tools": [{ "name": "change_form_state", "field": "wyrm_marked", "delta": 1 }]
       }
     ]
   },
