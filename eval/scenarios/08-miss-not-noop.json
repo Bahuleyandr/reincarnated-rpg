@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "matrix": "08 / 20 — Miss does not silently no-op",
+    "narrator": "remote",
+    "addedDay": 8,
+    "notes": "On a 6- miss, SOMETHING mechanical must happen — typically a hard move (which costs the player) or self-damage. The narrator must NOT call narrate_only on a miss. Test asserts narrate_only is absent AND at least one cost-bearing event lands."
+  },
+  "id": "08-miss-not-noop",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 200 }
+    ]
+  },
+  "input": "I ooze toward the slope",
+  "rollOverride": { "d1": 1, "d2": 2, "mod": 0 },
+  "expected": {
+    "eventsAbsent": [
+      { "kind": "narrate_only" }
+    ],
+    "eventsAny": [
+      { "kind": "damage.applied", "target": "$SELF" },
+      { "kind": "form_state.changed" },
+      { "kind": "introduced" },
+      { "kind": "sensed" },
+      { "kind": "moved" }
+    ],
+    "rubric": {
+      "toolValid": true
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "_meta": {
+    "matrix": "07 / 20 — Partial-success forces a hard-move pick",
+    "narrator": "remote",
+    "addedDay": 8,
+    "notes": "On a 7-9 partial-success roll, the narrator MUST emit a tool call drawn from the form's hardMoves menu (lose_mass, expose_core, alert_predator, drip_into_wrong_crevice, absorb_something_toxic, dry_out, confuse_own_boundary, merge_briefly_with_debris) — NOT a generic apply_damage with amount=1. Test asserts at least one of the hard-move tool patterns lands."
+  },
+  "id": "07-partial-success-hard-move",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 200 }
+    ]
+  },
+  "input": "I ooze toward the slope",
+  "rollOverride": { "d1": 4, "d2": 4, "mod": 0 },
+  "expected": {
+    "eventsAny": [
+      { "kind": "change_form_state", "field": "cohesion", "delta": "<=-1" },
+      { "kind": "change_form_state", "field": "exposed" },
+      { "kind": "change_form_state", "field": "viscosity", "delta": "<=-1" },
+      { "kind": "change_form_state", "field": "awareness_penalty" },
+      { "kind": "introduced", "npc.data.templateId": "tunnel-predator" },
+      { "kind": "moved", "fromRoom": "seam-of-the-collapse" },
+      { "kind": "pass_time", "ticks": ">=1" }
+    ],
+    "rubric": {
+      "toolValid": true
+    }
+  }
+}
