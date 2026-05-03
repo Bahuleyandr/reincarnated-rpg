@@ -29,6 +29,7 @@ import {
   loadLocation,
 } from "@/lib/game/content";
 import { runTurn } from "@/lib/game/turn";
+import { trySpend } from "@/lib/energy/state";
 import { getCurrentArc, phaseForProgress } from "@/lib/meta/long-wyrm";
 import { activeTheme } from "@/lib/world/weekly-theme";
 import { makeNarrator } from "@/lib/narrator";
@@ -79,6 +80,24 @@ export async function POST(req: NextRequest) {
     return new Response(
       sseLine({ type: "error", error: "missing input" }),
       { status: 400, headers: { "content-type": "text/event-stream" } },
+    );
+  }
+
+  // Energy gate: charge 1 energy before opening the stream. Same
+  // logic as /api/turn — out-of-energy returns 429 with a normal
+  // JSON response (not SSE) so the client's fetch error handler
+  // can surface it cleanly.
+  const spend = await trySpend(db, {
+    userId: verified.userId ?? null,
+    sessionId,
+  });
+  if (!spend.ok) {
+    return new Response(
+      JSON.stringify({ error: "out of energy", energy: spend.view }),
+      {
+        status: 429,
+        headers: { "content-type": "application/json" },
+      },
     );
   }
 

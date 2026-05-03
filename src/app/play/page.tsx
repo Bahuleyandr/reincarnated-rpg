@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { ChatPanel } from "@/components/ChatPanel";
+import { EnergyBar } from "@/components/EnergyBar";
 import { InputBox } from "@/components/InputBox";
 import { InventoryPanel } from "@/components/InventoryPanel";
 import { NearbyBox } from "@/components/NearbyBox";
@@ -171,7 +172,26 @@ export default function Play() {
         body: JSON.stringify({ input: text }),
       });
       if (!res.ok || !res.body) {
-        errorMsg = `turn failed (${res.status})`;
+        // Energy 429 carries an `energy` view we surface to the bar.
+        if (res.status === 429) {
+          try {
+            const j = (await res.json()) as {
+              error?: string;
+              energy?: unknown;
+            };
+            if (j.energy) {
+              window.dispatchEvent(
+                new CustomEvent("energy:update", { detail: j.energy }),
+              );
+            }
+            errorMsg =
+              j.error ?? "out of energy — wait for the next refill";
+          } catch {
+            errorMsg = "out of energy";
+          }
+        } else {
+          errorMsg = `turn failed (${res.status})`;
+        }
       } else {
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
@@ -287,7 +307,10 @@ export default function Play() {
 
   return (
     <main className="min-h-screen bg-stone-950 text-stone-200 font-mono grid md:grid-cols-[260px_1fr_260px] grid-rows-[1fr]">
-      <StatusSidebar projection={projection} />
+      <aside className="border-r border-stone-800 flex flex-col overflow-y-auto">
+        <EnergyBar />
+        <StatusSidebar projection={projection} />
+      </aside>
 
       <section className="flex flex-col min-h-screen md:min-h-0">
         {metaArc && (

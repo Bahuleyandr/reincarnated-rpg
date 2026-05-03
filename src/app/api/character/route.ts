@@ -13,6 +13,8 @@ import { and, count, desc, eq, sql } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
+import { getEnergyView } from "@/lib/energy/state";
+import { turnsPerDay } from "@/lib/energy/tiers";
 import {
   aiCalls,
   campaigns,
@@ -138,10 +140,21 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  const energy = await getEnergyView(db, { userId });
+
   return NextResponse.json({
     totalCampaigns,
     campaignsByStatus,
     formDistribution: formRows,
+    energy: energy
+      ? {
+          energy: energy.energy,
+          max: energy.tier.max,
+          tierId: energy.tier.id,
+          tierLabel: energy.tier.label,
+          turnsPerDay: turnsPerDay(energy.tier),
+        }
+      : null,
     contributions: {
       total: contribAgg?.n ?? 0,
       totalDelta: contribAgg?.totalDelta ?? 0,

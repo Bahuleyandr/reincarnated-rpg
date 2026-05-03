@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getProviderForUser } from "@/lib/ai/factory";
 import { db } from "@/lib/db/client";
+import { trySpend } from "@/lib/energy/state";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
 import {
   loadBeatPack,
@@ -48,6 +49,24 @@ export async function POST(req: NextRequest) {
       : "";
   if (!input) {
     return NextResponse.json({ error: "missing input" }, { status: 400 });
+  }
+
+  // Energy gate: each turn costs 1. If the player is at 0 (after
+  // refill), 429 with the post-refill view so the UI can render
+  // "next refill in Xm". Logged-in users charge users.energy; anon
+  // sessions charge sessions.energy.
+  const spend = await trySpend(db, {
+    userId: verified.userId ?? null,
+    sessionId,
+  });
+  if (!spend.ok) {
+    return NextResponse.json(
+      {
+        error: "out of energy",
+        energy: spend.view,
+      },
+      { status: 429 },
+    );
   }
 
   try {
