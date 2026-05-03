@@ -7,6 +7,8 @@ import { db } from "@/lib/db/client";
 import { campaigns, userLlmPrefs } from "@/lib/db/schema";
 import { pickArc } from "@/lib/game/arc-routing";
 import { findOption } from "@/lib/game/reincarnation-picker";
+import { getCurrentArc } from "@/lib/meta/long-wyrm";
+import { activeTheme } from "@/lib/world/weekly-theme";
 import {
   AVAILABLE_LOCATIONS,
   pickFormId,
@@ -122,9 +124,11 @@ export async function POST(req: NextRequest) {
     : { pinnedPresetId: null, pinnedNarrationModel: null };
 
   // Arc roll: random pick from the (formId, locationId)-compatible
-  // beat packs. Two players landing on the same start get different
-  // stories. Null → free-form run, no scripted beats.
-  const arcPick = pickArc(formId, locationId);
+  // beat packs, biased by the active weekly theme. Two players
+  // landing on the same start get different stories.
+  const wyrm = await getCurrentArc(db).catch(() => null);
+  const theme = activeTheme(wyrm);
+  const arcPick = pickArc(formId, locationId, theme.arcWeights);
 
   const id = uuidv7();
   await db.insert(campaigns).values({

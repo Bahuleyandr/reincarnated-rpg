@@ -13,6 +13,7 @@ import {
   getCurrentArc,
   phaseForProgress,
 } from "@/lib/meta/long-wyrm";
+import { activeTheme } from "@/lib/world/weekly-theme";
 import { makeNarrator } from "@/lib/narrator";
 import { TemplateNarrator } from "@/lib/narrator/template";
 import {
@@ -79,20 +80,26 @@ export async function POST(req: NextRequest) {
     });
     const presetForTelemetry =
       resolved.source === "env-default" ? null : resolved.source;
-    // Pre-fetch the current meta-arc phase so the narrator's system
-    // prompt carries today's world-state. One indexed PK lookup.
+    // Pre-fetch the current meta-arc phase + active weekly theme so
+    // the narrator's system prompt carries both today's wyrm state
+    // and this week's mood. One indexed PK lookup; theme is a
+    // pure function once the arc is known.
     let metaArcFlavor:
       | { phase: string; label: string; flavor: string }
       | null = null;
+    let turnCapOverride: number | undefined;
     try {
       const arc = await getCurrentArc(db);
       if (arc) {
         const p = phaseForProgress(arc.progress);
+        const theme = activeTheme(arc);
+        // Compose: phase ambient + theme ambient. Both are short.
         metaArcFlavor = {
           phase: p.phase,
           label: p.label,
-          flavor: p.ambientFlavor,
+          flavor: `${p.ambientFlavor} ${theme.ambientFlavor}`,
         };
+        if (theme.turnCap !== null) turnCapOverride = theme.turnCap;
       }
     } catch (err) {
       log.warn("turn.meta_arc_fetch_failed", {
@@ -129,6 +136,7 @@ export async function POST(req: NextRequest) {
       narrator,
       fallbackNarrator,
       beatPack,
+      turnCap: turnCapOverride,
       starterFormState,
       world: verified.userId
         ? {

@@ -259,14 +259,29 @@ export async function recordContribution(
   if (!cur) return null;
   const phaseAt = cur.phase;
 
+  // Weekly theme adjusts feed/starve magnitudes. The "Hungry Wyrm"
+  // week multiplies feeds by 2; "Quiet Week" cuts feeds in half but
+  // boosts starves. Theme multipliers run AFTER the heuristic delta,
+  // so a +5 death on a Hungry Wyrm week becomes +10. Recorded delta
+  // also reflects the multiplier so the audit log is honest.
+  const { activeTheme } = await import("../world/weekly-theme");
+  const theme = activeTheme(cur);
+  const themedDelta =
+    plan.delta > 0
+      ? Math.round(plan.delta * theme.feedMultiplier)
+      : Math.round(plan.delta * theme.starveMultiplier);
+
   await db.insert(metaContributions).values({
     id: uuidv7(),
     arcId,
     userId: opts.userId ?? null,
     sessionId: opts.sessionId ?? null,
     campaignId: opts.campaignId ?? null,
-    delta: plan.delta,
-    reason: plan.reason,
+    delta: themedDelta,
+    reason:
+      themedDelta !== plan.delta
+        ? `${plan.reason}|theme:${theme.id}:x${theme.feedMultiplier}/${theme.starveMultiplier}`
+        : plan.reason,
     prose: plan.prose,
     formId: opts.formId ?? null,
     locationId: opts.locationId ?? null,
@@ -277,7 +292,7 @@ export async function recordContribution(
   // don't double-count. We use SQL expressions to clamp.
   const nextProgress = Math.max(
     0,
-    Math.min(PROGRESS_MAX, cur.progress + plan.delta),
+    Math.min(PROGRESS_MAX, cur.progress + themedDelta),
   );
   let nextPhase = phaseForProgress(nextProgress);
   // Cataclysm: if we hit broken's max, reset to 0/stirring and mark
@@ -303,8 +318,8 @@ export async function recordContribution(
   // a brand-new userId for this arc — but that requires a separate
   // query, so for v1 we just bump on every distinct sessionId
   // contribution.
-  const isStarve = plan.delta < 0;
-  const isFeed = plan.delta > 0;
+  const isStarve = themedDelta < 0;
+  const isFeed = themedDelta > 0;
 
   await db
     .update(metaArcs)
@@ -323,7 +338,9 @@ export async function recordContribution(
   log.info("meta.contribution", {
     arcId,
     sessionId: opts.sessionId,
-    delta: plan.delta,
+    rawDelta: plan.delta,
+    themedDelta,
+    theme: theme.id,
     reason: plan.reason,
     progressBefore: cur.progress,
     progressAfter: finalProgress,

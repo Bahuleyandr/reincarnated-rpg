@@ -24,6 +24,8 @@ import {
   planContribution,
   recordContribution,
 } from "@/lib/meta/long-wyrm";
+import { eq as eq2 } from "drizzle-orm";
+import { metaArcs as metaArcsTable } from "@/lib/db/schema";
 import { persistRunToWorld } from "@/lib/memory/world";
 import { uuidv7 } from "@/lib/util/uuidv7";
 import type { Event } from "@/lib/game/types";
@@ -54,6 +56,15 @@ beforeEach(async () => {
     username: `t${Date.now()}`,
     passwordHash: "x",
   });
+  // Pin the theme to 'default-week' (1.0/1.0 multipliers) so the
+  // tests are independent of what wall-clock ISO week we run them
+  // in. Theme behavior is tested separately in
+  // tests/unit/weekly-theme.test.ts.
+  await ensureLongWyrmExists(db);
+  await db
+    .update(metaArcsTable)
+    .set({ meta: { themeOverride: "default-week" } })
+    .where(eq2(metaArcsTable.id, LONG_WYRM_ID));
 });
 
 describe("phaseForProgress", () => {

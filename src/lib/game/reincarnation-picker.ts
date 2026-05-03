@@ -30,6 +30,8 @@ import { randomBytes } from "node:crypto";
 
 import type { Db } from "../db/client";
 import { campaigns } from "../db/schema";
+import { getCurrentArc } from "../meta/long-wyrm";
+import { activeTheme } from "../world/weekly-theme";
 
 export interface ReincarnationOption {
   id: string;
@@ -140,13 +142,19 @@ export async function offerReincarnations(
   opts: {
     n?: number;
     excludeFormIds?: string[];
-    /** Per-option weight overrides (admin-side; loaded from /god). */
+    /** Per-option weight overrides (admin-side; loaded from /god).
+     *  Merged on top of the active week's theme overrides. */
     weightOverrides?: Record<string, number>;
   } = {},
 ): Promise<PickerResult> {
   const n = opts.n ?? 6;
   const excluded = new Set(opts.excludeFormIds ?? []);
   const distribution = await liveDistribution(db);
+  // Merge week-theme option weights with admin overrides. Admin
+  // wins on collision — they're the explicit override.
+  const arc = await getCurrentArc(db).catch(() => null);
+  const theme = activeTheme(arc ?? null);
+  const themeWeights = theme.optionWeights;
   const totalActive = Array.from(distribution.values()).reduce(
     (a, b) => a + b,
     0,
@@ -159,7 +167,9 @@ export async function offerReincarnations(
   const weighted = catalog.map((o) => {
     const tierMult = TIER_BASE[o.tier] ?? 0.5;
     const sat = saturationPenalty(o.typedFormHint, distribution, totalActive);
-    const ovr = opts.weightOverrides?.[o.id] ?? 1.0;
+    const themeOvr = themeWeights[o.id] ?? 1.0;
+    const adminOvr = opts.weightOverrides?.[o.id] ?? 1.0;
+    const ovr = themeOvr * adminOvr;
     const effective = o.weight * tierMult * sat * ovr;
     const saturated =
       totalActive >= 5 &&
