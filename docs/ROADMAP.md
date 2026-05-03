@@ -36,10 +36,57 @@ Goal: RemoteNarrator + episodic memory + 20 golden eval scenarios. Deploy to Fly
 - **M4 — Form #2 (Cursed Book)**: Validates the form-template architecture as a category. The wedge becomes demonstrable in a 30-second slime-vs-book same-seed clip.
 - **M5 — Polish & deploy**: Status panel, quest log, inventory cards, dice animations, public deploy.
 
-## Post-MVP growth bets (month 1 after v0.1)
+## Post-MVP — shipped since v0.1.0
 
-1. Ship form #2 (Cursed Book) and form #3 (Dungeon Core).
+Tracked here so we can see what's accumulated above the MVP line. See `docs/POST_MVP_PLAN.md` for the next 14-day plan.
+
+| Date | Feature | Commit |
+|---|---|---|
+| 2026-05-03 | BYO LLM (per-user provider + model overrides) | `67888f0` |
+| 2026-05-03 | Reliability hardening | `e30a86d` |
+| 2026-05-03 | Per-user controls | `0baadcb` |
+| 2026-05-03 | Forms expansion (slime / book / dragon-egg / dungeon-core / healer) | `8725008` |
+| 2026-05-03 | World memory across runs | `59c6732` |
+| 2026-05-03 | Streaming narration + leaderboard | `df73aa4` |
+| 2026-05-03 | Abilities + per-campaign arcs | `172b760` |
+| 2026-05-03 | Long Wyrm meta-arc | `51a5428` |
+| 2026-05-03 | Reincarnation picker | `3b539d9` |
+| 2026-05-03 | Live presence | `b501ac0` |
+| 2026-05-03 | God-mode + safety guardrails | `3438da1` |
+| 2026-05-03 | World lore ledger | `171e892` |
+| 2026-05-03 | Inventory cap | `ce04257` |
+| 2026-05-03 | Character page + cache | `197073f` |
+| 2026-05-03 | Reincarnation batch 2 (50+ forms) | `20b0857` |
+| 2026-05-03 | Real-time chat | `9d1f17f` |
+| 2026-05-03 | Weekly themes | `b1c09e8` |
+| 2026-05-03 | Lore admin + decay | `51bac34` |
+| 2026-05-03 | Energy tiers | `578de92` |
+| 2026-05-03 | Blessing of the Gods | `b7a3ddd` |
+| 2026-05-03 | Daily-streak blessing (1→5 stack) | `4363b0b` |
+| 2026-05-03 | Moderation + curses + power-creep ceilings | `1922be6` |
+
+## Post-MVP — next 14 days
+
+See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
+
+1. **Predicate engine** (Day 1-2) — shared infra for achievements, daily objectives, legacy-trait imprinting.
+2. **Legacy traits** (Day 3) — death cause imprints on the user; next reincarnation starts with the scar.
+3. **Achievements + titles** (Day 4-5) — ~40 catalogued, predicate-driven, leaderboard badges.
+4. **Daily/weekly objectives** (Day 6) — compounds with the streak; energy rewards.
+5. **Companion NPCs** (Day 7-8) — bonded NPCs follow you across reincarnations.
+6. **Player gifting** (Day 9) — 1 gift/day, rate-limited, social glue.
+7. **Run replay / share** (Day 10) — shareable transcript + OG image.
+8. **Mood presets** (Day 11) — cozy / standard / brutal narration knob.
+9. **Adaptive difficulty** (Day 12) — death streak → small +mod to subsequent rolls.
+10. **World boss raids** (Day 13) — Long Wyrm gets HP; players collaboratively reduce it.
+11. **Scene images** (Day 14) — opt-in, cost-gated visual moments.
+12. **NPC dialogue system** (Day 15+) — multi-turn conversations with personality continuity.
+13. **Player-authored forms** (Day 20+) — submission queue + admin approval.
+
+## Post-MVP growth bets (month 2+)
+
+1. Ship form #2 (Cursed Book) at depth and form #3 (Dungeon Core).
 2. Daily-rotation + shared-seed loop (Wordle-style ritual; persistent-world legacy as Spelunky-style underlay).
 3. Record and post slime-vs-book same-seed clip to r/aigamedev.
 
-See `docs/PLAN.md` for full plan and `docs/BRIEF.md` for original brief.
+See `docs/PLAN.md` for the original 14-day MVP plan, `docs/POST_MVP_PLAN.md` for the next-14-day plan, and `docs/BRIEF.md` for the original brief.
