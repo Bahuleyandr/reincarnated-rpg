@@ -499,6 +499,68 @@ export type WorldMemory = typeof worldMemories.$inferSelect;
 export type NewWorldMemory = typeof worldMemories.$inferInsert;
 
 /**
+ * Global world lore — the canonical ledger of major events that
+ * happened in the world. Distinct from world_memories (which is
+ * per-user); this is the SHARED knowledge that every player's
+ * narrator references on first-turn recall.
+ *
+ * Filtering: only events that pass the lore judge get promoted
+ * here. Trivial runs (player saved a kitten, player got dropped a
+ * pebble) stay in their per-user world_memories. World-changing
+ * runs (a city fell, an artifact was found, an NPC died at a
+ * pivotal moment) get a row here.
+ *
+ * The ledger is append-only. Time-limited events (e.g., "the
+ * cult is recruiting") may set expires_at to fall out of recall
+ * naturally; permanent events (e.g., "the lighthouse keeper drowned
+ * the cathedral") leave it null.
+ */
+export const worldLore = pgTable(
+  "world_lore",
+  {
+    id: uuid("id").primaryKey(),
+    /** 1-2 sentence canonical summary used by the narrator. */
+    summary: text("summary").notNull(),
+    /** Richer prose for the public /meta lore feed. Optional. */
+    prose: text("prose"),
+    /** Embedding for semantic retrieval. Optional — Voyage may be
+     *  unavailable in dev. */
+    embedding: vector("embedding", { dimensions: 512 }),
+    /** Judge-scored 0..1. ≥0.6 is the promotion threshold. */
+    salience: real("salience").notNull(),
+    /** Category — useful for filtering on /meta. e.g. 'city-event',
+     *  'artifact', 'npc-fate', 'cult', 'plague', 'wyrm-event'. */
+    category: text("category"),
+    /** Tags array — finer-grained than category. */
+    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    /** Attribution. NULL on admin-injected events. */
+    sourceUserId: uuid("source_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    sourceCampaignId: uuid("source_campaign_id"),
+    sourceSessionId: uuid("source_session_id"),
+    sourceLocationId: text("source_location_id"),
+    sourceFormId: text("source_form_id"),
+    /** The wyrm phase at the time the event happened. Lets future
+     *  rendering color old lore by world-state. */
+    sourcePhase: text("source_phase"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /** Time-limited events — null = permanent. */
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("world_lore_salience_idx").on(t.salience, t.createdAt),
+    index("world_lore_category_idx").on(t.category),
+    index("world_lore_user_idx").on(t.sourceUserId),
+  ],
+);
+
+export type WorldLore = typeof worldLore.$inferSelect;
+export type NewWorldLore = typeof worldLore.$inferInsert;
+
+/**
  * Meta-arc — the over-arching shared story above all individual runs.
  *
  * One row per arc id. v0.1 ships a single arc, "long-wyrm". Every

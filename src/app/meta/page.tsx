@@ -36,15 +36,36 @@ interface MetaArcResp {
   }>;
 }
 
+interface LoreEntry {
+  id: string;
+  summary: string;
+  prose: string | null;
+  salience: number;
+  category: string | null;
+  tags: string[];
+  sourceFormId: string | null;
+  sourceLocationId: string | null;
+  sourcePhase: string | null;
+  createdAt: string;
+}
+
 export default function MetaPage() {
   const [data, setData] = useState<MetaArcResp | null>(null);
+  const [lore, setLore] = useState<LoreEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const r = await fetch("/api/meta");
+      const [r, l] = await Promise.all([
+        fetch("/api/meta"),
+        fetch("/api/lore?limit=20"),
+      ]);
       if (r.ok && !cancelled) setData(await r.json());
+      if (l.ok && !cancelled) {
+        const d = (await l.json()) as { lore: LoreEntry[] };
+        setLore(d.lore);
+      }
       setLoading(false);
     }
     load();
@@ -146,6 +167,62 @@ export default function MetaPage() {
               cycle {arc.meta.cycle} — the wyrm has broken{" "}
               {arc.meta.cycle - 1} time{arc.meta.cycle === 2 ? "" : "s"} before.
             </p>
+          )}
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-stone-100 text-sm flex items-baseline justify-between">
+            <span>the chronicle</span>
+            <span className="text-[10px] text-stone-600 font-normal">
+              canonical lore from {lore.length} world-changing event
+              {lore.length === 1 ? "" : "s"}
+            </span>
+          </h2>
+          <p className="text-[11px] text-stone-500 leading-5">
+            Every player's run is judged for significance. Most stay
+            personal — saved kittens, found pebbles, walks across an
+            empty market. The few that change something the world would
+            remember get written here, and every future player's narrator
+            references this ledger.
+          </p>
+          {lore.length === 0 ? (
+            <p className="text-stone-500 text-sm italic">
+              the chronicle is silent. no world-changing events yet.
+            </p>
+          ) : (
+            <ul className="space-y-2 text-xs">
+              {lore.map((l) => (
+                <li
+                  key={l.id}
+                  className="border border-stone-800 px-4 py-3 bg-stone-900/40 space-y-1"
+                >
+                  <div className="flex items-baseline gap-3">
+                    {l.category && (
+                      <span className="text-[10px] uppercase tracking-widest text-amber-500">
+                        {l.category}
+                      </span>
+                    )}
+                    <span className="text-stone-300 flex-1">{l.summary}</span>
+                    <span className="text-[10px] text-stone-600 whitespace-nowrap">
+                      {(l.salience * 100).toFixed(0)}
+                    </span>
+                  </div>
+                  {l.prose && (
+                    <p className="text-stone-400 text-[11px] leading-5 italic">
+                      {l.prose}
+                    </p>
+                  )}
+                  <div className="text-[10px] text-stone-600">
+                    {l.sourceFormId ?? "?"} · {l.sourceLocationId ?? "?"} ·{" "}
+                    {l.sourcePhase ?? "?"} ·{" "}
+                    {new Date(l.createdAt).toLocaleString()}
+                    {l.tags.length > 0 && (
+                      <span className="ml-2">{l.tags.join(" · ")}</span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
 
