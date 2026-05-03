@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
-import { campaigns } from "@/lib/db/schema";
+import { campaigns, userLlmPrefs } from "@/lib/db/schema";
 import {
   AVAILABLE_LOCATIONS,
   pickFormId,
@@ -92,6 +92,25 @@ export async function POST(req: NextRequest) {
         : reincarnatedAs
       : "Untitled run");
 
+  // Voice continuity: snapshot the user's CURRENT BYO prefs into the
+  // campaign so future turns of this campaign keep the same model
+  // even if /settings changes. Null when the user hasn't set BYO
+  // prefs (env-default — no point pinning).
+  const prefRows = await db
+    .select({
+      presetId: userLlmPrefs.presetId,
+      model: userLlmPrefs.model,
+    })
+    .from(userLlmPrefs)
+    .where(eq(userLlmPrefs.userId, userId))
+    .limit(1);
+  const pin = prefRows[0]
+    ? {
+        pinnedPresetId: prefRows[0].presetId,
+        pinnedNarrationModel: prefRows[0].model,
+      }
+    : { pinnedPresetId: null, pinnedNarrationModel: null };
+
   const id = uuidv7();
   await db.insert(campaigns).values({
     id,
@@ -100,6 +119,7 @@ export async function POST(req: NextRequest) {
     formId,
     locationId,
     reincarnatedAs,
+    ...pin,
   });
   return NextResponse.json({
     campaign: {
@@ -110,6 +130,7 @@ export async function POST(req: NextRequest) {
       locationId,
       reincarnatedAs,
       status: "active",
+      ...pin,
     },
   });
 }

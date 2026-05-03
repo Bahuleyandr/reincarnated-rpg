@@ -22,12 +22,13 @@ import { type Narrator } from "../narrator";
 import { createMemory, retrieveMemories } from "../memory/episodic";
 
 import { matchBeats, type BeatPack } from "./beats";
+import { classifyHaiku } from "./classify-haiku";
 import { appendEvents, readLog, rowToEvent } from "./events";
 import { loadProjection, writeSnapshot } from "./projection";
 import { classify } from "./classify";
 import { roll2d6 } from "./rules";
 import { sanitizePlayerInput } from "./sanitize";
-import { checkToneFast } from "./tone";
+import { checkTone, checkToneFast } from "./tone";
 import { applyTools } from "./tools";
 import type {
   Event,
@@ -53,6 +54,21 @@ export interface RunTurnArgs {
   beatPack?: BeatPack;
   /** Cap turn count; if reached, fire session.ended('cap'). Default 10. */
   turnCap?: number;
+  /** Per-call-type LLM upgrades. When `useLlmClassifier=true`, the
+   *  regex `classify()` is replaced by `classifyHaiku()` (which falls
+   *  back to regex on low confidence). When `useLlmTone=true`, the
+   *  regex `checkToneFast` is wrapped with `checkTone()` second-pass.
+   *  Both routes use `provider` + the supplied model. Telemetry rows
+   *  carry userId + presetId. */
+  llmJudges?: {
+    useClassifier: boolean;
+    useTone: boolean;
+    provider: import("../ai/provider").AIProvider;
+    classifierModel?: string;
+    toneModel?: string;
+    userId?: string | null;
+    presetId?: string | null;
+  };
 }
 
 export interface TurnResult {
@@ -87,6 +103,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     fallbackNarrator,
     beatPack,
     turnCap = 10,
+    llmJudges,
   } = args;
   let narratorFallback = false;
   let narratorFallbackReason: string | undefined;
@@ -111,8 +128,24 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     },
   ]);
 
-  // 3. Classify intent.
-  const intent = classify(sanitized, form);
+  // 3. Classify intent. Defaults to the free regex; opt-in LLM
+  //    classifier replaces it when llmJudges.useClassifier is set.
+  const intent = llmJudges?.useClassifier
+    ? await classifyHaiku(
+        sanitized,
+        form,
+        {
+          db,
+          sessionId,
+          userId: llmJudges.userId ?? null,
+          presetId: llmJudges.presetId ?? null,
+        },
+        {
+          provider: llmJudges.provider,
+          model: llmJudges.classifierModel,
+        },
+      )
+    : classify(sanitized, form);
   await appendEvents(db, sessionId, [
     {
       kind: "intent.classified",
@@ -227,10 +260,23 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   }
   const toolEvents = toolResult.ok ? toolResult.events.length : 0;
 
-  // 9. Tone drift check on the final accepted text. If the regex layer
-  // catches negativeVocab, re-narrate once for prose only — the tools
-  // are already applied (or fallen-back) and don't get re-emitted.
+  // 9. Tone drift check on the final accepted text.
+  //    Regex layer first (fast, free). When llmJudges.useTone is on,
+  //    a second-pass LLM judge runs on text the regex passed.
   let tone = checkToneFast(narrate.text, form);
+  if (tone.ok && llmJudges?.useTone) {
+    tone = await checkTone(
+      narrate.text,
+      form,
+      {
+        db,
+        sessionId,
+        userId: llmJudges.userId ?? null,
+        presetId: llmJudges.presetId ?? null,
+      },
+      { provider: llmJudges.provider, model: llmJudges.toneModel },
+    );
+  }
   let toneRetried = false;
   if (!tone.ok) {
     toneRetried = true;
@@ -238,13 +284,17 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       sessionId,
       turn: turnNumber,
       violations: tone.violations,
+      score: tone.score,
     });
     const retry = await narrator.narrate({
       ...baseInput,
       previousAttempt: {
         text: narrate.text,
         toolCalls: narrate.toolCalls,
-        failureReason: `tone violations: ${tone.violations.join(", ")}`,
+        failureReason:
+          tone.violations.length > 0
+            ? `tone violations: ${tone.violations.join(", ")}`
+            : `tone judge: ${tone.reason ?? "off-form"}`,
         failureKind: "tone_drift",
       },
     });

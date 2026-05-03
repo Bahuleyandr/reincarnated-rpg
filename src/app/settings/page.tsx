@@ -20,14 +20,35 @@ interface Prefs {
   providerKind: "anthropic" | "openai-compatible";
   baseUrl: string | null;
   model: string;
+  classifierModel: string | null;
+  toneModel: string | null;
+  useLlmClassifier: boolean;
+  useLlmTone: boolean;
   hasKey: boolean;
   updatedAt: string;
+}
+
+interface CostBucket {
+  calls: number;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheCreateTokens: number;
+  estCostUsd: number;
+}
+interface CostResponse {
+  last24h: CostBucket;
+  last7d: CostBucket;
+  last30d: CostBucket;
+  turns30d: number;
+  byModel: Array<CostBucket & { model: string }>;
 }
 
 export default function SettingsPage() {
   const router = useRouter();
   const [presets, setPresets] = useState<Preset[]>([]);
   const [prefs, setPrefs] = useState<Prefs | null>(null);
+  const [cost, setCost] = useState<CostResponse | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   // Form state
@@ -35,10 +56,16 @@ export default function SettingsPage() {
   const [model, setModel] = useState("");
   const [baseUrl, setBaseUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [classifierModel, setClassifierModel] = useState("");
+  const [toneModel, setToneModel] = useState("");
+  const [useLlmClassifier, setUseLlmClassifier] = useState(false);
+  const [useLlmTone, setUseLlmTone] = useState(false);
+
   const [busy, setBusy] = useState(false);
   const [testing, setTesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const [warnings, setWarnings] = useState<string[]>([]);
   const [testResult, setTestResult] = useState<
     | { ok: true; latencyMs: number; sample: string; model: string }
     | { ok: false; error: string; latencyMs?: number }
@@ -60,7 +87,10 @@ export default function SettingsPage() {
         return;
       }
 
-      const r = await fetch("/api/settings/llm");
+      const [r, c] = await Promise.all([
+        fetch("/api/settings/llm"),
+        fetch("/api/settings/cost"),
+      ]);
       if (!r.ok) return;
       const d = (await r.json()) as { presets: Preset[]; prefs: Prefs | null };
       if (cancelled) return;
@@ -70,6 +100,10 @@ export default function SettingsPage() {
         setPresetId(d.prefs.presetId);
         setModel(d.prefs.model);
         setBaseUrl(d.prefs.baseUrl ?? "");
+        setClassifierModel(d.prefs.classifierModel ?? "");
+        setToneModel(d.prefs.toneModel ?? "");
+        setUseLlmClassifier(d.prefs.useLlmClassifier);
+        setUseLlmTone(d.prefs.useLlmTone);
       } else {
         const def = d.presets.find((p) => p.id === "anthropic");
         if (def) {
@@ -77,6 +111,10 @@ export default function SettingsPage() {
           setModel(def.defaultModel);
           setBaseUrl(def.baseUrl ?? "");
         }
+      }
+      if (c.ok) {
+        const cd = (await c.json()) as CostResponse;
+        if (!cancelled) setCost(cd);
       }
       setLoaded(true);
     }
@@ -91,17 +129,23 @@ export default function SettingsPage() {
     setSaved(null);
     setError(null);
     setTestResult(null);
+    setWarnings([]);
     const p = presets.find((x) => x.id === id);
     if (!p) return;
-    // When switching presets, prefill model + baseUrl from the preset
-    // unless we already have saved prefs for this exact preset (then
-    // keep the user's customized values).
     if (prefs && prefs.presetId === id) {
       setModel(prefs.model);
       setBaseUrl(prefs.baseUrl ?? "");
+      setClassifierModel(prefs.classifierModel ?? "");
+      setToneModel(prefs.toneModel ?? "");
+      setUseLlmClassifier(prefs.useLlmClassifier);
+      setUseLlmTone(prefs.useLlmTone);
     } else {
       setModel(p.defaultModel);
       setBaseUrl(p.baseUrl ?? "");
+      setClassifierModel("");
+      setToneModel("");
+      setUseLlmClassifier(false);
+      setUseLlmTone(false);
     }
   }
 
@@ -142,6 +186,7 @@ export default function SettingsPage() {
     setBusy(true);
     setError(null);
     setSaved(null);
+    setWarnings([]);
     try {
       const res = await fetch("/api/settings/llm", {
         method: "PUT",
@@ -150,6 +195,10 @@ export default function SettingsPage() {
           presetId,
           model: model.trim(),
           baseUrl: baseUrl.trim(),
+          classifierModel: classifierModel.trim() || undefined,
+          toneModel: toneModel.trim() || undefined,
+          useLlmClassifier,
+          useLlmTone,
           apiKey: apiKey.trim() || undefined,
         }),
       });
@@ -159,10 +208,14 @@ export default function SettingsPage() {
         setBusy(false);
         return;
       }
-      const d = (await res.json()) as { prefs: Prefs };
+      const d = (await res.json()) as {
+        prefs: Prefs;
+        warnings?: string[];
+      };
       setPrefs(d.prefs);
       setApiKey("");
       setSaved("saved.");
+      setWarnings(d.warnings ?? []);
       setBusy(false);
     } catch (e) {
       setError(`network: ${e instanceof Error ? e.message : "?"}`);
@@ -175,6 +228,7 @@ export default function SettingsPage() {
     setBusy(true);
     setError(null);
     setSaved(null);
+    setWarnings([]);
     try {
       const res = await fetch("/api/settings/llm", { method: "DELETE" });
       if (!res.ok) {
@@ -190,6 +244,10 @@ export default function SettingsPage() {
         setBaseUrl(def.baseUrl ?? "");
       }
       setApiKey("");
+      setClassifierModel("");
+      setToneModel("");
+      setUseLlmClassifier(false);
+      setUseLlmTone(false);
       setSaved("cleared. now using the deploy default.");
       setBusy(false);
     } catch (e) {
@@ -242,6 +300,8 @@ export default function SettingsPage() {
           </p>
         </section>
 
+        <CostPanel cost={cost} />
+
         <form
           onSubmit={save}
           className="border border-stone-800 p-4 space-y-4 bg-stone-900/40"
@@ -286,7 +346,9 @@ export default function SettingsPage() {
           )}
 
           <div className="space-y-1">
-            <label className="block text-xs text-stone-400">model</label>
+            <label className="block text-xs text-stone-400">
+              narration model
+            </label>
             <input
               type="text"
               value={model}
@@ -295,10 +357,79 @@ export default function SettingsPage() {
               className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 focus:outline-none focus:border-stone-500"
             />
             <p className="text-[10px] text-stone-600 leading-4">
-              Per-provider format. e.g. claude-sonnet-4-6, gpt-4o-mini,
+              The smart model that writes prose + emits state-changing tool
+              calls. Per-provider format. e.g. claude-sonnet-4-6, gpt-4o-mini,
               MiniMax-Text-01, anthropic/claude-sonnet-4-6 (OpenRouter).
             </p>
           </div>
+
+          <details className="border border-stone-800 bg-stone-950/50">
+            <summary className="px-3 py-2 text-xs text-stone-400 cursor-pointer hover:text-stone-200">
+              advanced: per-call-type model split
+            </summary>
+            <div className="p-3 space-y-3 border-t border-stone-800">
+              <p className="text-[10px] text-stone-600 leading-4">
+                The classifier maps free-text input to a verb. The tone judge
+                catches off-form prose. Both default to a free regex layer —
+                turning these on swaps in a cheap LLM call per turn (best for
+                ambiguous inputs / strict tone). Use a small fast model like{" "}
+                <code className="text-stone-500">claude-haiku-4-5</code>,{" "}
+                <code className="text-stone-500">gpt-4o-mini</code>, or{" "}
+                <code className="text-stone-500">
+                  meta-llama/llama-3.1-8b-instruct
+                </code>
+                .
+              </p>
+
+              <label className="flex items-start gap-2 text-xs text-stone-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useLlmClassifier}
+                  onChange={(e) => setUseLlmClassifier(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  use LLM classifier
+                  <span className="block text-[10px] text-stone-600 leading-4">
+                    Falls back to regex on confidence &lt; 0.5.
+                  </span>
+                </span>
+              </label>
+              {useLlmClassifier && (
+                <input
+                  type="text"
+                  value={classifierModel}
+                  onChange={(e) => setClassifierModel(e.target.value)}
+                  placeholder="leave blank to use the narration model"
+                  className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 focus:outline-none focus:border-stone-500"
+                />
+              )}
+
+              <label className="flex items-start gap-2 text-xs text-stone-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useLlmTone}
+                  onChange={(e) => setUseLlmTone(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  use LLM tone judge
+                  <span className="block text-[10px] text-stone-600 leading-4">
+                    Second-pass quality gate after the regex check.
+                  </span>
+                </span>
+              </label>
+              {useLlmTone && (
+                <input
+                  type="text"
+                  value={toneModel}
+                  onChange={(e) => setToneModel(e.target.value)}
+                  placeholder="leave blank to use the narration model"
+                  className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 focus:outline-none focus:border-stone-500"
+                />
+              )}
+            </div>
+          </details>
 
           <div className="space-y-1">
             <label className="block text-xs text-stone-400">
@@ -326,6 +457,13 @@ export default function SettingsPage() {
 
           {error && <p className="text-red-400 text-xs">{error}</p>}
           {saved && <p className="text-emerald-400 text-xs">{saved}</p>}
+          {warnings.length > 0 && (
+            <ul className="text-amber-300 text-xs space-y-1">
+              {warnings.map((w, i) => (
+                <li key={i}>⚠ {w}</li>
+              ))}
+            </ul>
+          )}
           {testResult &&
             (testResult.ok ? (
               <p className="text-emerald-400 text-xs">
@@ -374,5 +512,67 @@ export default function SettingsPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+function CostPanel({ cost }: { cost: CostResponse | null }) {
+  if (!cost) return null;
+  const fmt = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : `${n}`);
+  const usd = (n: number) =>
+    n < 0.01 ? `$<0.01` : `$${n.toFixed(2)}`;
+  return (
+    <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+      <h2 className="text-stone-100 text-sm">cost (your runs)</h2>
+      <div className="grid grid-cols-3 gap-3 text-xs">
+        {[
+          ["last 24h", cost.last24h],
+          ["last 7d", cost.last7d],
+          ["last 30d", cost.last30d],
+        ].map(([label, b]) => (
+          <div
+            key={label as string}
+            className="border border-stone-800 p-3 bg-stone-950 space-y-1"
+          >
+            <div className="text-stone-500">{label as string}</div>
+            <div className="text-stone-100">
+              {usd((b as CostBucket).estCostUsd)}
+              <span className="text-stone-600 text-[10px]"> est</span>
+            </div>
+            <div className="text-stone-500 text-[10px]">
+              {(b as CostBucket).calls} calls ·{" "}
+              {fmt(
+                (b as CostBucket).inputTokens +
+                  (b as CostBucket).cacheReadTokens +
+                  (b as CostBucket).cacheCreateTokens,
+              )}
+              {" → "}
+              {fmt((b as CostBucket).outputTokens)} tok
+            </div>
+          </div>
+        ))}
+      </div>
+      {cost.byModel.length > 0 && (
+        <div className="text-[11px] text-stone-500 space-y-1">
+          <div className="text-stone-400 mb-1">by model (last 30d)</div>
+          {cost.byModel.slice(0, 5).map((m) => (
+            <div
+              key={m.model}
+              className="flex items-center justify-between gap-3"
+            >
+              <span className="text-stone-300 truncate">{m.model}</span>
+              <span className="text-stone-500 whitespace-nowrap">
+                {m.calls} calls · {fmt(m.inputTokens)}/{fmt(m.outputTokens)} tok
+                · {usd(m.estCostUsd)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-[10px] text-stone-600 leading-4">
+        Cost estimate is accurate for Anthropic models (we know the rates).
+        Other providers report tokens only — check your provider's dashboard
+        for the dollar figure.
+      </p>
+    </section>
   );
 }

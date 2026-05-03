@@ -57,9 +57,15 @@ export async function POST(req: NextRequest) {
         ? loadBeatPack("survive-the-night")
         : undefined;
     // BYO-LLM: if the player has saved /settings overrides, use their
-    // provider + model. Anonymous sessions and users without prefs
-    // fall back to the env-default provider.
-    const resolved = await getProviderForUser(db, verified.userId ?? null);
+    // provider + model. The campaign's pinned model wins over current
+    // prefs when present, preserving voice continuity across /settings
+    // edits. Anon sessions and unconfigured users hit env-default.
+    const resolved = await getProviderForUser(db, verified.userId ?? null, {
+      pinnedPresetId: ctx.pinnedPresetId,
+      pinnedNarrationModel: ctx.pinnedNarrationModel,
+    });
+    const presetForTelemetry =
+      resolved.source === "env-default" ? null : resolved.source;
     const narrator = makeNarrator({
       form,
       location,
@@ -68,7 +74,7 @@ export async function POST(req: NextRequest) {
       db,
       sessionId,
       userId: verified.userId ?? null,
-      presetId: resolved.source === "env-default" ? null : resolved.source,
+      presetId: presetForTelemetry,
     });
 
     // Safety net: deterministic template-narrator that runs offline.
@@ -85,6 +91,24 @@ export async function POST(req: NextRequest) {
       narrator,
       fallbackNarrator,
       beatPack,
+      llmJudges:
+        resolved.useLlmClassifier || resolved.useLlmTone
+          ? {
+              useClassifier: resolved.useLlmClassifier,
+              useTone: resolved.useLlmTone,
+              provider: resolved.provider,
+              classifierModel:
+                resolved.classifierModelOverride ??
+                resolved.modelOverride ??
+                undefined,
+              toneModel:
+                resolved.toneModelOverride ??
+                resolved.modelOverride ??
+                undefined,
+              userId: verified.userId ?? null,
+              presetId: presetForTelemetry,
+            }
+          : undefined,
     });
 
     if (!result.ok) {

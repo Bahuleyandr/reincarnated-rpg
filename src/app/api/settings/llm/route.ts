@@ -15,6 +15,7 @@
 import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
+import { warnIfShaky } from "@/lib/ai/model-registry";
 import { findPreset, isValidPresetId, PRESETS } from "@/lib/ai/presets";
 import { db } from "@/lib/db/client";
 import { userLlmPrefs } from "@/lib/db/schema";
@@ -43,6 +44,10 @@ export async function GET(req: NextRequest) {
       providerKind: userLlmPrefs.providerKind,
       baseUrl: userLlmPrefs.baseUrl,
       model: userLlmPrefs.model,
+      classifierModel: userLlmPrefs.classifierModel,
+      toneModel: userLlmPrefs.toneModel,
+      useLlmClassifier: userLlmPrefs.useLlmClassifier,
+      useLlmTone: userLlmPrefs.useLlmTone,
       hasKey: userLlmPrefs.apiKeyEnc,
       updatedAt: userLlmPrefs.updatedAt,
     })
@@ -58,6 +63,10 @@ export async function GET(req: NextRequest) {
           providerKind: r.providerKind,
           baseUrl: r.baseUrl,
           model: r.model,
+          classifierModel: r.classifierModel,
+          toneModel: r.toneModel,
+          useLlmClassifier: r.useLlmClassifier === "true",
+          useLlmTone: r.useLlmTone === "true",
           hasKey: !!r.hasKey,
           updatedAt: r.updatedAt,
         }
@@ -73,6 +82,10 @@ export async function PUT(req: NextRequest) {
   let body: {
     presetId?: string;
     model?: string;
+    classifierModel?: string;
+    toneModel?: string;
+    useLlmClassifier?: boolean;
+    useLlmTone?: boolean;
     baseUrl?: string;
     apiKey?: string;
   };
@@ -132,6 +145,11 @@ export async function PUT(req: NextRequest) {
     );
   }
 
+  const classifierModel = (body.classifierModel ?? "").trim() || null;
+  const toneModel = (body.toneModel ?? "").trim() || null;
+  const useLlmClassifier = body.useLlmClassifier ? "true" : "false";
+  const useLlmTone = body.useLlmTone ? "true" : "false";
+
   const now = new Date();
   if (isInsert) {
     await db.insert(userLlmPrefs).values({
@@ -140,6 +158,10 @@ export async function PUT(req: NextRequest) {
       providerKind: preset.kind,
       baseUrl,
       model,
+      classifierModel,
+      toneModel,
+      useLlmClassifier,
+      useLlmTone,
       apiKeyEnc: apiKeyEnc ?? null,
       createdAt: now,
       updatedAt: now,
@@ -152,6 +174,10 @@ export async function PUT(req: NextRequest) {
         providerKind: preset.kind,
         baseUrl,
         model,
+        classifierModel,
+        toneModel,
+        useLlmClassifier,
+        useLlmTone,
         ...(apiKeyEnc !== undefined ? { apiKeyEnc } : {}),
         updatedAt: now,
       })
@@ -165,12 +191,21 @@ export async function PUT(req: NextRequest) {
       providerKind: preset.kind,
       baseUrl,
       model,
+      classifierModel,
+      toneModel,
+      useLlmClassifier: body.useLlmClassifier ?? false,
+      useLlmTone: body.useLlmTone ?? false,
       hasKey:
         apiKeyEnc !== undefined
           ? !!apiKeyEnc
           : !!existing[0]?.apiKeyEnc,
       updatedAt: now,
     },
+    warnings: [
+      warnIfShaky(presetId, model),
+      classifierModel ? warnIfShaky(presetId, classifierModel) : null,
+      toneModel ? warnIfShaky(presetId, toneModel) : null,
+    ].filter((s): s is string => Boolean(s)),
   });
 }
 
