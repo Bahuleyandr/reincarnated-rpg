@@ -22,7 +22,7 @@ Goal: RemoteNarrator + episodic memory + 20 golden eval scenarios. Deploy to Fly
 
 | Day | Output |
 |---|---|
-| 8 | RemoteNarrator (Anthropic SDK, Sonnet 4.6, tool-calling, prompt caching). Env flag `NARRATOR=remote\|template`. Author scenarios 6–8. |
+| 8 | done (2026-05-03) | `src/lib/narrator/remote.ts`: RemoteNarrator using Sonnet 4.6 (per ADR / cost tier). Adaptive thinking implicit; system prompt + form card both wrapped in `cache_control: ephemeral` (5-min TTL). 16 hand-written tool definitions matching the Zod registry. Returns `{text, toolCalls}` for the orchestrator's `applyTools` to handle atomically. `narrator/index.ts` factory: lazy `require("./remote")` so the SDK doesn't load on the template path. eval/scenarios 06-prompt-injection, 07-partial-success-hard-move, 08-miss-not-noop authored. 8/20 scenarios. |
 | 9 | Classifier upgrade to Haiku 4.5 free-text → verb whitelist. Per-turn tone classifier (drift detector). Author scenarios 9–12. |
 | 10 | Episodic memory: `memory/episodic.ts` — voyage-3-lite embed, pgvector kNN. Retrieval: similarity × entity-overlap × recency. Author scenarios 13–15. |
 | 11 | Wire memories into `NarrateInput`. Tune retrieval. NPC reintroduction test. Author scenarios 16–18. |
