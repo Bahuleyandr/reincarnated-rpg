@@ -1,0 +1,100 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "A cathedral built into a salt cave on the cliff coast. Five rooms; the cliff path is the way out. Built by people who needed god to taste of something. The wyrm has touched this place — salt is its sign."
+  },
+
+  "id": "salt-cathedral",
+  "displayName": "The Salt Cathedral",
+  "tagline": "They built god a place where every breath tastes of the sea.",
+
+  "ambientPool": [
+    "The salt walls hum at a frequency that is almost a voice.",
+    "Somewhere far in, drips fall into a basin that has been catching them for centuries.",
+    "Air moves toward the cathedral, not away from it.",
+    "The light here is reflected from the sea outside, cast across the salt in slow ripples."
+  ],
+
+  "entryRoomId": "cliff-vestibule",
+
+  "rooms": [
+    {
+      "id": "cliff-vestibule",
+      "displayName": "Cliff Vestibule",
+      "summary": "The entrance is a fissure in the cliff. Salt-rimed steps go down. Behind you, the sea. Ahead, the cathedral.",
+      "ambientPool": [
+        "The steps are salt-eaten and pitted. Some hands smoothed them; sea has done the rest.",
+        "A bronze ring is set into the rock, but no rope hangs from it now.",
+        "A single gull screams once, far, and is silent."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "salt-nave", "narrative": "Down, into the cathedral proper." }
+      ],
+      "isExit": true,
+      "exitNarrative": "You leave the cathedral. The cliff path is steep. The sea is wide."
+    },
+    {
+      "id": "salt-nave",
+      "displayName": "The Salt Nave",
+      "summary": "A long hall carved into a single salt seam. Pews, also salt. They will dissolve in the next storm, and have been promised to.",
+      "ambientPool": [
+        "A pew has been pushed askew by something that did not respect pews.",
+        "The salt of the floor has been worn into a path by feet older than yours.",
+        "From the altar at the far end, something glints."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "cliff-vestibule", "narrative": "Back to the steps." },
+        { "verb": "move", "toRoomId": "salt-altar", "narrative": "Forward, toward the altar." },
+        { "verb": "move", "toRoomId": "side-chapel", "narrative": "East, into a smaller chamber." }
+      ]
+    },
+    {
+      "id": "salt-altar",
+      "displayName": "The Altar",
+      "summary": "A raised salt block. On it, a basin half-full of seawater, fresh from this morning. Beside the basin, a knife. Fresh-sharpened.",
+      "ambientPool": [
+        "The basin's surface trembles in a way no draft would cause.",
+        "The knife's edge is so fine it looks unfinished.",
+        "Behind the altar, the salt darkens — there has been a stain."
+      ],
+      "hazards": [
+        { "id": "wyrm-tasted-altar", "kind": "discovery", "narrative": "Whatever has used this altar recently was not human. The stain is old by hours, not centuries." }
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "salt-nave", "narrative": "Back to the nave." },
+        { "verb": "move", "toRoomId": "deep-vault", "narrative": "Down behind the altar, where the salt parts.", "modifier": -2 }
+      ]
+    },
+    {
+      "id": "side-chapel",
+      "displayName": "Side Chapel",
+      "summary": "A smaller room. A single stone bench. A salt rendering of a figure — three eyes, no mouth — in the wall.",
+      "ambientPool": [
+        "The figure's three eyes have been touched many times. The salt around them is smoother.",
+        "On the bench, a child's wooden bead. Recent.",
+        "The light in this room comes from no source you can locate."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "salt-nave", "narrative": "Back to the nave." }
+      ]
+    },
+    {
+      "id": "deep-vault",
+      "displayName": "The Deep Vault",
+      "summary": "Behind the altar, the salt has parted into a chamber the architects did not know about. The walls here are wet. The hum is louder.",
+      "ambientPool": [
+        "There is a coil here, vast, only a section of which is visible against the salt.",
+        "The salt in this chamber tastes different. Older. Wronger.",
+        "Whatever is here knows your name now."
+      ],
+      "hazards": [
+        { "id": "the-coil", "kind": "creature", "narrative": "Something coiled. Something patient. Direct provocation will not survive the chamber." }
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "salt-altar", "narrative": "Up, back behind the altar.", "modifier": -1 }
+      ]
+    }
+  ]
+}

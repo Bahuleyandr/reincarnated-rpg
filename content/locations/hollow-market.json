@@ -1,0 +1,100 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "A market square where the sellers have been gone for a day, but the stalls remain. Five rooms. Money is left. Goods are left. Something happened to the people that left the goods. Designed to be morally dense — every stall offers a small choice."
+  },
+
+  "id": "hollow-market",
+  "displayName": "The Hollow Market",
+  "tagline": "Stalls full. Tills open. Sellers gone. Take what you need; the day did not finish.",
+
+  "ambientPool": [
+    "A wind moves through the stalls and finds nothing to argue with.",
+    "Coins sit in tills. Silver, copper, one suspicious gold.",
+    "The clock above the well stopped at twenty past nine.",
+    "A child's chalk drawing is half-erased on the cobbles."
+  ],
+
+  "entryRoomId": "market-square",
+
+  "rooms": [
+    {
+      "id": "market-square",
+      "displayName": "Market Square",
+      "summary": "A round of cobbles surrounded by stalls. Goods on the tables, no one behind them. The well in the center has fresh water.",
+      "ambientPool": [
+        "Three apples are arranged on a stall as if for sale, prices written in chalk on a slate beneath.",
+        "The well-handle is up; someone meant to draw water.",
+        "A pigeon — only one — strolls between the stalls, unconcerned."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "fishmonger-stall", "narrative": "North, toward the fishmonger's stall." },
+        { "verb": "move", "toRoomId": "cloth-stall", "narrative": "East, toward the cloth-seller's stall." },
+        { "verb": "move", "toRoomId": "scribes-table", "narrative": "South, toward the scribe's table." },
+        { "verb": "move", "toRoomId": "alley-out", "narrative": "West, into a narrow alley out." }
+      ]
+    },
+    {
+      "id": "fishmonger-stall",
+      "displayName": "Fishmonger's Stall",
+      "summary": "Fish on ice. Two are gone — half-prices crossed out. The fishmonger's apron is folded behind the counter.",
+      "ambientPool": [
+        "The fish at the front are starting to turn.",
+        "On the cutting board, half a herring, the knife still beside it.",
+        "Beneath the stall, a cat's bowl, freshly licked clean."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "market-square", "narrative": "Back to the square." }
+      ]
+    },
+    {
+      "id": "cloth-stall",
+      "displayName": "Cloth-Seller's Stall",
+      "summary": "Bolts of fabric. One is half-unrolled — a bolt of unusual indigo. A pair of scissors is open on the counter.",
+      "ambientPool": [
+        "The indigo's color does not match any dye stall in this region.",
+        "On a hook, a coat half-finished, sleeves missing.",
+        "A child's measuring tape is on the floor."
+      ],
+      "hazards": [
+        { "id": "indigo-bolt", "kind": "discovery", "narrative": "The indigo is not local. Whoever brought this had traveled far recently." }
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "market-square", "narrative": "Back to the square." }
+      ]
+    },
+    {
+      "id": "scribes-table",
+      "displayName": "Scribe's Table",
+      "summary": "A table set up for letters-for-hire. An ink-pot, two pens, a half-written letter. The address is the next town over.",
+      "ambientPool": [
+        "The letter is dated TODAY. Someone began to write it this morning.",
+        "The recipient's name has been crossed out twice.",
+        "The scribe's chair is pushed back from the table at an awkward angle."
+      ],
+      "hazards": [
+        { "id": "the-letter", "kind": "discovery", "narrative": "The letter is the most honest document in the market. Whoever was writing it was about to tell something true." }
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "market-square", "narrative": "Back to the square." }
+      ]
+    },
+    {
+      "id": "alley-out",
+      "displayName": "Alley Out",
+      "summary": "A narrow alley between buildings leads to the road north. Someone walked this way recently. Many someones.",
+      "ambientPool": [
+        "The dust of the alley has been disturbed by many feet, all going one way.",
+        "A coin is on its edge in a crack between cobbles. Edge.",
+        "At the alley's end, the road curves out of sight."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "market-square", "narrative": "Back to the square." }
+      ],
+      "isExit": true,
+      "exitNarrative": "You leave the market. The road north has fresh tracks. They go in only one direction."
+    }
+  ]
+}

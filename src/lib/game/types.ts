@@ -269,6 +269,9 @@ export const AVAILABLE_LOCATIONS = [
   "collapsed-tunnel",
   "forsaken-village",
   "sunless-spire",
+  "drowned-orchard",
+  "salt-cathedral",
+  "hollow-market",
 ] as const;
 
 export type LocationId = (typeof AVAILABLE_LOCATIONS)[number];

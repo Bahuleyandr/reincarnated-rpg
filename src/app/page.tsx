@@ -164,7 +164,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className="text-[10px] text-stone-600 flex items-center gap-4">
+        <div className="text-[10px] text-stone-600 flex items-center gap-4 flex-wrap">
           <Link
             href="/meta"
             className="underline underline-offset-2 hover:text-amber-400"
@@ -176,6 +176,12 @@ export default function Home() {
             className="underline underline-offset-2 hover:text-stone-400"
           >
             model leaderboard →
+          </Link>
+          <Link
+            href="/god"
+            className="underline underline-offset-2 hover:text-stone-400"
+          >
+            god-mod →
           </Link>
         </div>
       </div>
