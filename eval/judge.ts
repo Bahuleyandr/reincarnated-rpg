@@ -17,12 +17,17 @@ import { join } from "node:path";
 
 import Anthropic from "@anthropic-ai/sdk";
 
+import type { Db } from "../src/lib/db/client";
+import { recordAiCall } from "../src/lib/util/ai-telemetry";
 import { env } from "../src/lib/util/env";
 
 interface JudgeArgs {
   formId: string;
   scenarioId: string;
   narration: string;
+  /** Optional telemetry sink — sessionId is just the scenario id here
+   *  since judge calls aren't tied to a real session. */
+  telemetry?: { db: Db; sessionId?: string };
 }
 
 export interface JudgeResult {
@@ -81,15 +86,18 @@ export async function judgeNarration(
     },
   ];
 
-  const response = await getClient().messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 512,
-    tools,
-    tool_choice: { type: "tool", name: "score" },
-    messages: [
-      {
-        role: "user",
-        content: `You are judging a narration generated for the ${args.formId} form. Score it 1-5 on how well it matches the tone, register, sentence cadence, and vocabulary of the sample corpus below.
+  const t0 = Date.now();
+  let response;
+  try {
+    response = await getClient().messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 512,
+      tools,
+      tool_choice: { type: "tool", name: "score" },
+      messages: [
+        {
+          role: "user",
+          content: `You are judging a narration generated for the ${args.formId} form. Score it 1-5 on how well it matches the tone, register, sentence cadence, and vocabulary of the sample corpus below.
 
 Penalize: humanoid verbs about the player ("hand", "see", "speak", "walk"), first-person voice (the player is "you"), stiff or generic fantasy prose. Reward: chemistry/vibration/thermal sensing, second-person voice, in-form vocabulary.
 
@@ -98,9 +106,35 @@ ${corpus}
 
 Narration to score (scenario ${args.scenarioId}):
 "${args.narration}"`,
-      },
-    ],
-  });
+        },
+      ],
+    });
+  } catch (err) {
+    if (args.telemetry?.db) {
+      await recordAiCall(args.telemetry.db, {
+        sessionId: args.telemetry.sessionId,
+        callType: "judge",
+        model: "claude-sonnet-4-6",
+        durationMs: Date.now() - t0,
+        success: false,
+        errorMsg: err instanceof Error ? err.message : String(err),
+      });
+    }
+    throw err;
+  }
+
+  if (args.telemetry?.db) {
+    await recordAiCall(args.telemetry.db, {
+      sessionId: args.telemetry.sessionId,
+      callType: "judge",
+      model: "claude-sonnet-4-6",
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+      cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
+      cacheCreateTokens: response.usage.cache_creation_input_tokens ?? 0,
+      durationMs: Date.now() - t0,
+    });
+  }
 
   for (const block of response.content) {
     if (block.type === "tool_use" && block.name === "score") {
