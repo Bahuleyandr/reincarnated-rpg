@@ -12,6 +12,12 @@ const schema = z.object({
   SESSION_SECRET: z.string().min(16, "SESSION_SECRET must be 16+ bytes"),
   ANTHROPIC_API_KEY: z.string().optional(),
   VOYAGE_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_BASE_URL: z.string().optional(),
+  OPENAI_MODEL: z.string().optional(),
+  AI_PROVIDER: z
+    .enum(["anthropic", "openai-compatible"])
+    .default("anthropic"),
   NARRATOR: z.enum(["template", "remote"]).default("template"),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });

@@ -8,19 +8,17 @@
  *      narration as a word boundary match, fail immediately.
  *
  *   2. Haiku 4.5 1-shot judge (~$0.0005, only if NARRATOR=remote and
- *      layer 1 passed).
- *      Asks Haiku whether the prose is in second-person and on-form.
- *      Returns a 1-5 score plus a one-line reason.
+ *      layer 1 passed). Asks Haiku whether the prose is in second-
+ *      person and on-form. Returns a 1-5 score plus a one-line reason.
  *
- * Per PLAN.md, a failing tone check should trigger one regen of the
- * narrator. Day 9 implements the detector; the regen wiring lands in
- * turn.ts on Day 12.
+ * Provider-agnostic via `getProvider()` — works with Anthropic or
+ * OpenAI-compatible.
  */
-import Anthropic from "@anthropic-ai/sdk";
-
+import { getProvider } from "../ai/factory";
+import type { ProviderTool } from "../ai/provider";
 import type { Db } from "../db/client";
 import { recordAiCall } from "../util/ai-telemetry";
-import { env } from "../util/env";
+
 import type { FormTemplate } from "./types";
 
 export interface ToneResult {
@@ -55,16 +53,6 @@ function escapeRe(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-let client: Anthropic | null = null;
-function getClient(): Anthropic {
-  if (!client) {
-    const apiKey = env().ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error("ANTHROPIC_API_KEY required for tone judge");
-    client = new Anthropic({ apiKey });
-  }
-  return client;
-}
-
 /**
  * Layer-1 only — sync, free. Use when NARRATOR=template or you don't
  * want to pay for the Haiku judge.
@@ -89,7 +77,7 @@ export async function checkTone(
   const fast = checkToneFast(narration, form);
   if (!fast.ok) return fast;
 
-  const tools: Anthropic.Tool[] = [
+  const tools: ProviderTool[] = [
     {
       name: "judge_tone",
       description:
@@ -113,13 +101,14 @@ export async function checkTone(
     },
   ];
 
+  const provider = getProvider();
   const t0 = Date.now();
   try {
-    const response = await getClient().messages.create({
+    const response = await provider.complete({
       model: "claude-haiku-4-5",
-      max_tokens: 256,
+      maxTokens: 256,
       tools,
-      tool_choice: { type: "tool", name: "judge_tone" },
+      toolChoice: { type: "tool", name: "judge_tone" },
       messages: [
         {
           role: "user",
@@ -137,24 +126,23 @@ Score 1-5: is this second-person and tonally on-form for the slime form? A slime
         sessionId: telemetry.sessionId,
         callType: "tone_judge",
         model: "claude-haiku-4-5",
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
-        cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
-        cacheCreateTokens: response.usage.cache_creation_input_tokens ?? 0,
+        inputTokens: response.usage.inputTokens,
+        outputTokens: response.usage.outputTokens,
+        cacheReadTokens: response.usage.cacheReadTokens,
+        cacheCreateTokens: response.usage.cacheCreateTokens,
         durationMs: Date.now() - t0,
       });
     }
 
-    for (const block of response.content) {
-      if (block.type === "tool_use" && block.name === "judge_tone") {
-        const data = block.input as { score: number; reason: string };
-        return {
-          ok: data.score >= 3,
-          violations: [],
-          score: data.score,
-          reason: data.reason,
-        };
-      }
+    const tool = response.toolUses.find((t) => t.name === "judge_tone");
+    if (tool) {
+      const data = tool.input as { score: number; reason: string };
+      return {
+        ok: data.score >= 3,
+        violations: [],
+        score: data.score,
+        reason: data.reason,
+      };
     }
   } catch (err) {
     if (telemetry?.db) {
@@ -167,7 +155,6 @@ Score 1-5: is this second-person and tonally on-form for the slime form? A slime
         errorMsg: err instanceof Error ? err.message : String(err),
       });
     }
-    // Judge unavailable; trust layer 1.
     return fast;
   }
   return fast;

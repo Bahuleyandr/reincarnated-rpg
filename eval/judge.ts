@@ -6,17 +6,16 @@
  * Self-grading caveat: same model family judging itself biases
  * toward the model's own style. Treat scores as a smoke test, not a
  * ground truth — supplement with manual spot-check on every prompt
- * change. This is what ARCHITECTURE.md / EVAL.md flag as a known
- * weakness of LLM-as-judge.
+ * change.
  *
- * Returns null when ANTHROPIC_API_KEY is unset so the eval runner
- * can skip rubric scoring without erroring.
+ * Returns null when no provider API key is configured so the eval
+ * runner can skip rubric scoring without erroring.
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import Anthropic from "@anthropic-ai/sdk";
-
+import { getProvider } from "../src/lib/ai/factory";
+import type { ProviderTool } from "../src/lib/ai/provider";
 import type { Db } from "../src/lib/db/client";
 import { recordAiCall } from "../src/lib/util/ai-telemetry";
 import { env } from "../src/lib/util/env";
@@ -25,8 +24,7 @@ interface JudgeArgs {
   formId: string;
   scenarioId: string;
   narration: string;
-  /** Optional telemetry sink — sessionId is just the scenario id here
-   *  since judge calls aren't tied to a real session. */
+  /** Optional telemetry sink. */
   telemetry?: { db: Db; sessionId?: string };
 }
 
@@ -35,20 +33,14 @@ export interface JudgeResult {
   reason: string;
 }
 
-let client: Anthropic | null = null;
-function getClient(): Anthropic {
-  if (!client) {
-    const apiKey = env().ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error("ANTHROPIC_API_KEY required");
-    client = new Anthropic({ apiKey });
-  }
-  return client;
-}
-
 export async function judgeNarration(
   args: JudgeArgs,
 ): Promise<JudgeResult | null> {
-  if (!env().ANTHROPIC_API_KEY) return null;
+  // Skip if neither provider has a key — the runner just won't have
+  // a tone score for this scenario.
+  const hasAnthropic = !!env().ANTHROPIC_API_KEY;
+  const hasOpenAI = !!process.env.OPENAI_API_KEY;
+  if (!hasAnthropic && !hasOpenAI) return null;
 
   const formJson = JSON.parse(
     readFileSync(
@@ -64,7 +56,7 @@ export async function judgeNarration(
     .map((p) => `--- ${p.id} ---\n${p.text}`)
     .join("\n\n");
 
-  const tools: Anthropic.Tool[] = [
+  const tools: ProviderTool[] = [
     {
       name: "score",
       description:
@@ -86,14 +78,16 @@ export async function judgeNarration(
     },
   ];
 
+  const provider = getProvider();
+  const model = "claude-sonnet-4-6";
   const t0 = Date.now();
   let response;
   try {
-    response = await getClient().messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 512,
+    response = await provider.complete({
+      model,
+      maxTokens: 512,
       tools,
-      tool_choice: { type: "tool", name: "score" },
+      toolChoice: { type: "tool", name: "score" },
       messages: [
         {
           role: "user",
@@ -114,7 +108,7 @@ Narration to score (scenario ${args.scenarioId}):
       await recordAiCall(args.telemetry.db, {
         sessionId: args.telemetry.sessionId,
         callType: "judge",
-        model: "claude-sonnet-4-6",
+        model,
         durationMs: Date.now() - t0,
         success: false,
         errorMsg: err instanceof Error ? err.message : String(err),
@@ -127,20 +121,19 @@ Narration to score (scenario ${args.scenarioId}):
     await recordAiCall(args.telemetry.db, {
       sessionId: args.telemetry.sessionId,
       callType: "judge",
-      model: "claude-sonnet-4-6",
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
-      cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
-      cacheCreateTokens: response.usage.cache_creation_input_tokens ?? 0,
+      model,
+      inputTokens: response.usage.inputTokens,
+      outputTokens: response.usage.outputTokens,
+      cacheReadTokens: response.usage.cacheReadTokens,
+      cacheCreateTokens: response.usage.cacheCreateTokens,
       durationMs: Date.now() - t0,
     });
   }
 
-  for (const block of response.content) {
-    if (block.type === "tool_use" && block.name === "score") {
-      const data = block.input as { tone_match: number; reason: string };
-      return { toneMatch: data.tone_match, reason: data.reason };
-    }
+  const tool = response.toolUses.find((t) => t.name === "score");
+  if (tool) {
+    const data = tool.input as { tone_match: number; reason: string };
+    return { toneMatch: data.tone_match, reason: data.reason };
   }
   return null;
 }

@@ -20,8 +20,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import Anthropic from "@anthropic-ai/sdk";
-
+import { getProvider } from "../ai/factory";
+import type { AIProvider, ProviderTool } from "../ai/provider";
 import type {
   FormTemplate,
   LocationTemplate,
@@ -31,7 +31,6 @@ import type {
   ToolCall,
 } from "../game/types";
 import { recordAiCall } from "../util/ai-telemetry";
-import { env } from "../util/env";
 import { log } from "../util/log";
 
 import { buildSlimeFormCard } from "./prompts/slime";
@@ -40,7 +39,7 @@ import { SYSTEM_PROMPT } from "./prompts/system";
 // Hand-rolled JSON schemas mirroring `toolCallSchema` (Zod) in
 // `src/lib/game/tools.ts`. Kept in sync by hand for now; if the union
 // grows past ~20 tools, codegen from the Zod registry.
-const TOOL_DEFINITIONS: Anthropic.Tool[] = [
+const TOOL_DEFINITIONS: ProviderTool[] = [
   {
     name: "apply_damage",
     description:
@@ -259,7 +258,7 @@ interface RemoteNarratorArgs {
 }
 
 export class RemoteNarrator implements Narrator {
-  private client: Anthropic;
+  private provider: AIProvider;
   private formCard: string;
   private form: FormTemplate;
   private location: LocationTemplate;
@@ -268,13 +267,7 @@ export class RemoteNarrator implements Narrator {
   private sessionId?: string;
 
   constructor(args: RemoteNarratorArgs) {
-    const apiKey = env().ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new Error(
-        "ANTHROPIC_API_KEY is required for RemoteNarrator. Set NARRATOR=template to bypass.",
-      );
-    }
-    this.client = new Anthropic({ apiKey });
+    this.provider = getProvider();
     this.form = args.form;
     this.location = args.location;
     this.model = args.model ?? "claude-sonnet-4-6";
@@ -296,9 +289,9 @@ export class RemoteNarrator implements Narrator {
     const t0 = Date.now();
     let response;
     try {
-      response = await this.client.messages.create({
+      response = await this.provider.complete({
         model: this.model,
-        max_tokens: 1024,
+        maxTokens: 1024,
         system: [
           {
             type: "text",
@@ -316,7 +309,6 @@ export class RemoteNarrator implements Narrator {
       });
     } catch (err) {
       const durationMs = Date.now() - t0;
-      const message = err instanceof Error ? err.message : String(err);
       if (this.db) {
         await recordAiCall(this.db, {
           sessionId: this.sessionId,
@@ -324,37 +316,33 @@ export class RemoteNarrator implements Narrator {
           model: this.model,
           durationMs,
           success: false,
-          errorMsg: message,
+          errorMsg: err instanceof Error ? err.message : String(err),
         });
       }
       throw err;
     }
 
-    let text = "";
-    const toolCalls: ToolCall[] = [];
-    for (const block of response.content) {
-      if (block.type === "text") {
-        text += block.text;
-      } else if (block.type === "tool_use") {
-        toolCalls.push({
-          name: block.name,
-          ...(block.input as Record<string, unknown>),
-        } as ToolCall);
-      }
-    }
+    const toolCalls: ToolCall[] = response.toolUses.map(
+      (tu) =>
+        ({
+          name: tu.name,
+          ...tu.input,
+        }) as ToolCall,
+    );
     if (toolCalls.length === 0) {
       toolCalls.push({ name: "narrate_only" });
     }
 
     const durationMs = Date.now() - t0;
     log.info("narrate.remote.complete", {
+      provider: this.provider.providerName,
       model: this.model,
       durationMs,
-      cacheRead: response.usage.cache_read_input_tokens ?? 0,
-      cacheCreate: response.usage.cache_creation_input_tokens ?? 0,
-      input: response.usage.input_tokens,
-      output: response.usage.output_tokens,
-      stopReason: response.stop_reason,
+      cacheRead: response.usage.cacheReadTokens,
+      cacheCreate: response.usage.cacheCreateTokens,
+      input: response.usage.inputTokens,
+      output: response.usage.outputTokens,
+      stopReason: response.stopReason,
       toolUseCount: toolCalls.length,
     });
 
@@ -363,15 +351,15 @@ export class RemoteNarrator implements Narrator {
         sessionId: this.sessionId,
         callType: "narrator",
         model: this.model,
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
-        cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
-        cacheCreateTokens: response.usage.cache_creation_input_tokens ?? 0,
+        inputTokens: response.usage.inputTokens,
+        outputTokens: response.usage.outputTokens,
+        cacheReadTokens: response.usage.cacheReadTokens,
+        cacheCreateTokens: response.usage.cacheCreateTokens,
         durationMs,
       });
     }
 
-    return { text: text.trim(), toolCalls };
+    return { text: response.text, toolCalls };
   }
 }
 
