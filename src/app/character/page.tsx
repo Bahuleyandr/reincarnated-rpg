@@ -21,6 +21,10 @@ interface CharacterResp {
       description: string;
       expiresAtMs: number | null;
     } | null;
+    streak: {
+      count: number;
+      max: number;
+    };
   } | null;
   contributions: {
     total: number;
@@ -175,7 +179,7 @@ export default function CharacterPage() {
                 upgrade is admin-managed in v1
               </span>
             </h2>
-            <div className="grid grid-cols-3 gap-3 text-xs">
+            <div className="grid grid-cols-4 gap-3 text-xs">
               <Stat
                 label="tier"
                 value={data.energy.tierLabel}
@@ -193,6 +197,19 @@ export default function CharacterPage() {
                 label="turns/day"
                 value={`~${data.energy.turnsPerDay}`}
                 accent="text-stone-400"
+              />
+              <Stat
+                label="streak"
+                value={
+                  data.energy.streak.count > 0
+                    ? `🔥 ${data.energy.streak.count} / ${data.energy.streak.max}`
+                    : "—"
+                }
+                accent={
+                  data.energy.streak.count > 0
+                    ? "text-orange-300"
+                    : "text-stone-500"
+                }
               />
             </div>
             {data.energy.blessing ? (

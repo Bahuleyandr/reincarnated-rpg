@@ -31,6 +31,11 @@ import {
   type Blessing,
   type Tier,
 } from "./tiers";
+import {
+  claimDailyStreak,
+  type DailyGrant,
+  type StreakState,
+} from "./streak";
 
 export interface EnergyState {
   /** Current energy. */
@@ -43,6 +48,8 @@ export interface EnergyState {
    *  decide whether the Blessing of the Gods is active. Null only
    *  for legacy rows that pre-date the column. */
   accountCreatedAt: Date | null;
+  /** Daily-streak state. Capped at 5; resets to 1 on missed day. */
+  streak: StreakState;
 }
 
 export interface EnergyView extends EnergyState {
@@ -58,6 +65,10 @@ export interface EnergyView extends EnergyState {
   blessing: Blessing | null;
   /** Wall-clock ms when the blessing expires. Null if no blessing. */
   blessingExpiresAtMs: number | null;
+  /** Set when the most recent state mutation (trySpend or
+   *  getEnergyView) just claimed a daily streak grant. UI surfaces
+   *  this as a "+N from Day-K streak" notification. Null otherwise. */
+  dailyGrant: DailyGrant | null;
 }
 
 /** Pure function: apply regen to a state given the active tier and a
@@ -89,8 +100,18 @@ export function applyRegen(
   };
 }
 
-/** Build a view including derived display fields. */
-export function viewState(state: EnergyState, tier: Tier, now: number): EnergyView {
+/** Build a view including derived display fields.
+ *
+ *  `dailyGrant` should be passed when the caller just claimed a daily
+ *  streak grant (trySpend / getEnergyView do this). Pure-function
+ *  callers — tests and one-shot inspections — can omit it; null is
+ *  the well-formed "no grant fired" value. */
+export function viewState(
+  state: EnergyState,
+  tier: Tier,
+  now: number,
+  dailyGrant: DailyGrant | null = null,
+): EnergyView {
   const refilled = applyRegen(state, tier, now);
   let nextRegenMs = 0;
   let fullAtMs: number | null = null;
@@ -111,6 +132,7 @@ export function viewState(state: EnergyState, tier: Tier, now: number): EnergyVi
     fullAtMs,
     blessing: eff.blessing,
     blessingExpiresAtMs: eff.blessingExpiresAtMs,
+    dailyGrant,
   };
 }
 
@@ -127,7 +149,9 @@ interface ReadOpts {
 /** Read current state from DB (no refill applied). Returns null if
  *  neither userId nor sessionId hits. Pulls accountCreatedAt
  *  (users.createdAt or sessions.startedAt) so blessing logic can
- *  decide whether the player is in their first week. */
+ *  decide whether the player is in their first week. Also pulls
+ *  streak_count + streak_last_day_utc so the daily-grant logic has
+ *  the previous day's anchor. */
 async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
   if (opts.userId) {
     const rows = await db
@@ -136,6 +160,8 @@ async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
         energyUpdatedAt: users.energyUpdatedAt,
         tier: users.tier,
         createdAt: users.createdAt,
+        streakCount: users.streakCount,
+        streakLastDayUtc: users.streakLastDayUtc,
       })
       .from(users)
       .where(eq(users.id, opts.userId))
@@ -147,6 +173,10 @@ async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
       lastUpdatedAt: u.energyUpdatedAt,
       tierId: u.tier ?? DEFAULT_TIER_ID,
       accountCreatedAt: u.createdAt,
+      streak: {
+        count: u.streakCount,
+        lastDayUtc: u.streakLastDayUtc,
+      },
     };
   }
   if (opts.sessionId) {
@@ -155,6 +185,8 @@ async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
         energy: sessions.energy,
         energyUpdatedAt: sessions.energyUpdatedAt,
         startedAt: sessions.startedAt,
+        streakCount: sessions.streakCount,
+        streakLastDayUtc: sessions.streakLastDayUtc,
       })
       .from(sessions)
       .where(eq(sessions.id, opts.sessionId))
@@ -166,6 +198,10 @@ async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
       lastUpdatedAt: s.energyUpdatedAt,
       tierId: DEFAULT_TIER_ID, // anon = free
       accountCreatedAt: s.startedAt,
+      streak: {
+        count: s.streakCount,
+        lastDayUtc: s.streakLastDayUtc,
+      },
     };
   }
   return null;
@@ -183,6 +219,8 @@ async function writeRaw(
         energy: state.energy,
         energyUpdatedAt: state.lastUpdatedAt,
         tier: state.tierId,
+        streakCount: state.streak.count,
+        streakLastDayUtc: state.streak.lastDayUtc,
         updatedAt: new Date(),
       })
       .where(eq(users.id, opts.userId));
@@ -194,6 +232,8 @@ async function writeRaw(
       .set({
         energy: state.energy,
         energyUpdatedAt: state.lastUpdatedAt,
+        streakCount: state.streak.count,
+        streakLastDayUtc: state.streak.lastDayUtc,
       })
       .where(eq(sessions.id, opts.sessionId));
     return;
@@ -208,9 +248,33 @@ function resolveTier(state: EnergyState, now: number): Tier {
   return effectiveTier(base, state.accountCreatedAt, now).tier;
 }
 
+/** Apply the daily-streak claim to a freshly-read state. If a grant
+ *  fires it adds `bonusEnergy` to the current energy (uncapped — it's
+ *  a one-shot gift; player can briefly exceed tier.max) and advances
+ *  the streak fields. Idempotent within a UTC day. Pure helper used
+ *  by both getEnergyView and trySpend so they share semantics. */
+function withDailyClaim(
+  state: EnergyState,
+  now: Date,
+): { state: EnergyState; grant: DailyGrant | null } {
+  const result = claimDailyStreak(state.streak, now);
+  if (!result.grant) {
+    return { state, grant: null };
+  }
+  return {
+    state: {
+      ...state,
+      energy: state.energy + result.grant.bonusEnergy,
+      streak: result.state,
+    },
+    grant: result.grant,
+  };
+}
+
 /** Public: returns the up-to-date view with regen applied AND
- *  persisted. Persistence here means callers don't have to remember
- *  to write the refill back. */
+ *  persisted. Also claims the daily-streak grant on the first call of
+ *  a new UTC day — loading the page counts as "logging in", so the
+ *  bonus arrives whether or not the player has spent a turn. */
 export async function getEnergyView(
   db: Db,
   opts: ReadOpts,
@@ -218,19 +282,23 @@ export async function getEnergyView(
   const raw = await readRaw(db, opts);
   if (!raw) return null;
   const now = Date.now();
-  const tier = resolveTier(raw, now);
-  const refilled = applyRegen(raw, tier, now);
-  if (
+  const claimed = withDailyClaim(raw, new Date(now));
+  const tier = resolveTier(claimed.state, now);
+  const refilled = applyRegen(claimed.state, tier, now);
+  const dirty =
+    claimed.grant !== null ||
     refilled.energy !== raw.energy ||
-    refilled.lastUpdatedAt.getTime() !== raw.lastUpdatedAt.getTime()
-  ) {
+    refilled.lastUpdatedAt.getTime() !== raw.lastUpdatedAt.getTime();
+  if (dirty) {
     await writeRaw(db, opts, refilled);
   }
-  return viewState(refilled, tier, now);
+  return viewState(refilled, tier, now, claimed.grant);
 }
 
-/** Public: spend N energy. Applies regen first; if still short,
- *  returns ok:false with the post-refill state for UI surfacing. */
+/** Public: spend N energy. Claims the daily streak first (so a
+ *  brand-new player's first turn is funded by the +1 grant), then
+ *  applies regen. If still short, returns ok:false with the
+ *  post-refill state for UI surfacing. */
 export async function trySpend(
   db: Db,
   opts: ReadOpts,
@@ -239,23 +307,25 @@ export async function trySpend(
   const raw = await readRaw(db, opts);
   if (!raw) return { ok: false, view: null };
   const now = Date.now();
-  const tier = resolveTier(raw, now);
-  const refilled = applyRegen(raw, tier, now);
+  const claimed = withDailyClaim(raw, new Date(now));
+  const tier = resolveTier(claimed.state, now);
+  const refilled = applyRegen(claimed.state, tier, now);
   if (refilled.energy < amount) {
-    if (
+    const dirty =
+      claimed.grant !== null ||
       refilled.energy !== raw.energy ||
-      refilled.lastUpdatedAt.getTime() !== raw.lastUpdatedAt.getTime()
-    ) {
+      refilled.lastUpdatedAt.getTime() !== raw.lastUpdatedAt.getTime();
+    if (dirty) {
       await writeRaw(db, opts, refilled);
     }
-    return { ok: false, view: viewState(refilled, tier, now) };
+    return { ok: false, view: viewState(refilled, tier, now, claimed.grant) };
   }
   const next: EnergyState = {
     ...refilled,
     energy: refilled.energy - amount,
   };
   await writeRaw(db, opts, next);
-  return { ok: true, view: viewState(next, tier, now) };
+  return { ok: true, view: viewState(next, tier, now, claimed.grant) };
 }
 
 /** Admin override: set tier and/or refill to max. */
@@ -282,6 +352,7 @@ export async function adminSetEnergy(
     lastUpdatedAt: new Date(),
     tierId: newTierId,
     accountCreatedAt: raw.accountCreatedAt,
+    streak: raw.streak, // admin overrides don't touch the streak
   };
   await writeRaw(db, { userId }, next);
   log.info("energy.admin_set", {

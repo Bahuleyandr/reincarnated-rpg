@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+interface DailyGrant {
+  streakBefore: number;
+  streakAfter: number;
+  bonusEnergy: number;
+  reachedCap: boolean;
+}
 
 interface EnergyView {
   energy: number;
@@ -17,6 +24,11 @@ interface EnergyView {
     description: string;
     expiresAtMs: number | null;
   } | null;
+  streak: {
+    count: number;
+    max: number;
+  };
+  dailyGrant: DailyGrant | null;
 }
 
 function formatMs(ms: number): string {
@@ -53,6 +65,14 @@ export function EnergyBar() {
     return () => clearInterval(id);
   }, []);
 
+  // Daily-grant flash. When a `dailyGrant` arrives we latch the value
+  // for ~6s, then drop it. Multiple grants in quick succession (e.g.
+  // page mount + first turn at 00:00 UTC) collapse into one flash —
+  // the second grant fires `null` so we don't overwrite an active
+  // celebration with nothing.
+  const [grantFlash, setGrantFlash] = useState<DailyGrant | null>(null);
+  const flashedKeyRef = useRef<string | null>(null);
+
   // Fetch on mount + every 30s. Refilled state computes server-side.
   useEffect(() => {
     let cancelled = false;
@@ -86,6 +106,19 @@ export function EnergyBar() {
     return () => window.removeEventListener("energy:update", onUpdate);
   }, []);
 
+  // When a fresh dailyGrant lands, latch it for 6s. Use the
+  // streakAfter value as a dedup key so re-fetches that re-deliver
+  // the same grant don't keep re-flashing it.
+  useEffect(() => {
+    if (!view?.dailyGrant) return;
+    const key = `${view.dailyGrant.streakAfter}:${view.dailyGrant.bonusEnergy}`;
+    if (flashedKeyRef.current === key) return;
+    flashedKeyRef.current = key;
+    setGrantFlash(view.dailyGrant);
+    const id = setTimeout(() => setGrantFlash(null), 6000);
+    return () => clearTimeout(id);
+  }, [view?.dailyGrant]);
+
   if (!view) return null;
 
   // Locally-decremented countdown driven by `tick`; gives the
@@ -96,8 +129,25 @@ export function EnergyBar() {
   const empty = view.energy <= 0;
   const atMax = view.energy >= view.max;
 
+  const streakCount = view.streak?.count ?? 0;
+  const streakMax = view.streak?.max ?? 5;
+
   return (
     <section className="px-4 py-2 border-b border-stone-800 bg-stone-900/40 text-xs space-y-1">
+      {grantFlash && (
+        <div
+          className="text-[10px] text-orange-300 leading-4 pb-1 border-b border-orange-900/40 mb-1 animate-pulse"
+          title="Daily streak bonus"
+        >
+          🔥 Day {grantFlash.streakAfter} streak — +{grantFlash.bonusEnergy}{" "}
+          energy
+          {grantFlash.reachedCap && (
+            <span className="text-orange-200/80 ml-1">
+              · max streak reached!
+            </span>
+          )}
+        </div>
+      )}
       {view.blessing && (
         <div
           className="text-[10px] text-amber-300 leading-4 pb-1 border-b border-amber-900/40 mb-1"
@@ -114,6 +164,15 @@ export function EnergyBar() {
       <div className="flex items-baseline gap-2">
         <span className="text-stone-100">⚡ {view.energy}</span>
         <span className="text-stone-600">/ {view.max}</span>
+        {streakCount > 0 && (
+          <span
+            className="text-[10px] text-orange-400/80 ml-1"
+            title={`${streakCount}-day login streak (max ${streakMax}). +${streakCount} energy each new UTC day.`}
+          >
+            🔥 {streakCount}
+            <span className="text-orange-700/60">/{streakMax}</span>
+          </span>
+        )}
         <span
           className={`ml-auto text-[10px] uppercase tracking-widest ${
             view.blessing ? "text-amber-400" : "text-stone-600"

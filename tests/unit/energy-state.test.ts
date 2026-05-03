@@ -43,7 +43,7 @@ describe("applyRegen", () => {
 
   test("noop when no time has elapsed", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       T0ms,
     );
@@ -53,7 +53,7 @@ describe("applyRegen", () => {
 
   test("noop when not enough time has elapsed for one tick", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       T0ms + free.regenIntervalMs - 1,
     );
@@ -62,7 +62,7 @@ describe("applyRegen", () => {
 
   test("credits exactly one tick after one interval", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       T0ms + free.regenIntervalMs,
     );
@@ -72,7 +72,7 @@ describe("applyRegen", () => {
 
   test("credits multiple ticks for multiple intervals", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       T0ms + free.regenIntervalMs * 3 + 10_000,
     );
@@ -86,7 +86,7 @@ describe("applyRegen", () => {
 
   test("clamps at tier max", () => {
     const r = applyRegen(
-      { energy: 18, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: 18, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       T0ms + free.regenIntervalMs * 50,
     );
@@ -98,7 +98,7 @@ describe("applyRegen", () => {
     // full interval before regen resumes — no stash.
     const now = T0ms + 60 * 60 * 1000;
     const r = applyRegen(
-      { energy: free.max, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: free.max, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       now,
     );
@@ -108,7 +108,7 @@ describe("applyRegen", () => {
 
   test("ignores negative elapsed (clock skew)", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: new Date(T0ms + 10_000), tierId: "free", accountCreatedAt: null },
+      { energy: 5, lastUpdatedAt: new Date(T0ms + 10_000), tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       T0ms,
     );
@@ -118,7 +118,7 @@ describe("applyRegen", () => {
   test("partial-interval remainder accumulates correctly across calls", () => {
     // Step 1: 50min elapsed at 45min interval = 1 tick, 5min carryover
     const r1 = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       T0ms + 50 * 60 * 1000,
     );
@@ -141,7 +141,7 @@ describe("viewState", () => {
 
   test("nextRegenMs is correct mid-interval", () => {
     const v = viewState(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       T0ms + 10 * 60 * 1000, // 10min into a 45min interval
     );
@@ -151,7 +151,7 @@ describe("viewState", () => {
 
   test("nextRegenMs is 0 at max", () => {
     const v = viewState(
-      { energy: free.max, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: free.max, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       T0ms + 1000,
     );
@@ -164,7 +164,7 @@ describe("viewState", () => {
     // 14 more at 45min apiece = (1 + 14) * 45min from now.
     const now = T0ms;
     const v = viewState(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null, streak: { count: 0, lastDayUtc: null } },
       free,
       now,
     );
@@ -252,6 +252,7 @@ describe("blessing applied through viewState + applyRegen", () => {
         lastUpdatedAt: start,
         tierId: "free",
         accountCreatedAt: created,
+        streak: { count: 0, lastDayUtc: null },
       },
       eff.tier,
       Date.now(),
@@ -268,6 +269,7 @@ describe("blessing applied through viewState + applyRegen", () => {
         lastUpdatedAt: new Date(),
         tierId: "free",
         accountCreatedAt: created,
+        streak: { count: 0, lastDayUtc: null },
       },
       eff.tier,
       Date.now(),
@@ -283,6 +285,7 @@ describe("blessing applied through viewState + applyRegen", () => {
         lastUpdatedAt: new Date(),
         tierId: "free",
         accountCreatedAt: null,
+        streak: { count: 0, lastDayUtc: null },
       },
       TIERS.free,
       Date.now(),

@@ -14,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
 import { getEnergyView } from "@/lib/energy/state";
+import { MAX_STREAK } from "@/lib/energy/streak";
 import { turnsPerDay } from "@/lib/energy/tiers";
 import {
   aiCalls,
@@ -162,6 +163,10 @@ export async function GET(req: NextRequest) {
                 expiresAtMs: energy.blessingExpiresAtMs,
               }
             : null,
+          streak: {
+            count: energy.streak.count,
+            max: MAX_STREAK,
+          },
         }
       : null,
     contributions: {

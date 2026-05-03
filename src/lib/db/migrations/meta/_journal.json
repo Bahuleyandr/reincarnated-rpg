@@ -134,6 +134,13 @@
       "when": 1777823261283,
       "tag": "0018_energy_tiers",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1777826553169,
+      "tag": "0019_streak_blessing",
+      "breakpoints": true
     }
   ]
 }
