@@ -19,12 +19,18 @@ export interface SessionContext {
   formId: string;
   locationId: string;
   reincarnatedAs: string | null;
+  /** Per-campaign voice pin. Null for anon sessions and pre-pin
+   *  campaigns. Read at runtime by getProviderForUser. */
+  pinnedPresetId: string | null;
+  pinnedNarrationModel: string | null;
 }
 
 const DEFAULT_CONTEXT: SessionContext = {
   formId: "lesser-slime",
   locationId: "collapsed-tunnel",
   reincarnatedAs: null,
+  pinnedPresetId: null,
+  pinnedNarrationModel: null,
 };
 
 export async function resolveSessionContext(
@@ -39,6 +45,8 @@ export async function resolveSessionContext(
       campaignFormId: campaigns.formId,
       campaignLocationId: campaigns.locationId,
       campaignReincarnatedAs: campaigns.reincarnatedAs,
+      campaignPinnedPresetId: campaigns.pinnedPresetId,
+      campaignPinnedNarrationModel: campaigns.pinnedNarrationModel,
     })
     .from(sessions)
     .leftJoin(campaigns, eq(sessions.campaignId, campaigns.id))
@@ -55,5 +63,7 @@ export async function resolveSessionContext(
       DEFAULT_CONTEXT.locationId,
     reincarnatedAs:
       row.campaignReincarnatedAs ?? row.sessionReincarnatedAs ?? null,
+    pinnedPresetId: row.campaignPinnedPresetId ?? null,
+    pinnedNarrationModel: row.campaignPinnedNarrationModel ?? null,
   };
 }

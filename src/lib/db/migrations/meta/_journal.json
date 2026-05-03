@@ -50,6 +50,13 @@
       "when": 1777807106337,
       "tag": "0006_ai_calls_user_preset",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1777807560571,
+      "tag": "0007_per_call_type_and_pin",
+      "breakpoints": true
     }
   ]
 }

@@ -76,6 +76,13 @@ export const campaigns = pgTable(
     reincarnatedAs: text("reincarnated_as"),
     locationId: text("location_id").notNull().default("collapsed-tunnel"),
     status: campaignStatus("status").notNull().default("active"),
+    /** Pinned at create time from the user's then-current /settings.
+     *  All turns in this campaign keep using these to preserve voice
+     *  continuity even if the user later switches their /settings to
+     *  a different preset/model. Null = use whatever the user's
+     *  current prefs are (legacy behavior). */
+    pinnedPresetId: text("pinned_preset_id"),
+    pinnedNarrationModel: text("pinned_narration_model"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -312,6 +319,13 @@ export type NewAiCallRow = typeof aiCalls.$inferInsert;
  * pastes their API key. The key is encrypted at rest with a
  * SESSION_SECRET-derived AES-256-GCM key (see lib/util/crypto.ts).
  *
+ * Per-call-type model split:
+ *   - `model` is the narration model (smart, expensive, mandatory).
+ *   - `classifierModel` and `toneModel` are optional cheap-model
+ *     overrides used when those LLM-judge paths are turned on. When
+ *     null, the runtime substitutes `model` for them (i.e. one model
+ *     does everything — backward-compat default).
+ *
  * When this row is absent, the runtime falls back to the env-default
  * provider — preserving the existing AI_PROVIDER + ANTHROPIC_API_KEY
  * deployment story.
@@ -326,8 +340,22 @@ export const userLlmPrefs = pgTable("user_llm_prefs", {
   providerKind: text("provider_kind").notNull(),
   /** Effective base URL. Null only for the anthropic preset. */
   baseUrl: text("base_url"),
-  /** Effective model id (per-provider format). */
+  /** Narration model id (per-provider format). */
   model: text("model").notNull(),
+  /** Classifier model — when set + useLlmClassifier, used in place of
+   *  the regex `classify()`. Null = use narration model (or, with
+   *  useLlmClassifier off, fall back to regex). */
+  classifierModel: text("classifier_model"),
+  /** Tone judge model — when set + useLlmTone, runs the second-pass
+   *  judge after the regex check. Same null-fallback as classifier. */
+  toneModel: text("tone_model"),
+  /** Opt-in: route classify() through the LLM tool path. Costs a
+   *  cheap call per turn but recovers ambiguity the regex misses. */
+  useLlmClassifier: text("use_llm_classifier").notNull().default("false"),
+  /** Opt-in: run the tone judge as a second pass after the regex
+   *  layer. Only fires when the regex layer says ok=true (so it's a
+   *  quality gate, not the primary check). */
+  useLlmTone: text("use_llm_tone").notNull().default("false"),
   /** AES-256-GCM ciphertext of the API key. Null for ollama-local
    *  (or any future preset where needsApiKey=false). */
   apiKeyEnc: text("api_key_enc"),

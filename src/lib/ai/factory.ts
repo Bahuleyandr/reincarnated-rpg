@@ -65,60 +65,91 @@ export interface ResolvedProvider {
   /** Preset id ("anthropic", "minimax", "openrouter", ...) when the
    *  user has explicit prefs; "env-default" otherwise. */
   source: string;
-  /** The model the user picked. When set, the narrator / classifier
-   *  should use this instead of their hard-coded model strings (the
-   *  same model handles both calls; we don't run a separate Haiku for
-   *  third-party providers — it's not worth the wiring complexity). */
+  /** The narration model. */
   modelOverride: string | null;
+  /** Cheap-model override for the LLM classifier path (when
+   *  useLlmClassifier=true). Falls back to modelOverride when null. */
+  classifierModelOverride: string | null;
+  /** Cheap-model override for the LLM tone judge (when
+   *  useLlmTone=true). Falls back to modelOverride. */
+  toneModelOverride: string | null;
+  /** Whether to actually invoke the LLM classifier on the hot path. */
+  useLlmClassifier: boolean;
+  /** Whether to actually invoke the LLM tone judge after the regex layer. */
+  useLlmTone: boolean;
+}
+
+function envDefault(): ResolvedProvider {
+  return {
+    provider: getProvider(),
+    source: "env-default",
+    modelOverride: null,
+    classifierModelOverride: null,
+    toneModelOverride: null,
+    useLlmClassifier: false,
+    useLlmTone: false,
+  };
 }
 
 /**
  * Async resolver. If the user has a row in user_llm_prefs, builds a
  * provider with their saved key + baseUrl + model. Otherwise falls
  * back to the env-default singleton.
+ *
+ * `pinnedNarrationModel` (per-campaign voice continuity) wins over
+ * the user's current `prefs.model` when supplied — the campaign keeps
+ * its starting model. The provider+key still come from current prefs
+ * (we don't ship encrypted keys into campaign rows), so changing
+ * preset away from the pinned one falls back to env-default.
  */
 export async function getProviderForUser(
   db: Db,
   userId: string | null | undefined,
+  pin?: {
+    pinnedPresetId?: string | null;
+    pinnedNarrationModel?: string | null;
+  },
 ): Promise<ResolvedProvider> {
-  if (!userId) {
-    return {
-      provider: getProvider(),
-      source: "env-default",
-      modelOverride: null,
-    };
-  }
+  if (!userId) return envDefault();
+
   const rows = await db
     .select()
     .from(userLlmPrefs)
     .where(eq(userLlmPrefs.userId, userId))
     .limit(1);
   const prefs = rows[0];
-  if (!prefs) {
-    return {
-      provider: getProvider(),
-      source: "env-default",
-      modelOverride: null,
-    };
-  }
+  if (!prefs) return envDefault();
 
   const preset: LlmPreset | undefined = findPreset(prefs.presetId);
-  // If the preset id was deleted in code, fail safe to env-default.
-  if (!preset) {
-    return {
-      provider: getProvider(),
-      source: "env-default",
-      modelOverride: null,
-    };
+  if (!preset) return envDefault();
+
+  // Pin guard: if the campaign was started under a different preset
+  // than the user is currently configured with, the user-specific
+  // key won't match the pinned model's API. Drop to env-default for
+  // safety. (User can re-pick that preset on /settings to re-engage.)
+  if (
+    pin?.pinnedPresetId &&
+    pin.pinnedPresetId !== prefs.presetId
+  ) {
+    return envDefault();
   }
 
   const apiKey = prefs.apiKeyEnc ? decryptSecret(prefs.apiKeyEnc) : "";
+  const narrationModel = pin?.pinnedNarrationModel || prefs.model;
+  const classifierModel = prefs.classifierModel || null;
+  const toneModel = prefs.toneModel || null;
+  const useLlmClassifier = prefs.useLlmClassifier === "true";
+  const useLlmTone = prefs.useLlmTone === "true";
 
   if (prefs.providerKind === "anthropic") {
     return {
       provider: new AnthropicProvider({ apiKey }),
       source: prefs.presetId,
-      modelOverride: prefs.model,
+      modelOverride: narrationModel,
+      classifierModelOverride: classifierModel,
+      toneModelOverride: toneModel,
+      useLlmClassifier,
+      useLlmTone,
     };
   }
   // openai-compatible — every non-anthropic preset
@@ -126,10 +157,14 @@ export async function getProviderForUser(
   return {
     provider: new OpenAICompatibleProvider(
       baseUrl,
-      apiKey || "ollama", // ollama-local convention; constructor requires a non-empty string
+      apiKey || "ollama",
     ),
     source: prefs.presetId,
-    modelOverride: prefs.model,
+    modelOverride: narrationModel,
+    classifierModelOverride: classifierModel,
+    toneModelOverride: toneModel,
+    useLlmClassifier,
+    useLlmTone,
   };
 }
 
