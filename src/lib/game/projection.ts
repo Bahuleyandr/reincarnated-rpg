@@ -39,6 +39,12 @@ export function initialProjection(args: {
   /** Free-text identity for the player; threaded into NarrateInput
    *  so the prose can flavor the run. */
   reincarnatedAs?: string | null;
+  /** Initial form-state buffs from the reincarnation picker's
+   *  starterBonus payload. e.g. picking "a candle in a well" stamps
+   *  { kindling: 1 } into form.state at projection-init time. The
+   *  safety guardrail (in tools.ts) caps each field's absolute value
+   *  later during normal play. */
+  starterFormState?: Record<string, number>;
 }): Projection {
   const vitals: Record<string, number> = {};
   const vitalsMax: Record<string, number> = {};
@@ -62,7 +68,7 @@ export function initialProjection(args: {
       vitalsMax,
       vitalsDeath,
       stats: { ...args.form.stats },
-      state: {},
+      state: { ...(args.starterFormState ?? {}) },
     },
     location: {
       id: args.location.id,
@@ -348,7 +354,11 @@ export async function loadProjection(
   sessionId: string,
   form: FormTemplate,
   location: LocationTemplate,
-  opts: { startingRoomId?: string; reincarnatedAs?: string | null } = {},
+  opts: {
+    startingRoomId?: string;
+    reincarnatedAs?: string | null;
+    starterFormState?: Record<string, number>;
+  } = {},
 ): Promise<Projection> {
   const [snap] = await db
     .select()
@@ -367,6 +377,7 @@ export async function loadProjection(
       location,
       startingRoomId: opts.startingRoomId,
       reincarnatedAs: opts.reincarnatedAs,
+      starterFormState: opts.starterFormState,
     });
   }
 

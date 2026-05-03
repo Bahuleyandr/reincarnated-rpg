@@ -248,6 +248,12 @@ export default function Dashboard() {
             >
               surprise me
             </button>
+            <Link
+              href="/reincarnate"
+              className="border border-amber-800 text-amber-300 py-1 px-4 hover:bg-amber-950 hover:text-amber-100 transition-colors text-sm"
+            >
+              ask the God
+            </Link>
           </div>
         </form>
 

@@ -78,6 +78,13 @@
       "when": 1777810457150,
       "tag": "0010_meta_arcs",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1777811866175,
+      "tag": "0011_campaign_reincarnation_option",
+      "breakpoints": true
     }
   ]
 }

@@ -117,6 +117,9 @@ export async function POST(req: NextRequest) {
     // network blip), runTurn routes the turn through this so the
     // session never stalls. The fallback flag is surfaced to /play.
     const fallbackNarrator = new TemplateNarrator({ form, location });
+    const starterFormState = ctx.starterBonus
+      ? { [ctx.starterBonus.field]: ctx.starterBonus.value }
+      : undefined;
     const result = await runTurn({
       db,
       sessionId,
@@ -126,6 +129,7 @@ export async function POST(req: NextRequest) {
       narrator,
       fallbackNarrator,
       beatPack,
+      starterFormState,
       world: verified.userId
         ? {
             userId: verified.userId,

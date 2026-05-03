@@ -129,6 +129,12 @@ export default function Home() {
             >
               surprise me
             </button>
+            <Link
+              href="/reincarnate"
+              className="border border-amber-800 text-amber-300 py-2 px-6 hover:bg-amber-950 hover:text-amber-100 transition-colors text-sm"
+            >
+              ask the God
+            </Link>
           </div>
         </form>
 
