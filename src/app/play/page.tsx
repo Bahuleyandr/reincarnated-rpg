@@ -99,41 +99,77 @@ export default function Play() {
     }
   }
 
-  const ended =
-    projection && projection.status !== "active";
+  const ended = projection && projection.status !== "active";
 
   return (
     <main className="min-h-screen bg-stone-950 text-stone-200 font-mono flex flex-col">
       <VitalsBar projection={projection} />
       <Transcript entries={entries} />
-      {error && (
-        <p className="px-2 py-1 text-red-400 text-xs">{error}</p>
-      )}
+      {error && <p className="px-2 py-1 text-red-400 text-xs">{error}</p>}
       {ended ? (
-        <div className="border-t border-stone-800 px-2 py-3 flex items-center gap-3">
-          <span
-            className={
-              projection!.status === "won"
-                ? "text-amber-300"
-                : "text-red-400"
-            }
-            data-testid="end-banner"
-          >
-            session.ended ({projection!.status})
-          </span>
-          <button
-            type="button"
-            onClick={restart}
-            disabled={busy}
-            className="text-stone-400 hover:text-stone-100 underline underline-offset-2"
-            data-testid="restart"
-          >
-            begin again
-          </button>
-        </div>
+        <Recap projection={projection!} onRestart={restart} busy={busy} />
       ) : (
         <InputBox onSubmit={handleInput} disabled={busy} />
       )}
     </main>
+  );
+}
+
+function Recap({
+  projection,
+  onRestart,
+  busy,
+}: {
+  projection: Projection;
+  onRestart(): void;
+  busy: boolean;
+}) {
+  const status = projection.status;
+  const turn = projection.turn;
+  const room = projection.location.roomId;
+  const tone =
+    status === "won"
+      ? "text-amber-300"
+      : status === "dead"
+        ? "text-red-400"
+        : "text-stone-300";
+  const verdict =
+    status === "won"
+      ? "the night ends. you survived."
+      : status === "dead"
+        ? "the dark closes. cohesion = 0."
+        : "the cap falls. ten turns are spent.";
+
+  return (
+    <section
+      className="border-t border-stone-800 px-3 py-4 space-y-3"
+      data-testid="recap"
+    >
+      <div className={`${tone} text-sm tracking-wide`} data-testid="end-banner">
+        session.ended ({status})
+      </div>
+      <p className="text-stone-200 text-sm leading-6">{verdict}</p>
+      <ul className="text-xs text-stone-500 space-y-1">
+        <li>turns: {turn}</li>
+        <li>final room: {room}</li>
+        <li>
+          vitals:{" "}
+          {Object.entries(projection.form.vitals)
+            .map(([k, v]) => `${k}=${v}/${projection.form.vitalsMax[k] ?? "?"}`)
+            .join(", ")}
+        </li>
+        <li>discovered: {projection.location.discovered.join(", ")}</li>
+        <li>xp: {projection.xp}</li>
+      </ul>
+      <button
+        type="button"
+        onClick={onRestart}
+        disabled={busy}
+        className="text-stone-400 hover:text-stone-100 underline underline-offset-2 text-sm disabled:opacity-50"
+        data-testid="restart"
+      >
+        begin again
+      </button>
+    </section>
   );
 }
