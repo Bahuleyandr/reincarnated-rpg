@@ -51,6 +51,10 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  /** Game-mod / admin flag. Granted manually via SQL by the deploy
+   *  operator. Lets the user nudge the meta-arc, inject world events,
+   *  and tune the reincarnation picker's option weights from /god. */
+  isAdmin: text("is_admin").notNull().default("false"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

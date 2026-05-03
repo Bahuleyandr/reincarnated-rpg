@@ -92,6 +92,13 @@
       "when": 1777812398351,
       "tag": "0012_session_heartbeat",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1777812742123,
+      "tag": "0013_users_is_admin",
+      "breakpoints": true
     }
   ]
 }

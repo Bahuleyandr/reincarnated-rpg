@@ -1,0 +1,100 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "An apple orchard where the river finally won. Five rooms half-submerged. The trees still bear; the apples taste of silt and old iron. Designed to flex for forms that float, climb, ooze, or rest on water."
+  },
+
+  "id": "drowned-orchard",
+  "displayName": "The Drowned Orchard",
+  "tagline": "The river took the orchard last spring. The apples don't know yet.",
+
+  "ambientPool": [
+    "Ripples cross the water in patterns no fish made.",
+    "The apples on the lowest branches are level with your face.",
+    "Somewhere upstream, a wooden gate rattles against its hinge.",
+    "Birds you cannot name call to each other across the water."
+  ],
+
+  "entryRoomId": "orchard-edge",
+
+  "rooms": [
+    {
+      "id": "orchard-edge",
+      "displayName": "Orchard Edge",
+      "summary": "Where the dry road ends. Water laps at the last cobbles. Beyond, the orchard stands in three feet of slow current.",
+      "ambientPool": [
+        "A scarecrow lies on its side in the shallows. Its straw is gone.",
+        "A boot — only one — has wedged itself between two roots.",
+        "The water here is clear enough to see the original orchard floor."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "shallow-rows", "narrative": "Forward, into the trees." }
+      ],
+      "isExit": true,
+      "exitNarrative": "You leave the orchard. The road is dry. The road has been dry."
+    },
+    {
+      "id": "shallow-rows",
+      "displayName": "Shallow Rows",
+      "summary": "Apple trees in regular rows, knee-deep. Apples float in the spaces between trunks.",
+      "ambientPool": [
+        "An apple bobs against your awareness.",
+        "A trunk creaks somewhere left, settling.",
+        "Sunlight comes down through the leaves and reaches the water as a moving net."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "orchard-edge", "narrative": "Back to the road." },
+        { "verb": "move", "toRoomId": "drowned-cottage", "narrative": "Toward a low building visible through the trees." },
+        { "verb": "move", "toRoomId": "deep-grove", "narrative": "Deeper, where the water is darker." }
+      ]
+    },
+    {
+      "id": "drowned-cottage",
+      "displayName": "Drowned Cottage",
+      "summary": "A one-room cottage. Roof intact, door warped open. Inside, water to the second-from-bottom shelf. Things float that should not float.",
+      "ambientPool": [
+        "A child's drawing is pinned above the high-water line.",
+        "The kettle on the stove holds river water; you can taste the iron in it from outside.",
+        "Something passed through here recently. Something taller than the door allows."
+      ],
+      "hazards": [
+        { "id": "thing-that-stooped", "kind": "passive", "narrative": "Whatever came through stooped to clear the doorway. The lintel has fresh scrapes." }
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "shallow-rows", "narrative": "Back into the rows." }
+      ]
+    },
+    {
+      "id": "deep-grove",
+      "displayName": "Deep Grove",
+      "summary": "The water is over your head here for anything tall. The oldest trees are here. They bear apples that are wrong colors.",
+      "ambientPool": [
+        "An apple as black as wet stone is just within reach.",
+        "Far below, something pale moves.",
+        "The trunks down here are wider than you can wrap awareness around."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "shallow-rows", "narrative": "Back to the shallow rows." },
+        { "verb": "move", "toRoomId": "the-lock", "narrative": "Toward a stone shape upstream.", "modifier": -1 }
+      ]
+    },
+    {
+      "id": "the-lock",
+      "displayName": "The Lock",
+      "summary": "A stone river-lock. The gate is open. Water pours through it from the south side; the orchard side is calmer. Someone, sometime, opened this on purpose.",
+      "ambientPool": [
+        "The gate-mechanism is fresh-broken; the iron is bright where the bolt was sheared.",
+        "On the south side of the lock, the river runs fast and lower than it should be.",
+        "A coin sits on the lip of the gate, head up, not yet washed off."
+      ],
+      "hazards": [
+        { "id": "open-lock", "kind": "discovery", "narrative": "Closing this would slowly drain the orchard. Opening it further would empty it." }
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "deep-grove", "narrative": "Back to the deep grove." }
+      ]
+    }
+  ]
+}

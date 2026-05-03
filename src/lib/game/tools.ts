@@ -34,29 +34,60 @@ const targetSchema = z.string().min(1);
 const slugSchema = z.string().regex(/^[a-z0-9-]+$/i, "lowercase-kebab slug");
 const nonEmptyString = z.string().min(1);
 
+/**
+ * Anti-OP / anti-godlike caps. The per-call zod limits (±10 delta,
+ * 0-10 damage, 0-5 heal, 1-5 inventory) prevent wild single-tool
+ * outliers; these absolute caps prevent slow runaway accumulation
+ * across many turns. The narrator can still describe powerful
+ * scenes — these caps only bound the mechanical state.
+ *
+ * Tighten or relax in one place. Update the corresponding zod
+ * schema and the precondition checks in checkPrecondition() if you
+ * change a value here.
+ */
+export const SAFETY_CAPS = {
+  /** Absolute value any field in projection.form.state may take. */
+  formStateAbsMax: 20,
+  /** Per-call apply_damage cap (mirrors zod). */
+  damagePerCallMax: 10,
+  /** Per-call heal cap (mirrors zod). */
+  healPerCallMax: 5,
+  /** Per-call add_inventory qty cap (mirrors zod). */
+  invQtyPerCallMax: 5,
+} as const;
+
 const toolSchemas = {
-  apply_damage: z.object({
-    name: z.literal("apply_damage"),
-    target: targetSchema,
-    amount: z.number().int().min(0).max(99),
-    source: nonEmptyString,
-    vital: z.string().optional(),
-  }),
   heal: z.object({
     name: z.literal("heal"),
     target: targetSchema,
-    amount: z.number().int().min(0).max(99),
+    /** Safety cap: 0-5 per call. Multiple heal tools per turn is
+     *  legal but each is bounded; the projection's vitalsMax also
+     *  clamps the resulting vital — no infinite-HP runaway. */
+    amount: z.number().int().min(0).max(5),
+    vital: z.string().optional(),
+  }),
+  apply_damage: z.object({
+    name: z.literal("apply_damage"),
+    target: targetSchema,
+    /** Safety cap: 0-10 per call. Larger numbers usually indicate
+     *  model hallucination; smaller-by-design keeps PvP-shaped runs
+     *  approachable. */
+    amount: z.number().int().min(0).max(10),
+    source: nonEmptyString,
     vital: z.string().optional(),
   }),
   change_form_state: z.object({
     name: z.literal("change_form_state"),
     field: nonEmptyString,
-    delta: z.number().int().min(-99).max(99),
+    /** Safety cap: ±10 per call. The post-apply clamp also caps the
+     *  field's accumulated absolute value (see SAFETY_CAPS). */
+    delta: z.number().int().min(-10).max(10),
   }),
   add_inventory: z.object({
     name: z.literal("add_inventory"),
     itemId: slugSchema,
-    qty: z.number().int().min(1).max(99),
+    /** Cap at 5 per call to prevent runaway loot. */
+    qty: z.number().int().min(1).max(5),
   }),
   remove_inventory: z.object({
     name: z.literal("remove_inventory"),
@@ -250,7 +281,22 @@ export function checkPrecondition(
       }
       return null;
     }
-    case "change_form_state":
+    case "change_form_state": {
+      // Safety cap: no form-state field may accumulate past ±20.
+      // Prevents godlike runaway buffs (e.g. wyrm_attuned creeping
+      // to 999 over a long run) and matches the tightened per-call
+      // delta cap (±10) so two tool calls can still bring a fresh
+      // field to 20 in one turn but not beyond.
+      const current = projection.form.state[tool.field] ?? 0;
+      const next = current + tool.delta;
+      if (next > SAFETY_CAPS.formStateAbsMax) {
+        return `change_form_state: '${tool.field}' would exceed safety cap (${SAFETY_CAPS.formStateAbsMax})`;
+      }
+      if (next < -SAFETY_CAPS.formStateAbsMax) {
+        return `change_form_state: '${tool.field}' would fall below safety cap (-${SAFETY_CAPS.formStateAbsMax})`;
+      }
+      return null;
+    }
     case "add_inventory":
     case "move_to":
     case "pass_time":
