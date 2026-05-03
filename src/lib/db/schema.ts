@@ -367,11 +367,108 @@ export const userLlmPrefs = pgTable("user_llm_prefs", {
     .defaultNow(),
 });
 
+/**
+ * World-layer persistence: NPCs the player has met across runs.
+ *
+ * "The world remembers what you did." Each user has their own world
+ * — a per-user collection of NPCs they've encountered, with cumulative
+ * relationship state (Berra remembers a slime saved her, twice, three
+ * lifetimes ago). On a new campaign, recallWorld() looks up matching
+ * NPCs and injects them into NarrateInput.relevantMemories so the
+ * narrator can reference them.
+ *
+ * Slug is unique per user — same NPC appearing in five campaigns is
+ * one row that gets updated, not five rows.
+ *
+ * Note: this is per-user world memory. A future global-shared world
+ * (where Berra remembers EVERY player) would key off a sharedWorldId
+ * column; for v0.1 each user has a private world.
+ */
+export const worldNpcs = pgTable(
+  "world_npcs",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Stable slug used to look this NPC up across campaigns. Comes
+     *  from the original NPC template id when known; lowercase-name
+     *  fallback otherwise. */
+    slug: text("slug").notNull(),
+    name: text("name").notNull(),
+    /** Cumulative relationship score across all runs. Sum of every
+     *  relationship.updated event delta the player ever produced. */
+    relationshipScore: integer("relationship_score").notNull().default(0),
+    /** Short prose memory — "Berra the smith. Once worked iron in a
+     *  forsaken village. The slime you were saved her, twice." Hand-
+     *  composed from run summaries or templated. */
+    memorySummary: text("memory_summary"),
+    /** Last seen status: 'alive' | 'dead' | 'unknown'. Inherits from
+     *  the most recent campaign's last interaction. */
+    lastSeenStatus: text("last_seen_status").notNull().default("alive"),
+    /** Counters for cumulative interaction depth, useful for
+     *  threshold-based hooks ("after 3 saves of Berra, …"). */
+    timesMet: integer("times_met").notNull().default(1),
+    timesHelped: integer("times_helped").notNull().default(0),
+    timesHarmed: integer("times_harmed").notNull().default(0),
+    firstMetCampaignId: uuid("first_met_campaign_id"),
+    lastSeenCampaignId: uuid("last_seen_campaign_id"),
+    /** Original NPC entity data (template id, attitude, etc) merged
+     *  with accumulated facts. */
+    data: jsonb("data").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("world_npcs_user_slug_uniq").on(t.userId, t.slug),
+    index("world_npcs_user_idx").on(t.userId),
+  ],
+);
+
+/**
+ * World-layer episodic memories — short prose recalls of notable run
+ * moments. Embedded for similarity retrieval in future campaigns.
+ *
+ * One row per session.ended (well, one summary per ended run).
+ * Optional N more for "notable" mid-run beats (deaths of NPCs, quest
+ * completions). Salience boosts heavy moments in the kNN retrieval.
+ */
+export const worldMemories = pgTable(
+  "world_memories",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    summary: text("summary").notNull(),
+    embedding: vector("embedding", { dimensions: 512 }),
+    /** Tags such as 'death', 'win', 'saved:berra', 'killed:wolf'. Used
+     *  for filtering and for tying memories to NPCs. */
+    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    salience: real("salience").notNull().default(0.5),
+    sourceCampaignId: uuid("source_campaign_id"),
+    sourceFormId: text("source_form_id"),
+    sourceLocationId: text("source_location_id"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("world_memories_user_idx").on(t.userId)],
+);
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Campaign = typeof campaigns.$inferSelect;
 export type NewCampaign = typeof campaigns.$inferInsert;
 export type UserLlmPrefs = typeof userLlmPrefs.$inferSelect;
 export type NewUserLlmPrefs = typeof userLlmPrefs.$inferInsert;
+export type WorldNpc = typeof worldNpcs.$inferSelect;
+export type NewWorldNpc = typeof worldNpcs.$inferInsert;
+export type WorldMemory = typeof worldMemories.$inferSelect;
+export type NewWorldMemory = typeof worldMemories.$inferInsert;
 
 export const _sql = sql; // re-export for migration writers if needed

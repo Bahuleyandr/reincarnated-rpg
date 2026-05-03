@@ -57,6 +57,13 @@
       "when": 1777807560571,
       "tag": "0007_per_call_type_and_pin",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1777808587169,
+      "tag": "0008_world_memory",
+      "breakpoints": true
     }
   ]
 }
