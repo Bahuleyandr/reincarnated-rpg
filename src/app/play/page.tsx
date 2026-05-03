@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { ChatPanel } from "@/components/ChatPanel";
 import { InputBox } from "@/components/InputBox";
 import { InventoryPanel } from "@/components/InventoryPanel";
 import { NearbyBox } from "@/components/NearbyBox";
@@ -337,6 +338,12 @@ export default function Play() {
               name: n.name,
               relationship: n.relationship,
             }))}
+          />
+        )}
+        {nearby?.room.roomId && projection && (
+          <ChatPanel
+            room={nearby.room}
+            canSpeak={projection.status === "active"}
           />
         )}
       </aside>

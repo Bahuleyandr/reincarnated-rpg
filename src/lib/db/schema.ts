@@ -573,6 +573,65 @@ export type WorldLore = typeof worldLore.$inferSelect;
 export type NewWorldLore = typeof worldLore.$inferInsert;
 
 /**
+ * Real-time chat messages, per-room. The MMORPG-shape OOC layer
+ * (out-of-character — the narrator doesn't see these). Players
+ * physically in the same (locationId, roomId) can speak; the chat
+ * is shared between all PCs there.
+ *
+ * v1 design choices:
+ *   - 280-char per message (Twitter-shaped). Soft limit on the
+ *     server; UI hints at it.
+ *   - ~1h read-window: every chat read filters to the last hour.
+ *     Older messages stay in the table (audit trail) but aren't
+ *     surfaced. A future cron can delete old rows.
+ *   - displayName + formId snapshotted at send-time so renaming
+ *     reincarnatedAs later doesn't rewrite history.
+ *   - Chat is intentionally NOT injected into the narrator — that's
+ *     a different design problem (mixing OOC + IC). Roleplay-style
+ *     in-game speech remains the player's input typed through the
+ *     normal turn flow.
+ */
+export const roomMessages = pgTable(
+  "room_messages",
+  {
+    id: uuid("id").primaryKey(),
+    locationId: text("location_id").notNull(),
+    roomId: text("room_id").notNull(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    text: text("text").notNull(),
+    /** Snapshot of the player's display name at send-time. For
+     *  logged-in users, "username" is set separately; for anon
+     *  this falls back to the reincarnatedAs / form humanization. */
+    displayName: text("display_name").notNull(),
+    /** Snapshot username for logged-in users. Null for anon. */
+    username: text("username"),
+    formId: text("form_id").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    /** Hot query: WHERE location_id=X AND room_id=Y ORDER BY
+     *  created_at DESC LIMIT N. Composite covers both eq's plus
+     *  the ORDER. */
+    index("room_messages_room_created_idx").on(
+      t.locationId,
+      t.roomId,
+      t.createdAt,
+    ),
+    index("room_messages_session_idx").on(t.sessionId),
+  ],
+);
+
+export type RoomMessage = typeof roomMessages.$inferSelect;
+export type NewRoomMessage = typeof roomMessages.$inferInsert;
+
+/**
  * Meta-arc — the over-arching shared story above all individual runs.
  *
  * One row per arc id. v0.1 ships a single arc, "long-wyrm". Every
