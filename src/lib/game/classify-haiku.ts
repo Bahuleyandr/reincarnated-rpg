@@ -8,27 +8,16 @@
  * default; this only activates when NARRATOR=remote (or via explicit
  * call from turn.ts).
  *
- * Uses tool_choice to force structured output.
+ * Uses tool_choice to force structured output. Now provider-agnostic
+ * via `getProvider()` — works with Anthropic or OpenAI-compatible.
  */
-import Anthropic from "@anthropic-ai/sdk";
-
-import type { FormTemplate } from "./types";
+import { getProvider } from "../ai/factory";
+import type { ProviderTool } from "../ai/provider";
 import type { Db } from "../db/client";
 import { recordAiCall } from "../util/ai-telemetry";
-import { env } from "../util/env";
 
 import { classify, type ClassifierResult } from "./classify";
-
-let client: Anthropic | null = null;
-
-function getClient(): Anthropic {
-  if (!client) {
-    const apiKey = env().ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error("ANTHROPIC_API_KEY required for Haiku classifier");
-    client = new Anthropic({ apiKey });
-  }
-  return client;
-}
+import type { FormTemplate } from "./types";
 
 export async function classifyHaiku(
   input: string,
@@ -37,7 +26,7 @@ export async function classifyHaiku(
 ): Promise<ClassifierResult> {
   const verbs = form.verbs;
   const verbList = verbs.map((v) => `- ${v}`).join("\n");
-  const tools: Anthropic.Tool[] = [
+  const tools: ProviderTool[] = [
     {
       name: "classify",
       description:
@@ -59,13 +48,14 @@ export async function classifyHaiku(
     },
   ];
 
+  const provider = getProvider();
   const t0 = Date.now();
   try {
-    const response = await getClient().messages.create({
+    const response = await provider.complete({
       model: "claude-haiku-4-5",
-      max_tokens: 256,
+      maxTokens: 256,
       tools,
-      tool_choice: { type: "tool", name: "classify" },
+      toolChoice: { type: "tool", name: "classify" },
       messages: [
         {
           role: "user",
@@ -85,30 +75,22 @@ Pick the verb that best matches. Use lower confidence (<0.7) when the input is a
         sessionId: telemetry.sessionId,
         callType: "classifier",
         model: "claude-haiku-4-5",
-        inputTokens: response.usage.input_tokens,
-        outputTokens: response.usage.output_tokens,
-        cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
-        cacheCreateTokens: response.usage.cache_creation_input_tokens ?? 0,
+        inputTokens: response.usage.inputTokens,
+        outputTokens: response.usage.outputTokens,
+        cacheReadTokens: response.usage.cacheReadTokens,
+        cacheCreateTokens: response.usage.cacheCreateTokens,
         durationMs: Date.now() - t0,
       });
     }
 
-    for (const block of response.content) {
-      if (block.type === "tool_use" && block.name === "classify") {
-        const data = block.input as { verb: string; confidence: number };
-        // Verify the model returned a verb actually in the whitelist.
-        if (!verbs.includes(data.verb)) {
-          return classify(input, form);
-        }
-        if (data.confidence < 0.5) {
-          // Low-confidence: fall back to regex which has a deterministic floor.
-          return classify(input, form);
-        }
-        return { verb: data.verb, confidence: data.confidence };
-      }
+    const tool = response.toolUses.find((t) => t.name === "classify");
+    if (tool) {
+      const data = tool.input as { verb: string; confidence: number };
+      if (!verbs.includes(data.verb)) return classify(input, form);
+      if (data.confidence < 0.5) return classify(input, form);
+      return { verb: data.verb, confidence: data.confidence };
     }
   } catch (err) {
-    // Network / rate-limit — fall back gracefully.
     if (telemetry?.db) {
       await recordAiCall(telemetry.db, {
         sessionId: telemetry.sessionId,
