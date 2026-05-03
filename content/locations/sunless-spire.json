@@ -1,0 +1,100 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "A vertical dungeon location — a tower whose stair-spiral has been broken in places. Five rooms stacked, with a way down (escape) at the bottom of the tower and a way up (ascent) toward something the narrator can decide to give the player. Designed to flex for forms that climb, fly, ooze, levitate, or are carried."
+  },
+
+  "id": "sunless-spire",
+  "displayName": "The Sunless Spire",
+  "tagline": "A tower with no light at the top. Someone built it that way on purpose.",
+
+  "ambientPool": [
+    "The stones of the spire don't taste of any quarry you'd recognize.",
+    "Somewhere above, slowly, something is breathing.",
+    "Air moves down past you; air does not move up.",
+    "The walls hum at a frequency just below hearing."
+  ],
+
+  "entryRoomId": "spire-mid-landing",
+
+  "rooms": [
+    {
+      "id": "spire-base",
+      "displayName": "Spire Base",
+      "summary": "The bottom of the spire. A heavy iron door, half-open. Outside is the world. Inside is a stairwell that goes up and is broken in places.",
+      "ambientPool": [
+        "The door's hinges are clean; whoever last used it cared.",
+        "The first stair is fine. The second is not.",
+        "A draft from above carries something that smells of metal and old salt."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "spire-mid-landing", "narrative": "Up, into a stairwell with broken steps.", "modifier": -1 }
+      ],
+      "isExit": true,
+      "exitNarrative": "You leave the spire. Whatever was up there waits for someone else."
+    },
+    {
+      "id": "spire-mid-landing",
+      "displayName": "Middle Landing",
+      "summary": "A landing where two stairs meet. A door east leads to a small room with a table and one chair. The stair up has gaps that test what you are.",
+      "ambientPool": [
+        "The landing is clean — recently.",
+        "On the wall, a charcoal drawing: not signed, but recent.",
+        "From above, the breathing is louder by a half-step."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "spire-base", "narrative": "Down, back toward the iron door." },
+        { "verb": "move", "toRoomId": "spire-archive", "narrative": "East, into a small archive room." },
+        { "verb": "move", "toRoomId": "spire-upper-stair", "narrative": "Up, where the gaps in the stair widen.", "modifier": -1 }
+      ]
+    },
+    {
+      "id": "spire-archive",
+      "displayName": "The Archive",
+      "summary": "A small room. A table with one chair. On the table, a ledger and a candle that was lit recently. Shelves with bound things you would have to read to know.",
+      "ambientPool": [
+        "The candle is still warm.",
+        "The ledger is open to a page with one word at the top: Seventeen.",
+        "On a shelf, three identical bound volumes. They have no titles."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "spire-mid-landing", "narrative": "Back to the landing." }
+      ]
+    },
+    {
+      "id": "spire-upper-stair",
+      "displayName": "Upper Stair",
+      "summary": "The last stretch before the top. Stones missing. Things to grip if you have things that grip. A drop on the inside of the spiral that is not survivable for a thing with weight.",
+      "ambientPool": [
+        "From here, the breathing above sounds like something with a chest.",
+        "There is a thing on a step ahead of you that is not a stone.",
+        "Cold air comes down past you, carrying nothing comforting."
+      ],
+      "hazards": [
+        { "id": "broken-stair", "kind": "passive", "narrative": "Movement here costs an action; gaps need a bridge or a leap or an ooze." }
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "spire-mid-landing", "narrative": "Back down to the landing." },
+        { "verb": "move", "toRoomId": "spire-top", "narrative": "Up, into the dark room at the top.", "modifier": -2 }
+      ]
+    },
+    {
+      "id": "spire-top",
+      "displayName": "The Top",
+      "summary": "Pitch dark, except for what your senses make of it. Something large is in here with you. It has been waiting.",
+      "ambientPool": [
+        "It is not making any sound now that you are in the room.",
+        "The air here is older than the rest of the spire by a measurable amount.",
+        "Whatever it is, it is between you and the way down."
+      ],
+      "hazards": [
+        { "id": "the-thing-at-the-top", "kind": "creature", "narrative": "A direct fight is not survivable. Cleverness is." }
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "spire-upper-stair", "narrative": "Back the way you came — if it lets you.", "modifier": -2 }
+      ]
+    }
+  ]
+}

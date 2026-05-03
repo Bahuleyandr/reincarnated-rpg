@@ -1,0 +1,105 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Universal fallback form for free-text reincarnations the player typed in (any 'cursed armor', 'librarian ghost', 'demon king's accountant', etc. that we haven't hand-tuned). Mechanics are deliberately generic; the flavor lives in projection.reincarnatedAs which the narrator weaves into the prose. Typed forms with full anti-drift scaffolding (slime, future cursed-book) override this — they're picked when the player's input matches a known keyword. negativeVocab is empty here on purpose: we don't know enough about the form to ban specific words, and a default ban-list would erase tone-appropriate language for half the possible reincarnations."
+  },
+
+  "id": "generic-creature",
+  "displayName": "Reincarnated",
+  "tagline": "You woke up as something. The world is finding out what.",
+
+  "vitals": {
+    "hp": { "max": 10, "start": 10, "death": 0 },
+    "mana": { "max": 5, "start": 5 }
+  },
+
+  "stats": {
+    "power":     0,
+    "agility":   0,
+    "awareness": 0,
+    "will":      0
+  },
+
+  "verbs": [
+    "move",
+    "sense",
+    "act",
+    "attack",
+    "defend",
+    "examine",
+    "speak",
+    "wait"
+  ],
+
+  "verbMappings": {
+    "move":    { "tools": ["move_to"],                   "rollStat": "agility" },
+    "sense":   { "tools": ["sense"],                     "rollStat": "awareness" },
+    "act":     { "tools": ["change_form_state"],         "rollStat": "will" },
+    "attack":  { "tools": ["apply_damage"],              "rollStat": "power" },
+    "defend":  { "tools": ["change_form_state"],         "rollStat": "agility" },
+    "examine": { "tools": ["sense"],                     "rollStat": "awareness" },
+    "speak":   { "tools": ["update_relationship"],       "rollStat": "will" },
+    "wait":    { "tools": ["pass_time"],                 "rollStat": null }
+  },
+
+  "negativeVocab": {
+    "rule": "Empty by design — see _meta.notes. The narrator should still match the form the player declared (carried in projection.reincarnatedAs) and avoid generic-fantasy filler.",
+    "words": []
+  },
+
+  "hardMoves": {
+    "rule": "On a partial-success (7-9), the narrator MUST pick exactly one move. Each maps to specific tool calls. Phrasing is deliberately portable — a hard move that reads as 'lose footing' for a humanoid reads as 'lose orbit' for a dragon egg or 'lose page' for a book.",
+    "moves": [
+      {
+        "id": "lose_hp",
+        "narrative": "Whatever you tried cost you. You take a small hit.",
+        "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "source": "partial-cost" }]
+      },
+      {
+        "id": "alert_threat",
+        "narrative": "The sound or shape of your action carries; something hostile turns its attention your way.",
+        "tools": [{ "name": "introduce_npc", "templateId": "ambient-threat", "attitude": -2 }]
+      },
+      {
+        "id": "exposed",
+        "narrative": "Some part of you that should be hidden is briefly visible; the next attack against you will land cleanly.",
+        "tools": [{ "name": "change_form_state", "field": "exposed", "delta": 1 }]
+      },
+      {
+        "id": "drained",
+        "narrative": "What you spent on the attempt was more than you intended.",
+        "tools": [{ "name": "change_form_state", "field": "mana_drain", "delta": 1 }]
+      },
+      {
+        "id": "wrong_place",
+        "narrative": "You moved, but not where you wanted.",
+        "tools": [{ "name": "move_to", "roomId": "$WRONG_ROOM" }]
+      },
+      {
+        "id": "stuck",
+        "narrative": "Whatever you reached for has you, briefly, and a tick passes before you can free yourself.",
+        "tools": [{ "name": "pass_time", "ticks": 1 }]
+      }
+    ]
+  },
+
+  "sampleCorpus": {
+    "rule": "Two short universal passages anchored on second-person + sensory detail. Deliberately vague about anatomy so the narrator can specialize them to whatever form the player declared. The narrator should NOT copy these verbatim — use them only to lock register and cadence.",
+    "passages": [
+      {
+        "id": "01-awakening-generic",
+        "scenario": "First moment of consciousness in the new form",
+        "wordCount": 180,
+        "text": "You wake to a place you do not recognize and a body that is not the one you went to sleep in. The first thing that returns is shape — your shape. It is unfamiliar in the way that the back of an old key is unfamiliar: the parts that work are clear, the parts that don't are not yet missed. Around you, the world is doing what it does without you. There is air, or something that fills the place air would. There is a surface beneath you, and weight, and gravity working on whatever passes for your weight. A part of you that is still you, that is not the new shape, recognizes that the second life has begun. The first one is closing behind you like a door whose hinges you can hear giving up. There is no announcement. No one is here to tell you what you are. You will have to find out by trying."
+      },
+      {
+        "id": "02-trying-generic",
+        "scenario": "First action attempt",
+        "wordCount": 160,
+        "text": "You try the most basic thing your new shape allows. Whether that is a step, a flicker of essence, a turn of pages in a wind only you can feel — there is something it is for you to do, and you do it. The world responds with a small piece of feedback: a sound, a temperature, a weight that shifts. You decide that this is information, and that information is, for now, all you have. You try the second-most-basic thing. Then a third. Each one teaches you a little about the new rules. Some doors are closed to you that were open in the old shape. Some doors are open to you that you would never have thought to try. Above all of it, the world keeps going. It will not wait."
+      }
+    ]
+  }
+}

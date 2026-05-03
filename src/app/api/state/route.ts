@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
-import {
-  loadForm,
-  loadLocation,
-} from "@/lib/game/content";
+import { resolveSessionContext } from "@/lib/game/campaign-context";
+import { loadForm, loadLocation } from "@/lib/game/content";
 import { readLog, rowToEvent } from "@/lib/game/events";
 import { loadProjection } from "@/lib/game/projection";
 import {
@@ -28,9 +26,12 @@ export async function GET(req: NextRequest) {
   const sessionId = verified.sessionId;
 
   try {
-    const form = loadForm("lesser-slime");
-    const location = loadLocation("collapsed-tunnel");
-    const projection = await loadProjection(db, sessionId, form, location);
+    const ctx = await resolveSessionContext(db, sessionId);
+    const form = loadForm(ctx.formId);
+    const location = loadLocation(ctx.locationId);
+    const projection = await loadProjection(db, sessionId, form, location, {
+      reincarnatedAs: ctx.reincarnatedAs,
+    });
 
     const events = await readLog(db, sessionId);
     const narrations = events
@@ -44,6 +45,9 @@ export async function GET(req: NextRequest) {
       narrations,
       // For the recap "save this run" link — only show if anon.
       hasAccount: !!verified.userId,
+      reincarnatedAs: ctx.reincarnatedAs,
+      formId: ctx.formId,
+      locationId: ctx.locationId,
     });
   } catch (err) {
     log.error("state.failed", {

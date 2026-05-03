@@ -1,0 +1,99 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Generic location for free-text reincarnations. A village abandoned recently — embers still warm, doors open mid-flight. Five rooms, one path out. Designed to be form-agnostic: a slime can ooze through it, a book can be carried through it, a humanoid can walk through it."
+  },
+
+  "id": "forsaken-village",
+  "displayName": "The Forsaken Village",
+  "tagline": "Doors open. Hearths warm. Nobody.",
+
+  "ambientPool": [
+    "Wind moves through houses with no one in them and finds nothing to push.",
+    "A bell rope moves once, slowly, then stops.",
+    "Somewhere up the slope, a goat is alive and uncertain whose it is now.",
+    "The smell of bread is here, half a day stale, in a kitchen with no people.",
+    "The sky is the colour of old paper."
+  ],
+
+  "entryRoomId": "village-square",
+
+  "rooms": [
+    {
+      "id": "village-square",
+      "displayName": "Village Square",
+      "summary": "A round of packed earth at the centre of the village. A well, a notice-board, the remains of a market. Whatever happened to the people happened in a hurry — there are baskets on the ground.",
+      "ambientPool": [
+        "The well rope is taut and damp; someone was drawing water when they left.",
+        "The notice-board has three notices, all corners curling. None of them mention what came.",
+        "A child's wooden toy is on its side near the basin."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "smith-house", "narrative": "North, where a forge still glows faintly." },
+        { "verb": "move", "toRoomId": "chapel", "narrative": "East, toward a small stone chapel with the door ajar." },
+        { "verb": "move", "toRoomId": "tavern", "narrative": "South, into the half-light of an empty tavern." },
+        { "verb": "move", "toRoomId": "village-edge", "narrative": "West, toward the road out — and what is at the edge of it." }
+      ]
+    },
+    {
+      "id": "smith-house",
+      "displayName": "Smithy",
+      "summary": "The smith left mid-strike. A hammer is balanced on the anvil. The forge is still warm enough to taste.",
+      "ambientPool": [
+        "The bellows are still inflated, half their air not yet given up.",
+        "Tools are arranged in the order of a person who has done this every day for thirty years.",
+        "On the workbench, a half-shaped horseshoe and a name carved into the wood: Berra."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "village-square", "narrative": "Back to the square." }
+      ]
+    },
+    {
+      "id": "chapel",
+      "displayName": "Stone Chapel",
+      "summary": "Cool inside, in a way the day outside is not. Pews mostly empty; one has a prayer book left open on it. The altar bears something that should not be on an altar.",
+      "ambientPool": [
+        "Light through the thin windows is colder than the day-light should make it.",
+        "Whatever is on the altar has not been there long. It is still wet.",
+        "A draft moves the open prayer book by one page, then back."
+      ],
+      "hazards": [
+        { "id": "altar-thing", "kind": "discovery", "narrative": "What's on the altar is the first useful clue." }
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "village-square", "narrative": "Back to the square." }
+      ]
+    },
+    {
+      "id": "tavern",
+      "displayName": "The Last Cup",
+      "summary": "Tables half-cleared. A tap left running, dripping into a tin pail almost full. The taproom is dim and the dim is friendly, even now.",
+      "ambientPool": [
+        "There are coins on three tables. The patrons left without paying — or without thinking.",
+        "A lute leans against a stool, one string broken since long before today.",
+        "The pail under the tap will overflow in another hour."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "village-square", "narrative": "Back to the square." },
+        { "verb": "move", "toRoomId": "village-edge", "narrative": "Out the back door, toward the road west." }
+      ]
+    },
+    {
+      "id": "village-edge",
+      "displayName": "Edge of the Village",
+      "summary": "The last fence-post of the village leans into the road. The road goes west into hills the colour of wet stone. Something has happened on it — recently. The dust holds the shape.",
+      "ambientPool": [
+        "Hoofprints in the dust, all going the same way, none coming back.",
+        "A torn piece of wool is caught on the fence-post.",
+        "Past the fence, the road is empty in a way roads do not usually choose to be."
+      ],
+      "exits": [
+        { "verb": "move", "toRoomId": "village-square", "narrative": "Back to the square." }
+      ],
+      "isExit": true,
+      "exitNarrative": "You leave the village. Whatever this was, it was not for you to fix. Survival, today, is enough."
+    }
+  ]
+}

@@ -22,6 +22,20 @@
       "when": 1777801663444,
       "tag": "0002_users_campaigns",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1777803662456,
+      "tag": "0003_reincarnated_as",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777804397271,
+      "tag": "0004_session_open_ended",
+      "breakpoints": true
     }
   ]
 }

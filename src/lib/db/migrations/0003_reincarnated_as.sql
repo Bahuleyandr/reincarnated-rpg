@@ -1,0 +1,1 @@
+ALTER TABLE "campaigns" ADD COLUMN "reincarnated_as" text;
