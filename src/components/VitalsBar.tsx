@@ -19,6 +19,14 @@ export function VitalsBar({ projection }: VitalsBarProps) {
   const status = projection.status;
   const turn = projection.turn;
   const room = projection.location.roomId;
+  // Bad-luck stack from moderation curses. While > 0, rolls take a
+  // -min(2, badLuck) penalty (see lib/moderation/badLuckRollPenalty).
+  // Decays -1 each turn naturally.
+  const badLuck =
+    typeof projection.form.state["bad_luck"] === "number"
+      ? (projection.form.state["bad_luck"] as number)
+      : 0;
+  const luckPenalty = Math.min(2, Math.max(0, Math.floor(badLuck)));
 
   return (
     <div className="border-b border-stone-800 px-2 py-2 text-xs flex items-center gap-4 text-stone-400">
@@ -30,6 +38,16 @@ export function VitalsBar({ projection }: VitalsBarProps) {
           </span>
         </span>
       ))}
+      {badLuck > 0 && (
+        <span
+          className="flex items-center gap-1 text-rose-400"
+          data-testid="bad-luck"
+          title={`Cursed: ${badLuck} stacks. Rolls take -${luckPenalty} until it decays. Each turn drops the stack by 1.`}
+        >
+          🩸 <span className="text-rose-300">−{luckPenalty}</span>
+          <span className="text-rose-700/70 text-[10px]">({badLuck})</span>
+        </span>
+      )}
       <span className="ml-auto flex items-center gap-3">
         <span>
           <span className="text-stone-500">turn</span>{" "}

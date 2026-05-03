@@ -68,6 +68,14 @@ export default function CharacterPage() {
   const router = useRouter();
   const [data, setData] = useState<CharacterResp | null>(null);
   const [loading, setLoading] = useState(true);
+  // `now` is state-driven (not Date.now() in render) to satisfy
+  // React 19's react-hooks/purity rule. Refreshes once a minute —
+  // fine for the "days remaining" math the UI uses it for.
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -225,7 +233,7 @@ export default function CharacterPage() {
                     {Math.max(
                       0,
                       Math.ceil(
-                        (data.energy.blessing.expiresAtMs - Date.now()) /
+                        (data.energy.blessing.expiresAtMs - now) /
                           (24 * 60 * 60 * 1000),
                       ),
                     )}{" "}

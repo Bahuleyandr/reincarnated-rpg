@@ -98,3 +98,59 @@ Env flag `NARRATOR=template|remote`. Default `template` keeps M1 deterministic, 
 **Date:** 2026-05-03. **Status:** locked.
 
 Original plan used `Reincarnated`. npm rejected capitals. Switched to `reincarnated-rpg` matching VH Health monorepo kebab-case convention. Project root: `C:\Dev\Projects\reincarnated-rpg\`.
+
+## ADR-015 — Energy tiers: free / supporter / patron, continuous regen
+
+**Date:** 2026-05-03. **Status:** locked.
+
+Each turn costs 1 energy. Tiers vary by `max` cap and `regenIntervalMs`:
+- Free: 20 cap, 45-min regen (~32 turns/day).
+- Supporter: 60 cap, 20-min regen (~72 turns/day).
+- Patron: 120 cap, 10-min regen (~144 turns/day; effectively unlimited for normal play).
+
+Regen model: `ticks = floor((now - lastUpdated) / regenInterval)`, advance `lastUpdated` only by ticks awarded so partial intervals carry forward (no stash loss). When at max, fast-forward `lastUpdated` to now so the next spend still waits a full interval — prevents accumulation while idle.
+
+Race condition (read→compute→write) accepted: at most one extra turn per concurrent burst, cost negligible. A future Postgres advisory-lock variant could harden if needed.
+
+Tier promotion: admin-only for v1 (no payment integration). `/god/energy` is the path. Tier catalog is data — adding/changing tiers is a content-only commit.
+
+## ADR-016 — Blessing of the Gods: pure-function 7-day buff for free tier
+
+**Date:** 2026-05-03. **Status:** locked.
+
+Free-tier players within 7 days of account creation (or anon-session start) get cap × 2 (20 → 40) and regen / 2.25 (45min → 20min). Net: blessed-free ≈ supporter tier.
+
+Pure function (`effectiveTier`), not stored anywhere. Computed from `users.createdAt` or `sessions.startedAt` on every read. Paid tiers don't get the blessing (they don't need the lure).
+
+Why pure: lures the player without locking us into a stored expiry that needs cron invalidation. Day 8: blessing simply stops applying — no migration, no event, no edge case where a blessed user gets stuck buffed.
+
+## ADR-017 — Daily streak: UTC-day-based, 1-5 stack, +N energy on first turn
+
+**Date:** 2026-05-03. **Status:** locked.
+
+First turn (or page load) on a new UTC day grants `streakAfter` energy (1 → 2 → 3 → 4 → 5, capped at MAX_STREAK=5). Missed day resets to 1. Five-day climb: 1+2+3+4+5 = 15 bonus energy.
+
+UTC-day chosen over local time: less code, no timezone drama, lines up with meta-arc and lore-decay clocks. Also: a "world calendar" feels right for a persistent shared world.
+
+Grant CAN exceed tier max temporarily — it's a one-shot gift; regen still won't tick until energy drops below max via spending. Same rule applies to player-to-player gifting (planned).
+
+Idempotent within a day: `lastDayUtc === today` short-circuits to no-op. Both `getEnergyView` AND `trySpend` claim — page load counts as "logging in", not just turn-taking. Pure module (`lib/energy/streak.ts`); persistence on `users.streak_count` + `users.streak_last_day_utc` (and same on `sessions.*` for anon).
+
+## ADR-018 — Moderation, curses, and power-creep ceilings
+
+**Date:** 2026-05-03. **Status:** locked.
+
+Three input gates run in order before each turn:
+
+1. **Prompt injection** (regex patterns in `lib/moderation/injection.ts`): rejected with 400 BEFORE `trySpend` so attackers can't drain energy via spam. The system prompt + delimited `<player_input>` wrap is the real defense; this is a cheap outer gate.
+2. **Severe profanity** (slurs, sexual-violence language, "kys"): energy IS charged, `runTurn` short-circuits with a refusal narration + `+5 bad_luck` stack. No classify, no roll, no narrator call.
+3. **Mild profanity** (everyday cussing): turn proceeds normally + `+2 bad_luck` stack queues for the next 2 turns.
+
+Bad-luck mechanic: `form_state.bad_luck` accumulates via `change_form_state` events. Roll modifier penalty `−min(2, floor(badLuck))` so curses sting but don't make success impossible. Decays −1 per turn (skip when at 0); cap at `BAD_LUCK_MAX=20` so a griefing player can't stack themselves to oblivion in a single session.
+
+Power-creep ceilings (`SAFETY_CAPS` in `lib/game/tools.ts`):
+- `maxToolsPerTurn = 6` — `applyTools` rejects bursts beyond this with `tool_validation_failed`, which the existing retry loop converts to a re-prompt asking the narrator to consolidate.
+- `grant_xp.amount` zod cap dropped 999 → 50 per call. Multiple calls per turn still stack but no single call levels the player into orbit.
+- `formStateAbsMax = 20` (existing) — applies to bad_luck too, since it rides through `change_form_state`.
+
+Why severe-profanity charges energy: the in-fiction tax is the punishment. Refunding would invite spam. Why injection doesn't: nothing happened in-fiction; the engine never even classified.
