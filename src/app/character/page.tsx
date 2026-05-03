@@ -12,8 +12,15 @@ interface CharacterResp {
     energy: number;
     max: number;
     tierId: string;
+    effectiveTierId: string;
     tierLabel: string;
     turnsPerDay: number;
+    blessing: {
+      id: string;
+      label: string;
+      description: string;
+      expiresAtMs: number | null;
+    } | null;
   } | null;
   contributions: {
     total: number;
@@ -148,18 +155,35 @@ export default function CharacterPage() {
         </section>
 
         {data.energy && (
-          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-2">
+          <section
+            className={`border p-4 space-y-2 ${
+              data.energy.blessing
+                ? "border-amber-800/60 bg-amber-950/20"
+                : "border-stone-800 bg-stone-900/40"
+            }`}
+          >
             <h2 className="text-stone-100 text-sm flex items-baseline justify-between">
-              <span>tier</span>
+              <span>
+                tier
+                {data.energy.blessing && (
+                  <span className="text-amber-400 text-[11px] ml-2">
+                    ✦ {data.energy.blessing.label}
+                  </span>
+                )}
+              </span>
               <span className="text-[10px] text-stone-500 font-normal">
                 upgrade is admin-managed in v1
               </span>
             </h2>
             <div className="grid grid-cols-3 gap-3 text-xs">
               <Stat
-                label="current tier"
+                label="tier"
                 value={data.energy.tierLabel}
-                accent="text-amber-300"
+                accent={
+                  data.energy.blessing
+                    ? "text-amber-300"
+                    : "text-amber-300"
+                }
               />
               <Stat
                 label="energy"
@@ -171,11 +195,35 @@ export default function CharacterPage() {
                 accent="text-stone-400"
               />
             </div>
-            <p className="text-[10px] text-stone-600 leading-4">
-              Each turn costs 1 energy. Energy refills continuously up
-              to your tier's max. Free tier resets at the rate that
-              gives ~32 turns/day; supporter ~72; patron ~144.
-            </p>
+            {data.energy.blessing ? (
+              <div className="text-[11px] text-amber-200/80 leading-5 italic">
+                {data.energy.blessing.description}
+                {data.energy.blessing.expiresAtMs && (
+                  <span className="block text-amber-400/70 not-italic mt-1">
+                    The blessing fades on{" "}
+                    {new Date(
+                      data.energy.blessing.expiresAtMs,
+                    ).toLocaleDateString()}{" "}
+                    (
+                    {Math.max(
+                      0,
+                      Math.ceil(
+                        (data.energy.blessing.expiresAtMs - Date.now()) /
+                          (24 * 60 * 60 * 1000),
+                      ),
+                    )}{" "}
+                    days). After that, your free tier returns to its
+                    normal pace.
+                  </span>
+                )}
+              </div>
+            ) : (
+              <p className="text-[10px] text-stone-600 leading-4">
+                Each turn costs 1 energy. Energy refills continuously up
+                to your tier's max. Free tier resets at the rate that
+                gives ~32 turns/day; supporter ~72; patron ~144.
+              </p>
+            )}
           </section>
         )}
 

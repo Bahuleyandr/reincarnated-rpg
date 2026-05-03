@@ -53,7 +53,18 @@ export async function POST(req: NextRequest) {
 
   const passwordHash = await hashPassword(password);
   const userId = uuidv7();
-  await db.insert(users).values({ id: userId, email, username, passwordHash });
+  // Start the new player at the BLESSED-free cap (40) so the
+  // first-week experience feels generous from minute one. The
+  // blessing decays back to the free baseline after 7 days.
+  const { effectiveTier, getTier } = await import("@/lib/energy/tiers");
+  const blessedFree = effectiveTier(getTier("free"), new Date()).tier;
+  await db.insert(users).values({
+    id: userId,
+    email,
+    username,
+    passwordHash,
+    energy: blessedFree.max,
+  });
 
   // Anon-claim: if the request carried an anon session cookie and that
   // session is unattached, hand it to the new user as their first

@@ -150,9 +150,18 @@ export async function GET(req: NextRequest) {
       ? {
           energy: energy.energy,
           max: energy.tier.max,
-          tierId: energy.tier.id,
+          tierId: energy.tierId,
+          effectiveTierId: energy.tier.id,
           tierLabel: energy.tier.label,
           turnsPerDay: turnsPerDay(energy.tier),
+          blessing: energy.blessing
+            ? {
+                id: energy.blessing.id,
+                label: energy.blessing.label,
+                description: energy.blessing.description,
+                expiresAtMs: energy.blessingExpiresAtMs,
+              }
+            : null,
         }
       : null,
     contributions: {

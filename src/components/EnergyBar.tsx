@@ -11,6 +11,12 @@ interface EnergyView {
   nextRegenMs: number;
   fullAtMs: number | null;
   turnsPerDay: number;
+  blessing: {
+    id: string;
+    label: string;
+    description: string;
+    expiresAtMs: number | null;
+  } | null;
 }
 
 function formatMs(ms: number): string {
@@ -22,6 +28,19 @@ function formatMs(ms: number): string {
   const h = Math.floor(m / 60);
   const rem = m % 60;
   return rem ? `${h}h ${rem}m` : `${h}h`;
+}
+
+function formatBlessingTime(expiresAtMs: number, now: number): string {
+  const remaining = expiresAtMs - now;
+  if (remaining <= 0) return "ending now";
+  const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
+  const hours = Math.floor(
+    (remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000),
+  );
+  if (days >= 1) {
+    return `${days}d ${hours}h`;
+  }
+  return `${hours}h`;
 }
 
 export function EnergyBar() {
@@ -79,14 +98,30 @@ export function EnergyBar() {
 
   return (
     <section className="px-4 py-2 border-b border-stone-800 bg-stone-900/40 text-xs space-y-1">
+      {view.blessing && (
+        <div
+          className="text-[10px] text-amber-300 leading-4 pb-1 border-b border-amber-900/40 mb-1"
+          title={view.blessing.description}
+        >
+          ✦ {view.blessing.label}
+          {view.blessing.expiresAtMs && (
+            <span className="text-amber-500/70 ml-1">
+              · {formatBlessingTime(view.blessing.expiresAtMs, Date.now())} left
+            </span>
+          )}
+        </div>
+      )}
       <div className="flex items-baseline gap-2">
         <span className="text-stone-100">⚡ {view.energy}</span>
         <span className="text-stone-600">/ {view.max}</span>
         <span
-          className="ml-auto text-[10px] uppercase tracking-widest text-stone-600"
-          title={`${view.turnsPerDay} turns/day`}
+          className={`ml-auto text-[10px] uppercase tracking-widest ${
+            view.blessing ? "text-amber-400" : "text-stone-600"
+          }`}
+          title={`${view.turnsPerDay} turns/day${view.blessing ? " (blessed)" : ""}`}
         >
           {view.tierLabel}
+          {view.blessing && " +"}
         </span>
       </div>
       <div className="h-1 bg-stone-900 border border-stone-800 relative overflow-hidden">
