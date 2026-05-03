@@ -1,6 +1,10 @@
 /**
  * Anthropic provider. Default for all our prod paths.
  * Maps `CompleteArgs` 1:1 to the Messages API.
+ *
+ * The constructor optionally takes a per-instance `apiKey` (used by the
+ * BYO-LLM flow when a user has saved their own key on /settings); when
+ * omitted it falls back to `env().ANTHROPIC_API_KEY` like before.
  */
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -12,23 +16,29 @@ import type {
 } from "../provider";
 import { env } from "../../util/env";
 
-let cached: Anthropic | null = null;
-function getClient(apiKey: string): Anthropic {
-  if (!cached) cached = new Anthropic({ apiKey });
-  return cached;
-}
-
 export class AnthropicProvider implements AIProvider {
   readonly providerName = "anthropic";
+  private client: Anthropic | null = null;
+  private overrideKey?: string;
 
-  async complete(args: CompleteArgs): Promise<CompleteResponse> {
-    const apiKey = env().ANTHROPIC_API_KEY;
+  constructor(opts: { apiKey?: string } = {}) {
+    this.overrideKey = opts.apiKey;
+  }
+
+  private getClient(): Anthropic {
+    if (this.client) return this.client;
+    const apiKey = this.overrideKey ?? env().ANTHROPIC_API_KEY;
     if (!apiKey) {
       throw new Error(
-        "ANTHROPIC_API_KEY required for AnthropicProvider. Set NARRATOR=template or AI_PROVIDER=openai-compatible.",
+        "ANTHROPIC_API_KEY required for AnthropicProvider. Save a key on /settings, or set NARRATOR=template, or set AI_PROVIDER=openai-compatible.",
       );
     }
-    const client = getClient(apiKey);
+    this.client = new Anthropic({ apiKey });
+    return this.client;
+  }
+
+  async complete(args: CompleteArgs): Promise<CompleteResponse> {
+    const client = this.getClient();
 
     const tools = args.tools?.map((t) => ({
       name: t.name,

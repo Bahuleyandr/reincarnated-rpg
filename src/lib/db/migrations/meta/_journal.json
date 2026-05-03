@@ -36,6 +36,13 @@
       "when": 1777804397271,
       "tag": "0004_session_open_ended",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777806063893,
+      "tag": "0005_user_llm_prefs",
+      "breakpoints": true
     }
   ]
 }

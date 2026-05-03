@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getProviderForUser } from "@/lib/ai/factory";
 import { db } from "@/lib/db/client";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
 import {
@@ -54,9 +55,15 @@ export async function POST(req: NextRequest) {
       ctx.formId === "lesser-slime" && ctx.locationId === "collapsed-tunnel"
         ? loadBeatPack("survive-the-night")
         : undefined;
+    // BYO-LLM: if the player has saved /settings overrides, use their
+    // provider + model. Anonymous sessions and users without prefs
+    // fall back to the env-default provider.
+    const resolved = await getProviderForUser(db, verified.userId ?? null);
     const narrator = makeNarrator({
       form,
       location,
+      provider: resolved.provider,
+      model: resolved.modelOverride ?? undefined,
       db,
       sessionId,
     });

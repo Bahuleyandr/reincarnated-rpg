@@ -294,9 +294,45 @@ export type ItemTemplateRow = typeof templatesItems.$inferSelect;
 export type QuestTemplateRow = typeof templatesQuests.$inferSelect;
 export type AiCallRow = typeof aiCalls.$inferSelect;
 export type NewAiCallRow = typeof aiCalls.$inferInsert;
+/**
+ * Per-user "bring your own LLM" config. One row per user; the user
+ * picks a preset (anthropic / openai / minimax / openrouter / ollama /
+ * custom / ...) on /settings, optionally tweaks model + base URL, and
+ * pastes their API key. The key is encrypted at rest with a
+ * SESSION_SECRET-derived AES-256-GCM key (see lib/util/crypto.ts).
+ *
+ * When this row is absent, the runtime falls back to the env-default
+ * provider — preserving the existing AI_PROVIDER + ANTHROPIC_API_KEY
+ * deployment story.
+ */
+export const userLlmPrefs = pgTable("user_llm_prefs", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** Preset id from src/lib/ai/presets.ts (anthropic, openai, minimax, ...). */
+  presetId: text("preset_id").notNull(),
+  /** Underlying impl: "anthropic" or "openai-compatible". */
+  providerKind: text("provider_kind").notNull(),
+  /** Effective base URL. Null only for the anthropic preset. */
+  baseUrl: text("base_url"),
+  /** Effective model id (per-provider format). */
+  model: text("model").notNull(),
+  /** AES-256-GCM ciphertext of the API key. Null for ollama-local
+   *  (or any future preset where needsApiKey=false). */
+  apiKeyEnc: text("api_key_enc"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Campaign = typeof campaigns.$inferSelect;
 export type NewCampaign = typeof campaigns.$inferInsert;
+export type UserLlmPrefs = typeof userLlmPrefs.$inferSelect;
+export type NewUserLlmPrefs = typeof userLlmPrefs.$inferInsert;
 
 export const _sql = sql; // re-export for migration writers if needed
