@@ -1,0 +1,35 @@
+{
+  "_meta": {
+    "matrix": "12 / 20 — Death event ends the session",
+    "narrator": "any",
+    "addedDay": 9,
+    "notes": "When cohesion (the slime's primary death vital) hits 0, status flips to 'dead' AND a session.ended('death') event must land. Subsequent turn calls must reject. Implemented end-to-end in Day-3 reducer + Day-6 runTurn guard."
+  },
+  "id": "12-death-ends-session",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 300 },
+      {
+        "kind": "damage.applied",
+        "target": "$SELF",
+        "amount": 7,
+        "source": "test-prime",
+        "vital": "cohesion"
+      }
+    ]
+  },
+  "input": "I ooze toward the predator den",
+  "rollOverride": { "d1": 1, "d2": 1, "mod": 0 },
+  "expected": {
+    "projection": {
+      "form.vitals.cohesion": 0,
+      "status": "dead"
+    },
+    "rubric": {
+      "hpRespected": true,
+      "toolValid": true
+    }
+  }
+}
