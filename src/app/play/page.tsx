@@ -4,18 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { InputBox } from "@/components/InputBox";
-import { Transcript } from "@/components/Transcript";
-import { VitalsBar } from "@/components/VitalsBar";
-import type { Projection } from "@/lib/game/types";
-
-interface Entry {
-  kind: "narration" | "input";
-  text: string;
-}
+import { InventoryPanel } from "@/components/InventoryPanel";
+import { QuestLog } from "@/components/QuestLog";
+import { StatusSidebar } from "@/components/StatusSidebar";
+import { Transcript, type TranscriptEntry } from "@/components/Transcript";
+import type { Projection, RollResult } from "@/lib/game/types";
 
 export default function Play() {
   const [projection, setProjection] = useState<Projection | null>(null);
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [entries, setEntries] = useState<TranscriptEntry[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -68,11 +65,15 @@ export default function Play() {
         setBusy(false);
         return;
       }
-      const data = await res.json();
+      const data = (await res.json()) as {
+        narration: string;
+        projection: Projection;
+        roll?: RollResult | null;
+      };
       setProjection(data.projection);
       setEntries((prev) => [
         ...prev,
-        { kind: "narration", text: data.narration },
+        { kind: "narration", text: data.narration, roll: data.roll ?? null },
       ]);
     } catch (e) {
       setError(`network: ${e instanceof Error ? e.message : "?"}`);
@@ -91,7 +92,6 @@ export default function Play() {
         setBusy(false);
         return;
       }
-      // Refresh state.
       window.location.reload();
     } catch (e) {
       setError(`network: ${e instanceof Error ? e.message : "?"}`);
@@ -102,15 +102,25 @@ export default function Play() {
   const ended = projection && projection.status !== "active";
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-200 font-mono flex flex-col">
-      <VitalsBar projection={projection} />
-      <Transcript entries={entries} />
-      {error && <p className="px-2 py-1 text-red-400 text-xs">{error}</p>}
-      {ended ? (
-        <Recap projection={projection!} onRestart={restart} busy={busy} />
-      ) : (
-        <InputBox onSubmit={handleInput} disabled={busy} />
-      )}
+    <main className="min-h-screen bg-stone-950 text-stone-200 font-mono grid md:grid-cols-[260px_1fr_260px] grid-rows-[1fr]">
+      <StatusSidebar projection={projection} />
+
+      <section className="flex flex-col min-h-screen md:min-h-0">
+        <Transcript entries={entries} />
+        {error && (
+          <p className="px-4 py-1 text-red-400 text-xs">{error}</p>
+        )}
+        {ended ? (
+          <Recap projection={projection!} onRestart={restart} busy={busy} />
+        ) : (
+          <InputBox onSubmit={handleInput} disabled={busy} />
+        )}
+      </section>
+
+      <aside className="border-l border-stone-800 bg-stone-900/40 flex flex-col overflow-y-auto">
+        <QuestLog projection={projection} />
+        <InventoryPanel projection={projection} />
+      </aside>
     </main>
   );
 }
@@ -142,7 +152,7 @@ function Recap({
 
   return (
     <section
-      className="border-t border-stone-800 px-3 py-4 space-y-3"
+      className="border-t border-stone-800 px-4 py-4 space-y-3"
       data-testid="recap"
     >
       <div className={`${tone} text-sm tracking-wide`} data-testid="end-banner">
