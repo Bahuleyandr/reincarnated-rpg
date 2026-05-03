@@ -91,6 +91,14 @@ export async function POST(req: NextRequest) {
       narrator,
       fallbackNarrator,
       beatPack,
+      world: verified.userId
+        ? {
+            userId: verified.userId,
+            campaignId: ctx.campaignId ?? null,
+            formId: ctx.formId,
+            locationId: ctx.locationId,
+          }
+        : undefined,
       llmJudges:
         resolved.useLlmClassifier || resolved.useLlmTone
           ? {

@@ -23,6 +23,10 @@ export interface SessionContext {
    *  campaigns. Read at runtime by getProviderForUser. */
   pinnedPresetId: string | null;
   pinnedNarrationModel: string | null;
+  /** The campaign this session is attached to (logged-in only). Null
+   *  for anon sessions. World-memory hooks need it to dedupe
+   *  per-campaign persistence. */
+  campaignId: string | null;
 }
 
 const DEFAULT_CONTEXT: SessionContext = {
@@ -31,6 +35,7 @@ const DEFAULT_CONTEXT: SessionContext = {
   reincarnatedAs: null,
   pinnedPresetId: null,
   pinnedNarrationModel: null,
+  campaignId: null,
 };
 
 export async function resolveSessionContext(
@@ -42,6 +47,7 @@ export async function resolveSessionContext(
       sessionFormId: sessions.formId,
       sessionLocationId: sessions.locationId,
       sessionReincarnatedAs: sessions.reincarnatedAs,
+      sessionCampaignId: sessions.campaignId,
       campaignFormId: campaigns.formId,
       campaignLocationId: campaigns.locationId,
       campaignReincarnatedAs: campaigns.reincarnatedAs,
@@ -65,5 +71,6 @@ export async function resolveSessionContext(
       row.campaignReincarnatedAs ?? row.sessionReincarnatedAs ?? null,
     pinnedPresetId: row.campaignPinnedPresetId ?? null,
     pinnedNarrationModel: row.campaignPinnedNarrationModel ?? null,
+    campaignId: row.sessionCampaignId ?? null,
   };
 }

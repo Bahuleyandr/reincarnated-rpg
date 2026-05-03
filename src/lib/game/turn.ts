@@ -20,6 +20,7 @@ import { deriveSeed } from "../util/rng";
 import { type Narrator } from "../narrator";
 
 import { createMemory, retrieveMemories } from "../memory/episodic";
+import { persistRunToWorld, recallWorld, shouldRecallWorld } from "../memory/world";
 
 import { matchBeats, type BeatPack } from "./beats";
 import { classifyHaiku } from "./classify-haiku";
@@ -69,6 +70,18 @@ export interface RunTurnArgs {
     userId?: string | null;
     presetId?: string | null;
   };
+  /** World-memory hooks. When set:
+   *   - turn 1 of a new campaign pulls world memories + NPCs into
+   *     relevantMemories so the narrator can reference past lives;
+   *   - on session.ended (death / win / cap) we persist the run's
+   *     NPCs + a deterministic summary into the world layer.
+   *  Anon sessions skip both (no userId to bind to). */
+  world?: {
+    userId: string;
+    campaignId?: string | null;
+    formId?: string;
+    locationId?: string;
+  };
 }
 
 export interface TurnResult {
@@ -104,6 +117,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     beatPack,
     turnCap = 10,
     llmJudges,
+    world,
   } = args;
   let narratorFallback = false;
   let narratorFallbackReason: string | undefined;
@@ -187,6 +201,25 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       sessionId,
       err: err instanceof Error ? err.message : String(err),
     });
+  }
+  // World-layer recall: only on the first turn of a new campaign,
+  // and only for logged-in users (anon sessions have no world). The
+  // world memories ride the same channel — the narrator can't tell
+  // them apart at the type level, just by the "world:" prefix on
+  // the summary string.
+  if (world?.userId && shouldRecallWorld(projection)) {
+    try {
+      const worldMems = await recallWorld(db, world.userId, sanitized, {
+        kMemories: 3,
+        kNpcs: 4,
+      });
+      relevantMemories = [...worldMems, ...relevantMemories];
+    } catch (err) {
+      log.warn("turn.world.recall_failed", {
+        userId: world.userId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   // 7. Narrate (with one-shot ADR-011 retry on tool-validation failure).
@@ -360,6 +393,29 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       { kind: "session.ended", reason: "cap" },
     ]);
     projection = await loadProjection(db, sessionId, form, location);
+  }
+
+  // 11b. World-memory persistence. Fires whenever this turn is the
+  // one that landed session.ended (death from damage, win from beats,
+  // or cap from above). Idempotent — persistRunToWorld bails if a
+  // memory for this campaign already exists. Anon runs (no
+  // world.userId) are skipped silently.
+  if (world?.userId && projection.status !== "active") {
+    try {
+      await persistRunToWorld(db, {
+        userId: world.userId,
+        sessionId,
+        campaignId: world.campaignId ?? null,
+        formId: world.formId,
+        locationId: world.locationId,
+      });
+    } catch (err) {
+      log.warn("turn.world.persist_failed", {
+        sessionId,
+        userId: world.userId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   // 12. Snapshot.
