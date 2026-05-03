@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -61,7 +60,8 @@ export default function Dashboard() {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/campaigns", {
+      // Create the campaign first…
+      const cRes = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -69,18 +69,51 @@ export default function Dashboard() {
           formId: "lesser-slime",
         }),
       });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? `create failed (${res.status})`);
+      if (!cRes.ok) {
+        const data = (await cRes.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? `create failed (${cRes.status})`);
         setBusy(false);
         return;
       }
-      const { campaign } = (await res.json()) as { campaign: Campaign };
-      setCampaigns((prev) => [campaign, ...prev]);
-      setNewTitle("");
+      const { campaign } = (await cRes.json()) as { campaign: Campaign };
+      // …then immediately start a session in it and jump to /play.
+      const sRes = await fetch("/api/session", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ campaignId: campaign.id }),
+      });
+      if (!sRes.ok) {
+        // Fall back: campaign exists; user can open it from the list.
+        setCampaigns((prev) => [campaign, ...prev]);
+        setNewTitle("");
+        setBusy(false);
+        return;
+      }
+      router.push("/play");
     } catch (e) {
       setError(`network: ${e instanceof Error ? e.message : "?"}`);
-    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function openCampaign(campaignId: string) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/session", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ campaignId }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? `open failed (${res.status})`);
+        setBusy(false);
+        return;
+      }
+      router.push("/play");
+    } catch (e) {
+      setError(`network: ${e instanceof Error ? e.message : "?"}`);
       setBusy(false);
     }
   }
@@ -149,12 +182,13 @@ export default function Dashboard() {
                   <span className="text-xs text-stone-500">
                     {c.formId} · {c.status}
                   </span>
-                  <Link
-                    href={`/play?campaign=${c.id}`}
+                  <button
+                    type="button"
+                    onClick={() => openCampaign(c.id)}
                     className="text-stone-300 hover:text-stone-100 underline underline-offset-2 text-xs"
                   >
                     open
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>

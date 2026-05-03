@@ -1,13 +1,14 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
-import { users } from "@/lib/db/schema";
+import { campaigns, sessions, users } from "@/lib/db/schema";
 import { hashPassword } from "@/lib/session/auth";
 import {
   mintCookie,
   SESSION_COOKIE_NAME,
   SESSION_COOKIE_TTL_DAYS,
+  verifyCookie,
 } from "@/lib/session/cookie";
 import { env } from "@/lib/util/env";
 import { log } from "@/lib/util/log";
@@ -51,13 +52,28 @@ export async function POST(req: NextRequest) {
   }
 
   const passwordHash = await hashPassword(password);
-  const id = uuidv7();
-  await db.insert(users).values({ id, email, username, passwordHash });
+  const userId = uuidv7();
+  await db.insert(users).values({ id: userId, email, username, passwordHash });
 
-  const token = await mintCookie({ userId: id });
-  log.info("auth.register", { userId: id });
+  // Anon-claim: if the request carried an anon session cookie and that
+  // session is unattached, hand it to the new user as their first
+  // campaign. This preserves the run the player just played.
+  const claim = await maybeClaimAnonSession(req, userId);
+
+  const cookiePayload = {
+    userId,
+    ...(claim ? { sessionId: claim.sessionId } : {}),
+  };
+  const token = await mintCookie(cookiePayload);
+  log.info("auth.register", {
+    userId,
+    claimedSession: claim?.sessionId,
+    claimedCampaign: claim?.campaignId,
+  });
+
   const res = NextResponse.json({
-    user: { id, email, username },
+    user: { id: userId, email, username },
+    claimed: claim,
   });
   res.cookies.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
@@ -67,4 +83,51 @@ export async function POST(req: NextRequest) {
     path: "/",
   });
   return res;
+}
+
+async function maybeClaimAnonSession(
+  req: NextRequest,
+  userId: string,
+): Promise<{ sessionId: string; campaignId: string } | null> {
+  const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  if (!cookie) return null;
+  const verified = await verifyCookie(cookie);
+  if (!verified?.sessionId || verified.userId) return null;
+  // Only claim a session that exists and isn't already attached to a
+  // campaign (prevents stealing somebody else's session via cookie).
+  const rows = await db
+    .select({
+      id: sessions.id,
+      formId: sessions.formId,
+      status: sessions.status,
+      campaignId: sessions.campaignId,
+    })
+    .from(sessions)
+    .where(
+      and(eq(sessions.id, verified.sessionId), isNull(sessions.campaignId)),
+    )
+    .limit(1);
+  const session = rows[0];
+  if (!session) return null;
+
+  const campaignId = uuidv7();
+  await db.insert(campaigns).values({
+    id: campaignId,
+    userId,
+    title: "First run",
+    formId: session.formId,
+    locationId: "collapsed-tunnel",
+    status:
+      session.status === "won"
+        ? "completed"
+        : session.status === "active"
+          ? "active"
+          : "abandoned",
+  });
+  await db
+    .update(sessions)
+    .set({ campaignId })
+    .where(eq(sessions.id, session.id));
+
+  return { sessionId: session.id, campaignId };
 }

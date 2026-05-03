@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { InputBox } from "@/components/InputBox";
@@ -13,6 +14,7 @@ import type { Projection, RollResult } from "@/lib/game/types";
 export default function Play() {
   const [projection, setProjection] = useState<Projection | null>(null);
   const [entries, setEntries] = useState<TranscriptEntry[]>([]);
+  const [hasAccount, setHasAccount] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -33,6 +35,7 @@ export default function Play() {
         const data = await res.json();
         if (cancelled) return;
         setProjection(data.projection);
+        setHasAccount(!!data.hasAccount);
         setEntries(
           (data.narrations as string[]).map((text) => ({
             kind: "narration" as const,
@@ -111,7 +114,12 @@ export default function Play() {
           <p className="px-4 py-1 text-red-400 text-xs">{error}</p>
         )}
         {ended ? (
-          <Recap projection={projection!} onRestart={restart} busy={busy} />
+          <Recap
+            projection={projection!}
+            onRestart={restart}
+            busy={busy}
+            hasAccount={hasAccount}
+          />
         ) : (
           <InputBox onSubmit={handleInput} disabled={busy} />
         )}
@@ -129,10 +137,12 @@ function Recap({
   projection,
   onRestart,
   busy,
+  hasAccount,
 }: {
   projection: Projection;
   onRestart(): void;
   busy: boolean;
+  hasAccount: boolean;
 }) {
   const status = projection.status;
   const turn = projection.turn;
@@ -171,15 +181,26 @@ function Recap({
         <li>discovered: {projection.location.discovered.join(", ")}</li>
         <li>xp: {projection.xp}</li>
       </ul>
-      <button
-        type="button"
-        onClick={onRestart}
-        disabled={busy}
-        className="text-stone-400 hover:text-stone-100 underline underline-offset-2 text-sm disabled:opacity-50"
-        data-testid="restart"
-      >
-        begin again
-      </button>
+      <div className="flex items-baseline gap-4 flex-wrap">
+        <button
+          type="button"
+          onClick={onRestart}
+          disabled={busy}
+          className="text-stone-400 hover:text-stone-100 underline underline-offset-2 text-sm disabled:opacity-50"
+          data-testid="restart"
+        >
+          begin again
+        </button>
+        {!hasAccount && (
+          <Link
+            href="/register"
+            className="text-amber-300 hover:text-amber-200 underline underline-offset-2 text-sm"
+            data-testid="claim-link"
+          >
+            save this run to your library →
+          </Link>
+        )}
+      </div>
     </section>
   );
 }
