@@ -25,6 +25,10 @@ export default function Play() {
     phaseLabel: string;
     phase: string;
   } | null>(null);
+  const [theme, setTheme] = useState<{
+    label: string;
+    overrideActive: boolean;
+  } | null>(null);
   const [nearby, setNearby] = useState<{
     room: { locationId: string; roomId: string | null };
     pcs: Array<{
@@ -75,6 +79,23 @@ export default function Play() {
           setMetaArc({ phaseLabel: d.arc.phaseLabel, phase: d.arc.phase });
         }
       })
+      .catch(() => {});
+    // Active weekly theme.
+    fetch("/api/world")
+      .then((r) => r.json())
+      .then(
+        (d: {
+          activeTheme?: { label: string };
+          overrideActive?: boolean;
+        }) => {
+          if (!cancelled && d.activeTheme) {
+            setTheme({
+              label: d.activeTheme.label,
+              overrideActive: !!d.overrideActive,
+            });
+          }
+        },
+      )
       .catch(() => {});
 
     // Presence: bump heartbeat every 30s; refresh nearby every 10s.
@@ -277,6 +298,21 @@ export default function Play() {
             <span>
               the long wyrm:{" "}
               <span className="text-amber-400">{metaArc.phaseLabel}</span>
+              {theme && (
+                <>
+                  <span className="text-stone-700 mx-2">·</span>
+                  this week:{" "}
+                  <span className="text-emerald-400">{theme.label}</span>
+                  {theme.overrideActive && (
+                    <span
+                      className="ml-1 text-stone-600"
+                      title="An admin pinned this week's theme."
+                    >
+                      (pinned)
+                    </span>
+                  )}
+                </>
+              )}
             </span>
             <span className="text-stone-600 group-hover:text-stone-400">
               meta →

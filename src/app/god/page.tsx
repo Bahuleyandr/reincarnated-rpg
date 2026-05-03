@@ -56,9 +56,20 @@ export default function GodPage() {
   const [eventSalience, setEventSalience] = useState(0.95);
   const [eventTags, setEventTags] = useState("");
 
+  // Weekly theme override
+  const [worldTheme, setWorldTheme] = useState<{
+    activeId: string;
+    overrideActive: boolean;
+    catalog: Array<{ id: string; label: string; description: string }>;
+  } | null>(null);
+  const [pinTheme, setPinTheme] = useState<string>("");
+
   async function load() {
     setLoading(true);
-    const r = await fetch("/api/god");
+    const [r, w] = await Promise.all([
+      fetch("/api/god"),
+      fetch("/api/world"),
+    ]);
     if (r.status === 403) {
       setForbidden(true);
       setLoading(false);
@@ -69,7 +80,45 @@ export default function GodPage() {
       return;
     }
     setData(await r.json());
+    if (w.ok) {
+      const wd = (await w.json()) as {
+        activeTheme: { id: string };
+        overrideActive: boolean;
+        catalog: Array<{ id: string; label: string; description: string }>;
+      };
+      setWorldTheme({
+        activeId: wd.activeTheme.id,
+        overrideActive: wd.overrideActive,
+        catalog: wd.catalog,
+      });
+      setPinTheme(wd.overrideActive ? wd.activeTheme.id : "");
+    }
     setLoading(false);
+  }
+
+  async function pinThemeId(themeId: string | null) {
+    setBusy(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const r = await fetch("/api/god/theme", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ themeId, reason: "manual" }),
+      });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        setError(d.error ?? `theme set failed (${r.status})`);
+        setBusy(false);
+        return;
+      }
+      setSuccess(themeId ? `theme pinned to ${themeId}` : "theme override cleared");
+      await load();
+      setBusy(false);
+    } catch (e) {
+      setError(`network: ${e instanceof Error ? e.message : "?"}`);
+      setBusy(false);
+    }
   }
 
   useEffect(() => {
@@ -320,6 +369,47 @@ export default function GodPage() {
             inject across the world
           </button>
         </section>
+
+        {worldTheme && (
+          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+            <h2 className="text-stone-100 text-sm">
+              weekly theme{" "}
+              <span className="text-[10px] text-stone-500 font-normal">
+                active:{" "}
+                <span className="text-emerald-400">{worldTheme.activeId}</span>
+                {worldTheme.overrideActive ? " (admin-pinned)" : " (rotation)"}
+              </span>
+            </h2>
+            <p className="text-[11px] text-stone-500 leading-5">
+              The theme rotates by ISO week deterministically. Pinning
+              overrides the rotation until you clear it. Affects arc
+              picker weights, reincarnation option weights, meta-arc
+              feed/starve multipliers, and the turn cap.
+            </p>
+            <div className="flex items-center gap-3">
+              <select
+                value={pinTheme}
+                onChange={(e) => setPinTheme(e.target.value)}
+                className="bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 text-xs flex-1"
+              >
+                <option value="">(rotation)</option>
+                {worldTheme.catalog.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => pinThemeId(pinTheme || null)}
+                disabled={busy}
+                className="border border-stone-300 text-stone-100 py-1 px-4 hover:bg-stone-100 hover:text-stone-950 transition-colors disabled:opacity-50 text-xs"
+              >
+                {pinTheme ? "pin theme" : "clear override"}
+              </button>
+            </div>
+          </section>
+        )}
 
         {error && <p className="text-red-400 text-xs">{error}</p>}
         {success && <p className="text-emerald-400 text-xs">{success}</p>}

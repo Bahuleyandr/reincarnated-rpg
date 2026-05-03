@@ -30,6 +30,7 @@ import {
 } from "@/lib/game/content";
 import { runTurn } from "@/lib/game/turn";
 import { getCurrentArc, phaseForProgress } from "@/lib/meta/long-wyrm";
+import { activeTheme } from "@/lib/world/weekly-theme";
 import { makeNarrator } from "@/lib/narrator";
 import { TemplateNarrator } from "@/lib/narrator/template";
 import {
@@ -139,19 +140,22 @@ export async function POST(req: NextRequest) {
       });
       const presetForTelemetry =
         resolved.source === "env-default" ? null : resolved.source;
-      // Pre-fetch meta-arc phase for the system-prompt block.
+      // Pre-fetch meta-arc phase + active weekly theme.
       let metaArcFlavor:
         | { phase: string; label: string; flavor: string }
         | null = null;
+      let turnCapOverride: number | undefined;
       try {
         const arc = await getCurrentArc(db);
         if (arc) {
           const p = phaseForProgress(arc.progress);
+          const theme = activeTheme(arc);
           metaArcFlavor = {
             phase: p.phase,
             label: p.label,
-            flavor: p.ambientFlavor,
+            flavor: `${p.ambientFlavor} ${theme.ambientFlavor}`,
           };
+          if (theme.turnCap !== null) turnCapOverride = theme.turnCap;
         }
       } catch (err) {
         log.warn("turn.stream.meta_arc_fetch_failed", {
@@ -184,6 +188,7 @@ export async function POST(req: NextRequest) {
         narrator,
         fallbackNarrator,
         beatPack,
+        turnCap: turnCapOverride,
         starterFormState,
         world: verified.userId
           ? {

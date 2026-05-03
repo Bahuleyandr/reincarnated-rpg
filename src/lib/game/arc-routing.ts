@@ -69,10 +69,15 @@ export interface PickedArc {
   tagline: string;
 }
 
-/** Returns a random compatible arc, or null when no entry matches. */
+/** Returns a random compatible arc, or null when no entry matches.
+ *  When `themeWeights` is supplied, each compatible arc is weighted
+ *  by themeWeights[arcId] (default 1.0) before sampling. The weekly
+ *  theme uses this to nudge picks toward the arc(s) the world is
+ *  currently leaning toward. */
 export function pickArc(
   formId: string,
   locationId: string,
+  themeWeights: Record<string, number> = {},
 ): PickedArc | null {
   const matches = ROUTES.filter(
     (r) =>
@@ -80,8 +85,25 @@ export function pickArc(
       (r.locationId === null || r.locationId === locationId),
   );
   if (matches.length === 0) return null;
-  const idx = randomBytes(1)[0] % matches.length;
-  return { arcId: matches[idx].arcId, tagline: matches[idx].tagline };
+
+  const weighted = matches.map((m) => ({
+    ...m,
+    weight: themeWeights[m.arcId] ?? 1.0,
+  }));
+  const total = weighted.reduce((s, m) => s + m.weight, 0);
+  if (total <= 0) {
+    const idx = randomBytes(1)[0] % matches.length;
+    return { arcId: matches[idx].arcId, tagline: matches[idx].tagline };
+  }
+  const r = (randomBytes(4).readUInt32BE(0) / 0xffffffff) * total;
+  let cursor = 0;
+  for (const m of weighted) {
+    cursor += m.weight;
+    if (r <= cursor) return { arcId: m.arcId, tagline: m.tagline };
+  }
+  // Fallback (rounding) — last entry.
+  const last = weighted[weighted.length - 1];
+  return { arcId: last.arcId, tagline: last.tagline };
 }
 
 /** Lookup-only — used by /api/state to surface the tagline to /play. */
