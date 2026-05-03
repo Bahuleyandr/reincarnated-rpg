@@ -1,0 +1,344 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+interface CharacterResp {
+  totalCampaigns: number;
+  campaignsByStatus: Record<string, number>;
+  formDistribution: Array<{ formId: string; n: number }>;
+  contributions: {
+    total: number;
+    totalDelta: number;
+    feeds: number;
+    starves: number;
+  };
+  npcs: {
+    total: number;
+    timesHelped: number;
+    timesHarmed: number;
+    top: Array<{
+      slug: string;
+      name: string;
+      relationshipScore: number;
+      timesMet: number;
+      timesHelped: number;
+      timesHarmed: number;
+    }>;
+  };
+  lore: {
+    total: number;
+    recent: Array<{
+      id: string;
+      summary: string;
+      category: string | null;
+      salience: number;
+      createdAt: string;
+    }>;
+  };
+  ai: {
+    lifetimeCalls: number;
+    lifetimeTurnCalls: number;
+    lifetimeInputTokens: number;
+    lifetimeOutputTokens: number;
+    lifetimeCostUsd: number;
+  };
+}
+
+export default function CharacterPage() {
+  const router = useRouter();
+  const [data, setData] = useState<CharacterResp | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const me = await fetch("/api/auth/me");
+      if (!me.ok) {
+        router.push("/login");
+        return;
+      }
+      const r = await fetch("/api/character");
+      if (r.status === 401) {
+        router.push("/login");
+        return;
+      }
+      if (r.ok && !cancelled) setData(await r.json());
+      setLoading(false);
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
+  if (loading)
+    return (
+      <main className="min-h-screen bg-stone-950 text-stone-500 font-mono flex items-center justify-center">
+        loading…
+      </main>
+    );
+  if (!data)
+    return (
+      <main className="min-h-screen bg-stone-950 text-stone-500 font-mono flex items-center justify-center">
+        no data
+      </main>
+    );
+
+  const fmtTok = (n: number) =>
+    n >= 1_000_000
+      ? `${(n / 1_000_000).toFixed(1)}M`
+      : n >= 1000
+        ? `${(n / 1000).toFixed(1)}k`
+        : `${n}`;
+  const usd = (n: number) =>
+    n < 0.01 ? "$<0.01" : `$${n.toFixed(2)}`;
+
+  const helpedRatio =
+    data.npcs.timesHelped + data.npcs.timesHarmed > 0
+      ? (data.npcs.timesHelped /
+          (data.npcs.timesHelped + data.npcs.timesHarmed)) *
+        100
+      : 0;
+
+  return (
+    <main className="min-h-screen bg-stone-950 text-stone-200 font-mono px-6 py-10">
+      <div className="max-w-3xl mx-auto space-y-6">
+        <header className="flex items-baseline justify-between">
+          <h1 className="text-xl text-stone-100">your character</h1>
+          <Link
+            href="/dashboard"
+            className="text-xs text-stone-500 hover:text-stone-300 underline underline-offset-2"
+          >
+            ← runs
+          </Link>
+        </header>
+
+        <p className="text-stone-400 text-xs leading-5">
+          Across all your reincarnations. Each death, win, or cap
+          changed something. Some changed nothing the world noticed —
+          some changed enough to be written down.
+        </p>
+
+        <section className="grid grid-cols-4 gap-3">
+          <Stat label="reincarnations" value={data.totalCampaigns} />
+          <Stat
+            label="won"
+            value={data.campaignsByStatus.completed ?? 0}
+            accent="text-emerald-400"
+          />
+          <Stat
+            label="died"
+            value={data.campaignsByStatus.abandoned ?? 0}
+            accent="text-red-400"
+          />
+          <Stat
+            label="active"
+            value={data.campaignsByStatus.active ?? 0}
+            accent="text-amber-300"
+          />
+        </section>
+
+        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-2">
+          <h2 className="text-stone-100 text-sm">
+            forms you've been ({data.formDistribution.length})
+          </h2>
+          {data.formDistribution.length === 0 ? (
+            <p className="text-stone-500 text-xs italic">
+              you have not yet been anything.
+            </p>
+          ) : (
+            <ul className="space-y-1 text-xs">
+              {data.formDistribution.map((f) => (
+                <li key={f.formId} className="flex items-center gap-3">
+                  <span className="text-stone-300 w-32">{f.formId}</span>
+                  <div className="flex-1 h-2 bg-stone-900 border border-stone-800 relative">
+                    <div
+                      className="absolute inset-y-0 left-0 bg-stone-700"
+                      style={{
+                        width: `${(f.n / data.totalCampaigns) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <span className="text-stone-500 w-10 text-right">
+                    {f.n}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+          <h2 className="text-stone-100 text-sm">
+            you and the long wyrm
+          </h2>
+          <div className="grid grid-cols-3 gap-3 text-xs">
+            <Stat
+              label="contributions"
+              value={data.contributions.total}
+            />
+            <Stat
+              label="net delta"
+              value={
+                data.contributions.totalDelta >= 0
+                  ? `+${data.contributions.totalDelta}`
+                  : `${data.contributions.totalDelta}`
+              }
+              accent={
+                data.contributions.totalDelta > 0
+                  ? "text-red-400"
+                  : data.contributions.totalDelta < 0
+                    ? "text-emerald-400"
+                    : "text-stone-300"
+              }
+            />
+            <Stat
+              label="feeds / starves"
+              value={`${data.contributions.feeds} / ${data.contributions.starves}`}
+            />
+          </div>
+          <p className="text-[10px] text-stone-600 italic">
+            Negative net delta means you've starved the wyrm more than
+            you've fed it. Both are real, depending on the world's
+            current phase.
+          </p>
+        </section>
+
+        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+          <h2 className="text-stone-100 text-sm">
+            the world remembers ({data.npcs.total} NPCs)
+          </h2>
+          <div className="grid grid-cols-3 gap-3 text-xs">
+            <Stat label="helped" value={data.npcs.timesHelped} />
+            <Stat label="harmed" value={data.npcs.timesHarmed} />
+            <Stat
+              label="kindness ratio"
+              value={`${helpedRatio.toFixed(0)}%`}
+              accent={
+                helpedRatio >= 50 ? "text-emerald-400" : "text-red-400"
+              }
+            />
+          </div>
+          {data.npcs.top.length > 0 && (
+            <div className="space-y-1 pt-2 border-t border-stone-800">
+              <div className="text-[10px] uppercase tracking-widest text-stone-600">
+                most-met
+              </div>
+              <ul className="text-xs space-y-1">
+                {data.npcs.top.map((n) => (
+                  <li
+                    key={n.slug}
+                    className="flex items-baseline gap-3"
+                  >
+                    <span className="text-stone-300 flex-1 truncate">
+                      {n.name}
+                    </span>
+                    <span className="text-[10px] text-stone-600">
+                      met×{n.timesMet}
+                    </span>
+                    <span
+                      className={
+                        n.relationshipScore > 0
+                          ? "text-emerald-400 text-xs"
+                          : n.relationshipScore < 0
+                            ? "text-red-400 text-xs"
+                            : "text-stone-500 text-xs"
+                      }
+                    >
+                      {n.relationshipScore >= 0 ? "+" : ""}
+                      {n.relationshipScore}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+          <h2 className="text-stone-100 text-sm flex items-baseline justify-between">
+            <span>your name in the chronicle</span>
+            <span className="text-[10px] text-stone-600 font-normal">
+              {data.lore.total} entr{data.lore.total === 1 ? "y" : "ies"}
+            </span>
+          </h2>
+          {data.lore.recent.length === 0 ? (
+            <p className="text-stone-500 text-xs italic">
+              nothing you have done has been recorded in the world's
+              chronicle yet. the lore judge has not yet chosen your
+              run.
+            </p>
+          ) : (
+            <ul className="space-y-2 text-xs">
+              {data.lore.recent.map((l) => (
+                <li
+                  key={l.id}
+                  className="border border-stone-800 px-3 py-2 bg-stone-950"
+                >
+                  <div className="flex items-baseline gap-3">
+                    {l.category && (
+                      <span className="text-[10px] uppercase tracking-widest text-amber-500">
+                        {l.category}
+                      </span>
+                    )}
+                    <span className="text-stone-300 flex-1">
+                      {l.summary}
+                    </span>
+                    <span className="text-[10px] text-stone-600">
+                      {(l.salience * 100).toFixed(0)}
+                    </span>
+                  </div>
+                  <div className="text-[10px] text-stone-600 mt-1">
+                    {new Date(l.createdAt).toLocaleString()}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+          <h2 className="text-stone-100 text-sm">lifetime cost</h2>
+          <div className="grid grid-cols-3 gap-3 text-xs">
+            <Stat label="turns played" value={data.ai.lifetimeTurnCalls} />
+            <Stat
+              label="tokens"
+              value={`${fmtTok(data.ai.lifetimeInputTokens)} in / ${fmtTok(data.ai.lifetimeOutputTokens)} out`}
+            />
+            <Stat
+              label="approx cost"
+              value={usd(data.ai.lifetimeCostUsd)}
+              accent="text-stone-400"
+            />
+          </div>
+          <p className="text-[10px] text-stone-600 italic">
+            Cost is accurate for Anthropic models. Other providers
+            report tokens only — check your provider dashboard for
+            exact dollars.
+          </p>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  accent = "text-stone-100",
+}: {
+  label: string;
+  value: number | string;
+  accent?: string;
+}) {
+  return (
+    <div className="border border-stone-800 p-3 bg-stone-950">
+      <div className="text-[10px] uppercase tracking-widest text-stone-600">
+        {label}
+      </div>
+      <div className={accent}>{value}</div>
+    </div>
+  );
+}

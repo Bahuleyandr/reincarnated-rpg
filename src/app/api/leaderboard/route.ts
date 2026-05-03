@@ -21,6 +21,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
 import { aiCalls } from "@/lib/db/schema";
 import { estimateCostUsd } from "@/lib/util/ai-telemetry";
+import { cached } from "@/lib/util/cache";
 
 interface Row {
   presetId: string | null;
@@ -43,21 +44,29 @@ export async function GET(req: NextRequest) {
   const callType = url.searchParams.get("callType") ?? "narrator";
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-  const rows = await db
-    .select({
-      presetId: aiCalls.presetId,
-      model: aiCalls.model,
-      success: aiCalls.success,
-      durationMs: aiCalls.durationMs,
-      inputTokens: aiCalls.inputTokens,
-      outputTokens: aiCalls.outputTokens,
-      cacheReadTokens: aiCalls.cacheReadTokens,
-      cacheCreateTokens: aiCalls.cacheCreateTokens,
-    })
-    .from(aiCalls)
-    .where(
-      and(eq(aiCalls.callType, callType), gte(aiCalls.createdAt, since)),
-    );
+  // 120s TTL — leaderboard rolls forward as new calls land, but the
+  // ranking changes only slowly. /leaderboard page is browsed
+  // intermittently; 2-minute staleness is invisible.
+  const rows = await cached(
+    `leaderboard:${callType}:${days}`,
+    120_000,
+    () =>
+      db
+        .select({
+          presetId: aiCalls.presetId,
+          model: aiCalls.model,
+          success: aiCalls.success,
+          durationMs: aiCalls.durationMs,
+          inputTokens: aiCalls.inputTokens,
+          outputTokens: aiCalls.outputTokens,
+          cacheReadTokens: aiCalls.cacheReadTokens,
+          cacheCreateTokens: aiCalls.cacheCreateTokens,
+        })
+        .from(aiCalls)
+        .where(
+          and(eq(aiCalls.callType, callType), gte(aiCalls.createdAt, since)),
+        ),
+  );
 
   const buckets = new Map<string, Row>();
   for (const r of rows) {

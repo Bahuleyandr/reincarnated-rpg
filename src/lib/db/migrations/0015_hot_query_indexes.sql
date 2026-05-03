@@ -1,0 +1,2 @@
+CREATE INDEX "ai_calls_calltype_created_idx" ON "ai_calls" USING btree ("call_type","created_at");--> statement-breakpoint
+CREATE INDEX "campaigns_status_created_idx" ON "campaigns" USING btree ("status","created_at");
