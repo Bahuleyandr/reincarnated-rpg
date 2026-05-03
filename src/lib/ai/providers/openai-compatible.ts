@@ -31,6 +31,7 @@ import type {
   AIProvider,
   CompleteArgs,
   CompleteResponse,
+  CompleteStreamEvents,
   ProviderToolUse,
 } from "../provider";
 import { withRetry } from "../../util/retry";
@@ -193,6 +194,186 @@ export class OpenAICompatibleProvider implements AIProvider {
       },
       stopReason: choice.finish_reason,
       rawModel: data.model,
+    };
+  }
+
+  /**
+   * Streaming variant. Sends the same body with `stream: true`,
+   * parses the SSE response line-by-line, fires onText for each
+   * `delta.content` chunk, and accumulates tool_calls for the final
+   * resolution. The OpenAI streaming protocol delivers tool_call
+   * arguments incrementally — we buffer them by index and flush at
+   * end-of-stream.
+   *
+   * Falls back to non-streaming complete() if the response isn't
+   * SSE (some self-hosted backends ignore stream:true).
+   */
+  async completeStream(
+    args: CompleteArgs,
+    events: CompleteStreamEvents,
+  ): Promise<CompleteResponse> {
+    const systemText = args.system?.map((s) => s.text).join("\n\n") ?? "";
+    const messages: OpenAIChatRequest["messages"] = [];
+    if (systemText) messages.push({ role: "system", content: systemText });
+    for (const m of args.messages)
+      messages.push({ role: m.role, content: m.content });
+
+    const tools = args.tools?.map((t) => ({
+      type: "function" as const,
+      function: {
+        name: t.name,
+        description: t.description,
+        parameters: t.input_schema,
+      },
+    }));
+    const toolChoice: OpenAIChatRequest["tool_choice"] =
+      args.toolChoice?.type === "tool"
+        ? { type: "function", function: { name: args.toolChoice.name } }
+        : args.toolChoice?.type === "any"
+          ? "required"
+          : args.toolChoice?.type === "auto"
+            ? "auto"
+            : undefined;
+
+    const body = {
+      model: args.model,
+      messages,
+      max_tokens: args.maxTokens,
+      stream: true,
+      ...(tools ? { tools } : {}),
+      ...(toolChoice ? { tool_choice: toolChoice } : {}),
+    };
+
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "text/event-stream",
+        authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      const err = new Error(
+        `OpenAI-compatible API ${response.status}: ${text.slice(0, 500)}`,
+      ) as Error & { status?: number };
+      err.status = response.status;
+      throw err;
+    }
+    if (!response.body) {
+      // Some backends drop the stream body; fall through to non-streaming.
+      return this.complete(args);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let text = "";
+    let stopReason = "stop";
+    let rawModel = args.model;
+    let usage: {
+      prompt_tokens?: number;
+      completion_tokens?: number;
+      prompt_tokens_details?: { cached_tokens?: number };
+    } = {};
+    // tool_calls arrive in chunks per index; we buffer arguments as
+    // strings and parse the JSON once at end-of-stream.
+    const toolBuffers = new Map<
+      number,
+      { id: string; name: string; arguments: string }
+    >();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      // SSE messages are separated by \n\n. Each starts with "data: ".
+      let nl: number;
+      while ((nl = buffer.indexOf("\n\n")) !== -1) {
+        const chunk = buffer.slice(0, nl);
+        buffer = buffer.slice(nl + 2);
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") continue;
+          let json: {
+            choices?: Array<{
+              delta?: {
+                content?: string;
+                tool_calls?: Array<{
+                  index: number;
+                  id?: string;
+                  function?: { name?: string; arguments?: string };
+                }>;
+              };
+              finish_reason?: string | null;
+            }>;
+            model?: string;
+            usage?: typeof usage;
+          };
+          try {
+            json = JSON.parse(data);
+          } catch {
+            continue;
+          }
+          if (json.model) rawModel = json.model;
+          if (json.usage) usage = json.usage;
+          const choice = json.choices?.[0];
+          if (!choice) continue;
+          if (choice.finish_reason) stopReason = choice.finish_reason;
+          const delta = choice.delta;
+          if (!delta) continue;
+          if (delta.content) {
+            text += delta.content;
+            events.onText?.(delta.content);
+          }
+          if (delta.tool_calls) {
+            for (const tc of delta.tool_calls) {
+              const cur = toolBuffers.get(tc.index) ?? {
+                id: "",
+                name: "",
+                arguments: "",
+              };
+              if (tc.id) cur.id = tc.id;
+              if (tc.function?.name) cur.name = tc.function.name;
+              if (tc.function?.arguments)
+                cur.arguments += tc.function.arguments;
+              toolBuffers.set(tc.index, cur);
+            }
+          }
+        }
+      }
+    }
+
+    const toolUses: ProviderToolUse[] = [];
+    for (const [, t] of toolBuffers) {
+      let input: Record<string, unknown> = {};
+      try {
+        input = JSON.parse(t.arguments);
+      } catch {
+        input = {};
+      }
+      const tu = { id: t.id, name: t.name, input };
+      toolUses.push(tu);
+      events.onToolUse?.(tu);
+    }
+
+    return {
+      text: text.trim(),
+      toolUses,
+      usage: {
+        inputTokens:
+          (usage.prompt_tokens ?? 0) -
+          (usage.prompt_tokens_details?.cached_tokens ?? 0),
+        outputTokens: usage.completion_tokens ?? 0,
+        cacheReadTokens: usage.prompt_tokens_details?.cached_tokens ?? 0,
+        cacheCreateTokens: 0,
+      },
+      stopReason,
+      rawModel,
     };
   }
 }

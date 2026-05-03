@@ -280,4 +280,13 @@ export interface NarrateOutput {
 
 export interface Narrator {
   narrate(input: NarrateInput): Promise<NarrateOutput>;
+  /** Optional streaming variant. When implemented, `onText(delta)`
+   *  fires as the narration text streams in from the provider; the
+   *  promise resolves with the full NarrateOutput once the stream
+   *  finishes. Tool calls are delivered in the resolution, not
+   *  streamed. Callers fall back to `narrate()` when this is absent. */
+  narrateStream?(
+    input: NarrateInput,
+    onText: (delta: string) => void,
+  ): Promise<NarrateOutput>;
 }

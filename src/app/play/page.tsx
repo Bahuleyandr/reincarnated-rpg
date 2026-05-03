@@ -58,42 +58,130 @@ export default function Play() {
     setBusy(true);
     setError(null);
     setEntries((prev) => [...prev, { kind: "input", text }]);
+    // Reserve a streaming-narration entry that we update in place as
+    // text deltas arrive. We push it now (empty) and replace its text
+    // on each delta.
+    let streamIdx = -1;
+    setEntries((prev) => {
+      streamIdx = prev.length;
+      return [...prev, { kind: "narration", text: "", roll: null }];
+    });
+
+    let streamedText = "";
+    let final:
+      | {
+          narration: string;
+          projection: Projection;
+          roll: RollResult | null;
+          narratorFallback?: boolean;
+          narratorFallbackReason?: string;
+        }
+      | null = null;
+    let errorMsg: string | null = null;
+
     try {
-      const res = await fetch("/api/turn", {
+      const res = await fetch("/api/turn/stream", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          accept: "text/event-stream",
+        },
         body: JSON.stringify({ input: text }),
       });
-      if (!res.ok) {
-        setError(`turn failed (${res.status})`);
-        setBusy(false);
-        return;
-      }
-      const data = (await res.json()) as {
-        narration: string;
-        projection: Projection;
-        roll?: RollResult | null;
-        narratorFallback?: boolean;
-        narratorFallbackReason?: string;
-      };
-      setProjection(data.projection);
-      setEntries((prev) => [
-        ...prev,
-        { kind: "narration", text: data.narration, roll: data.roll ?? null },
-      ]);
-      if (data.narratorFallback) {
-        setLlmBanner(
-          `your llm had trouble (${data.narratorFallbackReason ?? "unknown"}). this turn used the offline narrator. open settings to test or switch.`,
-        );
-      } else if (llmBanner) {
-        // Recovered — clear the banner.
-        setLlmBanner(null);
+      if (!res.ok || !res.body) {
+        errorMsg = `turn failed (${res.status})`;
+      } else {
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let nl: number;
+          while ((nl = buffer.indexOf("\n\n")) !== -1) {
+            const chunk = buffer.slice(0, nl);
+            buffer = buffer.slice(nl + 2);
+            for (const line of chunk.split("\n")) {
+              if (!line.startsWith("data: ")) continue;
+              try {
+                const ev = JSON.parse(line.slice(6)) as
+                  | { type: "text"; delta: string }
+                  | {
+                      type: "done";
+                      narration: string;
+                      projection: Projection;
+                      roll: RollResult | null;
+                      narratorFallback?: boolean;
+                      narratorFallbackReason?: string;
+                    }
+                  | { type: "error"; error: string };
+                if (ev.type === "text") {
+                  streamedText += ev.delta;
+                  setEntries((prev) => {
+                    const next = [...prev];
+                    if (next[streamIdx]?.kind === "narration") {
+                      next[streamIdx] = {
+                        ...next[streamIdx],
+                        text: streamedText,
+                      };
+                    }
+                    return next;
+                  });
+                } else if (ev.type === "done") {
+                  final = {
+                    narration: ev.narration,
+                    projection: ev.projection,
+                    roll: ev.roll ?? null,
+                    narratorFallback: ev.narratorFallback,
+                    narratorFallbackReason: ev.narratorFallbackReason,
+                  };
+                } else if (ev.type === "error") {
+                  errorMsg = ev.error;
+                }
+              } catch {
+                /* drop malformed line */
+              }
+            }
+          }
+        }
       }
     } catch (e) {
-      setError(`network: ${e instanceof Error ? e.message : "?"}`);
-    } finally {
-      setBusy(false);
+      errorMsg = `network: ${e instanceof Error ? e.message : "?"}`;
     }
+
+    if (errorMsg && !final) {
+      setError(errorMsg);
+      setEntries((prev) => prev.filter((_, i) => i !== streamIdx));
+      setBusy(false);
+      return;
+    }
+    if (final) {
+      setProjection(final.projection);
+      // Replace the streamed entry with the canonical final text +
+      // attach the roll. The narration text from `final` may differ
+      // slightly from the streamed accumulation (e.g. trimming) so
+      // we use the canonical version.
+      setEntries((prev) => {
+        const next = [...prev];
+        if (next[streamIdx]?.kind === "narration") {
+          next[streamIdx] = {
+            kind: "narration",
+            text: final!.narration,
+            roll: final!.roll ?? null,
+          };
+        }
+        return next;
+      });
+      if (final.narratorFallback) {
+        setLlmBanner(
+          `your llm had trouble (${final.narratorFallbackReason ?? "unknown"}). this turn used the offline narrator. open settings to test or switch.`,
+        );
+      } else if (llmBanner) {
+        setLlmBanner(null);
+      }
+    }
+    setBusy(false);
   }
 
   async function restart() {

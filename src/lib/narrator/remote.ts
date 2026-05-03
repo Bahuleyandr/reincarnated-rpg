@@ -334,18 +334,46 @@ export class RemoteNarrator implements Narrator {
   }
 
   async narrate(input: NarrateInput): Promise<NarrateOutput> {
+    return this.runNarrate(input, undefined);
+  }
+
+  async narrateStream(
+    input: NarrateInput,
+    onText: (delta: string) => void,
+  ): Promise<NarrateOutput> {
+    return this.runNarrate(input, onText);
+  }
+
+  /**
+   * Shared implementation. When `onText` is supplied AND the
+   * underlying provider implements completeStream, streams text
+   * deltas as they arrive; otherwise falls back to plain complete()
+   * (which keeps the existing behavior for any provider without a
+   * streaming impl).
+   */
+  private async runNarrate(
+    input: NarrateInput,
+    onText?: (delta: string) => void,
+  ): Promise<NarrateOutput> {
     const userMessage = buildUserMessage(input, this.location);
+    const requestArgs = {
+      model: this.model,
+      maxTokens: 1024,
+      system: this.buildSystem(input.projection.reincarnatedAs),
+      tools: TOOL_DEFINITIONS,
+      messages: [{ role: "user" as const, content: userMessage }],
+    };
 
     const t0 = Date.now();
     let response;
     try {
-      response = await this.provider.complete({
-        model: this.model,
-        maxTokens: 1024,
-        system: this.buildSystem(input.projection.reincarnatedAs),
-        tools: TOOL_DEFINITIONS,
-        messages: [{ role: "user", content: userMessage }],
-      });
+      if (onText && this.provider.completeStream) {
+        response = await this.provider.completeStream(requestArgs, {
+          onText,
+        });
+      } else {
+        response = await this.provider.complete(requestArgs);
+      }
     } catch (err) {
       const durationMs = Date.now() - t0;
       if (this.db) {
@@ -378,6 +406,7 @@ export class RemoteNarrator implements Narrator {
     log.info("narrate.remote.complete", {
       provider: this.provider.providerName,
       model: this.model,
+      streaming: !!onText,
       durationMs,
       cacheRead: response.usage.cacheReadTokens,
       cacheCreate: response.usage.cacheCreateTokens,
