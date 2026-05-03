@@ -337,6 +337,17 @@ function buildUserMessage(
   input: NarrateInput,
   location: LocationTemplate,
 ): string {
+  const retryHint = input.previousAttempt
+    ? `\n<previous_attempt>
+Your previous attempt was rejected — ${
+        input.previousAttempt.failureKind === "tool_validation"
+          ? "one of the tool calls failed validation. Pick different tools or call narrate_only."
+          : "the narration violated form-specific tone. Rewrite the prose; do not use negativeVocab words about the player."
+      }
+reason: ${input.previousAttempt.failureReason}
+prior text: "${input.previousAttempt.text.slice(0, 200)}"
+</previous_attempt>\n`
+    : "";
   const room = location.rooms.find(
     (r) => r.id === input.projection.location.roomId,
   );
@@ -346,7 +357,7 @@ function buildUserMessage(
       ? "(none yet)"
       : input.relevantMemories.map((m) => `- ${m.summary}`).join("\n");
 
-  return `<projection>
+  return `${retryHint}<projection>
 turn: ${input.projection.turn}
 status: ${input.projection.status}
 form: ${input.projection.form.id}

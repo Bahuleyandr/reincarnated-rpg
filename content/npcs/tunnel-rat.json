@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Small mammal — prey, not threat. Lives in the dripping cavern. Referenced by survive-the-night beat 02-the-rat. Players can choose to absorb (gains essence + a trace of the rat's panic chemistry as a marker) or let it flee (the choice itself is what beat 03-the-choice tracks)."
+  },
+
+  "id": "tunnel-rat",
+  "displayName": "tunnel rat",
+  "kind": "npc",
+
+  "tagline": "small, fast, and full of panic-chemistry that something larger is hunting.",
+
+  "vitals": {
+    "hp": { "max": 2, "start": 2 }
+  },
+  "stats": {
+    "speed": 2,
+    "awareness": 0,
+    "threat": 0
+  },
+
+  "attitudeDefault": -1,
+  "attitudeRange": [-2, 1],
+
+  "tags": ["mammal", "prey", "panicked", "absorbable"],
+
+  "absorbProfile": {
+    "into": "essence",
+    "deltaOnSuccess": 1,
+    "tags": ["panic-chemistry", "warm-tissue"],
+    "deltaOnPartial": 0,
+    "toxicOnPartial": false
+  },
+
+  "behavior": {
+    "default": "flees from the player and from larger things",
+    "ifAttacked": "panics and skitters in random directions",
+    "ifAbsorbed": "gone — leaves no body, only a faint trail of fur on your boundary",
+    "narrativeHooks": [
+      "The rat's claws clatter on stone before its body registers as a thing.",
+      "Adrenaline, urine, and the sharp tang of fear arrive before the rat does.",
+      "It does not see you. It is being chased by something that sees it."
+    ]
+  },
+
+  "interactions": {
+    "absorb": "available",
+    "smother": "available, awkward — slime spreads slowly, rat is fast",
+    "sense_tremor": "always returns: a fast, light heartbeat through the rock",
+    "ooze_toward": "available; rat will flee on close approach"
+  }
+}

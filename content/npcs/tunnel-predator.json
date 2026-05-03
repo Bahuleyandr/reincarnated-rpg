@@ -1,0 +1,60 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "The threat. Larger furred carnivore that dens in the predator-den room and chases prey through the dripping cavern. Referenced by slime hardMove 'alert_predator' (introduce_npc) and beat 04-predator-stirs. The slime should NOT engage directly — vital math at v0.1 makes that lethal. Avoidance via mossy-alcove or escape via outside-fissure are the survival paths."
+  },
+
+  "id": "tunnel-predator",
+  "displayName": "the breathing thing",
+  "kind": "npc",
+
+  "tagline": "warm, slow, and patient. its musk has been in the rock since before you woke.",
+
+  "vitals": {
+    "hp": { "max": 12, "start": 12 }
+  },
+  "stats": {
+    "speed": 1,
+    "awareness": 2,
+    "threat": 3
+  },
+
+  "attitudeDefault": -2,
+  "attitudeRange": [-3, -1],
+
+  "tags": ["mammal", "predator", "ambush", "large", "lethal"],
+
+  "absorbProfile": {
+    "into": "essence",
+    "deltaOnSuccess": 0,
+    "available": false,
+    "rationale": "the predator is too large to absorb without first being killed; v0.1 has no path to that"
+  },
+
+  "behavior": {
+    "default": "patient. tracks the dripping-cavern by listening to the floor.",
+    "ifNoticed": "stalks toward the noise. arrives in 2-3 ticks.",
+    "ifEngaged": "strikes once; the strike applies 4 cohesion damage in a single hit",
+    "ifFled": "loses interest if the player reaches mossy-alcove or outside-fissure",
+    "narrativeHooks": [
+      "Something heavy crosses the stone above. A slow, patient weight.",
+      "The musk thickens by an order of magnitude in the east passage.",
+      "It breathes through teeth. You taste the breath through the rock before the breath itself reaches you."
+    ]
+  },
+
+  "interactions": {
+    "absorb": "blocked at v0.1 — too large",
+    "smother": "blocked — predator has too much air to deplete",
+    "sense_tremor": "returns a slow, deliberate weight crossing stone",
+    "ooze_toward": "available; entering predator-den triggers an attack within 1 tick",
+    "mimic_shape_to_avoid": "viable — the predator passes within 1 body-length without registering you as anything other than floor"
+  },
+
+  "fearTriggersHardMove": [
+    "alert_predator (sound or chemistry of a partial-success carries)",
+    "drip_into_wrong_crevice into predator-den"
+  ]
+}

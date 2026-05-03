@@ -140,26 +140,91 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
-  // 7. Narrate.
-  const narrate = await narrator.narrate({
+  // 7. Narrate (with one-shot ADR-011 retry on tool-validation failure).
+  const baseInput = {
     projection,
     lastEvents: [],
     roll,
     intent: intent.verb,
     relevantMemories,
-  });
+  };
+  let narrate = await narrator.narrate(baseInput);
 
   // 8. Validate + apply tools atomically.
-  const toolResult = await applyTools(
+  let toolResult = await applyTools(
     db,
     sessionId,
     projection,
     narrate.toolCalls,
   );
-  // Day-6: no retry. Day-12 adds the orchestrator-side retry.
+  let toolRetried = false;
+  let toolFellBack = false;
+  if (!toolResult.ok) {
+    // ADR-011: re-prompt with the failure, max 1 retry. If the retry
+    // fails too, fall back to narrate_only — the narration text from
+    // the second attempt is kept; no tools are applied.
+    toolRetried = true;
+    log.info("turn.tools.retry", {
+      sessionId,
+      turn: turnNumber,
+      tool: toolResult.failure.tool,
+      reason: toolResult.failure.error,
+    });
+    const retry = await narrator.narrate({
+      ...baseInput,
+      previousAttempt: {
+        text: narrate.text,
+        toolCalls: narrate.toolCalls,
+        failureReason: `tool ${toolResult.failure.tool}: ${toolResult.failure.error}`,
+        failureKind: "tool_validation",
+      },
+    });
+    narrate = retry;
+    toolResult = await applyTools(db, sessionId, projection, retry.toolCalls);
+    if (!toolResult.ok) {
+      toolFellBack = true;
+      log.warn("turn.tools.fallback_to_narrate_only", {
+        sessionId,
+        turn: turnNumber,
+        tool: toolResult.failure.tool,
+      });
+    }
+  }
   const toolEvents = toolResult.ok ? toolResult.events.length : 0;
 
-  // 9. narration.emitted.
+  // 9. Tone drift check on the final accepted text. If the regex layer
+  // catches negativeVocab, re-narrate once for prose only — the tools
+  // are already applied (or fallen-back) and don't get re-emitted.
+  let tone = checkToneFast(narrate.text, form);
+  let toneRetried = false;
+  if (!tone.ok) {
+    toneRetried = true;
+    log.info("turn.tone.retry", {
+      sessionId,
+      turn: turnNumber,
+      violations: tone.violations,
+    });
+    const retry = await narrator.narrate({
+      ...baseInput,
+      previousAttempt: {
+        text: narrate.text,
+        toolCalls: narrate.toolCalls,
+        failureReason: `tone violations: ${tone.violations.join(", ")}`,
+        failureKind: "tone_drift",
+      },
+    });
+    narrate = { text: retry.text, toolCalls: narrate.toolCalls };
+    tone = checkToneFast(retry.text, form);
+    if (!tone.ok) {
+      log.warn("turn.tone.violation_persists", {
+        sessionId,
+        turn: turnNumber,
+        violations: tone.violations,
+      });
+    }
+  }
+
+  // 10. narration.emitted (with the final accepted text).
   await appendEvents(db, sessionId, [
     {
       kind: "narration.emitted",
@@ -167,17 +232,6 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       toolCallsApplied: toolEvents,
     },
   ]);
-
-  // 9b. Tone drift check (free regex layer; Haiku judge optional, off
-  // by default). Day-9 logs only — Day 12 wires the regen retry.
-  const tone = checkToneFast(narrate.text, form);
-  if (!tone.ok) {
-    log.warn("turn.tone.violation", {
-      sessionId,
-      turn: turnNumber,
-      violations: tone.violations,
-    });
-  }
 
   // 9c. Persist any create_memory tool calls into the memories table
   // with embeddings. The orchestrator already wrote memory.created
@@ -234,6 +288,9 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     toolEvents,
     beatsFired: beatsFired.length,
     durationMs: Date.now() - t0,
+    toolRetried,
+    toolFellBack,
+    toneRetried,
   });
 
   return {
