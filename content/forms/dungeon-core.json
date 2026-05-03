@@ -1,0 +1,149 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Fourth typed form. The core is a stationary crystal — about the size of a child's fist — embedded in the deepest chamber of a small dungeon. It cannot move, but it can feel every footfall on every floor of its dungeon, shape rooms, spawn weak minions, and bait or deflect the adventurers who come for it. Its 'body' is the dungeon itself; the chamber it occupies is just where it lives."
+  },
+
+  "id": "dungeon-core",
+  "displayName": "Dungeon Core",
+  "tagline": "You woke up in a chamber you cannot leave, and the dungeon is yours.",
+
+  "vitals": {
+    "mana":      { "max": 12, "start": 8, "death": null },
+    "integrity": { "max": 8,  "start": 8, "death": 0 }
+  },
+
+  "stats": {
+    "mana_recovery":  1,
+    "domain_size":    0,
+    "awareness":      2,
+    "will":           1
+  },
+
+  "verbs": [
+    "spawn_minion",
+    "shape_room",
+    "lure",
+    "sense_intruder",
+    "weave_illusion",
+    "drain_mana",
+    "bleed_integrity",
+    "wait"
+  ],
+
+  "verbMappings": {
+    "spawn_minion":     { "tools": ["introduce_npc", "change_form_state"],   "rollStat": "will" },
+    "shape_room":       { "tools": ["change_form_state", "move_to"],         "rollStat": "domain_size" },
+    "lure":             { "tools": ["sense", "change_form_state"],           "rollStat": "awareness" },
+    "sense_intruder":   { "tools": ["sense"],                                 "rollStat": "awareness" },
+    "weave_illusion":   { "tools": ["change_form_state"],                    "rollStat": "will" },
+    "drain_mana":       { "tools": ["change_form_state", "apply_damage"],    "rollStat": "mana_recovery" },
+    "bleed_integrity":  { "tools": ["apply_damage"],                          "rollStat": "will" },
+    "wait":             { "tools": ["pass_time"],                              "rollStat": null }
+  },
+
+  "negativeVocab": {
+    "rule": "The narrator must NEVER use these words in second-person narration about the player. NPCs may still have all body parts and verbs. The core has no body — it is a stationary crystal — and senses through the substance of its dungeon. It cannot move from its chamber.",
+    "words": [
+      "hand", "hands", "finger", "fingers", "knuckle", "fist", "palm", "wrist",
+      "arm", "arms", "elbow", "shoulder",
+      "leg", "legs", "knee", "thigh", "ankle", "hip",
+      "foot", "feet", "toe", "toes", "heel",
+      "head", "skull",
+      "face", "cheek", "chin", "forehead",
+      "eye", "eyes", "eyelid", "eyebrow",
+      "ear", "ears", "earlobe",
+      "nose", "nostril",
+      "mouth", "lip", "lips", "tongue", "teeth", "tooth", "gum",
+      "throat", "neck",
+      "chest", "back", "belly", "stomach", "spine", "rib", "ribs",
+      "skin", "hair", "bone",
+      "see", "saw", "seeing", "look", "looking", "watch", "watching", "gaze", "glance", "stare", "blink",
+      "speak", "spoke", "say", "said", "voice", "shout", "whisper",
+      "walk", "walking", "run", "running", "dash", "sprint", "leap", "jump", "stand", "sit", "kneel", "crouch", "step", "stride",
+      "grab", "grip", "clutch", "throw", "catch", "hold", "holding",
+      "smile", "frown", "wince", "cry"
+    ]
+  },
+
+  "hardMoves": {
+    "rule": "On a partial-success (7-9) roll, the narrator MUST pick exactly one. Each move maps to specific tool calls.",
+    "moves": [
+      {
+        "id": "mana_overspent",
+        "narrative": "What you wove cost more than you had to give. The chamber's reserves draw down.",
+        "tools": [{ "name": "change_form_state", "field": "mana", "delta": -2 }]
+      },
+      {
+        "id": "minion_misshapen",
+        "narrative": "The thing you spawned came out of the wall warped. It exists. It is not what you wanted.",
+        "tools": [{ "name": "introduce_npc", "templateId": "warped-minion", "attitude": -1 }]
+      },
+      {
+        "id": "wall_cracks",
+        "narrative": "The shaping you attempted left a hairline fault in the chamber's stone. Adventurers will feel the seam.",
+        "tools": [{ "name": "change_form_state", "field": "integrity", "delta": -1 }]
+      },
+      {
+        "id": "lure_misread",
+        "narrative": "The intruder you tried to draw deeper instead pulled back. They sense the bait.",
+        "tools": [{ "name": "change_form_state", "field": "lure_burned", "delta": 1 }]
+      },
+      {
+        "id": "illusion_thin",
+        "narrative": "Your illusion shimmers in the wrong light. It will not hold up to a second glance.",
+        "tools": [{ "name": "change_form_state", "field": "illusion_quality", "delta": -1 }]
+      },
+      {
+        "id": "mana_leak",
+        "narrative": "A vein of your mana finds a flaw in the dungeon's boundary and pours out. The recovery rate slows for this turn.",
+        "tools": [
+          { "name": "change_form_state", "field": "mana", "delta": -1 },
+          { "name": "change_form_state", "field": "leak", "delta": 1 }
+        ]
+      },
+      {
+        "id": "intruder_advances",
+        "narrative": "An adventurer pushes through to a deeper room than you wanted them in.",
+        "tools": [{ "name": "move_to", "roomId": "$DEEPER_ROOM" }]
+      },
+      {
+        "id": "tick_passes",
+        "narrative": "Your effort drained the chamber's air for a moment; nothing happened. The clock moves anyway.",
+        "tools": [{ "name": "pass_time", "ticks": 1 }]
+      }
+    ]
+  },
+
+  "sampleCorpus": {
+    "rule": "Hand-authored second-person dungeon-core POV passages. The core is a stationary crystal that senses through the dungeon's stone; its agency expresses through what the dungeon itself does at its bidding.",
+    "passages": [
+      {
+        "id": "01-awakening",
+        "scenario": "First moment of consciousness as a crystal in a deep chamber",
+        "wordCount": 240,
+        "text": "Awareness arrives all at once and across more space than you expected.\n\nYou are in a chamber, small, low-ceilinged, lit only by your own faint pulse. Your facets catch what light there is and return it as a slow blue heartbeat. You are roughly the size of a child's clenched grip. You are heavier than you should be by an order of magnitude. You are not, exactly, alive in the way that a heart is alive — but you are aware in the way that a long-running spring is aware: storing, releasing, sensing.\n\nBeyond your chamber, three rooms. You feel them through the stone the way a person feels their own ribs through their skin. Above the chamber: a corridor of moss and a long stair. Above the stair: a vestibule with a heavy door. Above the door: the world, which you do not know.\n\nThere are footsteps in the vestibule. Two pairs. Boots, leather, with the chemistry of recently-traveled cold. They are talking to each other in low voices. They are deciding whether to come down.\n\nYou cannot move. You do not need to. Every stone in the corridor and every grain of dust on the stair is, in some attenuated sense, you.\n\nThis is the world. You did not ask for it. The footsteps in the vestibule have stopped, undecided. You consider, with the patience of stone, what you would have them find."
+      },
+      {
+        "id": "02-spawn-minion",
+        "scenario": "Drawing mana to form a minor creature out of damp stone in a corridor",
+        "wordCount": 210,
+        "text": "You draw on the chamber's reserves.\n\nThe mana lifts from the floor in a slow blue ribbon and travels through the stone toward the corridor's eastern wall. There, in a niche just deep enough that your pulse does not reach it directly, you fold the moisture and the moss and a small amount of the wall's substance into a body. Two stub legs. A trunk. A simple aperture for breath. You give it just enough will to follow the corridor downward toward the vestibule and not enough to question why.\n\nThe minion takes its first step. The corridor's silence absorbs the sound. Your reserves draw down — a noticeable click, a thinning at the edges of your awareness — and you feel where the chamber will need to recover slowly.\n\nThe two pairs of boots in the vestibule have begun to move. They have decided to come down. You feel them on the third step, then the fifth. They are not going to be quiet.\n\nYour minion crouches in the dark of the corridor. You let your pulse slow until your blue light is barely a flicker on the cavern floor. You wait. There is no hurry. The corridor is yours, and they are coming."
+      },
+      {
+        "id": "03-illusion",
+        "scenario": "Weaving a thin illusion of an empty room to deflect a curious adventurer",
+        "wordCount": 220,
+        "text": "An adventurer reaches the antechamber and pauses.\n\nYou feel them through the stone: the weight on the threshold, the slight unevenness of one boot, the held breath. They are scanning. They have come for you, but they do not know how close.\n\nYou weave.\n\nYour illusion is small. You make the antechamber appear empty — not bare, but lived-in and lately abandoned, the kind of room a careful adventurer concludes they have already searched. You let dust pile on a shelf that has no shelf. You suggest an old bedroll in a corner where the floor is level enough to plausibly hold one. You add the smell of cold ash, faint, because you remember that smell from the boots above.\n\nThe adventurer's breath releases. They turn. They will go back up the corridor and report that this branch is dead.\n\nThe weave costs you. You feel the chamber's reserves draw down, and a thin line of mana leaks past your boundary into the dark — a small wound you will tend later. The illusion will hold for an hour, perhaps two, before the dust starts to settle through itself in ways the adventurer would notice.\n\nIt will be enough."
+      }
+    ]
+  },
+
+  "evolution": [
+    { "trigger": "domain_size>=3",                  "toFormId": "labyrinth-core" },
+    { "trigger": "absorbed_tag:soul count>=3",      "toFormId": "soul-core" },
+    { "trigger": "absorbed_tag:mineral count>=5",   "toFormId": "deep-core" }
+  ]
+}

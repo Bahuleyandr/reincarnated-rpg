@@ -33,7 +33,7 @@ import type {
 import { recordAiCall } from "../util/ai-telemetry";
 import { log } from "../util/log";
 
-import { buildSlimeFormCard } from "./prompts/slime";
+import { buildFormCard } from "./prompts/form-card";
 import { SYSTEM_PROMPT } from "./prompts/system";
 
 // Hand-rolled JSON schemas mirroring `toolCallSchema` (Zod) in
@@ -291,15 +291,20 @@ export class RemoteNarrator implements Narrator {
         "utf8",
       ),
     );
-    this.formCard = buildSlimeFormCard(formJson);
+    this.formCard = buildFormCard(formJson);
   }
 
   /**
-   * Compose the system prompt for this turn. The slime form card is
+   * Compose the system prompt for this turn. The form card is
    * cache-friendly (frozen across turns); the optional reincarnatedAs
    * note rides as its own block so it changes per-campaign without
-   * invalidating the form-card cache. cache_control on the slime
-   * card stays in place.
+   * invalidating the form-card cache.
+   *
+   * For generic-creature, the note instructs the narrator to use the
+   * declaration as the actual form (the card is just a frame).
+   * For typed forms, the note nudges flavor — e.g. cursed-book +
+   * "a grimoire of forgotten names" should still feel like a typed
+   * book, but with that specific identity baked into the prose.
    */
   private buildSystem(reincarnatedAs?: string | null) {
     const blocks: Array<{
@@ -318,11 +323,12 @@ export class RemoteNarrator implements Narrator {
         cache_control: { type: "ephemeral" },
       },
     ];
-    if (reincarnatedAs && this.form.id === "generic-creature") {
-      blocks.push({
-        type: "text",
-        text: `Specific reincarnation declared by the player: "${reincarnatedAs}". Use this to flavor every narration — the form template above is a generic frame; the player wakes specifically as the thing above. Match register, anatomy (or lack thereof), and the kinds of verbs that thing would use.`,
-      });
+    if (reincarnatedAs) {
+      const text =
+        this.form.id === "generic-creature"
+          ? `Specific reincarnation declared by the player: "${reincarnatedAs}". Use this to flavor every narration — the form template above is a generic frame; the player wakes specifically as the thing above. Match register, anatomy (or lack thereof), and the kinds of verbs that thing would use.`
+          : `Specific identity declared by the player within this typed form: "${reincarnatedAs}". The form template above is canonical for mechanics (vitals, verbs, negativeVocab, hard moves). The declaration above is for FLAVOR — let it color names, references, and small specific details. Do not let it override the form's mechanics or vocabulary rules.`;
+      blocks.push({ type: "text", text });
     }
     return blocks;
   }

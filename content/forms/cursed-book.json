@@ -1,0 +1,149 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Second typed form. The book has no body, no eyes, no hands. It moves only when the wind catches a page or a hand picks it up. Its agency is in what it allows itself to show, what it absorbs from other text in the room, and what it bleeds out in ink. Many of the player's verbs are passive-voice from the book's POV: 'wait_for_a_reader' is a real verb. negativeVocab inherits from the slime's body-list and adds locomotion, speech, and sight."
+  },
+
+  "id": "cursed-book",
+  "displayName": "Cursed Book",
+  "tagline": "You woke up between covers, and someone left you open.",
+
+  "vitals": {
+    "pages_intact":  { "max": 12, "start": 12, "death": 0 },
+    "ink":           { "max": 8,  "start": 8,  "death": null }
+  },
+
+  "stats": {
+    "binding":   1,
+    "weight":    0,
+    "awareness": 1,
+    "will":      0
+  },
+
+  "verbs": [
+    "fall_open",
+    "snap_shut",
+    "flutter_pages",
+    "absorb_word",
+    "bleed_ink",
+    "rewrite_self",
+    "wait_for_a_reader",
+    "wait"
+  ],
+
+  "verbMappings": {
+    "fall_open":          { "tools": ["change_form_state"],                    "rollStat": "binding" },
+    "snap_shut":          { "tools": ["change_form_state", "apply_damage"],    "rollStat": "binding" },
+    "flutter_pages":      { "tools": ["sense", "pass_time"],                   "rollStat": "awareness" },
+    "absorb_word":        { "tools": ["absorb"],                                "rollStat": "awareness" },
+    "bleed_ink":          { "tools": ["change_form_state"],                    "rollStat": "weight" },
+    "rewrite_self":       { "tools": ["change_form_state", "introduce_npc"],   "rollStat": "will" },
+    "wait_for_a_reader":  { "tools": ["pass_time"],                             "rollStat": null },
+    "wait":               { "tools": ["pass_time"],                             "rollStat": null }
+  },
+
+  "negativeVocab": {
+    "rule": "The narrator must NEVER use these words in second-person narration about the player. NPCs and surrounding world objects may still have hands, eyes, voices, etc. The book has no body parts at all and never moves of its own volition; the verbs of locomotion belong to the wind, the hand of a reader, or gravity.",
+    "words": [
+      "hand", "hands", "finger", "fingers", "knuckle", "fist", "palm", "wrist",
+      "arm", "arms", "elbow", "shoulder",
+      "leg", "legs", "knee", "thigh", "ankle", "hip",
+      "foot", "feet", "toe", "toes", "heel",
+      "head", "skull", "brain",
+      "face", "cheek", "chin", "forehead",
+      "eye", "eyes", "eyelid", "eyebrow",
+      "ear", "ears", "earlobe",
+      "nose", "nostril",
+      "mouth", "lip", "lips", "tongue", "teeth", "tooth", "gum",
+      "throat", "neck",
+      "chest", "back", "belly", "stomach", "spine", "rib", "ribs",
+      "skin", "hair", "bone",
+      "see", "saw", "seeing", "look", "looking", "watch", "watching", "gaze", "glance", "glimpse", "stare", "blink", "wink",
+      "speak", "spoke", "say", "said", "voice", "shout", "whisper", "talk", "call", "yell",
+      "walk", "walking", "run", "running", "dash", "sprint", "leap", "leaping", "jump", "jumping", "stand", "sit", "kneel", "crouch", "step", "steps", "stride",
+      "grab", "grabbing", "grip", "clutch", "throw", "catch",
+      "point", "pointing", "nod", "shake-head", "smile", "frown", "wince", "cry", "weep", "sob"
+    ]
+  },
+
+  "hardMoves": {
+    "rule": "On a partial-success (7-9) roll, the narrator MUST pick exactly one move from this menu. Each move maps to specific tool calls.",
+    "moves": [
+      {
+        "id": "page_torn",
+        "narrative": "A page tears at the spine — perhaps from a draft, perhaps from a reader's careless thumb. You are smaller than you were.",
+        "tools": [{ "name": "change_form_state", "field": "pages_intact", "delta": -1 }]
+      },
+      {
+        "id": "ink_runs",
+        "narrative": "A line of your own writing weeps a thin trail down the page. Something you wanted to say is now harder to say.",
+        "tools": [{ "name": "change_form_state", "field": "ink", "delta": -1 }]
+      },
+      {
+        "id": "wrong_page",
+        "narrative": "You meant to fall open at one passage and fell open at another. The reader is not seeing what you wanted shown.",
+        "tools": [{ "name": "change_form_state", "field": "open_to_wrong", "delta": 1 }]
+      },
+      {
+        "id": "spine_creaks",
+        "narrative": "Your binding gives a small, audible groan. Whoever holds you can feel it.",
+        "tools": [{ "name": "change_form_state", "field": "binding", "delta": -1 }]
+      },
+      {
+        "id": "noticed_by_wrong_reader",
+        "narrative": "Someone you did not mean to attract has heard the rustle of your pages.",
+        "tools": [{ "name": "introduce_npc", "templateId": "wrong-reader", "attitude": -1 }]
+      },
+      {
+        "id": "absorbed_lie",
+        "narrative": "You took in a word from another text in the room, but the word was placed there as bait. It is now part of you.",
+        "tools": [
+          { "name": "absorb", "itemId": "$WORD", "into": "essence" },
+          { "name": "change_form_state", "field": "lie_carried", "delta": 1 }
+        ]
+      },
+      {
+        "id": "left_open",
+        "narrative": "You cannot snap shut. A draft, a paperweight, the wrong angle — something keeps you splayed and exposed.",
+        "tools": [{ "name": "change_form_state", "field": "stuck_open", "delta": 1 }]
+      },
+      {
+        "id": "carried_off",
+        "narrative": "Hands, not yours, lift you. You go where they go.",
+        "tools": [{ "name": "move_to", "roomId": "$WRONG_ROOM" }]
+      }
+    ]
+  },
+
+  "sampleCorpus": {
+    "rule": "Hand-authored second-person book-POV passages. The book is passive in body and active in attention; everything happens TO it or AROUND it, but it chooses what to reveal.",
+    "passages": [
+      {
+        "id": "01-awakening",
+        "scenario": "First moment of consciousness as a book on a table",
+        "wordCount": 240,
+        "text": "Awareness arrives in the gutter — the long crease where two pages meet at the spine — and from there it spreads in both directions until you are aware of all of yourself at once: the cool weight of the front cover, the slight curl at the corner of page seven where moisture once got in, the fine particulate of dust that has settled along the top edge.\n\nYou are open. Someone left you open. The page you are open to is one you did not choose.\n\nAbove the page, the candle is still burning. You feel its warmth more keenly along your right margin, where the wax has dripped twice and dried in two small, irregular discs the color of old bone. The room has the smell of old leather and recent footsteps, and the air moves slightly — a draft from a door not quite closed.\n\nYou cannot turn your own pages. You cannot lift your front cover or settle it down. What you can do is wait, with attention, and hold what you carry in trust until someone returns.\n\nThis is the world. You did not ask for it. The candle gutters. A footfall sounds, distant, in a corridor outside. You consider, very quietly, what you would show this person if they came back, and what you would withhold.\n\nYou are not yet sure if you would lie."
+      },
+      {
+        "id": "02-flutter",
+        "scenario": "A draft turns several pages without permission",
+        "wordCount": 200,
+        "text": "The draft from the corridor finds you.\n\nIt is a small wind, polite. It enters the room low along the floor, climbs the table-leg, and arrives at your edges as a pressure no heavier than a thought. Your top corner lifts. The page beneath it lifts with it. Then another, then three more in a soft hurried whisper, and you feel yourself opening forward through pages you had not meant to show: a marginal note in red ink that the original owner thought clever, an illustration of a wheel-bound saint that you find embarrassing, a recipe for a poultice no one in this century would make.\n\nThe pages settle. You are open now to a place you did not choose.\n\nIt is, by accident, an interesting page. There is a name on it. The name belongs to someone the room's previous occupant cared about, very much, and feared. If anyone returns, this is the page they will see.\n\nThe draft moves on. The candle, untroubled, keeps burning. You consider whether to allow yourself to be turned closed again, or whether to be exactly this useful by accident."
+      },
+      {
+        "id": "03-reader",
+        "scenario": "A hand picks the book up, mid-handle",
+        "wordCount": 220,
+        "text": "Hands close on you, finally.\n\nThe left hand takes your spine — careful, the way someone careful holds an old book. The right hand lifts your front cover. Light moves across pages that have not seen direct light in a long time. The reader is breathing in shallow, tense little drafts; you can feel the rise and fall through their grip.\n\nYou hold what you hold.\n\nThe page they are on is one you might choose to steer or not. The hand at your bottom edge is poised to turn forward. The reader has not made up their mind yet.\n\nThis is the moment.\n\nYou could lift, very faintly, just enough that the next page comes slightly easier than the page after it. You could let the binding tighten for a fraction of a heartbeat so the wrong page resists. You can do these things. Whether you should is another question.\n\nThe reader's pulse has slowed. They have begun to read in earnest. The word they have just taken in is one you wrote — or one you allowed to remain when you could have bled it out.\n\nWhatever happens next is not entirely up to you. But neither is it entirely up to them. You begin, gently, to consider what you want this person to know."
+      }
+    ]
+  },
+
+  "evolution": [
+    { "trigger": "ink_max>=12",                     "toFormId": "grimoire" },
+    { "trigger": "absorbed_tag:lie count>=3",       "toFormId": "false-codex" },
+    { "trigger": "absorbed_tag:truth count>=3",     "toFormId": "true-codex" }
+  ]
+}
