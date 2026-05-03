@@ -19,34 +19,33 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "no session" }, { status: 401 });
   }
   const verified = await verifyCookie(cookie);
-  if (!verified) {
-    return NextResponse.json({ error: "invalid session" }, { status: 401 });
+  if (!verified || !verified.sessionId) {
+    return NextResponse.json(
+      { error: "no active session" },
+      { status: 401 },
+    );
   }
+  const sessionId = verified.sessionId;
 
   try {
     const form = loadForm("lesser-slime");
     const location = loadLocation("collapsed-tunnel");
-    const projection = await loadProjection(
-      db,
-      verified.sessionId,
-      form,
-      location,
-    );
+    const projection = await loadProjection(db, sessionId, form, location);
 
-    const events = await readLog(db, verified.sessionId);
+    const events = await readLog(db, sessionId);
     const narrations = events
       .map(rowToEvent)
       .filter((e) => e.kind === "narration.emitted")
       .map((e) => (e as { kind: "narration.emitted"; text: string }).text);
 
     return NextResponse.json({
-      sessionId: verified.sessionId,
+      sessionId,
       projection,
       narrations,
     });
   } catch (err) {
     log.error("state.failed", {
-      sessionId: verified.sessionId,
+      sessionId,
       err: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json({ error: "internal" }, { status: 500 });

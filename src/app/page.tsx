@@ -1,12 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasAccount, setHasAccount] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d: { user: unknown }) => setHasAccount(!!d.user))
+      .catch(() => {});
+  }, []);
 
   async function begin() {
     setBusy(true);
@@ -50,14 +59,42 @@ export default function Home() {
           </p>
         </section>
 
-        <button
-          type="button"
-          onClick={begin}
-          disabled={busy}
-          className="w-full border border-stone-300 text-stone-100 py-3 px-6 hover:bg-stone-100 hover:text-stone-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {busy ? "starting…" : "Begin"}
-        </button>
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={begin}
+            disabled={busy}
+            className="w-full border border-stone-300 text-stone-100 py-3 px-6 hover:bg-stone-100 hover:text-stone-950 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {busy ? "starting…" : hasAccount ? "Begin (anon run)" : "Begin"}
+          </button>
+
+          <div className="flex items-center justify-between text-xs text-stone-500">
+            {hasAccount ? (
+              <Link
+                href="/dashboard"
+                className="underline underline-offset-2 hover:text-stone-300"
+              >
+                go to my runs →
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="underline underline-offset-2 hover:text-stone-300"
+              >
+                already have an account? sign in
+              </Link>
+            )}
+            {!hasAccount && (
+              <Link
+                href="/register"
+                className="underline underline-offset-2 hover:text-stone-300"
+              >
+                register
+              </Link>
+            )}
+          </div>
+        </div>
 
         {error && (
           <p className="text-red-400 text-sm">{error}</p>

@@ -20,9 +20,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "no session" }, { status: 401 });
   }
   const verified = await verifyCookie(cookie);
-  if (!verified) {
-    return NextResponse.json({ error: "invalid session" }, { status: 401 });
+  if (!verified || !verified.sessionId) {
+    return NextResponse.json(
+      { error: "no active session" },
+      { status: 401 },
+    );
   }
+  const sessionId = verified.sessionId;
 
   let body: unknown;
   try {
@@ -46,12 +50,12 @@ export async function POST(req: NextRequest) {
       form,
       location,
       db,
-      sessionId: verified.sessionId,
+      sessionId,
     });
 
     const result = await runTurn({
       db,
-      sessionId: verified.sessionId,
+      sessionId,
       input,
       form,
       location,
@@ -74,7 +78,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     log.error("turn.failed", {
-      sessionId: verified.sessionId,
+      sessionId,
       err: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json({ error: "internal" }, { status: 500 });
