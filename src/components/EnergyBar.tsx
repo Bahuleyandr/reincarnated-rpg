@@ -58,10 +58,17 @@ function formatBlessingTime(expiresAtMs: number, now: number): string {
 export function EnergyBar() {
   const [view, setView] = useState<EnergyView | null>(null);
   // Tick every second to keep the countdown live without
-  // re-fetching every second.
+  // re-fetching every second. `now` is also stored as state so we
+  // can pass it into render-side time math without calling
+  // Date.now() during render (react-hooks/purity violation under
+  // React 19's strict purity rules).
   const [tick, setTick] = useState(0);
+  const [now, setNow] = useState<number>(() => Date.now());
   useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    const id = setInterval(() => {
+      setTick((t) => t + 1);
+      setNow(Date.now());
+    }, 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -156,7 +163,7 @@ export function EnergyBar() {
           ✦ {view.blessing.label}
           {view.blessing.expiresAtMs && (
             <span className="text-amber-500/70 ml-1">
-              · {formatBlessingTime(view.blessing.expiresAtMs, Date.now())} left
+              · {formatBlessingTime(view.blessing.expiresAtMs, now)} left
             </span>
           )}
         </div>
@@ -210,7 +217,7 @@ export function EnergyBar() {
             {formatMs(
               Math.max(
                 0,
-                (view.fullAtMs ?? Date.now()) - Date.now() - tick * 1000,
+                (view.fullAtMs ?? now) - now - tick * 1000,
               ),
             )}
           </>
