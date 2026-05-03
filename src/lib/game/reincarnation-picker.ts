@@ -206,12 +206,15 @@ export async function offerReincarnations(
   }
 
   // Guarantee: if any form is saturated, at least one rare option
-  // (with starterBonus) must be in the offer — that's the God's
-  // nudge. Find the highest-weight rare-with-bonus not already in
-  // the sample and swap it in for the lowest-weight non-rare slot.
+  // WITH STARTER BONUS must be in the offer — that's the God's
+  // nudge ("if you take this, +1 awareness"). A rare WITHOUT a
+  // bonus in the sample doesn't satisfy the nudge intent, so we
+  // explicitly check for rare+bonus, not just any rare.
   const anySaturated = weighted.some((w) => w.saturated);
-  const hasRare = sampled.some((s) => s.tier === "rare");
-  if (anySaturated && !hasRare) {
+  const hasRareWithBonus = sampled.some(
+    (s) => s.tier === "rare" && s.starterBonus,
+  );
+  if (anySaturated && !hasRareWithBonus) {
     const candidateRares = weighted
       .filter(
         (w) =>

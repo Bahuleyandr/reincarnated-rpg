@@ -3,7 +3,13 @@
  * exercised in the integration test.
  */
 import { applyRegen, viewState } from "@/lib/energy/state";
-import { getTier, TIERS, turnsPerDay } from "@/lib/energy/tiers";
+import {
+  BLESSING_OF_THE_GODS,
+  effectiveTier,
+  getTier,
+  TIERS,
+  turnsPerDay,
+} from "@/lib/energy/tiers";
 
 describe("getTier", () => {
   test("returns the named tier when present", () => {
@@ -37,7 +43,7 @@ describe("applyRegen", () => {
 
   test("noop when no time has elapsed", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free" },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       T0ms,
     );
@@ -47,7 +53,7 @@ describe("applyRegen", () => {
 
   test("noop when not enough time has elapsed for one tick", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free" },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       T0ms + free.regenIntervalMs - 1,
     );
@@ -56,7 +62,7 @@ describe("applyRegen", () => {
 
   test("credits exactly one tick after one interval", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free" },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       T0ms + free.regenIntervalMs,
     );
@@ -66,7 +72,7 @@ describe("applyRegen", () => {
 
   test("credits multiple ticks for multiple intervals", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free" },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       T0ms + free.regenIntervalMs * 3 + 10_000,
     );
@@ -80,7 +86,7 @@ describe("applyRegen", () => {
 
   test("clamps at tier max", () => {
     const r = applyRegen(
-      { energy: 18, lastUpdatedAt: T0, tierId: "free" },
+      { energy: 18, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       T0ms + free.regenIntervalMs * 50,
     );
@@ -92,7 +98,7 @@ describe("applyRegen", () => {
     // full interval before regen resumes — no stash.
     const now = T0ms + 60 * 60 * 1000;
     const r = applyRegen(
-      { energy: free.max, lastUpdatedAt: T0, tierId: "free" },
+      { energy: free.max, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       now,
     );
@@ -102,7 +108,7 @@ describe("applyRegen", () => {
 
   test("ignores negative elapsed (clock skew)", () => {
     const r = applyRegen(
-      { energy: 5, lastUpdatedAt: new Date(T0ms + 10_000), tierId: "free" },
+      { energy: 5, lastUpdatedAt: new Date(T0ms + 10_000), tierId: "free", accountCreatedAt: null },
       free,
       T0ms,
     );
@@ -112,7 +118,7 @@ describe("applyRegen", () => {
   test("partial-interval remainder accumulates correctly across calls", () => {
     // Step 1: 50min elapsed at 45min interval = 1 tick, 5min carryover
     const r1 = applyRegen(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free" },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       T0ms + 50 * 60 * 1000,
     );
@@ -135,7 +141,7 @@ describe("viewState", () => {
 
   test("nextRegenMs is correct mid-interval", () => {
     const v = viewState(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free" },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       T0ms + 10 * 60 * 1000, // 10min into a 45min interval
     );
@@ -145,7 +151,7 @@ describe("viewState", () => {
 
   test("nextRegenMs is 0 at max", () => {
     const v = viewState(
-      { energy: free.max, lastUpdatedAt: T0, tierId: "free" },
+      { energy: free.max, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       T0ms + 1000,
     );
@@ -158,11 +164,129 @@ describe("viewState", () => {
     // 14 more at 45min apiece = (1 + 14) * 45min from now.
     const now = T0ms;
     const v = viewState(
-      { energy: 5, lastUpdatedAt: T0, tierId: "free" },
+      { energy: 5, lastUpdatedAt: T0, tierId: "free", accountCreatedAt: null },
       free,
       now,
     );
     const expected = now + 15 * free.regenIntervalMs;
     expect(v.fullAtMs).toBe(expected);
+  });
+});
+
+describe("effectiveTier (Blessing of the Gods)", () => {
+  const now = Date.now();
+
+  test("free tier with no createdAt = no blessing", () => {
+    const r = effectiveTier(TIERS.free, null, now);
+    expect(r.blessing).toBeNull();
+    expect(r.tier.max).toBe(TIERS.free.max);
+  });
+
+  test("free tier within 7 days = blessed", () => {
+    const created = new Date(now - 1 * 24 * 60 * 60 * 1000); // 1 day old
+    const r = effectiveTier(TIERS.free, created, now);
+    expect(r.blessing?.id).toBe("blessing-of-the-gods");
+    expect(r.tier.max).toBe(TIERS.free.max * 2);
+    expect(r.tier.regenIntervalMs).toBeLessThan(TIERS.free.regenIntervalMs);
+  });
+
+  test("free tier exactly at 7 days = blessing expired", () => {
+    const created = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    const r = effectiveTier(TIERS.free, created, now);
+    expect(r.blessing).toBeNull();
+    expect(r.tier.max).toBe(TIERS.free.max);
+  });
+
+  test("supporter tier never gets the blessing (paid tiers don't need a lure)", () => {
+    const created = new Date(now - 1 * 24 * 60 * 60 * 1000);
+    const r = effectiveTier(TIERS.supporter, created, now);
+    expect(r.blessing).toBeNull();
+    expect(r.tier.max).toBe(TIERS.supporter.max);
+  });
+
+  test("patron tier never gets the blessing", () => {
+    const created = new Date(now - 1 * 24 * 60 * 60 * 1000);
+    const r = effectiveTier(TIERS.patron, created, now);
+    expect(r.blessing).toBeNull();
+    expect(r.tier.max).toBe(TIERS.patron.max);
+  });
+
+  test("blessed regen approximates supporter pace (~20min)", () => {
+    const created = new Date(now);
+    const r = effectiveTier(TIERS.free, created, now);
+    // 45min / 2.25 = 20min exactly
+    expect(r.tier.regenIntervalMs).toBe(20 * 60 * 1000);
+  });
+
+  test("blessed turns/day matches supporter (~72)", () => {
+    const created = new Date(now);
+    const r = effectiveTier(TIERS.free, created, now);
+    expect(turnsPerDay(r.tier)).toBe(72);
+  });
+
+  test("blessingExpiresAtMs is created+7d", () => {
+    const created = new Date(now);
+    const r = effectiveTier(TIERS.free, created, now);
+    expect(r.blessingExpiresAtMs).toBe(
+      created.getTime() + BLESSING_OF_THE_GODS.durationMs,
+    );
+  });
+
+  test("future-dated createdAt (clock skew) treated as no blessing", () => {
+    const created = new Date(now + 1000);
+    const r = effectiveTier(TIERS.free, created, now);
+    expect(r.blessing).toBeNull();
+  });
+});
+
+describe("blessing applied through viewState + applyRegen", () => {
+  test("blessed free player has cap 40 and 20-min regen end-to-end", () => {
+    const created = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
+    const eff = effectiveTier(TIERS.free, created, Date.now());
+    expect(eff.tier.max).toBe(40);
+    // 100 minutes with 20min interval = 5 ticks
+    const start = new Date(Date.now() - 100 * 60 * 1000);
+    const r = applyRegen(
+      {
+        energy: 0,
+        lastUpdatedAt: start,
+        tierId: "free",
+        accountCreatedAt: created,
+      },
+      eff.tier,
+      Date.now(),
+    );
+    expect(r.energy).toBe(5);
+  });
+
+  test("viewState surfaces blessing when active", () => {
+    const created = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const eff = effectiveTier(TIERS.free, created, Date.now());
+    const v = viewState(
+      {
+        energy: 5,
+        lastUpdatedAt: new Date(),
+        tierId: "free",
+        accountCreatedAt: created,
+      },
+      eff.tier,
+      Date.now(),
+    );
+    expect(v.blessing?.id).toBe("blessing-of-the-gods");
+    expect(v.blessingExpiresAtMs).not.toBeNull();
+  });
+
+  test("viewState shows null blessing for unblessed free player", () => {
+    const v = viewState(
+      {
+        energy: 5,
+        lastUpdatedAt: new Date(),
+        tierId: "free",
+        accountCreatedAt: null,
+      },
+      TIERS.free,
+      Date.now(),
+    );
+    expect(v.blessing).toBeNull();
   });
 });

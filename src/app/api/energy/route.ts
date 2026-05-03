@@ -46,11 +46,20 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     energy: view.energy,
     max: view.tier.max,
-    tierId: view.tier.id,
+    tierId: view.tierId, // STORED tier id (e.g. 'free' even when blessed)
+    effectiveTierId: view.tier.id,
     tierLabel: view.tier.label,
     regenIntervalMs: view.tier.regenIntervalMs,
     nextRegenMs: view.nextRegenMs,
     fullAtMs: view.fullAtMs,
     turnsPerDay: turnsPerDay(view.tier),
+    blessing: view.blessing
+      ? {
+          id: view.blessing.id,
+          label: view.blessing.label,
+          description: view.blessing.description,
+          expiresAtMs: view.blessingExpiresAtMs,
+        }
+      : null,
   });
 }

@@ -24,7 +24,13 @@ import type { Db } from "../db/client";
 import { sessions, users } from "../db/schema";
 import { log } from "../util/log";
 
-import { DEFAULT_TIER_ID, getTier, type Tier } from "./tiers";
+import {
+  DEFAULT_TIER_ID,
+  effectiveTier,
+  getTier,
+  type Blessing,
+  type Tier,
+} from "./tiers";
 
 export interface EnergyState {
   /** Current energy. */
@@ -33,15 +39,25 @@ export interface EnergyState {
   lastUpdatedAt: Date;
   /** Tier id at the time of read. */
   tierId: string;
+  /** When the player's account / anon session was created. Used to
+   *  decide whether the Blessing of the Gods is active. Null only
+   *  for legacy rows that pre-date the column. */
+  accountCreatedAt: Date | null;
 }
 
 export interface EnergyView extends EnergyState {
-  /** The Tier object resolved from tierId. */
+  /** The EFFECTIVE Tier object — already wrapped with any active
+   *  blessing. The /api/turn gate spends against this. */
   tier: Tier;
   /** Milliseconds until the next +1 tick (0 if at max or no tier). */
   nextRegenMs: number;
   /** Estimated time when energy reaches max. Null if at max. */
   fullAtMs: number | null;
+  /** Active blessing (Blessing of the Gods today; future blessings
+   *  ride the same channel). Null when no blessing is active. */
+  blessing: Blessing | null;
+  /** Wall-clock ms when the blessing expires. Null if no blessing. */
+  blessingExpiresAtMs: number | null;
 }
 
 /** Pure function: apply regen to a state given the active tier and a
@@ -84,7 +100,18 @@ export function viewState(state: EnergyState, tier: Tier, now: number): EnergyVi
     const ticksToFull = tier.max - refilled.energy;
     fullAtMs = now + nextRegenMs + (ticksToFull - 1) * tier.regenIntervalMs;
   }
-  return { ...refilled, tier, nextRegenMs, fullAtMs };
+  // Resolve blessing presence + expiry from accountCreatedAt. The
+  // tier passed in is already the EFFECTIVE tier (caller wraps with
+  // effectiveTier). We re-derive to fill the blessing fields.
+  const eff = effectiveTier(getTier(refilled.tierId), refilled.accountCreatedAt, now);
+  return {
+    ...refilled,
+    tier,
+    nextRegenMs,
+    fullAtMs,
+    blessing: eff.blessing,
+    blessingExpiresAtMs: eff.blessingExpiresAtMs,
+  };
 }
 
 // ---- Persistence helpers ------------------------------------------
@@ -98,7 +125,9 @@ interface ReadOpts {
 }
 
 /** Read current state from DB (no refill applied). Returns null if
- *  neither userId nor sessionId hits. */
+ *  neither userId nor sessionId hits. Pulls accountCreatedAt
+ *  (users.createdAt or sessions.startedAt) so blessing logic can
+ *  decide whether the player is in their first week. */
 async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
   if (opts.userId) {
     const rows = await db
@@ -106,6 +135,7 @@ async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
         energy: users.energy,
         energyUpdatedAt: users.energyUpdatedAt,
         tier: users.tier,
+        createdAt: users.createdAt,
       })
       .from(users)
       .where(eq(users.id, opts.userId))
@@ -116,6 +146,7 @@ async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
       energy: u.energy,
       lastUpdatedAt: u.energyUpdatedAt,
       tierId: u.tier ?? DEFAULT_TIER_ID,
+      accountCreatedAt: u.createdAt,
     };
   }
   if (opts.sessionId) {
@@ -123,6 +154,7 @@ async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
       .select({
         energy: sessions.energy,
         energyUpdatedAt: sessions.energyUpdatedAt,
+        startedAt: sessions.startedAt,
       })
       .from(sessions)
       .where(eq(sessions.id, opts.sessionId))
@@ -133,6 +165,7 @@ async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
       energy: s.energy,
       lastUpdatedAt: s.energyUpdatedAt,
       tierId: DEFAULT_TIER_ID, // anon = free
+      accountCreatedAt: s.startedAt,
     };
   }
   return null;
@@ -167,6 +200,14 @@ async function writeRaw(
   }
 }
 
+/** Resolve the EFFECTIVE tier for a state — applies blessing logic.
+ *  Single helper used by every public function so the rules stay
+ *  consistent. */
+function resolveTier(state: EnergyState, now: number): Tier {
+  const base = getTier(state.tierId);
+  return effectiveTier(base, state.accountCreatedAt, now).tier;
+}
+
 /** Public: returns the up-to-date view with regen applied AND
  *  persisted. Persistence here means callers don't have to remember
  *  to write the refill back. */
@@ -176,15 +217,16 @@ export async function getEnergyView(
 ): Promise<EnergyView | null> {
   const raw = await readRaw(db, opts);
   if (!raw) return null;
-  const tier = getTier(raw.tierId);
-  const refilled = applyRegen(raw, tier, Date.now());
+  const now = Date.now();
+  const tier = resolveTier(raw, now);
+  const refilled = applyRegen(raw, tier, now);
   if (
     refilled.energy !== raw.energy ||
     refilled.lastUpdatedAt.getTime() !== raw.lastUpdatedAt.getTime()
   ) {
     await writeRaw(db, opts, refilled);
   }
-  return viewState(refilled, tier, Date.now());
+  return viewState(refilled, tier, now);
 }
 
 /** Public: spend N energy. Applies regen first; if still short,
@@ -196,8 +238,9 @@ export async function trySpend(
 ): Promise<{ ok: boolean; view: EnergyView | null }> {
   const raw = await readRaw(db, opts);
   if (!raw) return { ok: false, view: null };
-  const tier = getTier(raw.tierId);
-  const refilled = applyRegen(raw, tier, Date.now());
+  const now = Date.now();
+  const tier = resolveTier(raw, now);
+  const refilled = applyRegen(raw, tier, now);
   if (refilled.energy < amount) {
     if (
       refilled.energy !== raw.energy ||
@@ -205,14 +248,14 @@ export async function trySpend(
     ) {
       await writeRaw(db, opts, refilled);
     }
-    return { ok: false, view: viewState(refilled, tier, Date.now()) };
+    return { ok: false, view: viewState(refilled, tier, now) };
   }
   const next: EnergyState = {
     ...refilled,
     energy: refilled.energy - amount,
   };
   await writeRaw(db, opts, next);
-  return { ok: true, view: viewState(next, tier, Date.now()) };
+  return { ok: true, view: viewState(next, tier, now) };
 }
 
 /** Admin override: set tier and/or refill to max. */
@@ -223,8 +266,13 @@ export async function adminSetEnergy(
 ): Promise<EnergyView | null> {
   const raw = await readRaw(db, { userId });
   if (!raw) return null;
+  const now = Date.now();
   const newTierId = patch.tier ?? raw.tierId;
-  const tier = getTier(newTierId);
+  // Resolve the EFFECTIVE tier under the new tier id (so admin
+  // promoting a blessed-free user to supporter doesn't get them
+  // the blessed-free max as the cap; they get supporter's 60 max).
+  const tempState: EnergyState = { ...raw, tierId: newTierId };
+  const tier = resolveTier(tempState, now);
   let energy = raw.energy;
   if (patch.refillToMax) energy = tier.max;
   else if (typeof patch.setEnergy === "number")
@@ -233,6 +281,7 @@ export async function adminSetEnergy(
     energy,
     lastUpdatedAt: new Date(),
     tierId: newTierId,
+    accountCreatedAt: raw.accountCreatedAt,
   };
   await writeRaw(db, { userId }, next);
   log.info("energy.admin_set", {
@@ -241,5 +290,5 @@ export async function adminSetEnergy(
     energy,
     refillToMax: !!patch.refillToMax,
   });
-  return viewState(next, tier, Date.now());
+  return viewState(next, tier, now);
 }

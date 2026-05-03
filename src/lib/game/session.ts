@@ -33,10 +33,18 @@ export async function createSession(
   const seed = randomBytes(4).readUInt32BE(0);
   const cookieHmac = uuidv7().replace(/-/g, "");
 
+  // Anon sessions start at the BLESSED-free cap (40) — same lure
+  // logic as registered users. The blessing fades after 7 days from
+  // sessions.startedAt.
+  const { effectiveTier, getTier } = await import(
+    "../energy/tiers"
+  );
+  const blessedFree = effectiveTier(getTier("free"), new Date()).tier;
   await db.insert(sessions).values({
     id: sessionId,
     cookieHmac,
     formId,
+    energy: blessedFree.max,
     ...(opts.locationId ? { locationId: opts.locationId } : {}),
     ...(opts.reincarnatedAs !== undefined
       ? { reincarnatedAs: opts.reincarnatedAs }
