@@ -1,0 +1,1 @@
+ALTER TABLE "campaigns" ADD COLUMN "arc_id" text;

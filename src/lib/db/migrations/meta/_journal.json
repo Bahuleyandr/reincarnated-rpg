@@ -64,6 +64,13 @@
       "when": 1777808587169,
       "tag": "0008_world_memory",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1777810199641,
+      "tag": "0009_campaign_arc_id",
+      "breakpoints": true
     }
   ]
 }

@@ -119,10 +119,19 @@ export async function POST(req: NextRequest) {
       const ctx = await resolveSessionContext(db, sessionId);
       const form = loadForm(ctx.formId);
       const location = loadLocation(ctx.locationId);
-      const beatPack =
-        ctx.formId === "lesser-slime" && ctx.locationId === "collapsed-tunnel"
-          ? loadBeatPack("survive-the-night")
-          : undefined;
+      let beatPack: ReturnType<typeof loadBeatPack> | undefined;
+      if (ctx.arcId) {
+        try {
+          beatPack = loadBeatPack(ctx.arcId);
+        } catch {
+          beatPack = undefined;
+        }
+      } else if (
+        ctx.formId === "lesser-slime" &&
+        ctx.locationId === "collapsed-tunnel"
+      ) {
+        beatPack = loadBeatPack("survive-the-night");
+      }
       const resolved = await getProviderForUser(db, verified.userId ?? null, {
         pinnedPresetId: ctx.pinnedPresetId,
         pinnedNarrationModel: ctx.pinnedNarrationModel,

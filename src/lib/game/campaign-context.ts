@@ -27,6 +27,9 @@ export interface SessionContext {
    *  for anon sessions. World-memory hooks need it to dedupe
    *  per-campaign persistence. */
   campaignId: string | null;
+  /** Scripted beat-pack id this campaign is running. Null for
+   *  free-form runs and for anon sessions (which always run free). */
+  arcId: string | null;
 }
 
 const DEFAULT_CONTEXT: SessionContext = {
@@ -36,6 +39,7 @@ const DEFAULT_CONTEXT: SessionContext = {
   pinnedPresetId: null,
   pinnedNarrationModel: null,
   campaignId: null,
+  arcId: null,
 };
 
 export async function resolveSessionContext(
@@ -53,6 +57,7 @@ export async function resolveSessionContext(
       campaignReincarnatedAs: campaigns.reincarnatedAs,
       campaignPinnedPresetId: campaigns.pinnedPresetId,
       campaignPinnedNarrationModel: campaigns.pinnedNarrationModel,
+      campaignArcId: campaigns.arcId,
     })
     .from(sessions)
     .leftJoin(campaigns, eq(sessions.campaignId, campaigns.id))
@@ -72,5 +77,6 @@ export async function resolveSessionContext(
     pinnedPresetId: row.campaignPinnedPresetId ?? null,
     pinnedNarrationModel: row.campaignPinnedNarrationModel ?? null,
     campaignId: row.sessionCampaignId ?? null,
+    arcId: row.campaignArcId ?? null,
   };
 }

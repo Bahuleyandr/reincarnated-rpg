@@ -30,18 +30,33 @@
     "dissolve",
     "smother",
     "mimic_shape",
+    "harden_skin",
+    "release_pheromone",
+    "tide_up",
+    "wyrm_listen",
     "wait"
   ],
 
   "verbMappings": {
-    "absorb":       { "tools": ["absorb", "remove_inventory"],            "rollStat": "density" },
-    "split":        { "tools": ["change_form_state", "introduce_npc"],    "rollStat": "essence" },
-    "ooze":         { "tools": ["move_to"],                                "rollStat": "viscosity" },
-    "sense_tremor": { "tools": ["sense"],                                  "rollStat": "awareness" },
-    "dissolve":     { "tools": ["apply_damage"],                           "rollStat": "density" },
-    "smother":      { "tools": ["apply_damage", "change_form_state"],     "rollStat": "density" },
-    "mimic_shape":  { "tools": ["change_form_state"],                      "rollStat": "viscosity" },
-    "wait":         { "tools": ["pass_time"],                              "rollStat": null }
+    "absorb":             { "tools": ["absorb", "remove_inventory"],            "rollStat": "density" },
+    "split":              { "tools": ["change_form_state", "introduce_npc"],    "rollStat": "essence" },
+    "ooze":               { "tools": ["move_to"],                                "rollStat": "viscosity" },
+    "sense_tremor":       { "tools": ["sense"],                                  "rollStat": "awareness" },
+    "dissolve":           { "tools": ["apply_damage"],                           "rollStat": "density" },
+    "smother":            { "tools": ["apply_damage", "change_form_state"],     "rollStat": "density" },
+    "mimic_shape":        { "tools": ["change_form_state"],                      "rollStat": "viscosity" },
+    "harden_skin":        { "tools": ["change_form_state"],                      "rollStat": "density" },
+    "release_pheromone":  { "tools": ["sense", "introduce_npc"],                "rollStat": "essence" },
+    "tide_up":            { "tools": ["change_form_state", "move_to"],          "rollStat": "viscosity" },
+    "wyrm_listen":        { "tools": ["sense"],                                  "rollStat": "awareness" },
+    "wait":               { "tools": ["pass_time"],                              "rollStat": null }
+  },
+
+  "_meta_verbs": {
+    "harden_skin":        "Briefly thicken your boundary into a chitinous resistance — incoming damage drops by 1 next turn but viscosity penalty until you soften.",
+    "release_pheromone":  "Release a chemical signal. Useful for calling to or warning specific NPCs; the message is ambient, not specific.",
+    "tide_up":            "Pour yourself UP a vertical surface using surface-tension. Costs more than a normal ooze but reaches places gravity wouldn't allow.",
+    "wyrm_listen":        "A signature move. Press your boundary against the deep stone and listen for the Long Wyrm. What you hear depends on the world's current phase."
   },
 
   "negativeVocab": {
@@ -113,6 +128,21 @@
         "id": "merge_briefly_with_debris",
         "narrative": "You are pinned to or fused with something inert; a tick passes before you can free yourself.",
         "tools": [{ "name": "pass_time", "ticks": 1 }]
+      },
+      {
+        "id": "wyrm_taste_in_water",
+        "narrative": "The water you absorbed has a far, deep flavor in it — older than this tunnel, older than this world. Something underneath has stirred.",
+        "tools": [
+          { "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 },
+          { "name": "sense", "tag": "$WYRM_PHASE" }
+        ]
+      },
+      {
+        "id": "wyrm_marked",
+        "narrative": "Your essence-knot brightens with a frequency that does not belong to you. Something marked you. The Long Wyrm knows where you are now.",
+        "tools": [
+          { "name": "change_form_state", "field": "wyrm_marked", "delta": 1 }
+        ]
       }
     ]
   },

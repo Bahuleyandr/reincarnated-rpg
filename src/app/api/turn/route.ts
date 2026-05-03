@@ -49,13 +49,22 @@ export async function POST(req: NextRequest) {
     const ctx = await resolveSessionContext(db, sessionId);
     const form = loadForm(ctx.formId);
     const location = loadLocation(ctx.locationId);
-    // Beat pack: only the typed slime quest exists today; for any
-    // other form/location combo we run without scripted milestones
-    // and let the narrator drive the story directly.
-    const beatPack =
-      ctx.formId === "lesser-slime" && ctx.locationId === "collapsed-tunnel"
-        ? loadBeatPack("survive-the-night")
-        : undefined;
+    // Beat pack: each campaign was assigned an arc at create time
+    // (see arc-routing.ts). Anon sessions and free-form runs hit
+    // the legacy slime+tunnel default, then fall through to no arc.
+    let beatPack: ReturnType<typeof loadBeatPack> | undefined;
+    if (ctx.arcId) {
+      try {
+        beatPack = loadBeatPack(ctx.arcId);
+      } catch {
+        beatPack = undefined;
+      }
+    } else if (
+      ctx.formId === "lesser-slime" &&
+      ctx.locationId === "collapsed-tunnel"
+    ) {
+      beatPack = loadBeatPack("survive-the-night");
+    }
     // BYO-LLM: if the player has saved /settings overrides, use their
     // provider + model. The campaign's pinned model wins over current
     // prefs when present, preserving voice continuity across /settings

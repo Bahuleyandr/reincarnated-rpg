@@ -83,6 +83,11 @@ export const campaigns = pgTable(
      *  current prefs are (legacy behavior). */
     pinnedPresetId: text("pinned_preset_id"),
     pinnedNarrationModel: text("pinned_narration_model"),
+    /** Which scripted beat pack this campaign is running. Picked
+     *  randomly at create time from the (formId, locationId)-
+     *  compatible pool in src/lib/game/arc-routing.ts. Null means
+     *  no arc — narrator runs free-form. */
+    arcId: text("arc_id"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

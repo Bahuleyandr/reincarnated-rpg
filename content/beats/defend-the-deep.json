@@ -1,0 +1,108 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Five beats for a dungeon-core run inside the Sunless Spire. Adventurers are ascending — looking for the thing at the top. The core has decided to claim the spire as its dungeon. Each beat tracks the adventurer's ascent; the core can deflect or kill them, but each kill feeds the wyrm. The win is to either bind the adventurer (through illusion or recruit) or push them out of the spire alive without being detected. Lose: integrity reaches 0."
+  },
+
+  "id": "defend-the-deep",
+  "displayName": "Defend the Deep",
+  "questId": "defend-the-deep",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-claim-the-spire",
+      "displayName": "Claim the Spire",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "Awareness gathers across the spire's stone — three rooms above, the breathing thing at the top, and yourself, a small clenched crystal in the mid-landing. The spire is not yet your dungeon. It can be.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "defend-the-deep",
+          "objective": "claim-the-spire",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-adventurer-enters",
+      "displayName": "The First Boot",
+      "trigger": { "any": [{ "turn": ">=2" }] },
+      "narrative": "The iron door at the spire's base opens. A single set of footsteps — careful, in good boots — begins the climb. You feel them on the second step, the fourth, the seventh.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "spire-adventurer",
+          "data": {
+            "name": "the adventurer",
+            "relationship": -1,
+            "templateId": "spire-adventurer"
+          }
+        }
+      ]
+    },
+    {
+      "id": "03-adventurer-deeper",
+      "displayName": "The Adventurer Deeper",
+      "trigger": {
+        "all": [
+          { "npcKnown": "spire-adventurer" },
+          { "turn": ">=4" }
+        ]
+      },
+      "narrative": "The adventurer reaches the mid-landing, looks east into the archive — and pauses. They have been here before. They know what they are looking for. They begin again, upward.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "footfall",
+          "detail": "deliberate, weight-shifted as if for a long climb"
+        }
+      ]
+    },
+    {
+      "id": "04-the-top-stirs",
+      "displayName": "The Thing at the Top Stirs",
+      "trigger": {
+        "any": [
+          { "turn": ">=6" },
+          { "form.state.wyrm_attuned": ">=1" }
+        ]
+      },
+      "narrative": "The thing at the top of the spire registers the adventurer's progress and shifts. It is older than your crystal. It is not a friend, but it is a useful enemy of your enemy — for now.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "vertical-pressure",
+          "detail": "an older predator settling its weight downward"
+        }
+      ]
+    },
+    {
+      "id": "05-spire-held",
+      "displayName": "Spire Held",
+      "trigger": {
+        "all": [
+          { "form.state.adventurer_resolved": ">=1" },
+          { "turn": ">=8" }
+        ]
+      },
+      "narrative": "The adventurer's outcome resolves — bound, fled, or worse — and the spire's stone settles around your crystal as something it is going to keep. You have a dungeon now.",
+      "oncePerSession": true,
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "defend-the-deep",
+          "objective": "claim-the-spire",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}

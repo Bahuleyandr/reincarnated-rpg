@@ -29,6 +29,10 @@
     "absorb_word",
     "bleed_ink",
     "rewrite_self",
+    "decode_passage",
+    "bind_reader",
+    "spark_marginalia",
+    "wyrm_inscription",
     "wait_for_a_reader",
     "wait"
   ],
@@ -40,8 +44,19 @@
     "absorb_word":        { "tools": ["absorb"],                                "rollStat": "awareness" },
     "bleed_ink":          { "tools": ["change_form_state"],                    "rollStat": "weight" },
     "rewrite_self":       { "tools": ["change_form_state", "introduce_npc"],   "rollStat": "will" },
+    "decode_passage":     { "tools": ["sense", "change_form_state"],           "rollStat": "awareness" },
+    "bind_reader":        { "tools": ["update_relationship", "change_form_state"], "rollStat": "will" },
+    "spark_marginalia":   { "tools": ["change_form_state", "sense"],           "rollStat": "will" },
+    "wyrm_inscription":   { "tools": ["sense", "change_form_state"],           "rollStat": "awareness" },
     "wait_for_a_reader":  { "tools": ["pass_time"],                             "rollStat": null },
     "wait":               { "tools": ["pass_time"],                             "rollStat": null }
+  },
+
+  "_meta_verbs": {
+    "decode_passage":     "Resolve a passage's hidden meaning that you can suddenly read clearly. Reveals a sense fact about the room or an NPC.",
+    "bind_reader":        "Press a particular thought into the mind of the reader currently holding you. They will not know it came from you. Costs ink.",
+    "spark_marginalia":   "Cause a marginal note to brighten or smudge unexpectedly, drawing or breaking attention.",
+    "wyrm_inscription":   "A signature move. A passage you didn't know you contained reveals itself, written in a hand older than language. What it shows depends on the Long Wyrm's current phase."
   },
 
   "negativeVocab": {
@@ -113,6 +128,19 @@
         "id": "carried_off",
         "narrative": "Hands, not yours, lift you. You go where they go.",
         "tools": [{ "name": "move_to", "roomId": "$WRONG_ROOM" }]
+      },
+      {
+        "id": "wyrm_passage_surfaces",
+        "narrative": "A page you have not yet shown anyone clarifies of its own accord. The text on it is not in your hand, and it is not addressed to you, and it is older than your binding.",
+        "tools": [
+          { "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 },
+          { "name": "sense", "tag": "$WYRM_PHASE" }
+        ]
+      },
+      {
+        "id": "wyrm_marked",
+        "narrative": "An ink-shape resolves on your front cover that was not there a turn ago. It is a coil. It is a long coil. The Long Wyrm has noticed you.",
+        "tools": [{ "name": "change_form_state", "field": "wyrm_marked", "delta": 1 }]
       }
     ]
   },
