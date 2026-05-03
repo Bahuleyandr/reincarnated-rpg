@@ -127,6 +127,13 @@
       "when": 1777821401272,
       "tag": "0017_lore_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1777823261283,
+      "tag": "0018_energy_tiers",
+      "breakpoints": true
     }
   ]
 }

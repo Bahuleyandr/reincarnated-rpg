@@ -55,6 +55,21 @@ export const users = pgTable("users", {
    *  operator. Lets the user nudge the meta-arc, inject world events,
    *  and tune the reincarnation picker's option weights from /god. */
   isAdmin: text("is_admin").notNull().default("false"),
+  /** Energy tier — gates daily turn budget. See lib/energy/tiers.ts
+   *  for the catalog. Default 'free'. Promotion to supporter/patron
+   *  is admin-only in v1; payment integration TBD. */
+  tier: text("tier").notNull().default("free"),
+  /** Current energy. Decrements 1 per turn; refills continuously up
+   *  to the tier max via the rate from tiers.ts. Set to free-tier max
+   *  on insert (handled in register/auth). */
+  energy: integer("energy").notNull().default(20),
+  /** Last time the energy column was updated by a refill or spend.
+   *  applyRegen() reads (now - this) and credits floor((delta) /
+   *  regenInterval) ticks, advancing this timestamp by exactly that
+   *  many intervals so partial intervals don't get lost. */
+  energyUpdatedAt: timestamp("energy_updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -153,6 +168,15 @@ export const sessions = pgTable(
      *  endpoint considers a session "live" if last_active_at is
      *  within the last 90 seconds. Null on legacy sessions. */
     lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
+    /** Anon-session energy. Mirrors users.energy but scoped to the
+     *  cookie-bound session for non-logged-in players. Logged-in
+     *  sessions IGNORE this column and read from users.* instead. */
+    energy: integer("energy").notNull().default(20),
+    energyUpdatedAt: timestamp("energy_updated_at", {
+      withTimezone: true,
+    })
+      .notNull()
+      .defaultNow(),
     startedAt: timestamp("started_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

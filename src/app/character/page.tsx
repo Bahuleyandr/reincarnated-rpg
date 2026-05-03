@@ -8,6 +8,13 @@ interface CharacterResp {
   totalCampaigns: number;
   campaignsByStatus: Record<string, number>;
   formDistribution: Array<{ formId: string; n: number }>;
+  energy: {
+    energy: number;
+    max: number;
+    tierId: string;
+    tierLabel: string;
+    turnsPerDay: number;
+  } | null;
   contributions: {
     total: number;
     totalDelta: number;
@@ -139,6 +146,38 @@ export default function CharacterPage() {
             accent="text-amber-300"
           />
         </section>
+
+        {data.energy && (
+          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-2">
+            <h2 className="text-stone-100 text-sm flex items-baseline justify-between">
+              <span>tier</span>
+              <span className="text-[10px] text-stone-500 font-normal">
+                upgrade is admin-managed in v1
+              </span>
+            </h2>
+            <div className="grid grid-cols-3 gap-3 text-xs">
+              <Stat
+                label="current tier"
+                value={data.energy.tierLabel}
+                accent="text-amber-300"
+              />
+              <Stat
+                label="energy"
+                value={`${data.energy.energy} / ${data.energy.max}`}
+              />
+              <Stat
+                label="turns/day"
+                value={`~${data.energy.turnsPerDay}`}
+                accent="text-stone-400"
+              />
+            </div>
+            <p className="text-[10px] text-stone-600 leading-4">
+              Each turn costs 1 energy. Energy refills continuously up
+              to your tier's max. Free tier resets at the rate that
+              gives ~32 turns/day; supporter ~72; patron ~144.
+            </p>
+          </section>
+        )}
 
         <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-2">
           <h2 className="text-stone-100 text-sm">

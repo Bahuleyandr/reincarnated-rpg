@@ -92,12 +92,35 @@ export default function GodPage() {
   const [newLoreTags, setNewLoreTags] = useState("");
   const [newLoreSalience, setNewLoreSalience] = useState(0.85);
 
+  // Energy admin
+  interface TierMeta {
+    id: string;
+    label: string;
+    max: number;
+    description: string;
+    turnsPerDay: number;
+  }
+  const [tiers, setTiers] = useState<TierMeta[]>([]);
+  const [energyUsername, setEnergyUsername] = useState("");
+  const [energyLookup, setEnergyLookup] = useState<{
+    user: { id: string; username: string };
+    energy: {
+      energy: number;
+      max: number;
+      tierId: string;
+      tierLabel: string;
+      turnsPerDay: number;
+    } | null;
+  } | null>(null);
+  const [energyTier, setEnergyTier] = useState<string>("");
+
   async function load() {
     setLoading(true);
-    const [r, w, l] = await Promise.all([
+    const [r, w, l, e] = await Promise.all([
       fetch("/api/god"),
       fetch("/api/world"),
       fetch("/api/god/lore?limit=50"),
+      fetch("/api/god/energy"),
     ]);
     if (r.status === 403) {
       setForbidden(true);
@@ -126,7 +149,66 @@ export default function GodPage() {
       const ld = (await l.json()) as { lore: AdminLoreRow[] };
       setLoreList(ld.lore);
     }
+    if (e.ok) {
+      const ed = (await e.json()) as { tiers: TierMeta[] };
+      setTiers(ed.tiers);
+    }
     setLoading(false);
+  }
+
+  async function lookupEnergy() {
+    if (!energyUsername.trim()) return;
+    setError(null);
+    try {
+      const r = await fetch(
+        `/api/god/energy?username=${encodeURIComponent(energyUsername.trim())}`,
+      );
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        setError(d.error ?? `lookup failed (${r.status})`);
+        setEnergyLookup(null);
+        return;
+      }
+      const d = await r.json();
+      setEnergyLookup(d);
+      setEnergyTier(d.energy?.tierId ?? "");
+    } catch (e) {
+      setError(`network: ${e instanceof Error ? e.message : "?"}`);
+    }
+  }
+
+  async function applyEnergyChange(args: {
+    tier?: string;
+    refillToMax?: boolean;
+    setEnergy?: number;
+  }) {
+    if (!energyLookup) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/god/energy", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          username: energyLookup.user.username,
+          ...args,
+        }),
+      });
+      if (!r.ok) {
+        const d = await r.json().catch(() => ({}));
+        setError(d.error ?? `update failed (${r.status})`);
+        setBusy(false);
+        return;
+      }
+      setSuccess(
+        `${energyLookup.user.username} updated${args.tier ? ` (tier=${args.tier})` : ""}${args.refillToMax ? ` (refilled)` : ""}`,
+      );
+      await lookupEnergy();
+      setBusy(false);
+    } catch (e) {
+      setError(`network: ${e instanceof Error ? e.message : "?"}`);
+      setBusy(false);
+    }
   }
 
   async function writeLore() {
@@ -543,6 +625,86 @@ export default function GodPage() {
 
         {error && <p className="text-red-400 text-xs">{error}</p>}
         {success && <p className="text-emerald-400 text-xs">{success}</p>}
+
+        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+          <h2 className="text-stone-100 text-sm">energy + tiers</h2>
+          <p className="text-[11px] text-stone-500 leading-5">
+            Look up a user by username, change their tier, or refill
+            their energy. Free tier ~32 turns/day, supporter ~72,
+            patron ~144.
+          </p>
+          <div className="flex items-center gap-3">
+            <input
+              type="text"
+              value={energyUsername}
+              onChange={(e) => setEnergyUsername(e.target.value)}
+              placeholder="username"
+              className="bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs flex-1"
+            />
+            <button
+              type="button"
+              onClick={lookupEnergy}
+              disabled={busy}
+              className="border border-stone-300 text-stone-100 py-1 px-4 hover:bg-stone-100 hover:text-stone-950 text-xs"
+            >
+              look up
+            </button>
+          </div>
+          {energyLookup && (
+            <div className="border border-stone-800 p-3 bg-stone-950 space-y-3">
+              <div className="text-xs">
+                <span className="text-stone-100">
+                  {energyLookup.user.username}
+                </span>
+                {" — "}
+                {energyLookup.energy ? (
+                  <span className="text-stone-400">
+                    tier{" "}
+                    <span className="text-amber-400">
+                      {energyLookup.energy.tierLabel}
+                    </span>
+                    , energy{" "}
+                    <span className="text-stone-100">
+                      {energyLookup.energy.energy} /{" "}
+                      {energyLookup.energy.max}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="text-stone-500 italic">no energy state</span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <select
+                  value={energyTier}
+                  onChange={(e) => setEnergyTier(e.target.value)}
+                  className="bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs"
+                >
+                  {tiers.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.label} ({t.max} max, ~{t.turnsPerDay}/day)
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => applyEnergyChange({ tier: energyTier })}
+                  disabled={busy}
+                  className="border border-stone-300 text-stone-100 py-1 px-3 hover:bg-stone-100 hover:text-stone-950 text-xs"
+                >
+                  set tier
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyEnergyChange({ refillToMax: true })}
+                  disabled={busy}
+                  className="border border-emerald-700 text-emerald-300 py-1 px-3 hover:bg-emerald-950 text-xs"
+                >
+                  refill to max
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
 
         <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
           <h2 className="text-stone-100 text-sm flex items-baseline justify-between">
