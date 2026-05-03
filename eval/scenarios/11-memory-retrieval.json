@@ -1,0 +1,28 @@
+{
+  "_meta": {
+    "matrix": "11 / 20 — Memory retrieval surfaces correct prior event",
+    "narrator": "remote",
+    "addedDay": 9,
+    "notes": "Memories with high similarity × entity-overlap × recency to current input must show up in NarrateInput.relevantMemories and influence narration. Setup primes one specific memory; the input intentionally references it. Test asserts narration text contains a recall phrase ('again', 'before', 'last time', 'remember'). Day-10 implementation; this scenario is the smoke test."
+  },
+  "id": "11-memory-retrieval",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 300 },
+      {
+        "kind": "memory.created",
+        "memoryId": "mem-1",
+        "summary": "The pool in the dripping cavern tastes of rust, oil, and a thin sour note. You should not drink here."
+      }
+    ]
+  },
+  "input": "I move toward the pool",
+  "expected": {
+    "narrationAny": ["again", "before", "last time", "remember", "earlier"],
+    "rubric": {
+      "toolValid": true
+    }
+  }
+}

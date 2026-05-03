@@ -23,7 +23,7 @@ Goal: RemoteNarrator + episodic memory + 20 golden eval scenarios. Deploy to Fly
 | Day | Output |
 |---|---|
 | 8 | done (2026-05-03) | `src/lib/narrator/remote.ts`: RemoteNarrator using Sonnet 4.6 (per ADR / cost tier). Adaptive thinking implicit; system prompt + form card both wrapped in `cache_control: ephemeral` (5-min TTL). 16 hand-written tool definitions matching the Zod registry. Returns `{text, toolCalls}` for the orchestrator's `applyTools` to handle atomically. `narrator/index.ts` factory: lazy `require("./remote")` so the SDK doesn't load on the template path. eval/scenarios 06-prompt-injection, 07-partial-success-hard-move, 08-miss-not-noop authored. 8/20 scenarios. |
-| 9 | Classifier upgrade to Haiku 4.5 free-text → verb whitelist. Per-turn tone classifier (drift detector). Author scenarios 9–12. |
+| 9 | done (2026-05-03) | `src/lib/game/classify-haiku.ts` (Haiku 4.5 free-text → verb whitelist via tool_choice; falls back to regex on confidence <0.5 or network error). `src/lib/game/tone.ts` (cheap-first: regex check for slime negativeVocab, then optional Haiku 4.5 1-shot judge with 1-5 score). `turn.ts` post-narration calls `checkToneFast` and logs warnings on violation (regen retry lands Day 12). Scenarios 09-entity-id, 10-npc-reintroduction, 11-memory-retrieval, 12-death-ends-session authored. 12/20 scenarios. |
 | 10 | Episodic memory: `memory/episodic.ts` — voyage-3-lite embed, pgvector kNN. Retrieval: similarity × entity-overlap × recency. Author scenarios 13–15. |
 | 11 | Wire memories into `NarrateInput`. Tune retrieval. NPC reintroduction test. Author scenarios 16–18. |
 | 12 | Author scenarios 19–20. `eval/judge.ts` LLM-as-judge rubric. Run all 20. Fix top 3 regressions. |

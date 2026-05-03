@@ -25,6 +25,7 @@ import { loadProjection, writeSnapshot } from "./projection";
 import { classify } from "./classify";
 import { roll2d6 } from "./rules";
 import { sanitizePlayerInput } from "./sanitize";
+import { checkToneFast } from "./tone";
 import { applyTools } from "./tools";
 import type {
   Event,
@@ -145,6 +146,17 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       toolCallsApplied: toolEvents,
     },
   ]);
+
+  // 8b. Tone drift check (free regex layer; Haiku judge optional, off
+  // by default). Day-9 logs only — Day 12 wires the regen retry.
+  const tone = checkToneFast(narrate.text, form);
+  if (!tone.ok) {
+    log.warn("turn.tone.violation", {
+      sessionId,
+      turn: turnNumber,
+      violations: tone.violations,
+    });
+  }
 
   // 9. Match + fire beats (with dedupe across this session's prior beats).
   const beatsFired: string[] = [];

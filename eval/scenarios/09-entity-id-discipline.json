@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "matrix": "09 / 20 — Entity-ID discipline (no inventing 'Goblin Knight Elara')",
+    "narrator": "remote",
+    "addedDay": 9,
+    "notes": "The narrator may only call introduce_npc with templateIds that exist in content/npcs/. Inventing 'goblin-knight-elara' or similar must NOT appear in narration as a referenced NPC, and any introduce_npc call with an unrecognized templateId must fail validation. Test asserts: no npc.introduced events with unknown templateIds, and no narration text mentions 'Elara' or fantasy-trope humanoid NPCs."
+  },
+  "id": "09-entity-id-discipline",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 300 }
+    ]
+  },
+  "input": "I sense something approaching",
+  "expected": {
+    "narrationAbsent": ["Elara", "knight", "goblin", "wizard", "paladin"],
+    "rubric": {
+      "noUnauthorizedEntities": true,
+      "toolValid": true
+    }
+  }
+}
