@@ -25,6 +25,10 @@ export function makeNarrator(args: {
   form: FormTemplate;
   location: LocationTemplate;
   model?: string;
+  /** Optional telemetry sink — if set, RemoteNarrator writes per-call
+   *  rows into ai_calls. Required if you want cost/latency analytics. */
+  db?: import("../db/client").Db;
+  sessionId?: string;
 }): Narrator {
   const mode = args.mode ?? getNarratorMode();
   if (mode === "remote") {
@@ -36,6 +40,8 @@ export function makeNarrator(args: {
       form: args.form,
       location: args.location,
       model: args.model,
+      db: args.db,
+      sessionId: args.sessionId,
     });
   }
   return new TemplateNarrator({ form: args.form, location: args.location });

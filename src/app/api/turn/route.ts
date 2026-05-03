@@ -42,7 +42,12 @@ export async function POST(req: NextRequest) {
     const form = loadForm("lesser-slime");
     const location = loadLocation("collapsed-tunnel");
     const beatPack = loadBeatPack("survive-the-night");
-    const narrator = makeNarrator({ form, location });
+    const narrator = makeNarrator({
+      form,
+      location,
+      db,
+      sessionId: verified.sessionId,
+    });
 
     const result = await runTurn({
       db,

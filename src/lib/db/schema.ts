@@ -174,6 +174,43 @@ export const templatesQuests = pgTable("templates_quests", {
     .defaultNow(),
 });
 
+/**
+ * Per-LLM-call telemetry. One row per request to Anthropic / Voyage /
+ * future providers. Lets us answer "what did this turn cost?" without
+ * grepping JSON-line logs.
+ *
+ * Token fields match the Anthropic Messages API usage shape:
+ *   - inputTokens     = un-cached prompt tokens (full price)
+ *   - cacheReadTokens = served-from-cache tokens (~0.1× price)
+ *   - cacheCreateTokens = written-to-cache tokens (~1.25× price for 5m TTL)
+ *   - outputTokens    = generation tokens
+ */
+export const aiCalls = pgTable(
+  "ai_calls",
+  {
+    id: uuid("id").primaryKey(),
+    sessionId: uuid("session_id").references(() => sessions.id, {
+      onDelete: "set null",
+    }),
+    callType: text("call_type").notNull(),
+    model: text("model").notNull(),
+    inputTokens: integer("input_tokens").notNull().default(0),
+    outputTokens: integer("output_tokens").notNull().default(0),
+    cacheReadTokens: integer("cache_read_tokens").notNull().default(0),
+    cacheCreateTokens: integer("cache_create_tokens").notNull().default(0),
+    durationMs: integer("duration_ms").notNull().default(0),
+    success: text("success").notNull().default("true"),
+    errorMsg: text("error_msg"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("ai_calls_session_idx").on(t.sessionId),
+    index("ai_calls_created_at_idx").on(t.createdAt),
+  ],
+);
+
 export type Session = typeof sessions.$inferSelect;
 export type NewSession = typeof sessions.$inferInsert;
 export type EventRow = typeof events.$inferSelect;
@@ -189,5 +226,7 @@ export type LocationTemplateRow = typeof templatesLocations.$inferSelect;
 export type NpcTemplateRow = typeof templatesNpcs.$inferSelect;
 export type ItemTemplateRow = typeof templatesItems.$inferSelect;
 export type QuestTemplateRow = typeof templatesQuests.$inferSelect;
+export type AiCallRow = typeof aiCalls.$inferSelect;
+export type NewAiCallRow = typeof aiCalls.$inferInsert;
 
 export const _sql = sql; // re-export for migration writers if needed

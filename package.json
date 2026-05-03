@@ -23,7 +23,8 @@
     "test:unit": "jest --testPathPatterns=tests/unit",
     "test:integration": "jest --testPathPatterns=tests/integration --runInBand",
     "test:e2e": "playwright test",
-    "eval": "tsx eval/runner.ts"
+    "eval": "tsx eval/runner.ts",
+    "report:ai-cost": "tsx scripts/report-ai-cost.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.92.0",

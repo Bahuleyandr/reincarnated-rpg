@@ -30,6 +30,7 @@ import type {
   Narrator,
   ToolCall,
 } from "../game/types";
+import { recordAiCall } from "../util/ai-telemetry";
 import { env } from "../util/env";
 import { log } from "../util/log";
 
@@ -249,6 +250,12 @@ interface RemoteNarratorArgs {
   form: FormTemplate;
   location: LocationTemplate;
   model?: string;
+  /** Optional db handle so each narrate writes a row to ai_calls.
+   *  Pass `db` from `lib/db/client` at the call site. Without it,
+   *  telemetry just goes to the JSON-line log. */
+  db?: import("../db/client").Db;
+  /** Required if `db` is set so the row joins to the session. */
+  sessionId?: string;
 }
 
 export class RemoteNarrator implements Narrator {
@@ -257,6 +264,8 @@ export class RemoteNarrator implements Narrator {
   private form: FormTemplate;
   private location: LocationTemplate;
   private model: string;
+  private db?: import("../db/client").Db;
+  private sessionId?: string;
 
   constructor(args: RemoteNarratorArgs) {
     const apiKey = env().ANTHROPIC_API_KEY;
@@ -269,6 +278,8 @@ export class RemoteNarrator implements Narrator {
     this.form = args.form;
     this.location = args.location;
     this.model = args.model ?? "claude-sonnet-4-6";
+    this.db = args.db;
+    this.sessionId = args.sessionId;
 
     const formJson = JSON.parse(
       readFileSync(
@@ -283,24 +294,41 @@ export class RemoteNarrator implements Narrator {
     const userMessage = buildUserMessage(input, this.location);
 
     const t0 = Date.now();
-    const response = await this.client.messages.create({
-      model: this.model,
-      max_tokens: 1024,
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
-        {
-          type: "text",
-          text: this.formCard,
-          cache_control: { type: "ephemeral" },
-        },
-      ],
-      tools: TOOL_DEFINITIONS,
-      messages: [{ role: "user", content: userMessage }],
-    });
+    let response;
+    try {
+      response = await this.client.messages.create({
+        model: this.model,
+        max_tokens: 1024,
+        system: [
+          {
+            type: "text",
+            text: SYSTEM_PROMPT,
+            cache_control: { type: "ephemeral" },
+          },
+          {
+            type: "text",
+            text: this.formCard,
+            cache_control: { type: "ephemeral" },
+          },
+        ],
+        tools: TOOL_DEFINITIONS,
+        messages: [{ role: "user", content: userMessage }],
+      });
+    } catch (err) {
+      const durationMs = Date.now() - t0;
+      const message = err instanceof Error ? err.message : String(err);
+      if (this.db) {
+        await recordAiCall(this.db, {
+          sessionId: this.sessionId,
+          callType: "narrator",
+          model: this.model,
+          durationMs,
+          success: false,
+          errorMsg: message,
+        });
+      }
+      throw err;
+    }
 
     let text = "";
     const toolCalls: ToolCall[] = [];
@@ -318,9 +346,10 @@ export class RemoteNarrator implements Narrator {
       toolCalls.push({ name: "narrate_only" });
     }
 
+    const durationMs = Date.now() - t0;
     log.info("narrate.remote.complete", {
       model: this.model,
-      durationMs: Date.now() - t0,
+      durationMs,
       cacheRead: response.usage.cache_read_input_tokens ?? 0,
       cacheCreate: response.usage.cache_creation_input_tokens ?? 0,
       input: response.usage.input_tokens,
@@ -328,6 +357,19 @@ export class RemoteNarrator implements Narrator {
       stopReason: response.stop_reason,
       toolUseCount: toolCalls.length,
     });
+
+    if (this.db) {
+      await recordAiCall(this.db, {
+        sessionId: this.sessionId,
+        callType: "narrator",
+        model: this.model,
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
+        cacheCreateTokens: response.usage.cache_creation_input_tokens ?? 0,
+        durationMs,
+      });
+    }
 
     return { text: text.trim(), toolCalls };
   }

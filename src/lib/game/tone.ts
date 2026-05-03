@@ -18,6 +18,8 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 
+import type { Db } from "../db/client";
+import { recordAiCall } from "../util/ai-telemetry";
 import { env } from "../util/env";
 import type { FormTemplate } from "./types";
 
@@ -82,6 +84,7 @@ export function checkToneFast(
 export async function checkTone(
   narration: string,
   form: FormTemplate,
+  telemetry?: { db: Db; sessionId?: string },
 ): Promise<ToneResult> {
   const fast = checkToneFast(narration, form);
   if (!fast.ok) return fast;
@@ -110,6 +113,7 @@ export async function checkTone(
     },
   ];
 
+  const t0 = Date.now();
   try {
     const response = await getClient().messages.create({
       model: "claude-haiku-4-5",
@@ -128,6 +132,19 @@ Score 1-5: is this second-person and tonally on-form for the slime form? A slime
       ],
     });
 
+    if (telemetry?.db) {
+      await recordAiCall(telemetry.db, {
+        sessionId: telemetry.sessionId,
+        callType: "tone_judge",
+        model: "claude-haiku-4-5",
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
+        cacheCreateTokens: response.usage.cache_creation_input_tokens ?? 0,
+        durationMs: Date.now() - t0,
+      });
+    }
+
     for (const block of response.content) {
       if (block.type === "tool_use" && block.name === "judge_tone") {
         const data = block.input as { score: number; reason: string };
@@ -139,7 +156,17 @@ Score 1-5: is this second-person and tonally on-form for the slime form? A slime
         };
       }
     }
-  } catch {
+  } catch (err) {
+    if (telemetry?.db) {
+      await recordAiCall(telemetry.db, {
+        sessionId: telemetry.sessionId,
+        callType: "tone_judge",
+        model: "claude-haiku-4-5",
+        durationMs: Date.now() - t0,
+        success: false,
+        errorMsg: err instanceof Error ? err.message : String(err),
+      });
+    }
     // Judge unavailable; trust layer 1.
     return fast;
   }

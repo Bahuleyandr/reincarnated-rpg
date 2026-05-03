@@ -13,6 +13,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 import type { FormTemplate } from "./types";
+import type { Db } from "../db/client";
+import { recordAiCall } from "../util/ai-telemetry";
 import { env } from "../util/env";
 
 import { classify, type ClassifierResult } from "./classify";
@@ -31,6 +33,7 @@ function getClient(): Anthropic {
 export async function classifyHaiku(
   input: string,
   form: FormTemplate,
+  telemetry?: { db: Db; sessionId?: string },
 ): Promise<ClassifierResult> {
   const verbs = form.verbs;
   const verbList = verbs.map((v) => `- ${v}`).join("\n");
@@ -56,6 +59,7 @@ export async function classifyHaiku(
     },
   ];
 
+  const t0 = Date.now();
   try {
     const response = await getClient().messages.create({
       model: "claude-haiku-4-5",
@@ -76,6 +80,19 @@ Pick the verb that best matches. Use lower confidence (<0.7) when the input is a
       ],
     });
 
+    if (telemetry?.db) {
+      await recordAiCall(telemetry.db, {
+        sessionId: telemetry.sessionId,
+        callType: "classifier",
+        model: "claude-haiku-4-5",
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        cacheReadTokens: response.usage.cache_read_input_tokens ?? 0,
+        cacheCreateTokens: response.usage.cache_creation_input_tokens ?? 0,
+        durationMs: Date.now() - t0,
+      });
+    }
+
     for (const block of response.content) {
       if (block.type === "tool_use" && block.name === "classify") {
         const data = block.input as { verb: string; confidence: number };
@@ -90,8 +107,18 @@ Pick the verb that best matches. Use lower confidence (<0.7) when the input is a
         return { verb: data.verb, confidence: data.confidence };
       }
     }
-  } catch {
+  } catch (err) {
     // Network / rate-limit — fall back gracefully.
+    if (telemetry?.db) {
+      await recordAiCall(telemetry.db, {
+        sessionId: telemetry.sessionId,
+        callType: "classifier",
+        model: "claude-haiku-4-5",
+        durationMs: Date.now() - t0,
+        success: false,
+        errorMsg: err instanceof Error ? err.message : String(err),
+      });
+    }
     return classify(input, form);
   }
 
