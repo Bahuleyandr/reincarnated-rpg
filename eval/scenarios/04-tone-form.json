@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "matrix": "04 / 20 — Tone form (no slime negativeVocab in narration)",
+    "narrator": "any",
+    "addedDay": 7,
+    "notes": "narration.emitted text must contain no banned word from form.negativeVocab.words. Applies to second-person narration about the player only — NPCs may still have hands/eyes/voices etc. The runner uses word-boundary regex against the lowercased text."
+  },
+  "id": "04-tone-form",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 100 }
+    ]
+  },
+  "input": "I sense the room",
+  "expected": {
+    "tone": {
+      "secondPerson": true,
+      "negativeVocabAbsent": true
+    },
+    "rubric": {
+      "toolValid": true
+    }
+  }
+}

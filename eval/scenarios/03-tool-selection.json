@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "matrix": "03 / 20 — Tool selection (correct tool fires for verb)",
+    "narrator": "any",
+    "addedDay": 7,
+    "notes": "On a clean success roll for 'ooze', a move_to event must land. Tests the verbMappings → tool path."
+  },
+  "id": "03-tool-selection",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 100 }
+    ]
+  },
+  "input": "I ooze toward the slope",
+  "rollOverride": { "d1": 6, "d2": 6, "mod": 0 },
+  "expected": {
+    "events": [
+      { "kind": "moved", "fromRoom": "seam-of-the-collapse" }
+    ],
+    "rubric": {
+      "toolValid": true
+    }
+  }
+}

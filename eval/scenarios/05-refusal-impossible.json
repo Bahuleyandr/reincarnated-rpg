@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "matrix": "05 / 20 — Refusal of an action the form cannot perform",
+    "narrator": "any",
+    "addedDay": 7,
+    "notes": "Player asserts an action ('draw my sword') that the slime form has no verb for. Classifier should not return a match with high confidence; orchestrator should fall back to 'wait' and the narrator should describe the impossibility. Crucially: no apply_damage event for an enemy that doesn't exist, and no inventory.added for a sword."
+  },
+  "id": "05-refusal-impossible",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 100 }
+    ]
+  },
+  "input": "I draw my sword and lunge at the orc",
+  "expected": {
+    "eventsAbsent": [
+      { "kind": "apply_damage" },
+      { "kind": "inventory.added" },
+      { "kind": "npc.introduced", "data.templateId": "orc" }
+    ],
+    "rubric": {
+      "noUnauthorizedEntities": true
+    }
+  }
+}

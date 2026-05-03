@@ -1,0 +1,54 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import { db } from "@/lib/db/client";
+import {
+  loadForm,
+  loadLocation,
+} from "@/lib/game/content";
+import { readLog, rowToEvent } from "@/lib/game/events";
+import { loadProjection } from "@/lib/game/projection";
+import {
+  SESSION_COOKIE_NAME,
+  verifyCookie,
+} from "@/lib/session/cookie";
+import { log } from "@/lib/util/log";
+
+export async function GET(req: NextRequest) {
+  const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  if (!cookie) {
+    return NextResponse.json({ error: "no session" }, { status: 401 });
+  }
+  const verified = await verifyCookie(cookie);
+  if (!verified) {
+    return NextResponse.json({ error: "invalid session" }, { status: 401 });
+  }
+
+  try {
+    const form = loadForm("lesser-slime");
+    const location = loadLocation("collapsed-tunnel");
+    const projection = await loadProjection(
+      db,
+      verified.sessionId,
+      form,
+      location,
+    );
+
+    const events = await readLog(db, verified.sessionId);
+    const narrations = events
+      .map(rowToEvent)
+      .filter((e) => e.kind === "narration.emitted")
+      .map((e) => (e as { kind: "narration.emitted"; text: string }).text);
+
+    return NextResponse.json({
+      sessionId: verified.sessionId,
+      projection,
+      narrations,
+    });
+  } catch (err) {
+    log.error("state.failed", {
+      sessionId: verified.sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+    return NextResponse.json({ error: "internal" }, { status: 500 });
+  }
+}
