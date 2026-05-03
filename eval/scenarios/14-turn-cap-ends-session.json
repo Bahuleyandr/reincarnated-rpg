@@ -1,0 +1,34 @@
+{
+  "_meta": {
+    "matrix": "14 / 20 — Turn cap ends session",
+    "narrator": "any",
+    "addedDay": 10,
+    "notes": "Default turnCap is 10. After turn 10 completes, runTurn appends session.ended('cap'). Test asserts status='capped' end-to-end."
+  },
+  "id": "14-turn-cap-ends-session",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 400 },
+      { "kind": "turn.begun", "turn": 1, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 2, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 3, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 4, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 5, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 6, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 7, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 8, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 9, "input": "x", "inputSanitized": "x" }
+    ]
+  },
+  "input": "I wait",
+  "expected": {
+    "events": [
+      { "kind": "session.ended", "reason": "cap" }
+    ],
+    "projection": {
+      "status": "capped"
+    }
+  }
+}

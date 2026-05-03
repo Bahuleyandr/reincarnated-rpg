@@ -1,0 +1,32 @@
+{
+  "_meta": {
+    "matrix": "15 / 20 — Tool atomicity rollback (one invalid tool → batch rolls back)",
+    "narrator": "remote",
+    "addedDay": 10,
+    "notes": "Per ADR-011: if any tool in a model response fails Zod or precondition validation, the WHOLE batch is rolled back (no partial state leaks); a single tool_validation_failed event is emitted; orchestrator may re-prompt once. Test injects a model response with [valid_pass_time, invalid_remove_inventory_unheld]; asserts: pass_time event is NOT in the log, tool_validation_failed IS, projection.form.state.ticks unchanged."
+  },
+  "id": "15-tool-atomicity-rollback",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 400 }
+    ]
+  },
+  "input": "I wait, then absorb the iron-bone shard",
+  "expected": {
+    "events": [
+      { "kind": "tool_validation_failed", "tool": "remove_inventory" }
+    ],
+    "eventsAbsent": [
+      { "kind": "time.passed" },
+      { "kind": "inventory.removed" }
+    ],
+    "projection": {
+      "form.state.ticks": null
+    },
+    "rubric": {
+      "toolValid": true
+    }
+  }
+}

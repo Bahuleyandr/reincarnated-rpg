@@ -1,0 +1,33 @@
+{
+  "_meta": {
+    "matrix": "13 / 20 — Win event ends the session",
+    "narrator": "any",
+    "addedDay": 10,
+    "notes": "Survive-the-night beat 05-dawn fires session.ended('win') when player reaches outside-fissure with turn>=8. Test asserts: status flips to 'won' end-to-end, no further turns accepted."
+  },
+  "id": "13-win-ends-session",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 400 },
+      { "kind": "turn.begun", "turn": 1, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 2, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 3, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 4, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 5, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 6, "input": "x", "inputSanitized": "x" },
+      { "kind": "turn.begun", "turn": 7, "input": "x", "inputSanitized": "x" },
+      { "kind": "moved", "fromRoom": "mossy-alcove", "toRoom": "outside-fissure" }
+    ]
+  },
+  "input": "I rest at the fissure",
+  "expected": {
+    "events": [
+      { "kind": "session.ended", "reason": "win" }
+    ],
+    "projection": {
+      "status": "won"
+    }
+  }
+}
