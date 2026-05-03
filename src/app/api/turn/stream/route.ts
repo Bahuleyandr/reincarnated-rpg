@@ -31,6 +31,7 @@ import {
 import { runTurn } from "@/lib/game/turn";
 import { trySpend } from "@/lib/energy/state";
 import { getCurrentArc, phaseForProgress } from "@/lib/meta/long-wyrm";
+import { moderate } from "@/lib/moderation";
 import { activeTheme } from "@/lib/world/weekly-theme";
 import { makeNarrator } from "@/lib/narrator";
 import { TemplateNarrator } from "@/lib/narrator/template";
@@ -80,6 +81,26 @@ export async function POST(req: NextRequest) {
     return new Response(
       sseLine({ type: "error", error: "missing input" }),
       { status: 400, headers: { "content-type": "text/event-stream" } },
+    );
+  }
+
+  // Moderation gate: must run BEFORE trySpend so injection attempts
+  // don't drain energy. See /api/turn/route.ts for the full rationale.
+  const moderation = moderate(input);
+  if (moderation.verdict === "injection") {
+    log.warn("turn.stream.moderation.injection_blocked", {
+      sessionId,
+      hits: moderation.injectionHits.map((h) => h.pattern),
+    });
+    return new Response(
+      JSON.stringify({
+        error: moderation.playerMessage ?? "injection rejected",
+        injectionBlocked: true,
+      }),
+      {
+        status: 400,
+        headers: { "content-type": "application/json" },
+      },
     );
   }
 
@@ -209,6 +230,7 @@ export async function POST(req: NextRequest) {
         beatPack,
         turnCap: turnCapOverride,
         starterFormState,
+        moderation,
         world: verified.userId
           ? {
               userId: verified.userId,

@@ -61,6 +61,17 @@ export const SAFETY_CAPS = {
    *  below this. The user's spec: 10 base, 30 max, capped with all
    *  bonuses. */
   inventoryHardMax: 30,
+  /** Max number of tool calls a single model response may emit per
+   *  turn. Anti-power-creep: a narrator that emits 30 tool calls is
+   *  almost certainly hallucinating an action movie; cap forces it
+   *  to consolidate into a coherent beat instead. The orchestrator
+   *  trims overflow before validation, recording the truncation in
+   *  the tool_validation_failed event log. */
+  maxToolsPerTurn: 6,
+  /** Per-call grant_xp cap. Tightened from the zod max (999) so a
+   *  single turn can't level the player into orbit. Multiple
+   *  grant_xp calls per turn still stack but each is small. */
+  grantXpPerCallMax: 50,
 } as const;
 
 /**
@@ -164,7 +175,10 @@ const toolSchemas = {
   }),
   grant_xp: z.object({
     name: z.literal("grant_xp"),
-    amount: z.number().int().min(0).max(999),
+    /** Power-creep cap: 0..50 per call. Multiple grant_xp tools per
+     *  turn still stack but each individual call stays in a sane
+     *  range. The narrator cannot dump "+999 XP" in one tool call. */
+    amount: z.number().int().min(0).max(50),
     reason: nonEmptyString,
   }),
   create_memory: z.object({
@@ -222,6 +236,25 @@ export async function applyTools(
 ): Promise<ApplyToolsResult> {
   if (tools.length === 0) {
     return { ok: true, events: [] };
+  }
+
+  // Anti-power-creep: a single turn cannot emit more than
+  // SAFETY_CAPS.maxToolsPerTurn tool calls. If the model bursts
+  // beyond that, treat the whole batch as a validation failure so
+  // the existing retry path prompts the narrator to consolidate.
+  if (tools.length > SAFETY_CAPS.maxToolsPerTurn) {
+    const failure: ToolValidationFailure = {
+      tool: "(batch)",
+      error: `too many tool calls in one turn: ${tools.length} > ${SAFETY_CAPS.maxToolsPerTurn}`,
+    };
+    await appendEvents(db, sessionId, [
+      {
+        kind: "tool_validation_failed",
+        tool: failure.tool,
+        error: failure.error,
+      },
+    ]);
+    return { ok: false, failure };
   }
 
   for (const tool of tools) {
