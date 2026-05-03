@@ -177,6 +177,11 @@ export interface Projection {
     stats: Record<string, number>;
     state: Record<string, number>;
   };
+  /** Free-text identity from the player ("a cursed armor that
+   *  remembers its owner"). Set when the campaign was created with a
+   *  custom reincarnation; null for typed forms where the form
+   *  template fully describes the identity. */
+  reincarnatedAs?: string | null;
   location: {
     id: string;
     roomId: string;
@@ -228,6 +233,34 @@ export interface NarrateInput {
   /** Set on the second pass (one-shot retry per ADR-011 / day-9 tone). */
   previousAttempt?: PreviousAttempt;
 }
+
+/**
+ * Map a free-text reincarnation declaration to the formId we'll use
+ * for mechanics. Keyword-based — generous so common phrasings hit
+ * typed forms with their full anti-drift scaffolding, and anything
+ * we haven't authored falls back to generic-creature.
+ *
+ * Add a case here when you ship a new typed form.
+ */
+export function pickFormId(reincarnatedAs: string | null | undefined): string {
+  if (!reincarnatedAs) return "lesser-slime";
+  const s = reincarnatedAs.toLowerCase();
+  if (/\bslime\b|\booze\b|\bjelly\b/.test(s)) return "lesser-slime";
+  // Future typed forms slot in here:
+  //   if (/\bbook\b|\btome\b|\bgrimoire\b/.test(s)) return "cursed-book";
+  //   if (/\bdragon\b.*\begg\b|\begg\b.*\bdragon\b/.test(s)) return "dragon-egg";
+  //   if (/\bdungeon\b.*\bcore\b/.test(s)) return "dungeon-core";
+  return "generic-creature";
+}
+
+/** Available locations a campaign can pick. Used by random-start. */
+export const AVAILABLE_LOCATIONS = [
+  "collapsed-tunnel",
+  "forsaken-village",
+  "sunless-spire",
+] as const;
+
+export type LocationId = (typeof AVAILABLE_LOCATIONS)[number];
 
 export interface NarrateOutput {
   text: string;

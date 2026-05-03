@@ -283,6 +283,39 @@ export class RemoteNarrator implements Narrator {
     this.formCard = buildSlimeFormCard(formJson);
   }
 
+  /**
+   * Compose the system prompt for this turn. The slime form card is
+   * cache-friendly (frozen across turns); the optional reincarnatedAs
+   * note rides as its own block so it changes per-campaign without
+   * invalidating the form-card cache. cache_control on the slime
+   * card stays in place.
+   */
+  private buildSystem(reincarnatedAs?: string | null) {
+    const blocks: Array<{
+      type: "text";
+      text: string;
+      cache_control?: { type: "ephemeral" };
+    }> = [
+      {
+        type: "text",
+        text: SYSTEM_PROMPT,
+        cache_control: { type: "ephemeral" },
+      },
+      {
+        type: "text",
+        text: this.formCard,
+        cache_control: { type: "ephemeral" },
+      },
+    ];
+    if (reincarnatedAs && this.form.id === "generic-creature") {
+      blocks.push({
+        type: "text",
+        text: `Specific reincarnation declared by the player: "${reincarnatedAs}". Use this to flavor every narration — the form template above is a generic frame; the player wakes specifically as the thing above. Match register, anatomy (or lack thereof), and the kinds of verbs that thing would use.`,
+      });
+    }
+    return blocks;
+  }
+
   async narrate(input: NarrateInput): Promise<NarrateOutput> {
     const userMessage = buildUserMessage(input, this.location);
 
@@ -292,18 +325,7 @@ export class RemoteNarrator implements Narrator {
       response = await this.provider.complete({
         model: this.model,
         maxTokens: 1024,
-        system: [
-          {
-            type: "text",
-            text: SYSTEM_PROMPT,
-            cache_control: { type: "ephemeral" },
-          },
-          {
-            type: "text",
-            text: this.formCard,
-            cache_control: { type: "ephemeral" },
-          },
-        ],
+        system: this.buildSystem(input.projection.reincarnatedAs),
         tools: TOOL_DEFINITIONS,
         messages: [{ role: "user", content: userMessage }],
       });
@@ -387,11 +409,17 @@ prior text: "${input.previousAttempt.text.slice(0, 200)}"
       ? "(none yet)"
       : input.relevantMemories.map((m) => `- ${m.summary}`).join("\n");
 
+  const reincarnatedAs = input.projection.reincarnatedAs;
+  const idLine = reincarnatedAs
+    ? `you_are: ${reincarnatedAs}\nform: ${input.projection.form.id}`
+    : `form: ${input.projection.form.id}`;
+
   return `${retryHint}<projection>
 turn: ${input.projection.turn}
 status: ${input.projection.status}
-form: ${input.projection.form.id}
+${idLine}
 vitals: ${formatRecord(input.projection.form.vitals)}
+stats: ${formatRecord(input.projection.form.stats)}
 form_state: ${formatRecord(input.projection.form.state)}
 location: ${input.projection.location.id} / room=${input.projection.location.roomId}
 room_exits: ${exits}

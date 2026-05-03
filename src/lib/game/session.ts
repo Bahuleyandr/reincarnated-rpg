@@ -4,6 +4,11 @@
  * Creates a sessions row + emits the initial session.started event,
  * which carries the per-session PRNG seed (used by deriveSeed in
  * turn.ts). Uses crypto-strong randomness for the seed.
+ *
+ * `locationId` and `reincarnatedAs` are stored on the sessions row so
+ * anon (campaign-less) sessions still get the open-ended start —
+ * resolveSessionContext falls back to these when no campaign is
+ * attached. For logged-in sessions, the campaign supersedes them.
  */
 import { randomBytes } from "node:crypto";
 
@@ -22,6 +27,7 @@ export interface CreateSessionResult {
 export async function createSession(
   db: Db,
   formId: string,
+  opts: { locationId?: string; reincarnatedAs?: string | null } = {},
 ): Promise<CreateSessionResult> {
   const sessionId = uuidv7();
   const seed = randomBytes(4).readUInt32BE(0);
@@ -31,6 +37,10 @@ export async function createSession(
     id: sessionId,
     cookieHmac,
     formId,
+    ...(opts.locationId ? { locationId: opts.locationId } : {}),
+    ...(opts.reincarnatedAs !== undefined
+      ? { reincarnatedAs: opts.reincarnatedAs }
+      : {}),
   });
   await appendEvents(db, sessionId, [
     { kind: "session.started", formId, seed },

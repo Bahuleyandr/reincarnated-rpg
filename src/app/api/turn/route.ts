@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
+import { resolveSessionContext } from "@/lib/game/campaign-context";
 import {
   loadBeatPack,
   loadForm,
@@ -43,9 +44,16 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const form = loadForm("lesser-slime");
-    const location = loadLocation("collapsed-tunnel");
-    const beatPack = loadBeatPack("survive-the-night");
+    const ctx = await resolveSessionContext(db, sessionId);
+    const form = loadForm(ctx.formId);
+    const location = loadLocation(ctx.locationId);
+    // Beat pack: only the typed slime quest exists today; for any
+    // other form/location combo we run without scripted milestones
+    // and let the narrator drive the story directly.
+    const beatPack =
+      ctx.formId === "lesser-slime" && ctx.locationId === "collapsed-tunnel"
+        ? loadBeatPack("survive-the-night")
+        : undefined;
     const narrator = makeNarrator({
       form,
       location,

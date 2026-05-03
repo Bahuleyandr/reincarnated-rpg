@@ -68,6 +68,12 @@ export const campaigns = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     formId: text("form_id").notNull(),
+    /** Free-text declaration ("a cursed armor", "a cartographer's
+     *  ghost"). Threaded into the narrator prompt so prose flavors
+     *  correctly when formId='generic-creature'. Null for typed forms
+     *  (slime, future cursed-book) where the form template carries the
+     *  identity itself. */
+    reincarnatedAs: text("reincarnated_as"),
     locationId: text("location_id").notNull().default("collapsed-tunnel"),
     status: campaignStatus("status").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -101,6 +107,14 @@ export const sessions = pgTable(
     campaignId: uuid("campaign_id").references(() => campaigns.id, {
       onDelete: "cascade",
     }),
+    /** Per-session location for anon runs (no campaign row to attach
+     *  to). Logged-in sessions read this from the campaign instead.
+     *  Defaulted to the legacy starter so old sessions keep working. */
+    locationId: text("location_id").notNull().default("collapsed-tunnel"),
+    /** Free-text reincarnation declaration for anon runs. Threaded into
+     *  the narrator just like the campaign field. Null for the default
+     *  "first slime" anon flow and pre-feature legacy sessions. */
+    reincarnatedAs: text("reincarnated_as"),
     startedAt: timestamp("started_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

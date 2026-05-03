@@ -33,6 +33,12 @@ export function initialProjection(args: {
   sessionId: string;
   form: FormTemplate;
   location: LocationTemplate;
+  /** Override the room the player wakes in. Defaults to
+   *  location.entryRoomId. Used by the random-start flow. */
+  startingRoomId?: string;
+  /** Free-text identity for the player; threaded into NarrateInput
+   *  so the prose can flavor the run. */
+  reincarnatedAs?: string | null;
 }): Projection {
   const vitals: Record<string, number> = {};
   const vitalsMax: Record<string, number> = {};
@@ -42,6 +48,11 @@ export function initialProjection(args: {
     vitalsMax[name] = v.max;
     vitalsDeath[name] = v.death ?? null;
   }
+  const startingRoom =
+    args.startingRoomId &&
+    args.location.rooms.some((r) => r.id === args.startingRoomId)
+      ? args.startingRoomId
+      : args.location.entryRoomId;
   return {
     sessionId: args.sessionId,
     upToSeq: 0,
@@ -55,8 +66,8 @@ export function initialProjection(args: {
     },
     location: {
       id: args.location.id,
-      roomId: args.location.entryRoomId,
-      discovered: [args.location.entryRoomId],
+      roomId: startingRoom,
+      discovered: [startingRoom],
     },
     inventory: [],
     npcs: {},
@@ -64,6 +75,7 @@ export function initialProjection(args: {
     xp: 0,
     turn: 0,
     status: "active",
+    reincarnatedAs: args.reincarnatedAs ?? null,
   };
 }
 
@@ -336,6 +348,7 @@ export async function loadProjection(
   sessionId: string,
   form: FormTemplate,
   location: LocationTemplate,
+  opts: { startingRoomId?: string; reincarnatedAs?: string | null } = {},
 ): Promise<Projection> {
   const [snap] = await db
     .select()
@@ -348,7 +361,13 @@ export async function loadProjection(
     state = snap.state as Projection;
     fromSeq = snap.upToSeq;
   } else {
-    state = initialProjection({ sessionId, form, location });
+    state = initialProjection({
+      sessionId,
+      form,
+      location,
+      startingRoomId: opts.startingRoomId,
+      reincarnatedAs: opts.reincarnatedAs,
+    });
   }
 
   const tail = await readLog(db, sessionId, fromSeq);

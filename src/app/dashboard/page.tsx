@@ -14,8 +14,31 @@ interface Campaign {
   title: string;
   formId: string;
   locationId: string;
+  reincarnatedAs: string | null;
   status: string;
   createdAt: string;
+}
+
+/** Curated list for "surprise me". Half are typed-form aware (slime), half
+ *  exercise the generic-creature path so the model has to flavor on prose. */
+const SURPRISE_POOL: string[] = [
+  "a lesser slime",
+  "a cursed book left on an altar",
+  "a dragon egg, still warm",
+  "a dungeon core newly awakened",
+  "a knight's discarded helmet, sentient",
+  "a cartographer's ghost",
+  "a coin that has changed hands too many times",
+  "a wolf, wounded and hungry",
+  "a cellar door that should not have opened",
+  "a candle still burning at the bottom of a well",
+  "a memory of a name no one will say aloud",
+  "an apprentice who fell into the wrong puddle",
+];
+
+function pickSurprise(): string {
+  const i = Math.floor(Math.random() * SURPRISE_POOL.length);
+  return SURPRISE_POOL[i];
 }
 
 export default function Dashboard() {
@@ -24,7 +47,8 @@ export default function Dashboard() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [newTitle, setNewTitle] = useState("");
+  const [reincarnatedAs, setReincarnatedAs] = useState("");
+  const [title, setTitle] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -55,18 +79,18 @@ export default function Dashboard() {
     };
   }, [router]);
 
-  async function createCampaign(e: React.FormEvent) {
-    e.preventDefault();
+  async function submitNewRun(declaration: string, runTitle?: string) {
     setBusy(true);
     setError(null);
     try {
-      // Create the campaign first…
+      // Server derives formId from reincarnatedAs (slime→typed,
+      // everything else→generic-creature) and randomizes locationId.
       const cRes = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          title: newTitle.trim() || "Untitled run",
-          formId: "lesser-slime",
+          title: runTitle?.trim() || undefined,
+          reincarnatedAs: declaration.trim() || undefined,
         }),
       });
       if (!cRes.ok) {
@@ -76,7 +100,7 @@ export default function Dashboard() {
         return;
       }
       const { campaign } = (await cRes.json()) as { campaign: Campaign };
-      // …then immediately start a session in it and jump to /play.
+      // Immediately start a session in it and jump to /play.
       const sRes = await fetch("/api/session", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -85,7 +109,8 @@ export default function Dashboard() {
       if (!sRes.ok) {
         // Fall back: campaign exists; user can open it from the list.
         setCampaigns((prev) => [campaign, ...prev]);
-        setNewTitle("");
+        setReincarnatedAs("");
+        setTitle("");
         setBusy(false);
         return;
       }
@@ -94,6 +119,17 @@ export default function Dashboard() {
       setError(`network: ${e instanceof Error ? e.message : "?"}`);
       setBusy(false);
     }
+  }
+
+  async function createCampaign(e: React.FormEvent) {
+    e.preventDefault();
+    await submitNewRun(reincarnatedAs, title);
+  }
+
+  async function surpriseMe() {
+    const pick = pickSurprise();
+    setReincarnatedAs(pick);
+    await submitNewRun(pick);
   }
 
   async function openCampaign(campaignId: string) {
@@ -150,24 +186,60 @@ export default function Dashboard() {
           className="border border-stone-800 p-4 space-y-3 bg-stone-900/40"
         >
           <h2 className="text-stone-100 text-sm">new run</h2>
-          <input
-            type="text"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="title (e.g. 'first slime')"
-            className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 focus:outline-none focus:border-stone-500"
-          />
+
+          <label className="block space-y-1">
+            <span className="text-xs text-stone-400">
+              what do you wake up as?
+            </span>
+            <input
+              type="text"
+              value={reincarnatedAs}
+              onChange={(e) => setReincarnatedAs(e.target.value)}
+              placeholder="a cursed book · a dragon egg · a lesser slime · a dungeon core"
+              className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 focus:outline-none focus:border-stone-500"
+            />
+            <span className="block text-[10px] text-stone-600">
+              free text. leave blank to default to a lesser slime. say
+              "slime" for the typed form; anything else uses the generic
+              shape and the narrator flavors the prose.
+            </span>
+          </label>
+
+          <label className="block space-y-1">
+            <span className="text-xs text-stone-400">
+              title <span className="text-stone-600">(optional)</span>
+            </span>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="defaults to your reincarnation"
+              className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 focus:outline-none focus:border-stone-500"
+            />
+          </label>
+
           <p className="text-xs text-stone-500">
-            form: lesser-slime · location: collapsed-tunnel · 10-turn cap
+            location is rolled randomly · 10-turn cap
           </p>
           {error && <p className="text-red-400 text-xs">{error}</p>}
-          <button
-            type="submit"
-            disabled={busy}
-            className="border border-stone-300 text-stone-100 py-1 px-4 hover:bg-stone-100 hover:text-stone-950 transition-colors disabled:opacity-50 text-sm"
-          >
-            {busy ? "creating…" : "create"}
-          </button>
+
+          <div className="flex items-center gap-3 pt-1">
+            <button
+              type="submit"
+              disabled={busy}
+              className="border border-stone-300 text-stone-100 py-1 px-4 hover:bg-stone-100 hover:text-stone-950 transition-colors disabled:opacity-50 text-sm"
+            >
+              {busy ? "creating…" : "begin"}
+            </button>
+            <button
+              type="button"
+              onClick={surpriseMe}
+              disabled={busy}
+              className="border border-stone-700 text-stone-300 py-1 px-4 hover:border-stone-500 hover:text-stone-100 transition-colors disabled:opacity-50 text-sm"
+            >
+              surprise me
+            </button>
+          </div>
         </form>
 
         <section className="space-y-2">
@@ -177,10 +249,20 @@ export default function Dashboard() {
           ) : (
             <ul className="divide-y divide-stone-800 border border-stone-800">
               {campaigns.map((c) => (
-                <li key={c.id} className="px-4 py-3 flex items-center gap-4">
-                  <span className="text-stone-100 flex-1">{c.title}</span>
-                  <span className="text-xs text-stone-500">
-                    {c.formId} · {c.status}
+                <li
+                  key={c.id}
+                  className="px-4 py-3 flex items-center gap-4"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="text-stone-100 truncate">{c.title}</div>
+                    {c.reincarnatedAs && c.reincarnatedAs !== c.title && (
+                      <div className="text-[11px] text-stone-500 truncate">
+                        as {c.reincarnatedAs}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-xs text-stone-500 whitespace-nowrap">
+                    {c.formId} · {c.locationId} · {c.status}
                   </span>
                   <button
                     type="button"

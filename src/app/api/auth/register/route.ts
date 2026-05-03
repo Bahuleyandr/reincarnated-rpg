@@ -99,6 +99,8 @@ async function maybeClaimAnonSession(
     .select({
       id: sessions.id,
       formId: sessions.formId,
+      locationId: sessions.locationId,
+      reincarnatedAs: sessions.reincarnatedAs,
       status: sessions.status,
       campaignId: sessions.campaignId,
     })
@@ -111,12 +113,21 @@ async function maybeClaimAnonSession(
   if (!session) return null;
 
   const campaignId = uuidv7();
+  // Title from reincarnatedAs if the anon player declared one; otherwise
+  // the legacy "First run" label so untyped slime starts read clean.
+  const claimTitle =
+    session.reincarnatedAs && session.reincarnatedAs.trim().length > 0
+      ? session.reincarnatedAs.length > 60
+        ? session.reincarnatedAs.slice(0, 60) + "…"
+        : session.reincarnatedAs
+      : "First run";
   await db.insert(campaigns).values({
     id: campaignId,
     userId,
-    title: "First run",
+    title: claimTitle,
     formId: session.formId,
-    locationId: "collapsed-tunnel",
+    locationId: session.locationId,
+    reincarnatedAs: session.reincarnatedAs,
     status:
       session.status === "won"
         ? "completed"
