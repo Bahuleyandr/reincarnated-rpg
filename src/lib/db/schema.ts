@@ -40,6 +40,48 @@ export const sessionStatus = pgEnum("session_status", [
   "capped",
 ]);
 
+export const campaignStatus = pgEnum("campaign_status", [
+  "active",
+  "completed",
+  "abandoned",
+]);
+
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  username: text("username").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const campaigns = pgTable(
+  "campaigns",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    formId: text("form_id").notNull(),
+    locationId: text("location_id").notNull().default("collapsed-tunnel"),
+    status: campaignStatus("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    metadata: jsonb("metadata"),
+  },
+  (t) => [index("campaigns_user_idx").on(t.userId)],
+);
+
 export const entityKind = pgEnum("entity_kind", [
   "npc",
   "location",
@@ -47,17 +89,27 @@ export const entityKind = pgEnum("entity_kind", [
   "faction",
 ]);
 
-export const sessions = pgTable("sessions", {
-  id: uuid("id").primaryKey(),
-  cookieHmac: text("cookie_hmac").notNull().unique(),
-  formId: text("form_id").notNull(),
-  startedAt: timestamp("started_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  endedAt: timestamp("ended_at", { withTimezone: true }),
-  turnCount: integer("turn_count").notNull().default(0),
-  status: sessionStatus("status").notNull().default("active"),
-});
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: uuid("id").primaryKey(),
+    cookieHmac: text("cookie_hmac").notNull().unique(),
+    formId: text("form_id").notNull(),
+    /** Null for legacy anon sessions; set for sessions created within
+     *  a logged-in user's campaign. Anon → campaign claim happens via
+     *  POST /api/campaigns/claim. */
+    campaignId: uuid("campaign_id").references(() => campaigns.id, {
+      onDelete: "cascade",
+    }),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    turnCount: integer("turn_count").notNull().default(0),
+    status: sessionStatus("status").notNull().default("active"),
+  },
+  (t) => [index("sessions_campaign_idx").on(t.campaignId)],
+);
 
 // Append-only. A trigger installed by migration 0001 raises on UPDATE/DELETE.
 export const events = pgTable(
@@ -228,5 +280,9 @@ export type ItemTemplateRow = typeof templatesItems.$inferSelect;
 export type QuestTemplateRow = typeof templatesQuests.$inferSelect;
 export type AiCallRow = typeof aiCalls.$inferSelect;
 export type NewAiCallRow = typeof aiCalls.$inferInsert;
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Campaign = typeof campaigns.$inferSelect;
+export type NewCampaign = typeof campaigns.$inferInsert;
 
 export const _sql = sql; // re-export for migration writers if needed

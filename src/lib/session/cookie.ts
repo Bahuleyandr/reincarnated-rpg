@@ -1,10 +1,13 @@
 /**
- * Anon session cookies, signed with HS256 via `jose`.
+ * Signed-cookie auth via `jose` HS256.
  *
- * The cookie payload is `{ sessionId }`. The cookie itself is HMAC'd
- * with `SESSION_SECRET` so a tampered ID is rejected on verify.
+ * Two cookie shapes both fit the same payload:
+ *   - Anon play: `{ sessionId }` — current /api/session flow.
+ *   - Logged-in: `{ userId, sessionId? }` — set after auth/login;
+ *     sessionId may also be set if the user is mid-run.
  *
- * v0.1 is single-form anon-only — no claim-account flow yet (M3).
+ * Both consumers and writers should treat the payload as
+ * `{ userId?, sessionId? }` — at least one must be present.
  */
 import { jwtVerify, SignJWT } from "jose";
 
@@ -15,7 +18,11 @@ const COOKIE_NAME = "session";
 const TTL_DAYS = 30;
 
 export interface SessionCookiePayload {
-  sessionId: string;
+  /** Set when the user has signed in. Stable across runs. */
+  userId?: string;
+  /** Set during an active anon session, or for a logged-in user
+   *  currently mid-run. */
+  sessionId?: string;
 }
 
 function secret(): Uint8Array {
@@ -25,7 +32,13 @@ function secret(): Uint8Array {
 export async function mintCookie(
   payload: SessionCookiePayload,
 ): Promise<string> {
-  return new SignJWT({ sessionId: payload.sessionId })
+  if (!payload.userId && !payload.sessionId) {
+    throw new Error("cookie payload must include userId or sessionId");
+  }
+  const claims: Record<string, string> = {};
+  if (payload.userId) claims.userId = payload.userId;
+  if (payload.sessionId) claims.sessionId = payload.sessionId;
+  return new SignJWT(claims)
     .setProtectedHeader({ alg: ALG })
     .setIssuedAt()
     .setExpirationTime(`${TTL_DAYS}d`)
@@ -37,8 +50,12 @@ export async function verifyCookie(
 ): Promise<SessionCookiePayload | null> {
   try {
     const { payload } = await jwtVerify(token, secret(), { algorithms: [ALG] });
-    if (typeof payload.sessionId !== "string") return null;
-    return { sessionId: payload.sessionId };
+    const userId =
+      typeof payload.userId === "string" ? payload.userId : undefined;
+    const sessionId =
+      typeof payload.sessionId === "string" ? payload.sessionId : undefined;
+    if (!userId && !sessionId) return null;
+    return { userId, sessionId };
   } catch {
     return null;
   }
