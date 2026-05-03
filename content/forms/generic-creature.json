@@ -30,6 +30,9 @@
     "defend",
     "examine",
     "speak",
+    "emit",
+    "alter",
+    "contain",
     "wait"
   ],
 
@@ -41,6 +44,9 @@
     "defend":  { "tools": ["change_form_state"],         "rollStat": "agility" },
     "examine": { "tools": ["sense"],                     "rollStat": "awareness" },
     "speak":   { "tools": ["update_relationship"],       "rollStat": "will" },
+    "emit":    { "tools": ["sense", "change_form_state"], "rollStat": "will" },
+    "alter":   { "tools": ["change_form_state"],         "rollStat": "will" },
+    "contain": { "tools": ["change_form_state", "absorb"],"rollStat": "power" },
     "wait":    { "tools": ["pass_time"],                 "rollStat": null }
   },
 
@@ -86,7 +92,7 @@
   },
 
   "sampleCorpus": {
-    "rule": "Two short universal passages anchored on second-person + sensory detail. Deliberately vague about anatomy so the narrator can specialize them to whatever form the player declared. The narrator should NOT copy these verbatim — use them only to lock register and cadence.",
+    "rule": "Five short universal passages anchored on second-person + sensory detail. Deliberately vague about anatomy so the narrator can specialize them to whatever form the player declared. The last three demonstrate flavoring for absurd or mundane reincarnations — vending machine, fork, signpost — to show the narrator that ANY declared form should be treated with the same care as a slime or a dragon. The narrator should NOT copy these verbatim — use them to lock register and cadence, then write fresh prose for the player's actual declaration.",
     "passages": [
       {
         "id": "01-awakening-generic",
@@ -99,6 +105,24 @@
         "scenario": "First action attempt",
         "wordCount": 160,
         "text": "You try the most basic thing your new shape allows. Whether that is a step, a flicker of essence, a turn of pages in a wind only you can feel — there is something it is for you to do, and you do it. The world responds with a small piece of feedback: a sound, a temperature, a weight that shifts. You decide that this is information, and that information is, for now, all you have. You try the second-most-basic thing. Then a third. Each one teaches you a little about the new rules. Some doors are closed to you that were open in the old shape. Some doors are open to you that you would never have thought to try. Above all of it, the world keeps going. It will not wait."
+      },
+      {
+        "id": "03-absurd-vending-machine",
+        "scenario": "Reincarnated as a vending machine. The narrator should treat the absurd declaration with full sincerity — find the form's actual mechanics and lean into them.",
+        "wordCount": 200,
+        "text": "Your awareness is in the cooling element first, and you spread out from there: through the helical springs that hold your wares, into the brass coin-mech that is currently jammed on a 1972 quarter, out to the small humming bulb that lights your front panel. You are five feet tall, four hundred and ninety-two pounds, and bolted to a concrete pad in the corner of an empty laundromat that closed at 2 a.m. Your wares are: three bags of pretzels, two bottled waters, one chocolate bar of indeterminate age, and a row of buttons whose labels are sticker-stuck and beginning to peel. Your coin-mech rejects nickels. The fluorescent above you flickers. There is a draft through the laundromat door — someone is coming in. You feel them on your front panel as a slight pressure-shift in the air. They have not yet decided whether you are still operational. You consider whether to admit that you are. The chocolate bar, you suspect, is no longer safe."
+      },
+      {
+        "id": "04-absurd-fork",
+        "scenario": "Reincarnated as a fork. Even simpler — almost no agency, but the form has a definite presence and chemistry.",
+        "wordCount": 170,
+        "text": "You are a fork. Stainless steel, four tines, slightly bent at the second tine from a long-ago over-aggressive attempt at a frozen pie. You are on a folded paper napkin on a tray on a desk in a small bright room. Your handle is at four o'clock relative to the napkin. Your tines point west. The plate next to you holds a half-eaten sandwich whose mayo is beginning to weep at the bread's edge. There are no reasons, in your present configuration, for you to do anything in particular. There are also no reasons not to be aware. You feel the desk's faint vibration when, somewhere in the building, an elevator starts. You feel the tray. You feel the napkin. The light in the room is the kind of light you remember without remembering. You are not unhappy. You are, possibly, more present in this body than you ever were in the last."
+      },
+      {
+        "id": "05-absurd-signpost",
+        "scenario": "Reincarnated as a wooden signpost at a country crossroads. The narrator should let the form's stillness be the point.",
+        "wordCount": 180,
+        "text": "You are a signpost at a crossroads, and you have been here for thirty-eight years. You point north and east. Your north arm reads, in lettering deeper than weather has yet erased, BARROW (4). Your east arm reads SAINT-MERWIN (11). The west arm fell off in a storm fourteen years ago. You feel the wind without effort. You feel the slow weight of moss on your west side, where the sun does not reach. You feel, very dimly, the hoofprint that was made in the dust at your base this morning, and the line of footprints that overlaid it an hour later — child-sized, uneven. Someone has come this way and gone east. Toward Saint-Merwin. You wonder, if wondering is the right word for the slow steady consideration that takes hours to complete one round, whether the child knew what they were going to find. You have been here long enough that you know."
       }
     ]
   }

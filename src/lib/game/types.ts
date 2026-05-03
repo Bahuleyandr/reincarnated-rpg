@@ -245,11 +245,22 @@ export interface NarrateInput {
 export function pickFormId(reincarnatedAs: string | null | undefined): string {
   if (!reincarnatedAs) return "lesser-slime";
   const s = reincarnatedAs.toLowerCase();
-  if (/\bslime\b|\booze\b|\bjelly\b/.test(s)) return "lesser-slime";
-  // Future typed forms slot in here:
-  //   if (/\bbook\b|\btome\b|\bgrimoire\b/.test(s)) return "cursed-book";
-  //   if (/\bdragon\b.*\begg\b|\begg\b.*\bdragon\b/.test(s)) return "dragon-egg";
-  //   if (/\bdungeon\b.*\bcore\b/.test(s)) return "dungeon-core";
+
+  // Order matters: more specific patterns FIRST. "dragon egg" must
+  // route to dragon-egg, not get caught by a hypothetical "dragon"
+  // pattern that lands on a generic dragon form.
+  if (/\bdragon\b.*\begg\b|\begg\b.*\bdragon\b|\bwyrmling\s+egg\b/.test(s))
+    return "dragon-egg";
+  if (
+    /\bdungeon\s+core\b|\bdungeon-core\b|\bdungeon\s+heart\b|\bdungeon\s+crystal\b/.test(
+      s,
+    )
+  )
+    return "dungeon-core";
+  if (/\b(?:cursed\s+)?book\b|\btome\b|\bgrimoire\b|\bcodex\b|\bjournal\b/.test(s))
+    return "cursed-book";
+  if (/\bslime\b|\booze\b|\bjelly\b|\bgel\b/.test(s)) return "lesser-slime";
+
   return "generic-creature";
 }
 

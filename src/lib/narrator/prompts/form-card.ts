@@ -1,13 +1,17 @@
 /**
- * Slime form card — built from `content/forms/lesser-slime.json`.
+ * Generic form card builder — works for ANY content/forms/*.json.
  *
- * `buildSlimeFormCard` reads the JSON template at runtime and produces
- * the prompt fragment that sits below SYSTEM_PROMPT in the RemoteNarrator
- * (Day 8). Embedding the negativeVocab + hardMoves + sample corpus
- * inline gives the model one-shot exemplars for the slime POV.
+ * Reads the JSON template at runtime and produces the prompt fragment
+ * that sits below SYSTEM_PROMPT in the RemoteNarrator. Embedding the
+ * negativeVocab + hardMoves + sample corpus inline gives the model
+ * one-shot exemplars for whatever form the player started in.
+ *
+ * Originally `buildSlimeFormCard` (Day 8); renamed when we added
+ * cursed-book, dragon-egg, dungeon-core, and the open-ended
+ * generic-creature path.
  */
 
-interface SlimeFormJson {
+export interface FormJson {
   id: string;
   displayName: string;
   tagline: string;
@@ -31,8 +35,13 @@ interface SlimeFormJson {
   };
 }
 
-export function buildSlimeFormCard(form: SlimeFormJson): string {
-  const negVocab = form.negativeVocab.words.join(", ");
+export function buildFormCard(form: FormJson): string {
+  const negVocabList = form.negativeVocab.words.join(", ");
+  const negVocabBlock = form.negativeVocab.words.length
+    ? `NEGATIVE VOCABULARY — MUST NOT APPEAR in second-person narration about the player:
+${negVocabList}
+(NPCs and the surrounding world may still have hands, eyes, voices, etc.)`
+    : `NEGATIVE VOCABULARY — none declared for this form. The narrator should still match the form the player declared (carried in the user message as you_are) and avoid generic-fantasy filler that conflicts with the form's actual capabilities.`;
   const verbs = form.verbs.join(", ");
   const moves = form.hardMoves.moves
     .map((m, i) => `  ${i + 1}. ${m.id}: ${m.narrative}`)
@@ -59,9 +68,7 @@ Stats: ${Object.entries(form.stats)
     .join(", ")}
 Verbs the player may attempt: ${verbs}
 
-NEGATIVE VOCABULARY — MUST NOT APPEAR in second-person narration about the player:
-${negVocab}
-(NPCs and the surrounding world may still have hands, eyes, voices, etc.)
+${negVocabBlock}
 
 HARD-MOVE MENU (pick exactly one on a 7-9 partial-success):
 ${moves}
@@ -71,3 +78,6 @@ ONE-SHOT EXEMPLARS — match this tone, register, sentence cadence, and vocabula
 ${corpus}
 `;
 }
+
+/** @deprecated Use buildFormCard. Kept as alias for any in-flight imports. */
+export const buildSlimeFormCard = buildFormCard;

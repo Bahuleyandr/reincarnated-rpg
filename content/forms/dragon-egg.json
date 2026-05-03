@@ -1,0 +1,149 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-03",
+    "notes": "Third typed form. The egg is small, warm, and alive in a quiet way. It cannot move, cannot speak, cannot see; it senses through the shell — pressure, heat, the chemistry of who is near. Its agency is internal: warmth, glow, hum, dream, hatch_partial. The clock is its enemy: warmth bleeds out unless tended."
+  },
+
+  "id": "dragon-egg",
+  "displayName": "Dragon Egg",
+  "tagline": "You woke up curled tight, and the world is mostly the inside of your shell.",
+
+  "vitals": {
+    "warmth":    { "max": 10, "start": 8, "death": 0 },
+    "heartbeat": { "max": 10, "start": 10, "death": 0 }
+  },
+
+  "stats": {
+    "shell":     2,
+    "kindling":  0,
+    "awareness": 0,
+    "will":      1
+  },
+
+  "verbs": [
+    "rock",
+    "hum_low",
+    "kindle_glow",
+    "listen",
+    "absorb_warmth",
+    "dream_outward",
+    "hatch_partial",
+    "wait"
+  ],
+
+  "verbMappings": {
+    "rock":           { "tools": ["change_form_state"],                       "rollStat": "kindling" },
+    "hum_low":        { "tools": ["sense", "introduce_npc"],                  "rollStat": "will" },
+    "kindle_glow":    { "tools": ["change_form_state"],                       "rollStat": "kindling" },
+    "listen":         { "tools": ["sense"],                                   "rollStat": "awareness" },
+    "absorb_warmth":  { "tools": ["absorb"],                                  "rollStat": "shell" },
+    "dream_outward":  { "tools": ["sense", "change_form_state"],              "rollStat": "awareness" },
+    "hatch_partial":  { "tools": ["change_form_state", "apply_damage"],       "rollStat": "will" },
+    "wait":           { "tools": ["pass_time"],                                "rollStat": null }
+  },
+
+  "negativeVocab": {
+    "rule": "The narrator must NEVER use these words in second-person narration about the player. NPCs may still have hands, eyes, voices, etc. The egg is essentially passive; verbs of locomotion, speech, and sight do not apply to it.",
+    "words": [
+      "hand", "hands", "finger", "fingers", "knuckle", "fist", "palm", "wrist",
+      "arm", "arms", "elbow", "shoulder",
+      "leg", "legs", "knee", "thigh", "ankle", "hip",
+      "foot", "feet", "toe", "toes", "heel",
+      "head", "skull", "brain",
+      "face", "cheek", "chin", "forehead",
+      "eye", "eyes", "eyelid", "eyebrow",
+      "ear", "ears", "earlobe",
+      "nose", "nostril",
+      "mouth", "lip", "lips", "tongue", "teeth", "tooth", "gum",
+      "throat", "neck",
+      "chest", "back", "belly", "stomach", "spine", "rib", "ribs",
+      "skin", "hair",
+      "see", "saw", "seeing", "look", "looking", "watch", "watching", "gaze", "glance", "stare", "blink",
+      "speak", "spoke", "say", "said", "voice", "shout", "whisper", "talk",
+      "walk", "walking", "run", "running", "dash", "sprint", "leap", "jump", "stand", "sit", "kneel", "crouch", "step", "stride",
+      "grab", "grip", "clutch", "throw", "catch", "hold", "holding",
+      "point", "nod", "smile", "frown", "wince", "cry"
+    ]
+  },
+
+  "hardMoves": {
+    "rule": "On a partial-success (7-9) roll, the narrator MUST pick exactly one. Each move maps to specific tool calls.",
+    "moves": [
+      {
+        "id": "warmth_bleeds",
+        "narrative": "A draft you cannot stop finds the seam where shell meets nest, and a small fraction of your warmth leaves with it.",
+        "tools": [{ "name": "change_form_state", "field": "warmth", "delta": -1 }]
+      },
+      {
+        "id": "heartbeat_skips",
+        "narrative": "Something inside you stutters. The next beat comes late.",
+        "tools": [{ "name": "change_form_state", "field": "heartbeat", "delta": -1 }]
+      },
+      {
+        "id": "shell_hairlines",
+        "narrative": "A hairline crack threads the surface. Not enough to hatch. Enough to feel.",
+        "tools": [{ "name": "change_form_state", "field": "shell", "delta": -1 }]
+      },
+      {
+        "id": "glow_betrays",
+        "narrative": "Your kindling-glow brightens just as something is passing nearby. You are now visible to it.",
+        "tools": [{ "name": "introduce_npc", "templateId": "patrol-presence", "attitude": -1 }]
+      },
+      {
+        "id": "dream_outward_too_far",
+        "narrative": "Your dream finds another mind, but it was a wider one than you expected. It now knows where you are.",
+        "tools": [
+          { "name": "sense", "tag": "$DISTANT_MIND" },
+          { "name": "change_form_state", "field": "dreaming_known", "delta": 1 }
+        ]
+      },
+      {
+        "id": "rocked_off_nest",
+        "narrative": "Your rocking carries you over the lip of the nest and onto cooler stone.",
+        "tools": [{ "name": "move_to", "roomId": "$COOLER_ROOM" }]
+      },
+      {
+        "id": "absorb_wrong_warmth",
+        "narrative": "What you took warmth from was not what you thought. There is a tang in your kindling now.",
+        "tools": [{ "name": "absorb", "itemId": "$ITEM", "into": "kindling" }]
+      },
+      {
+        "id": "tick_passes",
+        "narrative": "You meant to act and instead lay still, listening too long. The clock has moved.",
+        "tools": [{ "name": "pass_time", "ticks": 1 }]
+      }
+    ]
+  },
+
+  "sampleCorpus": {
+    "rule": "Hand-authored second-person egg-POV passages. The egg's agency is internal: it senses, it warms, it dreams, but everything outside is mediated by the shell.",
+    "passages": [
+      {
+        "id": "01-awakening",
+        "scenario": "First moment of consciousness inside a cooling nest",
+        "wordCount": 230,
+        "text": "Inside is warmer than outside. You learn this before you learn anything else.\n\nThe heartbeat you have is your own. It is small, and steady, and the curl of you fills the inside of the shell exactly. Your shell is bone-warm in some places and cool in others — the cool places are where the nest is thin, where the moss-and-down has shifted, where the world is closer than it should be.\n\nThe nest smells of dry pine and old fire. A long time ago, this was tended. It is being tended again, though not as carefully. There is the chemistry of someone who comes and goes — leather, smoke, an oil they use on their boots — and the chemistry of someone else, fainter, who has not been here for some hours.\n\nYour warmth is bleeding outward, slowly. You feel it as a thinning at the cooler edges. If no one comes, the thinning will reach your heart before the shell reaches the strength to crack outward.\n\nThis is the world. You did not ask for it. Nevertheless, there is a draft moving across the nest from the left, and the small steady throb of you is one beat slower than it was a moment ago. You consider, in the particular way an egg considers, whether to make yourself easier to find."
+      },
+      {
+        "id": "02-glow",
+        "scenario": "A subtle kindling-glow brightens in response to a near visitor",
+        "wordCount": 200,
+        "text": "Footsteps approach the nest, soft. The chemistry shifts — leather and smoke, the one who tends. You feel the small lift in their breath as they bend over you.\n\nYou allow your kindling to brighten.\n\nIt is not light, exactly. It is the warmth becoming visible at the surface of the shell, a low orange pulse that the careful tender will see without lamp. They have been waiting for it. You can feel that in their breath: a small tight relief, the kind a person breathes when a long-held fear lets go by a small notch.\n\nThe tender's hand passes near, careful not to touch. Heat radiates from their palm; you feel it across your shell as a sudden bloom, and your warmth-meter — that interior measure you carry — clicks back up by a fraction.\n\nYou let the glow settle. Not gone. Just lower, the way embers settle when banked. The tender does not move away. They speak — not to you, exactly, but in the room — and the sound carries through the nest's underside as a soft set of vibrations you do not need to parse to understand. They are pleased."
+      },
+      {
+        "id": "03-dream-outward",
+        "scenario": "Reaching dreamward through the shell to find a distant mind",
+        "wordCount": 220,
+        "text": "Sleep, for you, is not what it is for them.\n\nYou do not lose awareness. You let it widen. The boundary of yourself — the inside of the shell — becomes the place where you stop, but the dream does not. The dream goes outward, slowly, the way a smell carries through a forest in still air.\n\nYou pass the rim of the nest. You pass the cool stone where the kindling-glow does not reach. You pass the corridor, where the air smells of old water and recent passage, and beyond that into a chamber you have never been carried through.\n\nIn the chamber: a mind.\n\nIt is not a small mind. It is wide, it is calm, and it is asleep — the kind of asleep that takes hours rather than the kind that takes years. You touch the edge of it, very lightly, the way one egg might touch another egg in the same nest.\n\nThe mind stirs. It registers you as a thing of warmth and small light, and it does not, immediately, decide what to do about you. You feel its consideration like a slow tide.\n\nYou pull your dream back. You curl tight inside your shell. The thing in the far chamber is awake now, and it is thinking about you."
+      }
+    ]
+  },
+
+  "evolution": [
+    { "trigger": "heartbeat_max>=12 AND warmth>=8",  "toFormId": "dragon-hatchling" },
+    { "trigger": "shell_max<=1",                     "toFormId": "wyrmling-emerged" },
+    { "trigger": "absorbed_tag:cold count>=3",       "toFormId": "frost-egg" }
+  ]
+}
