@@ -157,6 +157,15 @@ export default function Home() {
             </Link>
           )}
         </div>
+
+        <div className="text-[10px] text-stone-600">
+          <Link
+            href="/leaderboard"
+            className="underline underline-offset-2 hover:text-stone-400"
+          >
+            model leaderboard →
+          </Link>
+        </div>
       </div>
     </main>
   );

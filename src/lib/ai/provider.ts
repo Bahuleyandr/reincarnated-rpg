@@ -72,10 +72,32 @@ export interface CompleteResponse {
   rawModel: string;
 }
 
+export interface CompleteStreamEvents {
+  /** Fires for each text delta as it arrives. Concatenating every
+   *  delta yields the final text. Implementations are NOT required to
+   *  guarantee any particular chunk size or word boundary. */
+  onText?: (delta: string) => void;
+  /** Fires when a tool_use block completes (Anthropic) or when the
+   *  tool_calls array is finalized (OpenAI-compat). For OpenAI-compat
+   *  this typically fires once at the end since tool_calls arrive
+   *  fully formed in the final delta — for Anthropic, it can fire
+   *  multiple times as separate tool_use blocks finish. */
+  onToolUse?: (toolUse: ProviderToolUse) => void;
+}
+
 export interface AIProvider {
   /** Provider identifier — written to ai_calls.model for routing
    *  (the per-call model string is also written separately). */
   readonly providerName: string;
 
   complete(args: CompleteArgs): Promise<CompleteResponse>;
+
+  /** Optional streaming variant. When implemented, the provider fires
+   *  `events.onText(delta)` as text chunks arrive and resolves with the
+   *  full CompleteResponse once the stream finishes. Callers that
+   *  don't care about streaming can keep using `complete()`. */
+  completeStream?(
+    args: CompleteArgs,
+    events: CompleteStreamEvents,
+  ): Promise<CompleteResponse>;
 }

@@ -82,6 +82,12 @@ export interface RunTurnArgs {
     formId?: string;
     locationId?: string;
   };
+  /** Streaming hook. When supplied, the FIRST narrator call streams
+   *  text deltas through this callback as they arrive. Retries
+   *  triggered by tool-validation or tone failure run non-streaming
+   *  (the UI replaces the prior text on retry, so streaming the retry
+   *  would be confusing). */
+  onNarrationStreamDelta?: (delta: string) => void;
 }
 
 export interface TurnResult {
@@ -118,6 +124,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     turnCap = 10,
     llmJudges,
     world,
+    onNarrationStreamDelta,
   } = args;
   let narratorFallback = false;
   let narratorFallbackReason: string | undefined;
@@ -236,7 +243,14 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   // The API surfaces the fallback flag so the UI can banner.
   let narrate: import("./types").NarrateOutput;
   try {
-    narrate = await narrator.narrate(baseInput);
+    if (onNarrationStreamDelta && narrator.narrateStream) {
+      narrate = await narrator.narrateStream(
+        baseInput,
+        onNarrationStreamDelta,
+      );
+    } else {
+      narrate = await narrator.narrate(baseInput);
+    }
   } catch (err) {
     if (!fallbackNarrator) throw err;
     narratorFallback = true;
