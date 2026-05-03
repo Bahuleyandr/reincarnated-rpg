@@ -146,6 +146,19 @@ export class TemplateNarrator implements Narrator {
   async narrate(input: NarrateInput): Promise<NarrateOutput> {
     const verb = input.intent;
     const band = input.roll.band;
+
+    // On retry: emit narrate_only with a slightly different phrase. The
+    // hardMove menu is deterministic on (form, seed); re-running it picks
+    // the same broken move that triggered the retry. narrate_only is a
+    // safe fallback — the orchestrator already applied prior tools (tone
+    // path) or rolled them back (tool-validation path).
+    if (input.previousAttempt) {
+      return {
+        text: pickPhrase(verb, band, input.roll.seed ^ 0x1),
+        toolCalls: [{ name: "narrate_only" }],
+      };
+    }
+
     const text = pickPhrase(verb, band, input.roll.seed);
     const toolCalls = toolsFor(
       verb,

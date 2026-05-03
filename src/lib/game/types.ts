@@ -203,12 +203,30 @@ export interface Memory {
   eventSeqRange: [number, number];
 }
 
+export interface PreviousAttempt {
+  /** The narrator's prior text. */
+  text: string;
+  /** The tool calls the prior attempt emitted. */
+  toolCalls: ToolCall[];
+  /** Short reason: validation error or tone violation. */
+  failureReason: string;
+  /** What kind of failure this is — affects how the narrator should adjust.
+   *  - "tool_validation": the toolCalls were invalid; the narrator should
+   *    pick different tools.
+   *  - "tone_drift": the prose used negativeVocab or read off-form; the
+   *    narrator should rewrite the prose, tools may be re-emitted but
+   *    will be ignored by the orchestrator. */
+  failureKind: "tool_validation" | "tone_drift";
+}
+
 export interface NarrateInput {
   projection: Projection;
   lastEvents: Event[];
   roll: RollResult;
   intent: string;
   relevantMemories: Memory[];
+  /** Set on the second pass (one-shot retry per ADR-011 / day-9 tone). */
+  previousAttempt?: PreviousAttempt;
 }
 
 export interface NarrateOutput {
