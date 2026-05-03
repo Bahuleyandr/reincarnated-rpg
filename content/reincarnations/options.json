@@ -456,6 +456,461 @@
       "tier": "uncommon",
       "weight": 0.7,
       "starterBonus": { "field": "will", "value": 1 }
+    },
+
+    {
+      "id": "lone-deer",
+      "label": "A young deer who lost the herd at dawn",
+      "description": "The herd moved. The forest is wider than you remembered. Your legs are still sure.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": null
+    },
+    {
+      "id": "last-web-spider",
+      "label": "A spider with one final thread to spin",
+      "description": "You spun for forty days. The forty-first thread is the last you have to give.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.9,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "winter-crow",
+      "label": "A crow on a branch the snow has not yet reached",
+      "description": "Your eye misses nothing. Your patience is older than this winter.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": null
+    },
+    {
+      "id": "forgotten-well-frog",
+      "label": "A frog at the bottom of a well no one has drawn from in years",
+      "description": "The sky is a coin. Your skin is wet. You have not been disturbed since the bucket fell.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.8,
+      "starterBonus": null
+    },
+    {
+      "id": "wrong-river-salmon",
+      "label": "A salmon halfway up the wrong river",
+      "description": "You are not lost. You are simply not where you meant to be. The current has opinions.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": null
+    },
+    {
+      "id": "cliff-goat",
+      "label": "A goat on a ledge no other goat would attempt",
+      "description": "Below you, the world. Above you, the world. You are committed.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "agility", "value": 1 }
+    },
+    {
+      "id": "retired-racehorse",
+      "label": "A racehorse on the morning after retirement",
+      "description": "The bell still rings at dawn. You are not at the gate. You are still you.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.8,
+      "starterBonus": null
+    },
+    {
+      "id": "three-legged-cat",
+      "label": "A street cat with three legs and a clear territory",
+      "description": "You learned the alleys in pieces. The pieces still work.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "agility", "value": 1 }
+    },
+    {
+      "id": "last-breath-hedgehog",
+      "label": "A hedgehog three breaths from winter sleep",
+      "description": "Your spines remember winter before you do. The leaves are arranged.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": null
+    },
+    {
+      "id": "shallow-water-whale",
+      "label": "A whale calf in water that doesn't quite cover your back",
+      "description": "The pod is somewhere else. The tide is not on your side.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "moth-to-flame",
+      "label": "A moth at the moment of choosing the flame",
+      "description": "Two seconds either way is the rest of your life. The candle is patient.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": null
+    },
+    {
+      "id": "starveling-pup",
+      "label": "The runt of a litter the mother has stopped nursing",
+      "description": "Your siblings are larger and warmer. Your name has not been chosen yet.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.8,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+
+    {
+      "id": "last-note-music-box",
+      "label": "A music box wound down to its final bar",
+      "description": "Three more turns of the cylinder and you are silent. They have left the room.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "dead-owners-pocketwatch",
+      "label": "A pocket watch whose owner died with you on",
+      "description": "Your hands are still moving. Your owner is not.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.8,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "empty-porch-rocker",
+      "label": "A rocking chair on a porch the family sold last week",
+      "description": "The new owner has not arrived. The wind keeps you company.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": null
+    },
+    {
+      "id": "pawn-shop-ring",
+      "label": "A wedding ring in a pawn shop window",
+      "description": "Two hands wore you. One has stopped looking for you.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": null
+    },
+    {
+      "id": "bayonet-less-soldier",
+      "label": "A tin soldier missing its bayonet",
+      "description": "You held your line. The line moved on. Your stance is still good.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.8,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "lidless-teapot",
+      "label": "A teapot whose lid broke in 1812",
+      "description": "You can still pour. You will never again be sealed.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": null
+    },
+    {
+      "id": "pulled-cobblestone",
+      "label": "A cobblestone the road crew left at the curb",
+      "description": "You used to bear weight. Tomorrow, a wheelbarrow.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": { "field": "weight", "value": 1 }
+    },
+    {
+      "id": "ajar-funeral-gate",
+      "label": "A garden gate left open since the funeral",
+      "description": "Three seasons of leaves have come through you. None went the other way.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": null
+    },
+    {
+      "id": "rain-barrel-three-quarters",
+      "label": "A rain barrel three-quarters full at a barn's side",
+      "description": "A small bird is bathing in your shoulder. You don't mind.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": { "field": "containment", "value": 1 }
+    },
+    {
+      "id": "lucky-horseshoe-tarnishing",
+      "label": "A horseshoe above a doorway, tarnishing",
+      "description": "The luck has held. The hand that hung you is gone.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "steepled-weathercock",
+      "label": "A weathercock on a steeple that lost its bell",
+      "description": "You point south now. You used to point in whatever direction the bell wanted.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.8,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "faithful-shop-lantern",
+      "label": "A lantern beside a shop with a 'gone fishing' sign",
+      "description": "The fishing has been long. You have been faithful.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "kindling", "value": 1 }
+    },
+    {
+      "id": "bricked-door-knob",
+      "label": "A brass doorknob on a door bricked up from inside",
+      "description": "You still turn. There is nothing to open.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": null
+    },
+    {
+      "id": "abandoned-knight",
+      "label": "A chess knight on a board no one cleaned up",
+      "description": "You moved last. The opponent has not been seen in two days.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": null
+    },
+    {
+      "id": "shaken-snow-globe",
+      "label": "A snow globe whose figure has moved",
+      "description": "Inside you, a small person looks out. They never used to.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+
+    {
+      "id": "reluctant-retired-soldier",
+      "label": "A retired soldier whose hands won't unmake themselves",
+      "description": "Forty years on the wall, four hours off it. You don't know what to do with your shoulders.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.8,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "unlocked-back-door-baker",
+      "label": "A baker who forgot to lock the back door",
+      "description": "The bread is rising. Someone is moving in the storeroom.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": null
+    },
+    {
+      "id": "unnamed-fever-child",
+      "label": "A child with a fever the doctor can't name",
+      "description": "The room is too warm and not warm enough. You are tracing a pattern in the bedspread.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "last-letter-messenger",
+      "label": "A messenger with one letter left and a long road",
+      "description": "The seal is unbroken. The address is half a country away.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "between-cases-judge",
+      "label": "A judge between two cases",
+      "description": "Two stacks of papers. One sentence written. The other waiting.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "lighthouse-daughter",
+      "label": "A lighthouse keeper's daughter learning the trade",
+      "description": "Your father is asleep. The light is yours tonight.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "kindling", "value": 1 }
+    },
+    {
+      "id": "last-match-miner",
+      "label": "A miner with one match between you and the dark",
+      "description": "The shaft is long. The match is honest.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "will", "value": 2 }
+    },
+    {
+      "id": "yesterday-nun",
+      "label": "A nun who left her order yesterday",
+      "description": "The habit is in your bag. You haven't decided whose name to give people.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "flooded-cellar-cellarman",
+      "label": "A cellarman whose cellar took on water last night",
+      "description": "Three feet up the casks. The good wine is on the top shelves.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": null
+    },
+    {
+      "id": "almost-pilgrim",
+      "label": "A pilgrim three steps from a shrine they walked to for a year",
+      "description": "The last steps are the heaviest. The doors of the shrine are open.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.8,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "two-place-widower",
+      "label": "A widower in a cottage that still has two place settings",
+      "description": "It has been six months. You still set the second plate.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "apprentice-weaver",
+      "label": "A weaver's apprentice on the morning the master did not wake",
+      "description": "The loom is mid-pattern. The shuttle is in your hand. The pattern is still in your head.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 0.9,
+      "starterBonus": { "field": "agility", "value": 1 }
+    },
+
+    {
+      "id": "singing-wire",
+      "label": "A telegraph wire humming a frequency it shouldn't",
+      "description": "Words pass through you. They are not words you know yet.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "doorless-draft",
+      "label": "A draft in a sealed room",
+      "description": "There is no door. You are still moving the curtain.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.4,
+      "starterBonus": null
+    },
+    {
+      "id": "long-shadow",
+      "label": "A shadow longer than the body that cast it",
+      "description": "Your owner is small. You are not.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.4,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "ghost-bread-smell",
+      "label": "The smell of bread from a bakery long gone",
+      "description": "The building has been a stationer's for forty years. You are still here at dawn.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "once-dreamed-dream",
+      "label": "A dream a child had once and never repeated",
+      "description": "She dreamed you when she was seven. She is sixty-three now. You are still waiting to be told.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.4,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "lonely-tombstone-name",
+      "label": "A name on a tombstone no one alive remembers",
+      "description": "You were inscribed in 1817. Two hundred years of weather. The letters are still legible.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.4,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "unknown-chord",
+      "label": "A chord struck on an instrument no one knows the name of",
+      "description": "Three strings vibrated. You are still vibrating.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.4,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "before-walking-away-look",
+      "label": "The look someone gave just before walking away",
+      "description": "It lasted half a second on her face. It has lasted longer in you.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+
+    {
+      "id": "wyrm-shed-scale",
+      "label": "A scale that fell from the Long Wyrm during its turning",
+      "description": "Bigger than a shield. Edged like a coin. Your old skin remembers what surface it left.",
+      "typedFormHint": "dragon-egg",
+      "tier": "rare",
+      "weight": 0.4,
+      "starterBonus": { "field": "wyrm_attuned", "value": 1 }
+    },
+    {
+      "id": "wyrm-whispered-line",
+      "label": "A line the Wyrm whispered, written down by mistake",
+      "description": "The scribe meant to copy a different page. What she wrote, she could not read back. You can.",
+      "typedFormHint": "cursed-book",
+      "tier": "rare",
+      "weight": 0.4,
+      "starterBonus": { "field": "wyrm_attuned", "value": 1 }
+    },
+    {
+      "id": "wyrm-glanced-stone",
+      "label": "A stone the Wyrm's eye passed over",
+      "description": "Whatever it saw, it left a mark you can feel from inside the rock.",
+      "typedFormHint": "dungeon-core",
+      "tier": "rare",
+      "weight": 0.4,
+      "starterBonus": { "field": "wyrm_attuned", "value": 1 }
     }
   ]
 }
