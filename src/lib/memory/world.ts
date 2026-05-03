@@ -34,7 +34,12 @@ import { sessions, worldMemories, worldNpcs } from "../db/schema";
 import type { Event, Memory, Projection } from "../game/types";
 import { embedText } from "./episodic";
 import { rowToEvent, readLog } from "../game/events";
-import { recordContribution as recordMetaContribution } from "../meta/long-wyrm";
+import {
+  getCurrentArc,
+  recordContribution as recordMetaContribution,
+} from "../meta/long-wyrm";
+import { judgeLore, lorePreFilter } from "../lore/judge";
+import { promoteToLore } from "../lore/store";
 import { uuidv7 } from "../util/uuidv7";
 import { log } from "../util/log";
 
@@ -284,6 +289,86 @@ export async function persistRunToWorld(
       });
     }
 
+    // Lore promotion. Cheap pre-filter rejects most runs without an
+    // LLM call. Survivors get a single Haiku-tier judge call; if
+    // the judge scores ≥0.6, the run is written into the global
+    // world_lore ledger and becomes part of the canonical world.
+    try {
+      const ended = events.find((e) => e.kind === "session.ended") as
+        | { kind: "session.ended"; reason: string }
+        | undefined;
+      const turnCount = events.filter((e) => e.kind === "turn.begun").length;
+      const beatsFired = events.filter(
+        (e) =>
+          e.kind === "quest.objectiveUpdated" && e.status === "done",
+      ).length;
+      const npcsIntroduced = Array.from(
+        new Set(
+          events
+            .filter((e) => e.kind === "npc.introduced")
+            .map((e) => (e as { kind: "npc.introduced"; npcId: string }).npcId),
+        ),
+      );
+      const questsCompleted = Array.from(
+        new Set(
+          events
+            .filter(
+              (e) =>
+                e.kind === "quest.objectiveUpdated" && e.status === "done",
+            )
+            .map(
+              (e) =>
+                (e as { kind: "quest.objectiveUpdated"; objective: string })
+                  .objective,
+            ),
+        ),
+      );
+      const passes = lorePreFilter(events, {
+        turn: turnCount,
+        outcome: ended?.reason ?? null,
+        beatsFired,
+      });
+      if (passes) {
+        const arc = await getCurrentArc(db);
+        const judgment = await judgeLore(
+          events,
+          {
+            formId: opts.formId ?? "unknown",
+            locationId: opts.locationId ?? "unknown",
+            reincarnatedAs: null, // could be threaded if needed; kept null for now
+            outcome: ended?.reason ?? null,
+            turn: turnCount,
+            npcsIntroduced,
+            questsCompleted,
+            wyrmPhase: arc?.phase ?? null,
+          },
+          {
+            telemetry: {
+              db,
+              sessionId: opts.sessionId,
+              userId: opts.userId,
+            },
+          },
+        );
+        if (judgment) {
+          await promoteToLore(db, judgment, {
+            userId: opts.userId,
+            campaignId: opts.campaignId ?? null,
+            sessionId: opts.sessionId,
+            formId: opts.formId,
+            locationId: opts.locationId,
+            phase: arc?.phase ?? null,
+          });
+        }
+      }
+    } catch (err) {
+      log.warn("lore.promotion_failed", {
+        userId: opts.userId,
+        sessionId: opts.sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return { npcsUpserted, memoriesWritten: 1 };
   } catch (err) {
     log.error("world.persist_failed", {
@@ -307,11 +392,40 @@ export async function recallWorld(
   db: Db,
   userId: string,
   queryText: string,
-  opts: { kMemories?: number; kNpcs?: number } = {},
+  opts: {
+    kMemories?: number;
+    kNpcs?: number;
+    /** Global lore retrieval count (the canonical world ledger).
+     *  Lore is shared across all players; every campaign's first
+     *  turn pulls top-K and injects with a "lore:" prefix so the
+     *  narrator can quote / reference. */
+    kLore?: number;
+  } = {},
 ): Promise<Memory[]> {
   const kMemories = opts.kMemories ?? 4;
   const kNpcs = opts.kNpcs ?? 6;
+  const kLore = opts.kLore ?? 3;
   const out: Memory[] = [];
+
+  // 0. Global lore — canonical world events. Same kNN approach as
+  // memories below, falls back to salience-recency.
+  try {
+    const { recallLore } = await import("../lore/store");
+    const lore = await recallLore(db, queryText, kLore);
+    for (const l of lore) {
+      out.push({
+        id: l.id,
+        summary: `lore: ${l.summary}`,
+        salience: l.salience,
+        eventSeqRange: [0, 0] as [number, number],
+      });
+    }
+  } catch (err) {
+    log.warn("world.recall_lore_failed", {
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   try {
     // NPCs: top by absolute relationship depth (most-engaged first).
     const npcs = await db
