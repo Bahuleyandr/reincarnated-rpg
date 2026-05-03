@@ -120,6 +120,13 @@
       "when": 1777819840357,
       "tag": "0016_room_messages",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1777821401272,
+      "tag": "0017_lore_audit",
+      "breakpoints": true
     }
   ]
 }
