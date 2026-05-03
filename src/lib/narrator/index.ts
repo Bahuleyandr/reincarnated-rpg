@@ -25,6 +25,9 @@ export function makeNarrator(args: {
   form: FormTemplate;
   location: LocationTemplate;
   model?: string;
+  /** BYO-LLM override. When set, the RemoteNarrator uses this instead
+   *  of the env-default provider singleton. */
+  provider?: import("../ai/provider").AIProvider;
   /** Optional telemetry sink — if set, RemoteNarrator writes per-call
    *  rows into ai_calls. Required if you want cost/latency analytics. */
   db?: import("../db/client").Db;
@@ -40,6 +43,7 @@ export function makeNarrator(args: {
       form: args.form,
       location: args.location,
       model: args.model,
+      provider: args.provider,
       db: args.db,
       sessionId: args.sessionId,
     });

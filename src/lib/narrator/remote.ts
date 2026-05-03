@@ -249,6 +249,9 @@ interface RemoteNarratorArgs {
   form: FormTemplate;
   location: LocationTemplate;
   model?: string;
+  /** Override for the underlying provider — used by the BYO-LLM flow.
+   *  When omitted, falls back to the env-default `getProvider()`. */
+  provider?: AIProvider;
   /** Optional db handle so each narrate writes a row to ai_calls.
    *  Pass `db` from `lib/db/client` at the call site. Without it,
    *  telemetry just goes to the JSON-line log. */
@@ -267,7 +270,7 @@ export class RemoteNarrator implements Narrator {
   private sessionId?: string;
 
   constructor(args: RemoteNarratorArgs) {
-    this.provider = getProvider();
+    this.provider = args.provider ?? getProvider();
     this.form = args.form;
     this.location = args.location;
     this.model = args.model ?? "claude-sonnet-4-6";

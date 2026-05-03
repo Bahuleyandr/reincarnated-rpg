@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -172,13 +173,21 @@ export default function Dashboard() {
       <div className="max-w-3xl mx-auto space-y-8">
         <header className="flex items-baseline justify-between">
           <h1 className="text-xl text-stone-100">{user.username}'s runs</h1>
-          <button
-            type="button"
-            onClick={logout}
-            className="text-xs text-stone-500 hover:text-stone-300 underline underline-offset-2"
-          >
-            sign out
-          </button>
+          <div className="flex items-center gap-4 text-xs text-stone-500">
+            <Link
+              href="/settings"
+              className="hover:text-stone-300 underline underline-offset-2"
+            >
+              llm settings
+            </Link>
+            <button
+              type="button"
+              onClick={logout}
+              className="hover:text-stone-300 underline underline-offset-2"
+            >
+              sign out
+            </button>
+          </div>
         </header>
 
         <form
