@@ -54,7 +54,36 @@ export const SAFETY_CAPS = {
   healPerCallMax: 5,
   /** Per-call add_inventory qty cap (mirrors zod). */
   invQtyPerCallMax: 5,
+  /** Default backpack slots every player has. */
+  inventoryBase: 10,
+  /** Absolute hard cap on inventory slots. With ANY combination of
+   *  spells, blessings, extra bags, signature buffs — total stays
+   *  below this. The user's spec: 10 base, 30 max, capped with all
+   *  bonuses. */
+  inventoryHardMax: 30,
 } as const;
+
+/**
+ * Effective inventory capacity = base + bag_slots bonus from
+ * form.state, clamped to [base, hardMax]. Capacity bonuses can come
+ * from the catalog's starterBonus, signature verbs, world events,
+ * etc. — they all funnel through projection.form.state.bag_slots.
+ */
+export function inventoryCapacity(projection: Projection): number {
+  const bonus = (projection.form.state["bag_slots"] as number) ?? 0;
+  return Math.max(
+    SAFETY_CAPS.inventoryBase,
+    Math.min(
+      SAFETY_CAPS.inventoryHardMax,
+      SAFETY_CAPS.inventoryBase + bonus,
+    ),
+  );
+}
+
+/** Sum of qty across every inventory stack. */
+export function inventoryUsed(projection: Projection): number {
+  return projection.inventory.reduce((sum, i) => sum + i.qty, 0);
+}
 
 const toolSchemas = {
   heal: z.object({
@@ -297,7 +326,19 @@ export function checkPrecondition(
       }
       return null;
     }
-    case "add_inventory":
+    case "add_inventory": {
+      // Backpack capacity guardrail. Players carry up to 10 slots
+      // by default; spells / blessings / extra bags can raise the
+      // capacity via projection.form.state.bag_slots, but the hard
+      // cap is 30 regardless of how many bonuses stack.
+      const capacity = inventoryCapacity(projection);
+      const used = inventoryUsed(projection);
+      const next = used + tool.qty;
+      if (next > capacity) {
+        return `add_inventory: backpack full (${used}/${capacity}). need to drop or absorb something first.`;
+      }
+      return null;
+    }
     case "move_to":
     case "pass_time":
     case "sense":
