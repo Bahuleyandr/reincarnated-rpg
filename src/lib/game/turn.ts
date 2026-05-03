@@ -15,6 +15,11 @@
 import { eq } from "drizzle-orm";
 
 import { sessions } from "../db/schema";
+import {
+  badLuckRollPenalty,
+  BAD_LUCK_MAX,
+  type ModerationOutcome,
+} from "../moderation";
 import { log } from "../util/log";
 import { deriveSeed } from "../util/rng";
 import { type Narrator } from "../narrator";
@@ -93,6 +98,13 @@ export interface RunTurnArgs {
    *  subsequent turns the bonus is already baked into the snapshot
    *  and this arg is a no-op. */
   starterFormState?: Record<string, number>;
+  /** Moderation outcome from the route. When the verdict is "severe",
+   *  runTurn short-circuits — no classify/roll/narrate, just a
+   *  refusal narration event + bad-luck stack. When "mild", the run
+   *  continues normally but bad_luck stacks for the next few turns.
+   *  "clean" is the default. "injection" is filtered at the route and
+   *  never reaches runTurn. */
+  moderation?: ModerationOutcome;
 }
 
 export interface TurnResult {
@@ -132,6 +144,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     onNarrationStreamDelta,
     starterFormState,
   } = args;
+  const moderation = args.moderation;
   let narratorFallback = false;
   let narratorFallbackReason: string | undefined;
 
@@ -156,6 +169,58 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       inputSanitized: sanitized,
     },
   ]);
+
+  // 2.5 Moderation: stack bad_luck on profanity, short-circuit on
+  // "severe" with a refusal narration and skip the rest of the turn.
+  // Curse decay (-1 bad_luck at end of turn) runs from step 11.
+  let activeBadLuck =
+    typeof projection.form.state["bad_luck"] === "number"
+      ? (projection.form.state["bad_luck"] as number)
+      : 0;
+  if (moderation && moderation.badLuck > 0) {
+    const headroom = Math.max(0, BAD_LUCK_MAX - activeBadLuck);
+    const delta = Math.min(moderation.badLuck, headroom);
+    if (delta > 0) {
+      await appendEvents(db, sessionId, [
+        {
+          kind: "form_state.changed",
+          field: "bad_luck",
+          delta,
+        },
+      ]);
+      activeBadLuck += delta;
+    }
+    log.info("turn.moderation.curse", {
+      sessionId,
+      verdict: moderation.verdict,
+      badLuckAdded: delta,
+      newBadLuck: activeBadLuck,
+    });
+  }
+  if (moderation?.verdict === "severe") {
+    // Short-circuit: emit the refusal narration, write a snapshot
+    // reflecting the bad_luck bump, and return. The energy was
+    // already spent by the route — that's the in-fiction tax.
+    const refusalText =
+      moderation.playerMessage ??
+      "the gods recoil from your tongue. ill-luck clings to you.";
+    await appendEvents(db, sessionId, [
+      {
+        kind: "narration.emitted",
+        text: refusalText,
+        toolCallsApplied: 0,
+      },
+    ]);
+    const refused = await loadProjection(db, sessionId, form, location);
+    await writeSnapshot(db, refused);
+    return {
+      ok: true,
+      narration: refusalText,
+      projection: refused,
+      toolEvents: 0,
+      beatsFired: [],
+    };
+  }
 
   // 3. Classify intent. Defaults to the free regex; opt-in LLM
   //    classifier replaces it when llmJudges.useClassifier is set.
@@ -190,11 +255,25 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     verbMappings?: Record<string, { rollStat: string | null }>;
   }).verbMappings;
   const rollStat = verbMappings?.[intent.verb]?.rollStat ?? null;
-  const mod = rollStat ? (form.stats[rollStat] ?? 0) : 0;
+  const baseMod = rollStat ? (form.stats[rollStat] ?? 0) : 0;
+  // Bad-luck curse: a player with active bad_luck stacks gets a
+  // negative modifier (capped at -2 so success is still possible).
+  // Decays by 1 at the end of every turn — see step "decay" below.
+  const luckPenalty = badLuckRollPenalty(activeBadLuck);
+  const mod = baseMod + luckPenalty;
   const roll = roll2d6(seed, mod);
   await appendEvents(db, sessionId, [
     { kind: "roll.resolved", roll, against: rollStat ?? "default" },
   ]);
+  if (luckPenalty < 0) {
+    log.info("turn.moderation.luck_penalty", {
+      sessionId,
+      activeBadLuck,
+      baseMod,
+      luckPenalty,
+      finalMod: mod,
+    });
+  }
 
   // 5. Reload projection so the narrator sees turn.begun + roll context.
   projection = await loadProjection(db, sessionId, form, location);
@@ -440,6 +519,20 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     }
   }
 
+  // 11c. Bad-luck decay. The roll above already paid for this turn's
+  // curse; now drop bad_luck by 1 so the next turn is one step less
+  // cursed. Skipped when 0 (don't emit no-op events). Skipped also
+  // when the session ended this turn — no next turn to suffer.
+  if (
+    activeBadLuck > 0 &&
+    projection.status === "active"
+  ) {
+    await appendEvents(db, sessionId, [
+      { kind: "form_state.changed", field: "bad_luck", delta: -1 },
+    ]);
+    projection = await loadProjection(db, sessionId, form, location);
+  }
+
   // 12. Snapshot.
   await writeSnapshot(db, projection);
 
@@ -454,6 +547,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     toolRetried,
     toolFellBack,
     toneRetried,
+    activeBadLuck,
   });
 
   return {

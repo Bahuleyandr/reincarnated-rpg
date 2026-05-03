@@ -14,6 +14,7 @@ import {
   getCurrentArc,
   phaseForProgress,
 } from "@/lib/meta/long-wyrm";
+import { moderate } from "@/lib/moderation";
 import { activeTheme } from "@/lib/world/weekly-theme";
 import { makeNarrator } from "@/lib/narrator";
 import { TemplateNarrator } from "@/lib/narrator/template";
@@ -49,6 +50,28 @@ export async function POST(req: NextRequest) {
       : "";
   if (!input) {
     return NextResponse.json({ error: "missing input" }, { status: 400 });
+  }
+
+  // Moderation gate: cheap, deterministic. Runs BEFORE trySpend so
+  // a prompt-injection attempt can't drain the player's energy.
+  // - injection → 400, no energy charge.
+  // - severe profanity → energy IS charged, runTurn short-circuits
+  //   with a refusal narration + bad-luck curse stacked.
+  // - mild profanity → energy charged, run continues but with a
+  //   smaller bad-luck stack queued for the next few turns.
+  const moderation = moderate(input);
+  if (moderation.verdict === "injection") {
+    log.warn("turn.moderation.injection_blocked", {
+      sessionId,
+      hits: moderation.injectionHits.map((h) => h.pattern),
+    });
+    return NextResponse.json(
+      {
+        error: moderation.playerMessage ?? "injection rejected",
+        injectionBlocked: true,
+      },
+      { status: 400 },
+    );
   }
 
   // Energy gate: each turn costs 1. If the player is at 0 (after
@@ -157,6 +180,7 @@ export async function POST(req: NextRequest) {
       beatPack,
       turnCap: turnCapOverride,
       starterFormState,
+      moderation,
       world: verified.userId
         ? {
             userId: verified.userId,

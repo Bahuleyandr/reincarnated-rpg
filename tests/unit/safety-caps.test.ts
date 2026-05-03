@@ -1,7 +1,7 @@
 /**
  * Safety guardrails — verify the cap on form-state accumulation.
  */
-import { checkPrecondition, SAFETY_CAPS } from "@/lib/game/tools";
+import { checkPrecondition, SAFETY_CAPS, toolCallSchema } from "@/lib/game/tools";
 import type { Projection, ToolCall } from "@/lib/game/types";
 
 function fakeProjection(state: Record<string, number> = {}): Projection {
@@ -75,5 +75,31 @@ describe("change_form_state safety cap", () => {
     expect(SAFETY_CAPS.formStateAbsMax).toBeGreaterThan(0);
     expect(SAFETY_CAPS.damagePerCallMax).toBe(10);
     expect(SAFETY_CAPS.healPerCallMax).toBe(5);
+  });
+
+  test("maxToolsPerTurn cap is exposed", () => {
+    expect(typeof SAFETY_CAPS.maxToolsPerTurn).toBe("number");
+    expect(SAFETY_CAPS.maxToolsPerTurn).toBeGreaterThan(0);
+    // Sanity bound: a turn that emits more than this many tools is
+    // almost certainly a model burst, not an intentional choreography.
+    expect(SAFETY_CAPS.maxToolsPerTurn).toBeLessThanOrEqual(10);
+  });
+
+  test("grantXpPerCallMax tightens the per-call XP grant", () => {
+    expect(SAFETY_CAPS.grantXpPerCallMax).toBe(50);
+    // The zod schema must mirror this — validate via the discriminated
+    // union: an XP grant of 999 should now fail validation.
+    const ok = toolCallSchema.safeParse({
+      name: "grant_xp",
+      amount: 50,
+      reason: "boundary",
+    });
+    expect(ok.success).toBe(true);
+    const overflow = toolCallSchema.safeParse({
+      name: "grant_xp",
+      amount: 999,
+      reason: "should be rejected",
+    });
+    expect(overflow.success).toBe(false);
   });
 });
