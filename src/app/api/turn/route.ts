@@ -70,9 +70,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Pull the just-emitted roll.resolved event so the UI can show
+    // the dice. Avoids re-running the rules engine on the client.
+    const { readLog, rowToEvent } = await import("@/lib/game/events");
+    const events = (await readLog(db, sessionId)).map(rowToEvent);
+    const lastRoll = [...events]
+      .reverse()
+      .find((e) => e.kind === "roll.resolved");
+    const roll =
+      lastRoll && lastRoll.kind === "roll.resolved" ? lastRoll.roll : null;
+
     return NextResponse.json({
       narration: result.narration,
       projection: result.projection,
+      roll,
       toolEvents: result.toolEvents,
       beatsFired: result.beatsFired,
     });
