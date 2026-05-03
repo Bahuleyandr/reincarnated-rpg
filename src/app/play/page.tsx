@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { InputBox } from "@/components/InputBox";
 import { InventoryPanel } from "@/components/InventoryPanel";
+import { NearbyBox } from "@/components/NearbyBox";
 import { QuestLog } from "@/components/QuestLog";
 import { StatusSidebar } from "@/components/StatusSidebar";
 import { Transcript, type TranscriptEntry } from "@/components/Transcript";
@@ -22,6 +23,16 @@ export default function Play() {
   const [metaArc, setMetaArc] = useState<{
     phaseLabel: string;
     phase: string;
+  } | null>(null);
+  const [nearby, setNearby] = useState<{
+    room: { locationId: string; roomId: string | null };
+    pcs: Array<{
+      sessionId: string;
+      username: string | null;
+      displayName: string;
+      formId: string;
+      isSelf: boolean;
+    }>;
   } | null>(null);
   const router = useRouter();
 
@@ -64,8 +75,42 @@ export default function Play() {
         }
       })
       .catch(() => {});
+
+    // Presence: bump heartbeat every 30s; refresh nearby every 10s.
+    async function bumpHeartbeat() {
+      try {
+        await fetch("/api/presence/heartbeat", { method: "POST" });
+      } catch {
+        /* ignore */
+      }
+    }
+    async function refreshNearby() {
+      try {
+        const r = await fetch("/api/presence/nearby");
+        if (!r.ok) return;
+        const d = (await r.json()) as {
+          room: { locationId: string; roomId: string | null };
+          nearby: Array<{
+            sessionId: string;
+            username: string | null;
+            displayName: string;
+            formId: string;
+            isSelf: boolean;
+          }>;
+        };
+        if (!cancelled) setNearby({ room: d.room, pcs: d.nearby });
+      } catch {
+        /* ignore */
+      }
+    }
+    bumpHeartbeat();
+    refreshNearby();
+    const heartbeatId = setInterval(bumpHeartbeat, 30_000);
+    const nearbyId = setInterval(refreshNearby, 10_000);
     return () => {
       cancelled = true;
+      clearInterval(heartbeatId);
+      clearInterval(nearbyId);
     };
   }, [router]);
 
@@ -283,6 +328,17 @@ export default function Play() {
       <aside className="border-l border-stone-800 bg-stone-900/40 flex flex-col overflow-y-auto">
         <QuestLog projection={projection} />
         <InventoryPanel projection={projection} />
+        {nearby && projection && (
+          <NearbyBox
+            room={nearby.room}
+            pcs={nearby.pcs}
+            npcs={Object.entries(projection.npcs).map(([slug, n]) => ({
+              slug,
+              name: n.name,
+              relationship: n.relationship,
+            }))}
+          />
+        )}
       </aside>
     </main>
   );

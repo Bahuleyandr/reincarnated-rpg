@@ -138,6 +138,10 @@ export const sessions = pgTable(
      *  the narrator just like the campaign field. Null for the default
      *  "first slime" anon flow and pre-feature legacy sessions. */
     reincarnatedAs: text("reincarnated_as"),
+    /** Heartbeat — bumped by /api/presence/heartbeat. The /nearby
+     *  endpoint considers a session "live" if last_active_at is
+     *  within the last 90 seconds. Null on legacy sessions. */
+    lastActiveAt: timestamp("last_active_at", { withTimezone: true }),
     startedAt: timestamp("started_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -145,7 +149,10 @@ export const sessions = pgTable(
     turnCount: integer("turn_count").notNull().default(0),
     status: sessionStatus("status").notNull().default("active"),
   },
-  (t) => [index("sessions_campaign_idx").on(t.campaignId)],
+  (t) => [
+    index("sessions_campaign_idx").on(t.campaignId),
+    index("sessions_last_active_idx").on(t.lastActiveAt),
+  ],
 );
 
 // Append-only. A trigger installed by migration 0001 raises on UPDATE/DELETE.
