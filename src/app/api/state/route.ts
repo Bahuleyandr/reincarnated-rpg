@@ -30,8 +30,12 @@ export async function GET(req: NextRequest) {
     const ctx = await resolveSessionContext(db, sessionId);
     const form = loadForm(ctx.formId);
     const location = loadLocation(ctx.locationId);
+    const starterFormState = ctx.starterBonus
+      ? { [ctx.starterBonus.field]: ctx.starterBonus.value }
+      : undefined;
     const projection = await loadProjection(db, sessionId, form, location, {
       reincarnatedAs: ctx.reincarnatedAs,
+      starterFormState,
     });
 
     const events = await readLog(db, sessionId);

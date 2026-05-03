@@ -88,6 +88,11 @@ export interface RunTurnArgs {
    *  (the UI replaces the prior text on retry, so streaming the retry
    *  would be confusing). */
   onNarrationStreamDelta?: (delta: string) => void;
+  /** Initial form-state buffs from the catalog option's starterBonus.
+   *  Only applied when no snapshot exists yet (first turn). On
+   *  subsequent turns the bonus is already baked into the snapshot
+   *  and this arg is a no-op. */
+  starterFormState?: Record<string, number>;
 }
 
 export interface TurnResult {
@@ -125,12 +130,15 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     llmJudges,
     world,
     onNarrationStreamDelta,
+    starterFormState,
   } = args;
   let narratorFallback = false;
   let narratorFallbackReason: string | undefined;
 
   const t0 = Date.now();
-  let projection = await loadProjection(db, sessionId, form, location);
+  let projection = await loadProjection(db, sessionId, form, location, {
+    starterFormState,
+  });
   if (projection.status !== "active") {
     return { ok: false, error: `session is ${projection.status}`, projection };
   }

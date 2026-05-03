@@ -172,6 +172,9 @@ export async function POST(req: NextRequest) {
       });
       const fallbackNarrator = new TemplateNarrator({ form, location });
 
+      const starterFormState = ctx.starterBonus
+        ? { [ctx.starterBonus.field]: ctx.starterBonus.value }
+        : undefined;
       const result = await runTurn({
         db,
         sessionId,
@@ -181,6 +184,7 @@ export async function POST(req: NextRequest) {
         narrator,
         fallbackNarrator,
         beatPack,
+        starterFormState,
         world: verified.userId
           ? {
               userId: verified.userId,

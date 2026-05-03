@@ -88,6 +88,17 @@ export const campaigns = pgTable(
      *  compatible pool in src/lib/game/arc-routing.ts. Null means
      *  no arc — narrator runs free-form. */
     arcId: text("arc_id"),
+    /** Reincarnation catalog option id the player chose. Lets the
+     *  recap show what the God offered AND lets us replay the
+     *  starterBonus on first projection-init even after a snapshot
+     *  reset (the value is also baked into the projection.form.state
+     *  immediately). Null for free-text reincarnations not from the
+     *  catalog. */
+    reincarnationOptionId: text("reincarnation_option_id"),
+    /** Starter bonus payload (single { field, value } from the
+     *  catalog option). Stored as jsonb for forward-compat in case
+     *  bonuses grow into multi-field arrays. */
+    starterBonus: jsonb("starter_bonus"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

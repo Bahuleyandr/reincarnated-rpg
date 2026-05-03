@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
 import { campaigns, userLlmPrefs } from "@/lib/db/schema";
 import { pickArc } from "@/lib/game/arc-routing";
+import { findOption } from "@/lib/game/reincarnation-picker";
 import {
   AVAILABLE_LOCATIONS,
   pickFormId,
@@ -60,6 +61,10 @@ export async function POST(req: NextRequest) {
     formId?: string;
     locationId?: string;
     reincarnatedAs?: string;
+    /** Catalog option id from /api/reincarnate. When present, the
+     *  server uses the option's typedFormHint + label + starterBonus
+     *  in preference to inferring from reincarnatedAs free text. */
+    optionId?: string;
   };
   try {
     body = await req.json();
@@ -67,10 +72,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid JSON" }, { status: 400 });
   }
 
-  const reincarnatedAs = body.reincarnatedAs?.trim() || null;
+  // Catalog option (the God's pick) takes precedence over free text.
+  const option = body.optionId ? findOption(body.optionId) : null;
+  const reincarnatedAs =
+    option?.label ?? body.reincarnatedAs?.trim() ?? null;
 
-  // Form: explicit > keyword-derived > slime default.
-  const formId = body.formId ?? pickFormId(reincarnatedAs);
+  // Form: catalog > explicit > keyword-derived > slime default.
+  const formId =
+    option?.typedFormHint ?? body.formId ?? pickFormId(reincarnatedAs);
 
   // Location: explicit > random.
   let locationId: LocationId | string;
@@ -126,6 +135,8 @@ export async function POST(req: NextRequest) {
     locationId,
     reincarnatedAs,
     arcId: arcPick?.arcId ?? null,
+    reincarnationOptionId: option?.id ?? null,
+    starterBonus: option?.starterBonus ?? null,
     ...pin,
   });
   return NextResponse.json({
@@ -138,6 +149,8 @@ export async function POST(req: NextRequest) {
       reincarnatedAs,
       arcId: arcPick?.arcId ?? null,
       arcTagline: arcPick?.tagline ?? null,
+      reincarnationOptionId: option?.id ?? null,
+      starterBonus: option?.starterBonus ?? null,
       status: "active",
       ...pin,
     },

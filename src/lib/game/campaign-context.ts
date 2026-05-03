@@ -30,6 +30,9 @@ export interface SessionContext {
   /** Scripted beat-pack id this campaign is running. Null for
    *  free-form runs and for anon sessions (which always run free). */
   arcId: string | null;
+  /** Starter form-state buff from the catalog option the player
+   *  picked. Replayed into projection.form.state on first init. */
+  starterBonus: { field: string; value: number } | null;
 }
 
 const DEFAULT_CONTEXT: SessionContext = {
@@ -40,6 +43,7 @@ const DEFAULT_CONTEXT: SessionContext = {
   pinnedNarrationModel: null,
   campaignId: null,
   arcId: null,
+  starterBonus: null,
 };
 
 export async function resolveSessionContext(
@@ -58,6 +62,7 @@ export async function resolveSessionContext(
       campaignPinnedPresetId: campaigns.pinnedPresetId,
       campaignPinnedNarrationModel: campaigns.pinnedNarrationModel,
       campaignArcId: campaigns.arcId,
+      campaignStarterBonus: campaigns.starterBonus,
     })
     .from(sessions)
     .leftJoin(campaigns, eq(sessions.campaignId, campaigns.id))
@@ -78,5 +83,9 @@ export async function resolveSessionContext(
     pinnedNarrationModel: row.campaignPinnedNarrationModel ?? null,
     campaignId: row.sessionCampaignId ?? null,
     arcId: row.campaignArcId ?? null,
+    starterBonus:
+      (row.campaignStarterBonus as
+        | { field: string; value: number }
+        | null) ?? null,
   };
 }

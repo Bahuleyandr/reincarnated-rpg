@@ -28,7 +28,20 @@ export default function RegisterPage() {
         setBusy(false);
         return;
       }
-      router.push("/dashboard");
+      // First-time login: route to /reincarnate so the God of the new
+      // world makes the first offer. If they already had an anon run
+      // claimed during register, /reincarnate still works — they can
+      // start a SECOND campaign from there or back out to /dashboard.
+      const data = (await res.json().catch(() => ({}))) as {
+        claimed?: { campaignId?: string };
+      };
+      if (data.claimed?.campaignId) {
+        // The anon run was claimed — send them to dashboard which
+        // shows the new campaign card.
+        router.push("/dashboard");
+      } else {
+        router.push("/reincarnate");
+      }
     } catch (e) {
       setError(`network: ${e instanceof Error ? e.message : "?"}`);
       setBusy(false);
