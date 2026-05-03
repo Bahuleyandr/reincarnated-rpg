@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
 import { recentLore } from "@/lib/lore/store";
+import { cached } from "@/lib/util/cache";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -20,7 +21,13 @@ export async function GET(req: NextRequest) {
     Math.min(100, Number(url.searchParams.get("limit") ?? "25")),
   );
   const category = url.searchParams.get("category");
-  const lore = await recentLore(db, limit);
+  // 60s TTL — lore changes only when the lore judge promotes a
+  // run, which is sparse (10-20% pass pre-filter, 30-50% of those
+  // pass the judge). Public /meta page polls every 30s and the
+  // /api/character page reads it; both are fine with 60s staleness.
+  const lore = await cached(`lore:list:${limit}`, 60_000, () =>
+    recentLore(db, limit),
+  );
   const filtered = category
     ? lore.filter((l) => l.category === category)
     : lore;

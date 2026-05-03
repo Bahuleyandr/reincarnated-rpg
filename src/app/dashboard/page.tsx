@@ -175,6 +175,12 @@ export default function Dashboard() {
           <h1 className="text-xl text-stone-100">{user.username}'s runs</h1>
           <div className="flex items-center gap-4 text-xs text-stone-500">
             <Link
+              href="/character"
+              className="hover:text-stone-300 underline underline-offset-2"
+            >
+              character
+            </Link>
+            <Link
               href="/settings"
               className="hover:text-stone-300 underline underline-offset-2"
             >

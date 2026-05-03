@@ -112,7 +112,14 @@ export const campaigns = pgTable(
     endedAt: timestamp("ended_at", { withTimezone: true }),
     metadata: jsonb("metadata"),
   },
-  (t) => [index("campaigns_user_idx").on(t.userId)],
+  (t) => [
+    index("campaigns_user_idx").on(t.userId),
+    /** Hot query: liveDistribution() in reincarnation-picker (and the
+     *  /god dashboard) groups active campaigns by formId in the last 7d.
+     *  Composite (status, created_at) lets the planner skip seq-scan
+     *  once we have meaningful campaign volume. */
+    index("campaigns_status_created_idx").on(t.status, t.createdAt),
+  ],
 );
 
 export const entityKind = pgEnum("entity_kind", [
@@ -319,6 +326,11 @@ export const aiCalls = pgTable(
     index("ai_calls_session_idx").on(t.sessionId),
     index("ai_calls_user_idx").on(t.userId),
     index("ai_calls_created_at_idx").on(t.createdAt),
+    /** Hot query: /api/leaderboard scans `WHERE call_type=X AND
+     *  created_at >= since`. Composite (call_type, created_at)
+     *  means we can answer the leaderboard from the index alone
+     *  with a backward scan. */
+    index("ai_calls_calltype_created_idx").on(t.callType, t.createdAt),
   ],
 );
 
