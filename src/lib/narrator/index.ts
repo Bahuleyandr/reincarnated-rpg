@@ -32,6 +32,10 @@ export function makeNarrator(args: {
    *  rows into ai_calls. Required if you want cost/latency analytics. */
   db?: import("../db/client").Db;
   sessionId?: string;
+  /** Logged-in user id, threaded into ai_calls for the cost panel. */
+  userId?: string | null;
+  /** BYO preset id, threaded into ai_calls for the eval leaderboard. */
+  presetId?: string | null;
 }): Narrator {
   const mode = args.mode ?? getNarratorMode();
   if (mode === "remote") {
@@ -46,6 +50,8 @@ export function makeNarrator(args: {
       provider: args.provider,
       db: args.db,
       sessionId: args.sessionId,
+      userId: args.userId,
+      presetId: args.presetId,
     });
   }
   return new TemplateNarrator({ form: args.form, location: args.location });

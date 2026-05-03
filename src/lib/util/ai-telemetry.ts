@@ -17,6 +17,12 @@ import { log } from "./log";
 
 export interface AiCallRecord {
   sessionId?: string | null;
+  /** Logged-in user that triggered the call, when known. Powers the
+   *  per-user cost panel. */
+  userId?: string | null;
+  /** BYO-LLM preset id (e.g. "minimax", "openrouter"). Null for
+   *  env-default calls. Powers the eval leaderboard. */
+  presetId?: string | null;
   callType: string;
   model: string;
   inputTokens?: number;
@@ -36,6 +42,8 @@ export async function recordAiCall(
     await db.insert(aiCalls).values({
       id: uuidv7(),
       sessionId: rec.sessionId ?? null,
+      userId: rec.userId ?? null,
+      presetId: rec.presetId ?? null,
       callType: rec.callType,
       model: rec.model,
       inputTokens: rec.inputTokens ?? 0,

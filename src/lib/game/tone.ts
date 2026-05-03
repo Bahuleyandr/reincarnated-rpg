@@ -72,7 +72,13 @@ export function checkToneFast(
 export async function checkTone(
   narration: string,
   form: FormTemplate,
-  telemetry?: { db: Db; sessionId?: string },
+  telemetry?: {
+    db: Db;
+    sessionId?: string;
+    userId?: string | null;
+    presetId?: string | null;
+  },
+  opts?: { provider?: import("../ai/provider").AIProvider; model?: string },
 ): Promise<ToneResult> {
   const fast = checkToneFast(narration, form);
   if (!fast.ok) return fast;
@@ -101,11 +107,12 @@ export async function checkTone(
     },
   ];
 
-  const provider = getProvider();
+  const provider = opts?.provider ?? getProvider();
+  const model = opts?.model ?? "claude-haiku-4-5";
   const t0 = Date.now();
   try {
     const response = await provider.complete({
-      model: "claude-haiku-4-5",
+      model,
       maxTokens: 256,
       tools,
       toolChoice: { type: "tool", name: "judge_tone" },
@@ -116,7 +123,7 @@ export async function checkTone(
 Narration to judge:
 "${narration}"
 
-Score 1-5: is this second-person and tonally on-form for the slime form? A slime has no body, no language, no vision in human terms — it senses through chemistry, vibration, and thermal contact. Penalize human-flavored verbs about the player, but NPCs may still have eyes/voices/etc.`,
+Score 1-5: is this second-person and tonally on-form for the ${form.id} form? Each form has its own body / non-body, its own perceptual register, its own register of verbs. Penalize narration that uses verbs the form cannot do (humans walking when narrating a book, etc.) but NPCs may still have eyes/voices/etc.`,
         },
       ],
     });
@@ -124,8 +131,10 @@ Score 1-5: is this second-person and tonally on-form for the slime form? A slime
     if (telemetry?.db) {
       await recordAiCall(telemetry.db, {
         sessionId: telemetry.sessionId,
+        userId: telemetry.userId,
+        presetId: telemetry.presetId,
         callType: "tone_judge",
-        model: "claude-haiku-4-5",
+        model,
         inputTokens: response.usage.inputTokens,
         outputTokens: response.usage.outputTokens,
         cacheReadTokens: response.usage.cacheReadTokens,
@@ -148,8 +157,10 @@ Score 1-5: is this second-person and tonally on-form for the slime form? A slime
     if (telemetry?.db) {
       await recordAiCall(telemetry.db, {
         sessionId: telemetry.sessionId,
+        userId: telemetry.userId,
+        presetId: telemetry.presetId,
         callType: "tone_judge",
-        model: "claude-haiku-4-5",
+        model,
         durationMs: Date.now() - t0,
         success: false,
         errorMsg: err instanceof Error ? err.message : String(err),

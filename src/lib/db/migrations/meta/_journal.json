@@ -43,6 +43,13 @@
       "when": 1777806063893,
       "tag": "0005_user_llm_prefs",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777807106337,
+      "tag": "0006_ai_calls_user_preset",
+      "breakpoints": true
     }
   ]
 }

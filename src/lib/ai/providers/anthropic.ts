@@ -15,6 +15,7 @@ import type {
   ProviderToolUse,
 } from "../provider";
 import { env } from "../../util/env";
+import { withRetry } from "../../util/retry";
 
 export class AnthropicProvider implements AIProvider {
   readonly providerName = "anthropic";
@@ -55,21 +56,23 @@ export class AnthropicProvider implements AIProvider {
             ? ({ type: "auto" } as const)
             : undefined;
 
-    const response = await client.messages.create({
-      model: args.model,
-      max_tokens: args.maxTokens,
-      system: args.system?.map((s) => ({
-        type: "text",
-        text: s.text,
-        ...(s.cache_control ? { cache_control: s.cache_control } : {}),
-      })),
-      messages: args.messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      })),
-      tools,
-      tool_choice: toolChoice,
-    });
+    const response = await withRetry(() =>
+      client.messages.create({
+        model: args.model,
+        max_tokens: args.maxTokens,
+        system: args.system?.map((s) => ({
+          type: "text",
+          text: s.text,
+          ...(s.cache_control ? { cache_control: s.cache_control } : {}),
+        })),
+        messages: args.messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        tools,
+        tool_choice: toolChoice,
+      }),
+    );
 
     let text = "";
     const toolUses: ProviderToolUse[] = [];

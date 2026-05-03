@@ -25,7 +25,12 @@ import type { FormTemplate } from "./types";
 export async function classifyHaiku(
   input: string,
   form: FormTemplate,
-  telemetry?: { db: Db; sessionId?: string },
+  telemetry?: {
+    db: Db;
+    sessionId?: string;
+    userId?: string | null;
+    presetId?: string | null;
+  },
   opts?: { provider?: AIProvider; model?: string },
 ): Promise<ClassifierResult> {
   const verbs = form.verbs;
@@ -78,6 +83,8 @@ Pick the verb that best matches. Use lower confidence (<0.7) when the input is a
     if (telemetry?.db) {
       await recordAiCall(telemetry.db, {
         sessionId: telemetry.sessionId,
+        userId: telemetry.userId,
+        presetId: telemetry.presetId,
         callType: "classifier",
         model,
         inputTokens: response.usage.inputTokens,
@@ -99,6 +106,8 @@ Pick the verb that best matches. Use lower confidence (<0.7) when the input is a
     if (telemetry?.db) {
       await recordAiCall(telemetry.db, {
         sessionId: telemetry.sessionId,
+        userId: telemetry.userId,
+        presetId: telemetry.presetId,
         callType: "classifier",
         model,
         durationMs: Date.now() - t0,

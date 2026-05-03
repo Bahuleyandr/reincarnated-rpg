@@ -33,6 +33,7 @@ import type {
   CompleteResponse,
   ProviderToolUse,
 } from "../provider";
+import { withRetry } from "../../util/retry";
 
 interface OpenAIChatRequest {
   model: string;
@@ -137,23 +138,25 @@ export class OpenAICompatibleProvider implements AIProvider {
       ...(toolChoice ? { tool_choice: toolChoice } : {}),
     };
 
-    const response = await fetch(`${this.baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
+    const data = await withRetry<OpenAIChatResponse>(async () => {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        const err = new Error(
+          `OpenAI-compatible API ${response.status}: ${text.slice(0, 500)}`,
+        ) as Error & { status?: number };
+        err.status = response.status; // exposed for isRetryableError
+        throw err;
+      }
+      return (await response.json()) as OpenAIChatResponse;
     });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(
-        `OpenAI-compatible API ${response.status}: ${text.slice(0, 500)}`,
-      );
-    }
-
-    const data = (await response.json()) as OpenAIChatResponse;
     const choice = data.choices[0];
     if (!choice) {
       throw new Error("OpenAI-compatible response had no choices");
