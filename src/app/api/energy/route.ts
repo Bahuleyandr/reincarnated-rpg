@@ -5,22 +5,26 @@
  * changed). Logged-in users hit users.* storage; anon sessions hit
  * sessions.* storage.
  *
+ * Loading the page (which calls this endpoint) counts as a daily
+ * "login" — the streak claim runs here, so a returning player sees
+ * their bonus before they take a turn. The `dailyGrant` field is
+ * non-null exactly when this call awarded the bonus; the EnergyBar
+ * uses it to flash a celebration.
+ *
  * Shape:
  *   {
- *     energy: number,         // current
- *     max: number,            // tier max
- *     tierId: 'free'|'supporter'|'patron',
- *     tierLabel: string,
- *     regenIntervalMs: number,
- *     nextRegenMs: number,    // ms until next +1 (0 if at max)
- *     fullAtMs: number|null,  // wall-clock ms when energy hits max
- *     turnsPerDay: number,    // approximate
+ *     energy, max, tierId, effectiveTierId, tierLabel,
+ *     regenIntervalMs, nextRegenMs, fullAtMs, turnsPerDay,
+ *     blessing: { id, label, description, expiresAtMs } | null,
+ *     streak: { count: 0..5, max: 5 },
+ *     dailyGrant: { streakBefore, streakAfter, bonusEnergy, reachedCap } | null
  *   }
  */
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
 import { getEnergyView } from "@/lib/energy/state";
+import { MAX_STREAK } from "@/lib/energy/streak";
 import { turnsPerDay } from "@/lib/energy/tiers";
 import {
   SESSION_COOKIE_NAME,
@@ -61,5 +65,10 @@ export async function GET(req: NextRequest) {
           expiresAtMs: view.blessingExpiresAtMs,
         }
       : null,
+    streak: {
+      count: view.streak.count,
+      max: MAX_STREAK,
+    },
+    dailyGrant: view.dailyGrant,
   });
 }

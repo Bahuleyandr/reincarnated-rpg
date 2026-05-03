@@ -70,6 +70,15 @@ export const users = pgTable("users", {
   energyUpdatedAt: timestamp("energy_updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  /** Daily-streak count, 0..5. Bumped when the player takes their
+   *  first turn on a UTC day immediately following a previous
+   *  login day. Reset to 1 if they missed at least one day. Capped
+   *  at 5. */
+  streakCount: integer("streak_count").notNull().default(0),
+  /** UTC date string (YYYY-MM-DD) of the last day this player took
+   *  a turn. Null until the first turn ever. Compared as a string
+   *  in lib/energy/streak.ts. */
+  streakLastDayUtc: text("streak_last_day_utc"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -177,6 +186,9 @@ export const sessions = pgTable(
     })
       .notNull()
       .defaultNow(),
+    /** Anon daily-streak count, 0..5. Same semantics as users.streak_count. */
+    streakCount: integer("streak_count").notNull().default(0),
+    streakLastDayUtc: text("streak_last_day_utc"),
     startedAt: timestamp("started_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

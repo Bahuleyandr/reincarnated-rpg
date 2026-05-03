@@ -13,6 +13,7 @@ import {
   getEnergyView,
   trySpend,
 } from "@/lib/energy/state";
+import { MAX_STREAK, utcDateString } from "@/lib/energy/streak";
 import { TIERS } from "@/lib/energy/tiers";
 import { uuidv7 } from "@/lib/util/uuidv7";
 
@@ -41,6 +42,11 @@ beforeEach(async () => {
   // predictable value. Without this the Postgres-side defaultNow()
   // can race with subsequent reads under heavy test load.
   const now = new Date();
+  // Pre-seed streakLastDayUtc=today so the daily-streak claim is a
+  // no-op for the existing test mechanics that don't care about it.
+  // The dedicated "Daily streak" suite below overrides this when it
+  // wants to exercise grant behaviour.
+  const todayUtc = utcDateString(now);
   await db.insert(users).values({
     id: userId,
     email: `t${userId}@x.com`,
@@ -48,6 +54,8 @@ beforeEach(async () => {
     passwordHash: "x",
     createdAt: now,
     updatedAt: now,
+    streakCount: 1,
+    streakLastDayUtc: todayUtc,
   });
   sessionId = uuidv7();
   await db.insert(sessions).values({
@@ -55,6 +63,8 @@ beforeEach(async () => {
     cookieHmac: `t-${sessionId}`,
     formId: "lesser-slime",
     startedAt: now,
+    streakCount: 1,
+    streakLastDayUtc: todayUtc,
   });
 });
 
@@ -235,5 +245,170 @@ describe("Blessing of the Gods integration", () => {
     expect(back!.tier.id).toBe("free");
     expect(back!.blessing?.id).toBe("blessing-of-the-gods");
     expect(back!.tier.max).toBe(40);
+  });
+});
+
+describe("Daily streak", () => {
+  /** Helper: undo the beforeEach pre-seed so the user looks like a
+   *  brand-new account that has not yet claimed any streak. */
+  async function clearStreak(target: "user" | "session"): Promise<void> {
+    if (target === "user") {
+      await db
+        .update(users)
+        .set({ streakCount: 0, streakLastDayUtc: null })
+        .where(eq(users.id, userId));
+    } else {
+      await db
+        .update(sessions)
+        .set({ streakCount: 0, streakLastDayUtc: null })
+        .where(eq(sessions.id, sessionId));
+    }
+  }
+
+  test("first contact today (fresh user) grants Day-1 +1 energy and surfaces dailyGrant", async () => {
+    await clearStreak("user");
+    // User energy=20 by schema default. trySpend → claim day 1
+    // (+1 grant) → 21, spend 1 → 20.
+    const r = await trySpend(db, { userId });
+    expect(r.ok).toBe(true);
+    expect(r.view!.dailyGrant).not.toBeNull();
+    expect(r.view!.dailyGrant!.streakAfter).toBe(1);
+    expect(r.view!.dailyGrant!.bonusEnergy).toBe(1);
+    expect(r.view!.streak.count).toBe(1);
+    expect(r.view!.streak.lastDayUtc).toBe(utcDateString(new Date()));
+    expect(r.view!.energy).toBe(20);
+  });
+
+  test("idempotent within a UTC day — second trySpend same day grants nothing", async () => {
+    await clearStreak("user");
+    await trySpend(db, { userId }); // claims day 1
+    const r = await trySpend(db, { userId });
+    expect(r.ok).toBe(true);
+    expect(r.view!.dailyGrant).toBeNull();
+    expect(r.view!.streak.count).toBe(1);
+  });
+
+  test("getEnergyView claims the streak too (page-load = 'login')", async () => {
+    await clearStreak("user");
+    const v = await getEnergyView(db, { userId });
+    expect(v!.dailyGrant).not.toBeNull();
+    expect(v!.streak.count).toBe(1);
+    // A second view call same day yields no grant.
+    const v2 = await getEnergyView(db, { userId });
+    expect(v2!.dailyGrant).toBeNull();
+    expect(v2!.streak.count).toBe(1);
+  });
+
+  test("consecutive day bumps to Day-2 and grants +2 energy", async () => {
+    // Simulate: yesterday's streak state already on the row.
+    const today = utcDateString(new Date());
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await db
+      .update(users)
+      .set({
+        streakCount: 1,
+        streakLastDayUtc: utcDateString(yesterday),
+      })
+      .where(eq(users.id, userId));
+    const r = await trySpend(db, { userId });
+    expect(r.view!.dailyGrant!.streakBefore).toBe(1);
+    expect(r.view!.dailyGrant!.streakAfter).toBe(2);
+    expect(r.view!.dailyGrant!.bonusEnergy).toBe(2);
+    expect(r.view!.streak.count).toBe(2);
+    expect(r.view!.streak.lastDayUtc).toBe(today);
+  });
+
+  test("missed-day gap resets streak to 1", async () => {
+    // Streak state pretends last login was 3 days ago.
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    await db
+      .update(users)
+      .set({
+        streakCount: 4,
+        streakLastDayUtc: utcDateString(threeDaysAgo),
+      })
+      .where(eq(users.id, userId));
+    const r = await trySpend(db, { userId });
+    expect(r.view!.dailyGrant!.streakBefore).toBe(4);
+    expect(r.view!.dailyGrant!.streakAfter).toBe(1);
+    expect(r.view!.streak.count).toBe(1);
+  });
+
+  test("at MAX_STREAK, next consecutive day stays at cap and keeps granting +5", async () => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await db
+      .update(users)
+      .set({
+        streakCount: MAX_STREAK,
+        streakLastDayUtc: utcDateString(yesterday),
+      })
+      .where(eq(users.id, userId));
+    const r = await trySpend(db, { userId });
+    expect(r.view!.dailyGrant!.streakAfter).toBe(MAX_STREAK);
+    expect(r.view!.dailyGrant!.bonusEnergy).toBe(MAX_STREAK);
+    expect(r.view!.dailyGrant!.reachedCap).toBe(false); // already at cap
+    expect(r.view!.streak.count).toBe(MAX_STREAK);
+  });
+
+  test("streak grant can lift an at-zero player off the floor", async () => {
+    // Force user energy to 0 with last-update very recent (no regen).
+    await db
+      .update(users)
+      .set({
+        energy: 0,
+        energyUpdatedAt: new Date(),
+        streakCount: 4,
+        streakLastDayUtc: utcDateString(
+          new Date(Date.now() - 24 * 60 * 60 * 1000),
+        ),
+      })
+      .where(eq(users.id, userId));
+    const r = await trySpend(db, { userId });
+    // Day-5 grant = +5 → 5, then spend 1 → 4.
+    expect(r.ok).toBe(true);
+    expect(r.view!.energy).toBe(4);
+    expect(r.view!.dailyGrant!.bonusEnergy).toBe(5);
+    expect(r.view!.dailyGrant!.reachedCap).toBe(true);
+  });
+
+  test("anon session has its own streak", async () => {
+    await clearStreak("user");
+    await clearStreak("session");
+    const r = await trySpend(db, { sessionId });
+    expect(r.view!.dailyGrant).not.toBeNull();
+    expect(r.view!.streak.count).toBe(1);
+    // The user's streak is independent.
+    const u = await getEnergyView(db, { userId });
+    expect(u!.streak.count).toBe(1); // user just got their own grant
+    // But the values are not shared — touching the session a second
+    // time grants nothing further today, even though the user is
+    // separate.
+    const r2 = await trySpend(db, { sessionId });
+    expect(r2.view!.dailyGrant).toBeNull();
+    expect(r2.view!.streak.count).toBe(1);
+  });
+
+  test("streak persists across DB writes — round-trip via writeRaw", async () => {
+    await clearStreak("user");
+    await trySpend(db, { userId }); // claims day 1
+    const fresh = await db
+      .select({
+        streakCount: users.streakCount,
+        streakLastDayUtc: users.streakLastDayUtc,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    expect(fresh[0].streakCount).toBe(1);
+    expect(fresh[0].streakLastDayUtc).toBe(utcDateString(new Date()));
+  });
+
+  test("admin tier change does NOT reset streak", async () => {
+    // Pre-seeded streakCount=1 from beforeEach.
+    const before = await getEnergyView(db, { userId });
+    expect(before!.streak.count).toBe(1);
+    await adminSetEnergy(db, userId, { tier: "patron", refillToMax: true });
+    const after = await getEnergyView(db, { userId });
+    expect(after!.streak.count).toBe(1); // preserved
   });
 });
