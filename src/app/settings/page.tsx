@@ -36,8 +36,14 @@ export default function SettingsPage() {
   const [baseUrl, setBaseUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [busy, setBusy] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<
+    | { ok: true; latencyMs: number; sample: string; model: string }
+    | { ok: false; error: string; latencyMs?: number }
+    | null
+  >(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +90,7 @@ export default function SettingsPage() {
     setPresetId(id);
     setSaved(null);
     setError(null);
+    setTestResult(null);
     const p = presets.find((x) => x.id === id);
     if (!p) return;
     // When switching presets, prefill model + baseUrl from the preset
@@ -99,6 +106,36 @@ export default function SettingsPage() {
   }
 
   const currentPreset = presets.find((p) => p.id === presetId);
+
+  async function runTest() {
+    setTesting(true);
+    setError(null);
+    setSaved(null);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/settings/llm/test", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          presetId,
+          model: model.trim(),
+          baseUrl: baseUrl.trim(),
+          apiKey: apiKey.trim() || undefined,
+        }),
+      });
+      const d = (await res.json().catch(() => ({}))) as
+        | { ok: true; latencyMs: number; sample: string; model: string }
+        | { ok: false; error: string; latencyMs?: number };
+      setTestResult(d);
+      setTesting(false);
+    } catch (e) {
+      setTestResult({
+        ok: false,
+        error: `network: ${e instanceof Error ? e.message : "?"}`,
+      });
+      setTesting(false);
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -289,21 +326,46 @@ export default function SettingsPage() {
 
           {error && <p className="text-red-400 text-xs">{error}</p>}
           {saved && <p className="text-emerald-400 text-xs">{saved}</p>}
+          {testResult &&
+            (testResult.ok ? (
+              <p className="text-emerald-400 text-xs">
+                ✓ connected in {testResult.latencyMs}ms · model{" "}
+                <span className="text-stone-300">{testResult.model}</span>{" "}
+                replied:{" "}
+                <span className="text-stone-300">
+                  &ldquo;{testResult.sample.trim()}&rdquo;
+                </span>
+              </p>
+            ) : (
+              <p className="text-red-400 text-xs">
+                ✗ test failed
+                {testResult.latencyMs ? ` (${testResult.latencyMs}ms)` : ""}:{" "}
+                <span className="text-stone-400">{testResult.error}</span>
+              </p>
+            ))}
 
           <div className="flex items-center gap-3 pt-1">
             <button
               type="submit"
-              disabled={busy}
+              disabled={busy || testing}
               className="border border-stone-300 text-stone-100 py-1 px-4 hover:bg-stone-100 hover:text-stone-950 transition-colors disabled:opacity-50 text-sm"
             >
               {busy ? "saving…" : "save"}
+            </button>
+            <button
+              type="button"
+              onClick={runTest}
+              disabled={busy || testing}
+              className="border border-stone-700 text-stone-300 py-1 px-4 hover:border-stone-500 hover:text-stone-100 transition-colors disabled:opacity-50 text-sm"
+            >
+              {testing ? "testing…" : "test connection"}
             </button>
             {prefs && (
               <button
                 type="button"
                 onClick={clear}
-                disabled={busy}
-                className="border border-stone-700 text-stone-400 py-1 px-4 hover:border-red-700 hover:text-red-400 transition-colors disabled:opacity-50 text-sm"
+                disabled={busy || testing}
+                className="border border-stone-700 text-stone-400 py-1 px-4 hover:border-red-700 hover:text-red-400 transition-colors disabled:opacity-50 text-sm ml-auto"
               >
                 reset to deploy default
               </button>

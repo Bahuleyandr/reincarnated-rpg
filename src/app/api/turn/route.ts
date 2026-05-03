@@ -10,6 +10,7 @@ import {
 } from "@/lib/game/content";
 import { runTurn } from "@/lib/game/turn";
 import { makeNarrator } from "@/lib/narrator";
+import { TemplateNarrator } from "@/lib/narrator/template";
 import {
   SESSION_COOKIE_NAME,
   verifyCookie,
@@ -66,8 +67,15 @@ export async function POST(req: NextRequest) {
       model: resolved.modelOverride ?? undefined,
       db,
       sessionId,
+      userId: verified.userId ?? null,
+      presetId: resolved.source === "env-default" ? null : resolved.source,
     });
 
+    // Safety net: deterministic template-narrator that runs offline.
+    // If the primary narrator throws (provider 5xx, revoked key,
+    // network blip), runTurn routes the turn through this so the
+    // session never stalls. The fallback flag is surfaced to /play.
+    const fallbackNarrator = new TemplateNarrator({ form, location });
     const result = await runTurn({
       db,
       sessionId,
@@ -75,6 +83,7 @@ export async function POST(req: NextRequest) {
       form,
       location,
       narrator,
+      fallbackNarrator,
       beatPack,
     });
 
@@ -101,6 +110,12 @@ export async function POST(req: NextRequest) {
       roll,
       toolEvents: result.toolEvents,
       beatsFired: result.beatsFired,
+      ...(result.narratorFallback
+        ? {
+            narratorFallback: true,
+            narratorFallbackReason: result.narratorFallbackReason,
+          }
+        : {}),
     });
   } catch (err) {
     log.error("turn.failed", {

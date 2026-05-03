@@ -258,6 +258,10 @@ interface RemoteNarratorArgs {
   db?: import("../db/client").Db;
   /** Required if `db` is set so the row joins to the session. */
   sessionId?: string;
+  /** Logged-in user (for ai_calls.user_id). */
+  userId?: string | null;
+  /** BYO preset id (for ai_calls.preset_id). */
+  presetId?: string | null;
 }
 
 export class RemoteNarrator implements Narrator {
@@ -268,6 +272,8 @@ export class RemoteNarrator implements Narrator {
   private model: string;
   private db?: import("../db/client").Db;
   private sessionId?: string;
+  private userId?: string | null;
+  private presetId?: string | null;
 
   constructor(args: RemoteNarratorArgs) {
     this.provider = args.provider ?? getProvider();
@@ -276,6 +282,8 @@ export class RemoteNarrator implements Narrator {
     this.model = args.model ?? "claude-sonnet-4-6";
     this.db = args.db;
     this.sessionId = args.sessionId;
+    this.userId = args.userId ?? null;
+    this.presetId = args.presetId ?? null;
 
     const formJson = JSON.parse(
       readFileSync(
@@ -337,6 +345,8 @@ export class RemoteNarrator implements Narrator {
       if (this.db) {
         await recordAiCall(this.db, {
           sessionId: this.sessionId,
+          userId: this.userId,
+          presetId: this.presetId,
           callType: "narrator",
           model: this.model,
           durationMs,
@@ -374,6 +384,8 @@ export class RemoteNarrator implements Narrator {
     if (this.db) {
       await recordAiCall(this.db, {
         sessionId: this.sessionId,
+        userId: this.userId,
+        presetId: this.presetId,
         callType: "narrator",
         model: this.model,
         inputTokens: response.usage.inputTokens,

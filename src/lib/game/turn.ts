@@ -44,6 +44,12 @@ export interface RunTurnArgs {
   form: FormTemplate;
   location: LocationTemplate;
   narrator: Narrator;
+  /** Optional safety net used when `narrator.narrate` throws (network
+   *  / provider 5xx / auth failure). When set, we route the turn
+   *  through this narrator instead of letting the request 500.
+   *  Convention: pass a `TemplateNarrator` here so the run never
+   *  stalls because the user's BYO LLM is down. */
+  fallbackNarrator?: Narrator;
   beatPack?: BeatPack;
   /** Cap turn count; if reached, fire session.ended('cap'). Default 10. */
   turnCap?: number;
@@ -55,6 +61,13 @@ export interface TurnResult {
   projection: Projection;
   toolEvents: number;
   beatsFired: string[];
+  /** True when the configured narrator threw and we used
+   *  fallbackNarrator. The API surfaces this so the UI can show a
+   *  "your LLM is having trouble" banner. */
+  narratorFallback?: boolean;
+  /** Error surfaced from the failing primary narrator (only when
+   *  narratorFallback=true). Truncated to 200 chars. */
+  narratorFallbackReason?: string;
 }
 
 export interface TurnError {
@@ -71,9 +84,12 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     form,
     location,
     narrator,
+    fallbackNarrator,
     beatPack,
     turnCap = 10,
   } = args;
+  let narratorFallback = false;
+  let narratorFallbackReason: string | undefined;
 
   const t0 = Date.now();
   let projection = await loadProjection(db, sessionId, form, location);
@@ -148,7 +164,26 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     intent: intent.verb,
     relevantMemories,
   };
-  let narrate = await narrator.narrate(baseInput);
+  // Provider may legitimately fail (BYO key revoked, MiniMax 503,
+  // network blip, etc.). When fallbackNarrator is supplied, we
+  // graceful-fail to it for THIS TURN ONLY so the run keeps moving.
+  // The API surfaces the fallback flag so the UI can banner.
+  let narrate: import("./types").NarrateOutput;
+  try {
+    narrate = await narrator.narrate(baseInput);
+  } catch (err) {
+    if (!fallbackNarrator) throw err;
+    narratorFallback = true;
+    narratorFallbackReason = (
+      err instanceof Error ? err.message : String(err)
+    ).slice(0, 200);
+    log.warn("turn.narrator.fallback", {
+      sessionId,
+      turn: turnNumber,
+      err: narratorFallbackReason,
+    });
+    narrate = await fallbackNarrator.narrate(baseInput);
+  }
 
   // 8. Validate + apply tools atomically.
   let toolResult = await applyTools(
@@ -299,6 +334,9 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     projection,
     toolEvents,
     beatsFired,
+    ...(narratorFallback
+      ? { narratorFallback: true, narratorFallbackReason }
+      : {}),
   };
 }
 

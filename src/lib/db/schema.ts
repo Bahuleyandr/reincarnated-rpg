@@ -258,6 +258,16 @@ export const aiCalls = pgTable(
     sessionId: uuid("session_id").references(() => sessions.id, {
       onDelete: "set null",
     }),
+    /** Set when the call originated under a logged-in user. Lets the
+     *  cost panel answer "what has $USER spent on AI calls in the last
+     *  N days" without N+1 joining session→campaign→user. */
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    /** Preset id from src/lib/ai/presets.ts when the call hit a BYO
+     *  provider. Null for env-default calls. Powers the per-provider
+     *  eval leaderboard later. */
+    presetId: text("preset_id"),
     callType: text("call_type").notNull(),
     model: text("model").notNull(),
     inputTokens: integer("input_tokens").notNull().default(0),
@@ -273,6 +283,7 @@ export const aiCalls = pgTable(
   },
   (t) => [
     index("ai_calls_session_idx").on(t.sessionId),
+    index("ai_calls_user_idx").on(t.userId),
     index("ai_calls_created_at_idx").on(t.createdAt),
   ],
 );

@@ -17,6 +17,7 @@ export default function Play() {
   const [hasAccount, setHasAccount] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [llmBanner, setLlmBanner] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -72,12 +73,22 @@ export default function Play() {
         narration: string;
         projection: Projection;
         roll?: RollResult | null;
+        narratorFallback?: boolean;
+        narratorFallbackReason?: string;
       };
       setProjection(data.projection);
       setEntries((prev) => [
         ...prev,
         { kind: "narration", text: data.narration, roll: data.roll ?? null },
       ]);
+      if (data.narratorFallback) {
+        setLlmBanner(
+          `your llm had trouble (${data.narratorFallbackReason ?? "unknown"}). this turn used the offline narrator. open settings to test or switch.`,
+        );
+      } else if (llmBanner) {
+        // Recovered — clear the banner.
+        setLlmBanner(null);
+      }
     } catch (e) {
       setError(`network: ${e instanceof Error ? e.message : "?"}`);
     } finally {
@@ -109,6 +120,25 @@ export default function Play() {
       <StatusSidebar projection={projection} />
 
       <section className="flex flex-col min-h-screen md:min-h-0">
+        {llmBanner && (
+          <div className="px-4 py-2 border-b border-amber-900/60 bg-amber-950/40 text-amber-300 text-xs flex items-center gap-3">
+            <span className="flex-1">{llmBanner}</span>
+            <Link
+              href="/settings"
+              className="underline underline-offset-2 hover:text-amber-200"
+            >
+              open settings →
+            </Link>
+            <button
+              type="button"
+              onClick={() => setLlmBanner(null)}
+              className="text-amber-700 hover:text-amber-200"
+              aria-label="dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         <Transcript entries={entries} />
         {error && (
           <p className="px-4 py-1 text-red-400 text-xs">{error}</p>
