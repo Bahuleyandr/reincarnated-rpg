@@ -1,0 +1,51 @@
+# fly.toml for reincarnated-rpg v0.1.0
+#
+# One small VM, Neon Postgres + pgvector for the DB. Secrets are managed
+# via `fly secrets set` (see deploy notes below). Single region for v0.1
+# (Bombay — IAD/SFO/EWR are alternates depending on player geography).
+
+app = "reincarnated-rpg"
+primary_region = "bom"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
+  # NARRATOR is set via fly secrets so the same image can run with
+  # template (no API cost) for canary / debug, or remote in prod.
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1
+
+# Deploy recipe (run from a clean checkout):
+#
+#   1. fly launch --copy-config --no-deploy   # one-time; creates the app
+#   2. fly secrets set \
+#        DATABASE_URL='postgresql://<user>:<pass>@<neon-host>/<db>?sslmode=require' \
+#        SESSION_SECRET="$(openssl rand -base64 32)" \
+#        ANTHROPIC_API_KEY=sk-ant-... \
+#        VOYAGE_API_KEY=pa-... \
+#        NARRATOR=remote
+#   3. fly deploy
+#   4. fly ssh console -C "npm run db:migrate"   # apply migrations once
+#   5. fly ssh console -C "npm run db:seed"      # load forms + locations
+#
+# To roll forward: `git tag v0.1.X && git push --tags && fly deploy`.
+# To roll back: `fly releases list` then `fly deploy --image <prev>`.
