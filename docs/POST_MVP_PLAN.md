@@ -53,22 +53,32 @@ The wedge — *"a text RPG where every life is a different game, and the world r
 | **32-33** | **player notes in locations** | `location_notes` table + `leave_note` tool + read/upvote/decay |
 | **34-35** | **named antagonist (Rhozell, the Wyrm's hand)** | personality card + cross-run memory + appearance hook |
 | **36-37** | **first-10-minutes tutorial** | scripted slime intro + graduation flow + new-user routing |
-| **38** | **calendar engine** | `world_calendar` table + chapter advancement cron |
+| **38** | **calendar engine + per-user cost ceilings** | `world_calendar` + chapter advance cron + tiered AI-spend caps |
 | **39** | **chapter prompt-fragment injection** | narrator system prompt picks up active chapter tone |
-| **40-41** | **faction state** | `factions` table + `pledge_faction` tool + per-chapter contributions |
-| **42** | **branch decision tracking** | branch resolution + persistent canon |
-| **43-44** | **recurring NPC engine** | chapter-gated NPC rotation + cross-run history weighting |
-| **45-46** | **Wyrm raid → Branch V wiring** | aggregate damage drives mid-year arc compression |
-| **47** | **Three Votes machinery** | Books XI-XII vote tallies + resolution |
-| **48** | **endings machinery** | year-end ending resolver + Year 2 seed |
-| **49** | **First-to-Sit + Edicts** | Hollow Throne quest + player-note → law promotion |
-| **50** | **scheduled world events** | Wyrm Voice + other synchronized injections |
-| **51** | **story authoring tooling** | CLI scaffolder + validator + eval scenario 22 |
-| **52** | **story admin dashboard** | `/god/story` for live ops |
-| **53** | **Catch-Up Codex** | per-chapter summary + mid-year onboarding flow |
-| **54** | **Year Archive** | end-of-year snapshot + `/world/year/[n]` pages + Year 2 seed |
+| **40-41** | **provider redundancy** | multi-provider abstraction with health-check failover |
+| **42-43** | **faction state** | `factions` table + `pledge_faction` tool + per-chapter contributions |
+| **44** | **branch decision tracking** | branch resolution + persistent canon |
+| **45-46** | **recurring NPC engine** | chapter-gated NPC rotation + cross-run history weighting |
+| **47-48** | **Wyrm raid → Branch V wiring** | aggregate damage drives mid-year arc compression |
+| **49** | **Three Votes machinery** | Books XI-XII vote tallies + resolution |
+| **50** | **endings machinery** | year-end ending resolver + Year 2 seed |
+| **51** | **First-to-Sit + Edicts** | Hollow Throne quest + player-note → law promotion |
+| **52** | **scheduled world events** | Wyrm Voice + other synchronized injections |
+| **53** | **story authoring tooling** | CLI scaffolder + validator + eval scenario 22 |
+| **54-56** | **sandbox preview env** | staging deploy with `STORY_TIME_FACTOR<1` for chapter QA |
+| **57** | **story admin dashboard** | `/god/story` for live ops |
+| **58** | **Catch-Up Codex** | per-chapter summary + mid-year onboarding flow |
+| **59-61** | **lapsed/returning player flows** | re-engagement emails + welcome-back surface |
+| **62** | **Year Archive** | end-of-year snapshot + `/world/year/[n]` pages + Year 2 seed |
+| **63** | **analytics & metrics dashboard** | `/god/metrics` SLO board (DAU, retention, run completion, faction balance, $/DAU) |
+| **64** | **backup + replay-from-zero CI** | nightly events backup + CI step replays full log |
+| **65-66** | **load testing** | k6 scripts + pgvector IVF index tuning |
+| **67** | **mobile UX pass** | responsive audit + touch targets |
+| **68** | **email infrastructure** | Resend + templates + unsubscribe |
+| **69-71** | **payment integration** | Stripe Checkout + tier-upgrade flow + dunning |
+| **72** | **GDPR + Sentry + a11y** | data export/delete + error tracking + accessibility audit |
 
-Days 55+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days), ascension (7-10 days), player-driven marketplace (7+ days). Treat them as independent milestones after Day 54 lands.
+Days 73+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days), ascension (7-10 days), player-driven marketplace (7+ days), Phase 9 post-launch deepening (~3 weeks). Treat them as independent milestones after Day 72 lands.
 
 Story bible source-of-truth: `docs/STORY_BIBLE.md`. Read it before authoring chapter content or wiring story machinery.
 
@@ -853,13 +863,13 @@ ALTER TABLE sessions ADD COLUMN is_tutorial boolean NOT NULL DEFAULT false;
 
 ---
 
-## Phase 7 — 365-day campaign calendar (Day 38-52)
+## Phase 7 — 365-day campaign calendar (Day 38-62)
 
 **Source of truth**: `docs/STORY_BIBLE.md`. Read it before touching any of these files.
 
 The story bible defines 12 monthly Books × 4 weekly Chapters = 48 chapters, 10 major branch decisions, 4 factions, ~15 recurring NPCs, and 6 endings. This phase wires the calendar engine, faction state, branch tracking, and content loaders so the bible drives the world. **Most of the *content* is then authored ongoing** — at ~1 chapter/week the year fills itself as it runs.
 
-### Day 38: Calendar engine
+### Day 38: Calendar engine + per-user cost ceilings
 
 **Schema migration `0042_world_calendar.sql`**
 ```sql
@@ -885,6 +895,23 @@ INSERT INTO world_calendar DEFAULT VALUES;
 
 **Acceptance**: Day 1 of deploy → calendar shows Book I Ch 1 "Strange Omens". Seven days later → calendar advances to Ch 2 with the corresponding world event firing.
 
+**Per-user AI cost ceilings (paired)**
+
+We already track per-call cost in `ai_calls` (telemetry). Add hard daily caps per tier so a single weird user can't rack up $50/day in narration:
+
+```sql
+-- migration extends users
+ALTER TABLE users ADD COLUMN daily_ai_cost_usd_today numeric(10,6) NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN daily_ai_cost_reset_at timestamptz NOT NULL DEFAULT now();
+```
+
+- `src/lib/ai/cost-gate.ts` — pure: given user tier + today's accrued spend, return `{ allowed: boolean, cap: number, used: number }`. Caps: free $0.50/day, supporter $2/day, patron $10/day. Reset at UTC midnight.
+- Hook in `getProviderForUser`: if cap reached, return the TemplateNarrator + `costCappedToday: true` so the UI can show "your patron is paused for the day".
+- Telemetry: `cost.cap_hit` event fired when a user first hits the cap that day.
+- Tests: cap math (unit) + integration (cap exceeded → fallback fires + UI surface).
+
+Cost ceiling rides on the Day 38 schema migration (`0042_world_calendar.sql`) so we don't burn a separate migration slot.
+
 ### Day 39: Chapter prompt-fragment injection into narrator
 
 **No schema change.**
@@ -895,7 +922,39 @@ INSERT INTO world_calendar DEFAULT VALUES;
 
 **Acceptance**: Active chapter's flavor reaches the narrator's output. Slime in Book I Ch 1 narration mentions or alludes to the Red Moon (deterministic check via eval scenario).
 
-### Day 40-41: Faction state
+### Day 40-41: Provider redundancy (multi-provider failover)
+
+**Why**: Anthropic outage today = game halts. The TemplateNarrator fallback exists but is thin (no tool-emitting variety, no NPC voice continuity). At persistent-world scale (a daily 500-player outage = 500 broken days for those players), we need a real second-provider path.
+
+**Schema migration `0049a_provider_health.sql`**
+```sql
+CREATE TABLE provider_health (
+  provider_id text PRIMARY KEY,         -- 'anthropic' | 'bedrock' | 'vertex'
+  status text NOT NULL DEFAULT 'healthy', -- 'healthy' | 'degraded' | 'down'
+  last_success_at timestamptz,
+  last_failure_at timestamptz,
+  consecutive_failures integer NOT NULL DEFAULT 0,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+INSERT INTO provider_health (provider_id) VALUES ('anthropic'), ('bedrock'), ('vertex');
+```
+
+**New files**
+- `src/lib/ai/providers/bedrock.ts` — AWS Bedrock implementation of the existing `AIProvider` interface. Same Sonnet 4.6 model id route, different SDK, different auth.
+- `src/lib/ai/providers/vertex.ts` — Google Vertex AI implementation. Optional; behind feature flag.
+- `src/lib/ai/health.ts` — pure: 3-strikes-and-degrade rule. Each provider call writes success/failure into `provider_health`; 3 consecutive failures within 60s → `degraded`; 10 consecutive → `down`. Healthy after 1 success.
+- `src/lib/ai/factory.ts` (modify) — `getProviderForUser` honors health state: if user's preferred provider is `down`, fail over to the next configured provider (anthropic → bedrock → vertex → template). Logged on every fallback.
+- `src/app/god/providers/page.tsx` — admin view of provider health + manual override (force a provider into `degraded` for incident response).
+- `tests/integration/provider-failover.test.ts` — anthropic forced to `down` → next call routes to bedrock → narration completes; health auto-recovers on success.
+
+**Acceptance**: Simulate Anthropic outage (mock 503 from SDK) → after 3 failures, status → `degraded` → next call routes to Bedrock → succeeds → continued play. Admin can force any provider's status from `/god/providers`.
+
+**Gotchas**
+- Tool-call shape must be identical across providers (Anthropic, Bedrock-Claude, Vertex-Claude all use the same tool spec — confirm before implementing). If a non-Claude provider is added later, the tool layer needs translation.
+- Cache invalidation: every provider has its own prompt cache. Failover cold-starts the cache on the new provider — first turn after failover is slower + more expensive. Acceptable.
+- Per-user BYO-LLM keys: if the user supplies their own API key, that's a single-provider setup; failover still routes to the env-default chain when their key fails.
+
+### Day 42-43: Faction state
 
 **Schema migration `0043_factions.sql`**
 ```sql
@@ -938,7 +997,7 @@ CREATE INDEX faction_contrib_chapter_idx ON faction_contributions (chapter_id, f
 
 **Acceptance**: Player pledges Choristers via tool → user record updated, `faction.pledged` event logged, Choristers `member_count` increments, faction-aligned crafting (alchemy/smelting/smithing) gets +10% XP.
 
-### Day 42: Branch decision tracking
+### Day 44: Branch decision tracking
 
 **Schema migration `0044_branch_decisions.sql`**
 ```sql
@@ -963,7 +1022,7 @@ CREATE TABLE branch_decisions (
 
 **Acceptance**: Branch I (Ch 4) resolves at chapter advance. The chosen path becomes part of the world's persistent state. Subsequent chapters' narrator prompts reference it.
 
-### Day 43-44: Recurring NPC engine + appearance probability
+### Day 45-46: Recurring NPC engine + appearance probability
 
 **Schema migration `0045_recurring_npc_appearances.sql`** (extends Phase 5.5 Day 34-35):
 ```sql
@@ -988,7 +1047,7 @@ CREATE INDEX npc_app_user_npc_idx ON npc_appearances (user_id, npc_id);
 
 **Acceptance**: Recurring NPCs appear at the right chapters with appropriate dialogue. Cross-run grudge memory works for all of them, not just Rhozell.
 
-### Day 45-46: Wyrm raid integration with story branches
+### Day 47-48: Wyrm raid integration with story branches
 
 **Files modified**
 - `src/lib/meta/long-wyrm.ts` (extend Day 13 work) — Branch V (Ch 20) reads Wyrm HP at chapter end. If HP > X% → "Asleep"; X-Y% → "Half-Wakes"; <Y% → "Wakes Early" (compresses Book VI).
@@ -997,7 +1056,7 @@ CREATE INDEX npc_app_user_npc_idx ON npc_appearances (user_id, npc_id);
 
 **Acceptance**: Players who hit the Wyrm hard enough collapse the mid-year arc by 3 weeks. Slow raids let the world breathe.
 
-### Day 47: The Three Votes (Books XI-XII machinery)
+### Day 49: The Three Votes (Books XI-XII machinery)
 
 **Schema migration `0046_year_votes.sql`**
 ```sql
@@ -1019,7 +1078,7 @@ CREATE TABLE year_votes (
 
 **Acceptance**: At Day 308, Vote 1 opens with live tally visible to all players. At Day 314, it resolves; result locks for the rest of the year.
 
-### Day 48: Endings machinery
+### Day 50: Endings machinery
 
 **Schema migration `0047_year_endings.sql`**
 ```sql
@@ -1042,7 +1101,7 @@ CREATE TABLE year_endings (
 
 **Acceptance**: At Day 365, the year resolves into one of 6 endings. The page is a permanent monument. Year 2 begins with the right starting state.
 
-### Day 49: First-to-Sit + Edicts (Book X support)
+### Day 51: First-to-Sit + Edicts (Book X support)
 
 **Files modified**
 - `content/locations/hollow_throne.json` — the Throne location, gated behind a quest chain referencing the Ch 2 hand-cuff item.
@@ -1050,7 +1109,7 @@ CREATE TABLE year_endings (
 - `src/lib/story/edicts.ts` — promote a player note to an Edict (location-bound mechanical modifier). Validates: player's faction holds territory in that location.
 - `tests/integration/throne.test.ts` — race-safety: 100 concurrent claims, exactly 1 succeeds.
 
-### Day 50: World event scheduling (the synchronized "Voice" wonder)
+### Day 52: World event scheduling (the synchronized "Voice" wonder)
 
 **Schema migration `0048_world_events.sql`**
 ```sql
@@ -1071,7 +1130,7 @@ CREATE INDEX world_events_pending_idx ON world_events (scheduled_at) WHERE fired
 
 **Acceptance**: The Day 165 Wyrm Voice event fires synchronously across all active sessions. Each player receives a personalized line in their next turn's narration.
 
-### Day 51: Story content authoring tooling
+### Day 53: Story content authoring tooling
 
 **No schema change.**
 
@@ -1083,7 +1142,32 @@ CREATE INDEX world_events_pending_idx ON world_events (scheduled_at) WHERE fired
 
 **Acceptance**: Content authoring is a 2-hour workflow per chapter, not a day. Validation catches missing references before deploy.
 
-### Day 52: Story arc admin dashboard
+### Day 54-56: Sandbox preview environment
+
+**Why**: Today an author writes a chapter and must push to production to see it run end-to-end. With 1:1 real-time pacing locked, that's a 7-day commitment to a chapter you haven't tested. Need a staging instance that runs at accelerated time so authors validate flow before going live.
+
+**Infrastructure**
+- Second Fly.io app (`reincarnated-rpg-staging`) with its own Neon branch DB.
+- Same codebase, same deploy pipeline, separate `STORY_TIME_FACTOR` env var (default 0.01 in staging → 1 chapter ≈ 1.7 hours).
+- Auth: staging uses a separate cookie domain so production sessions don't bleed in. Admin-only access via shared password env var.
+- Data: staging seeds itself from a snapshot of production's `content/` and a synthetic seed of users (10 NPCs + 5 test players with predetermined faction loyalty).
+
+**New files**
+- `scripts/staging-seed.ts` — populates staging with synthetic users + sessions + lore so chapters have something to react to.
+- `scripts/staging-snapshot.ts` — copies production content (NOT user data) into staging on demand. Used when authors want a "real-world" baseline.
+- `src/lib/util/env.ts` (modify) — `STORY_TIME_FACTOR` env var with prod-rejection rule (validator throws if factor != 1.0 in production).
+- `docs/STAGING.md` — runbook for content authors: how to deploy a chapter to staging, how to time-skip, how to capture screenshots, how to promote to prod.
+- `.github/workflows/staging-deploy.yml` — auto-deploys to staging on every push to a `staging/*` branch.
+
+**Acceptance**: A content author writes Ch 12, pushes to `staging/ch12`, sees it deploy and run a full chapter in ~2 hours. They confirm flow, then PR-merge to `master` for live deployment.
+
+**Gotchas**
+- Staging telemetry MUST be tagged separately so it doesn't pollute prod analytics.
+- Staging may have stale content if not refreshed regularly; weekly `staging-snapshot` cron keeps it close to prod.
+- A staging chapter rolling forward shouldn't trigger production world events — `STORY_TIME_FACTOR<1` should suppress scheduled-event firing in staging (or use a separate event scheduler instance).
+- Cost: staging hits real Anthropic API. Hard daily cap of $5 enforced at the staging-only `cost-gate` tier.
+
+### Day 57: Story arc admin dashboard
 
 **No schema change.** (Read-only over existing tables.)
 
@@ -1093,7 +1177,7 @@ CREATE INDEX world_events_pending_idx ON world_events (scheduled_at) WHERE fired
 
 **Acceptance**: A new branch can be added live via the admin dashboard mid-year if data shows player actions don't fit the planned paths.
 
-### Day 53: Catch-Up Codex (mid-year entry)
+### Day 58: Catch-Up Codex (mid-year entry)
 
 **Why**: World clock locked at 1:1 (ADR-019). New players joining on Day 87 walk into Book III Ch 12 — they don't get to play Book I. The Codex is how they catch up: an auto-generated condensed briefing of every chapter and branch resolution before their entry point.
 
@@ -1124,7 +1208,50 @@ CREATE TABLE chapter_summaries (
 - Generation is one-shot per chapter on advance; never regenerate. The summary is canon.
 - Codex summaries are public; they appear on the Year Archive page (next day) and in OG previews.
 
-### Day 54: Year Archive (Year 1 → readable history when Year 2 begins)
+### Day 59-61: Lapsed-player + returning-veteran flows
+
+**Why**: A persistent world with 1:1 real time means churn is brutal — lose someone for 2 weeks and they may never come back, because the world has moved on without them and they don't know where to start. Catch-Up Codex (Day 58) handles new joiners; this handles *re-joiners*. Symmetric problem, related infrastructure.
+
+**Schema migration `0049b_player_engagement.sql`**
+```sql
+ALTER TABLE users ADD COLUMN last_active_at timestamptz NOT NULL DEFAULT now();
+ALTER TABLE users ADD COLUMN lapsed_email_sent_at timestamptz;
+ALTER TABLE users ADD COLUMN welcome_back_seen_at timestamptz;
+CREATE INDEX users_lapsed_idx ON users (last_active_at) WHERE lapsed_email_sent_at IS NULL;
+```
+
+**Lapsed flow (Day 59)**
+- Cron: every hour, find users where `last_active_at < now() - interval '14 days' AND lapsed_email_sent_at IS NULL`.
+- Email template: "the world has changed: [chapter summary], your faction did [outcome], your companions miss you, [streak status]". Personalized via Codex data + companion list + faction state.
+- Send via the email infra from Day 68 (this Phase 8 prereq is wired ahead). Mark `lapsed_email_sent_at` to prevent re-spam.
+- Honor unsubscribe — never email a user who has opted out.
+
+**Welcome-back surface (Day 60)**
+- On login, check `last_active_at`. If > 7 days ago, show a one-page "while you were away" briefing:
+  - Chapters that advanced.
+  - Branch outcomes.
+  - Companion updates ("Kethra has been waiting at Iron-Reach").
+  - Streak status (broken vs. preserved by inactivity grace).
+  - Faction outcomes.
+- Surface uses Codex summary data. Auto-skip on each login after first; user can revisit via `/codex/welcome-back`.
+- Mark `welcome_back_seen_at` after dismiss; reset whenever `last_active_at - last login > 7 days` again.
+
+**Inactivity grace for streaks (Day 61)**
+- Existing streak resets to 1 on missed UTC day. Too punishing for casual players.
+- New rule: streak grace = 1 free day per week of streak (capped at 5 grace days). User on a 5-day streak gets up to 5 free missed days.
+- Grace is consumed silently; UI shows "you have 3 days of grace left."
+- Schema: `users.streak_grace_remaining integer NOT NULL DEFAULT 0` (auto-replenishes 1/week of streak).
+- Tests: 5-day streak → miss 3 days → return → streak still 5; miss 6 days → streak resets.
+
+**Acceptance**: A user lapses for 14 days → receives a personalized re-engagement email → returns → `/codex/welcome-back` shows what happened. Their 5-day streak still holds because grace days covered the 3-day absence within their grace window.
+
+**Gotchas**
+- Email send must be idempotent — failures and retries should not double-send.
+- "While you were away" content cuts off at the user's last_active_at exactly so they don't see spoilers from the day they last played.
+- Unsubscribe is hard-respected; users who unsubscribe still see `/codex/welcome-back` in-app.
+- Lapsed-email rate limit: max 1 per user per 30 days even if they re-lapse.
+
+### Day 62: Year Archive (Year 1 → readable history when Year 2 begins)
 
 **Why**: A real-time year is a real-time year — but once it's done, it should become *history*, not vanish. The Archive lets Year-2 players read Year 1 like a book; lore that decayed in live play is preserved here forever; the year's outcome (Renewal / Echo / Hollow / Mortal / Inversion / Long Sleep) gets a dedicated monument page.
 
@@ -1162,13 +1289,268 @@ CREATE TABLE year_archives (
 
 ### Phase 7 ongoing: weekly chapter authoring
 
-After Day 54, the calendar is running and the catch-up + archive infrastructure is in place. Each Chapter then takes 2-4 hours of human authoring per week. Maintain a 4-chapter buffer ahead of "now" so we always have content ready. This is steady-state work, not a milestone.
+After Day 62, the calendar is running, the catch-up / archive / engagement infrastructure is in place, and providers fail over cleanly. Each Chapter then takes 2-4 hours of human authoring per week. Maintain a 4-chapter buffer ahead of "now" so we always have content ready. This is steady-state work, not a milestone.
 
 **Failure modes to watch for**
 - Chapter content slipping below 2-week buffer → calendar hits an empty chapter → fallback to TemplateNarrator + a generic "the world is quiet this week" theme. Not great, but doesn't break the game.
 - Branch outcome ties → defaults fire (defined per branch in `content/story/branches/<n>.json`).
 - Faction balance flatlines → admin nudges via `god/story` dashboard. Or accept that some years are quiet.
 - Sustained engagement collapse → Long Sleep ending fires legitimately. Year 2 becomes a soft-reboot. Not a bug — the world reflects who showed up.
+
+---
+
+---
+
+## Phase 8 — Operational readiness for launch (Day 63-72)
+
+The world clock is running and content authoring is under control. Phase 8 is the work to make this *operate* as a real product: measurability, scale, mobile, money, error handling. Ten days of unglamorous infrastructure that decides whether the game survives its first hundred users.
+
+### Day 63: Analytics & metrics dashboard
+
+**Why**: Without this we can't tell if the game is working. Need to ship with baseline SLOs visible from day one.
+
+**Schema migration `0051_analytics_events.sql`**
+```sql
+CREATE TABLE analytics_events (
+  id bigserial PRIMARY KEY,
+  user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  session_id uuid,
+  event_name text NOT NULL,             -- 'turn.played', 'session.started', 'faction.pledged', etc.
+  props jsonb NOT NULL DEFAULT '{}'::jsonb,
+  at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX analytics_events_name_at_idx ON analytics_events (event_name, at DESC);
+CREATE INDEX analytics_events_user_at_idx ON analytics_events (user_id, at DESC) WHERE user_id IS NOT NULL;
+```
+
+**New files**
+- `src/lib/analytics/emit.ts` — `analytics.event(name, props)` helper. Async, fire-and-forget, never blocks the request path. Buffer-and-flush every 5s in-process to reduce row-write churn.
+- `src/lib/analytics/slos.ts` — pure rollups: DAU, D1/D7/D30 retention, run completion rate (sessions ending in win/death/cap vs abandoned), faction balance (variance across faction sizes), cost per DAU (sum from `ai_calls` divided by DAU).
+- `src/app/god/metrics/page.tsx` — line charts (recharts or similar) for each SLO over the last 30/90 days. Top "user health" indicators highlighted in color.
+- `tests/integration/analytics.test.ts` — emit + read back; rollups match.
+
+**Acceptance**: Every meaningful action emits an analytics event. Admin dashboard at `/god/metrics` shows current DAU, retention, faction balance, cost per DAU. Numbers refresh every 5 minutes.
+
+**Gotchas**
+- Don't double-count: events emitted from the front-end + back-end can race. Standardize on back-end emission only.
+- PII discipline: never put inputSanitized or narration text into analytics props. Slug, IDs, counts only.
+- Retention queries are heavy at scale. Materialize `daily_active_users` rollup table; recompute hourly.
+
+### Day 64: Backup + replay-from-zero CI validation
+
+**Why**: Event log is the source of truth. Replay from zero must always work. We've been claiming this since v0.1 but never tested it in CI. One day a reducer change will silently break it.
+
+**New files**
+- `.github/workflows/replay-validation.yml` — nightly CI step:
+  1. Take a recent prod backup (or staging snapshot).
+  2. Drop all `projections` rows.
+  3. Replay every event for every session.
+  4. Assert resulting projections match a reference snapshot (or pass full test suite against the replayed state).
+- `scripts/replay-validate.ts` — the replay runner.
+- `scripts/db-backup.ts` — runs daily (cron) — writes a compressed dump of `events`, `users`, `sessions`, `world_lore`, `world_npcs`, `factions`, `branch_decisions`, `year_archives` to S3 / object storage. 7-day retention; weekly snapshots for 90 days.
+- `docs/DR_RUNBOOK.md` — disaster recovery: how to restore from backup, expected RPO (1h), expected RTO (~30min for full restore + replay).
+
+**Acceptance**: CI runs replay-from-zero nightly; failure pages on-call. Backups land in S3 daily. DR runbook tested by a manual restore drill before launch.
+
+### Day 65-66: Load testing
+
+**Why**: Scaling is non-linear. Pgvector cosine search degrades with corpus size. SSE connections add per-conn memory. We need to know the cliff before players find it.
+
+**New files**
+- `load-tests/k6/turn.ts` — simulates N concurrent players each playing 1 turn / minute against staging. Targets: 100 / 1k / 10k concurrent.
+- `load-tests/k6/lore.ts` — simulates lore-page reads under burst (Famous Death ticker traffic spike).
+- `load-tests/k6/leaderboard.ts` — simulates leaderboard reads.
+- `load-tests/runbook.md` — interpreting results, baseline targets, what to tune first.
+- `src/lib/db/migrations/0052_pgvector_ivf.sql` — IVF index on `memories.embedding` for sub-linear cosine search at scale (`USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)`).
+
+**Acceptance**: Load test results documented for 100, 1k, 10k concurrent. Pgvector search latency < 50ms p95 at 1M memories. Identified scaling cliffs documented.
+
+### Day 67: Mobile UX pass
+
+**Why**: Most of the audience for text RPGs is on phone. Current UI is desktop-first.
+
+**Files modified**
+- Audit every page on small viewports (375x667 baseline).
+- Touch targets ≥44pt.
+- Bottom-of-screen virtual-keyboard overlap (input boxes need scroll-into-view).
+- Tab navigation reduced to single-column on mobile (character page tabs become accordion).
+- Famous Death ticker becomes vertical scroll on mobile.
+- Energy bar collapsible on mobile so vitals get screen space.
+- E2E Playwright suite gets mobile-viewport runs.
+
+**Acceptance**: Game playable end-to-end on a 375x667 viewport. Lighthouse mobile score ≥80.
+
+### Day 68: Email infrastructure
+
+**Why**: Re-engagement (Day 59), payment receipts (Day 69-71), password resets all need email. Without this, we're stuck on in-app messaging only.
+
+**Provider**: Resend (cheap, simple API, good developer ergonomics). Postmark as alternative.
+
+**New files**
+- `src/lib/email/send.ts` — `sendEmail({ to, template, data })`. Wrapper over Resend SDK. Idempotency keys to prevent dupes.
+- `src/lib/email/templates/` — re-engagement, payment-receipt, password-reset, welcome, gift-received. JSX-based templates (react-email).
+- `src/lib/email/unsubscribe.ts` — token-based unsubscribe handler. Respects the user's `email_preferences jsonb` field on `users`.
+- Schema: `ALTER TABLE users ADD COLUMN email_preferences jsonb NOT NULL DEFAULT '{"reEngagement": true, "marketing": false, "transactional": true}'::jsonb;`
+- `/settings/email` page for preferences.
+
+**Acceptance**: Test email flow end-to-end: register → welcome email arrives. Unsubscribe link works. Transactional emails (receipts) ignore unsubscribe; marketing emails respect it.
+
+### Day 69-71: Payment integration
+
+**Why**: Supporter / Patron tiers exist conceptually with no actual checkout. No revenue without this. Existing ADR-015 says admin-only promotion for v1; this lifts that.
+
+**Provider**: Stripe Checkout (lowest friction, best ergonomics).
+
+**Schema migration `0053_subscriptions.sql`**
+```sql
+CREATE TABLE subscriptions (
+  id text PRIMARY KEY,                    -- stripe subscription id
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status text NOT NULL,                   -- 'active' | 'past_due' | 'canceled' | 'paused'
+  tier_id text NOT NULL,                  -- 'supporter' | 'patron'
+  current_period_end timestamptz NOT NULL,
+  cancel_at_period_end boolean NOT NULL DEFAULT false,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX subscriptions_user_idx ON subscriptions (user_id);
+
+CREATE TABLE stripe_webhook_events (
+  id text PRIMARY KEY,                    -- stripe event id (idempotency)
+  type text NOT NULL,
+  payload jsonb NOT NULL,
+  processed_at timestamptz
+);
+```
+
+**New files (Day 69)**
+- `src/lib/billing/stripe.ts` — SDK setup; checkout-session creation; subscription read.
+- `src/app/settings/billing/page.tsx` — current tier, upgrade/downgrade buttons, billing history.
+- `src/app/api/billing/checkout/route.ts` — create Stripe Checkout session for tier upgrade. Returns redirect URL.
+
+**New files (Day 70)**
+- `src/app/api/billing/webhook/route.ts` — Stripe webhook handler. Idempotent via `stripe_webhook_events` table. Handles: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`.
+- On successful checkout: update `users.tier`, send payment-receipt email.
+- On subscription canceled: schedule tier downgrade at `current_period_end`.
+- On payment failure: dunning flow — 3 retries over 7 days, then downgrade to free.
+
+**New files (Day 71)**
+- `src/lib/billing/dunning.ts` — pure: given a failed-payment event + retry count, return next action.
+- `tests/integration/billing.test.ts` — full upgrade flow with Stripe test mode; webhook handling; dunning + downgrade.
+- `docs/BILLING.md` — runbook covering tier transitions, refunds, customer support workflows.
+
+**Acceptance**: User upgrades free → supporter via Stripe Checkout. Tier reflects immediately. On cancel, they keep supporter until period end. On failed payment, 3 retries then auto-downgrade with email notice.
+
+**Gotchas**
+- Stripe webhooks must be signature-verified or arbitrary actors can manipulate tier state.
+- Tier downgrade must NOT delete data (coins, skills, achievements all persist).
+- Refund handling: manual via Stripe dashboard for v1; document the process.
+- Test mode keys vs live mode keys: NEVER mix; gate via env validator.
+
+### Day 72: GDPR data export/delete + Sentry + accessibility audit
+
+Three small items combined into one day. Each ~3 hours.
+
+**GDPR (data export + delete)**
+- `src/app/api/gdpr/export/route.ts` — POST returns a zip with the user's data: profile, sessions, events (filtered to their sessions), achievements, lore entries they authored, gifts sent/received, faction history. Generated async; emailed when ready.
+- `src/app/api/gdpr/delete/route.ts` — POST schedules account deletion 30 days out. Soft-delete: account marked, no logins; hard-delete via cron at +30d. Replays as "the lesser-slime that was forgotten" in any in-game references (substitute marker NPC).
+- `docs/GDPR.md` — runbook + DPO contact placeholder.
+
+**Sentry server-side error tracking**
+- Install `@sentry/node` + `@sentry/nextjs`.
+- Wrap API routes + server actions with error capture.
+- PII scrubbing on stack traces (no inputs, no secrets).
+- Alert routing: Slack channel for prod errors, email digest for staging.
+
+**Accessibility audit**
+- Manual screen-reader test (NVDA on Windows / VoiceOver on Mac) against /play, /character, /lore.
+- Color contrast pass: any failing pair flagged + fixed.
+- Keyboard nav: every interactive element reachable + visible focus.
+- Optional dyslexia font (OpenDyslexic) toggle in `/settings`.
+- `docs/ACCESSIBILITY.md` — what's tested, what's not, known issues.
+
+**Acceptance**: GDPR export delivers within 24h. Delete soft-flags then hard-deletes at 30d. Sentry catches a synthetic error and pages on-call. A11y audit checklist passes; dyslexia font option works.
+
+### Phase 8 done = launch-ready
+
+After Day 72, the game is:
+- Measurable (analytics dashboard).
+- Recoverable (backup + replay).
+- Scalable to known thresholds (load test results documented).
+- Mobile-friendly.
+- Reachable (email infrastructure).
+- Profitable (payment integration).
+- Compliant (GDPR + a11y).
+- Observable (Sentry).
+
+That's launch readiness. The 1:1 world clock starts ticking; players arrive; we watch the dashboard.
+
+---
+
+## Phase 9 — Post-launch deepening (Month 3+, deferred)
+
+After launch, with real data on what players actually do, the post-launch work focuses on depth and reach. ~3 weeks of work spread across these milestones; sequence based on observed pain points.
+
+### 9a — Localization scaffolding (~3 days)
+- Extract every player-facing string into `messages/en.json` keyed by component.
+- `next-intl` integration for i18n routing.
+- One additional locale for the launch (Spanish? Portuguese? Japanese?) authored as a fast-follow.
+- Note: narrator + LLM-generated content is *not* localized in v1 — only the UI shell. Multilingual narration is a much bigger project.
+
+### 9b — Voice TTS for NPC moments (~3 days)
+- ElevenLabs or OpenAI TTS for: Wyrm Voice synchronized event, named-antagonist dialogue lines, Counsel announcements.
+- Cache aggressively per line. Cost-gated per user (free: no voice; supporter: companion voice; patron: all).
+- `<audio>` autoplay-with-user-gesture for the affordance.
+- Settings toggle to disable voice entirely.
+
+### 9c — PvP duels (~5 days)
+- Two players' campaigns intersect at a shared location. One challenges the other; the other accepts or declines.
+- Resolved via the same 2d6 system with form-stat math, but tracked as a separate event kind (`duel.resolved`).
+- Faction-flavored: same-faction duels are friendly sparring (no permanent damage); cross-faction duels can be lethal.
+- Schema: `duels` table with sessionId pairs + outcome.
+- Ranking: faction-leaderboards by duel record.
+
+### 9d — Guilds / parties (~5 days)
+- Players within a faction can form sub-groups: Guilds.
+- Schema: `guilds` table + `guild_memberships` table.
+- Guild chat channel + shared objective tracking + collective achievements ("our guild reached 100 famous deaths").
+- Guild edicts: top-voted notes within guild territory.
+- Cap guild size at 50 to keep social cohesion.
+
+### 9e — Form-specific dice variants (~2 days)
+- Currently all forms roll 2d6. Add form-specific variants:
+  - Cursed Book: 3d4-keep-highest (more consistent, less swingy).
+  - Slime: 2d6 with "split if doubles" — doubles roll twice and take both effects.
+  - Void-touched forms: 2d6 with one re-roll/turn.
+- Adds mechanical character to forms.
+- Schema: `formDiceVariant` field in `content/forms/<id>.json`.
+
+### 9f — Player-as-NPC retirement (~2 days)
+- When a veteran player ascends OR permadies as Forsaken, their character's name + form + a personality summary become a low-tier recurring NPC.
+- They appear in future players' runs as wandering encounters with their original voice.
+- Schema: `world_npcs.derived_from_user_id` field; the NPC's `personality_card` is generated from the source user's run history.
+- Massive lore depth for almost free; the world fills up with the players who were here.
+
+### Phase 9 ongoing-after: localization for narration (longer-term)
+
+Multilingual narration is its own milestone. Requires either:
+- A second LLM call per turn that translates the English narration → target language, OR
+- Direct generation in the target language with a localized system prompt + form card.
+The latter is cheaper but requires localized form cards, which is a content multiplication problem. Defer this as a "Year 2 Q3" project at earliest.
+
+---
+
+## Ongoing content commitments
+
+Independent of phases, these are continuous authoring streams that compound over time:
+
+- **Year 2+ shape sketch** — once Year 1 ships, write a 1-page sketch per ending (Renewal / Echo / Hollow / Mortal / Inversion / Long Sleep) describing the broad strokes of the next year. Doesn't need to be final; gives content authors a destination to write toward. ~1 day, do at end of Book V (~Day 150) so authors have direction during the second half of Year 1.
+- **Sub-faction politics** — each of the 4 factions deserves 2-3 sub-factions with internal tension. Choristers Patient Hand vs Cantor's Hollow loyalists, Rust Hand militants vs ideologues, Idle hermits vs scholars, Forsaken old vs new. Author 8-12 sub-faction pieces in the Book V-VIII window (~30 days).
+- **Recurring-NPC tier-2 cast** — current plan has 15 plot-driving NPCs. Add 20 "tier-2" NPCs (innkeepers, guards, traders, beggars, gossips) who provide texture without driving plot. Their personality cards are minimal; they appear as flavor. Author 1-2 per week ongoing.
+- **Form polish pass** — 50+ forms exist with varying quality. Author a "form quality" predicate that flags forms with thin sample corpora (<5 entries), weak hard-move menus (<5 moves), or missing negativeVocab. Pull-request flagged forms in priority order. ~1 form polish per week ongoing.
+
+These streams keep the world feeling alive between major build phases. They are *the* sustained work after launch.
 
 ---
 
@@ -1307,28 +1689,40 @@ Day 31    custom item naming                ├── Phase 5.5: engagement deep
 Day 32-33 player notes in locations         │
 Day 34-35 named antagonist (Rhozell)        │
 Day 36-37 first-10-minutes tutorial ────────┘
-Day 38    calendar engine ──────────────────┐
+Day 38    calendar engine + cost ceilings ──┐
 Day 39    chapter prompt fragment           │
-Day 40-41 faction state                     │
-Day 42    branch decision tracking          │
-Day 43-44 recurring NPC engine              ├── Phase 7: 365-day campaign (story bible)
-Day 45-46 Wyrm raid → Branch V wiring       │
-Day 47    Three Votes machinery             │
-Day 48    endings machinery                 │
-Day 49    First-to-Sit + Edicts             │
-Day 50    scheduled world events            │
-Day 51    story authoring tooling           │
-Day 52    story admin dashboard             │
-Day 53    Catch-Up Codex                    │
-Day 54    Year Archive ─────────────────────┘
-Day 55+   NPC dialogue (3-5d)
-Day 60+   player-authored forms (5-7d)
-Day 67+   Phase 6a: player-driven marketplace (~7d)
-Day 67+   Phase 6b: ascension (~7-10d, parallel to 6a)
+Day 40-41 provider redundancy               │
+Day 42-43 faction state                     │
+Day 44    branch decision tracking          │
+Day 45-46 recurring NPC engine              │
+Day 47-48 Wyrm raid → Branch V wiring       ├── Phase 7: 365-day campaign + reliability
+Day 49    Three Votes machinery             │
+Day 50    endings machinery                 │
+Day 51    First-to-Sit + Edicts             │
+Day 52    scheduled world events            │
+Day 53    story authoring tooling           │
+Day 54-56 sandbox preview env               │
+Day 57    story admin dashboard             │
+Day 58    Catch-Up Codex                    │
+Day 59-61 lapsed/returning player flows     │
+Day 62    Year Archive ─────────────────────┘
+Day 63    analytics + metrics dashboard ────┐
+Day 64    backup + replay-from-zero CI      │
+Day 65-66 load testing                      │
+Day 67    mobile UX pass                    ├── Phase 8: launch-ready operations
+Day 68    email infrastructure              │
+Day 69-71 payment integration               │
+Day 72    GDPR + Sentry + a11y ─────────────┘
+Day 73+   NPC dialogue (3-5d)
+Day 78+   player-authored forms (5-7d)
+Day 85+   Phase 6a: player-driven marketplace (~7d)
+Day 85+   Phase 6b: ascension (~7-10d, parallel to 6a)
+Month 3+  Phase 9: post-launch deepening (~20d, sequenced by need)
 + ongoing: weekly chapter authoring (~2-4h/week, 4-chapter buffer)
++ ongoing: Year 2+ sketch · sub-factions · tier-2 NPC cast · form polish
 ```
 
-**Calendar pacing** (ADR-019): 1 chapter = 7 real days UTC. The world clock runs at 1:1 throughout. Phase 7 build (Day 38-54) takes ~17 dev days; the *story* it powers takes 365 real days to play through.
+**Calendar pacing** (ADR-019): 1 chapter = 7 real days UTC. The world clock runs at 1:1 throughout. Phases 7+8 combined take ~35 dev days; they power a 365-real-day story that begins ticking the moment Phase 8 ships.
 
 Each day ships a green build with unit + integration tests, lint clean, and merged to master via the standard branch + push + merge flow. No skipping local CI.
 
@@ -1370,5 +1764,18 @@ Each day ships a green build with unit + integration tests, lint clean, and merg
 | 32 | Year Archive write timing: at Ch 48 advance, or after a 7-day "wake" period? | At Ch 48 advance; lore is final at year-end |
 | 33 | Pause-during-chapter: extends chapter by pause duration, or chapter still rolls at the wall-clock 7d mark? | Extends — chapters are 7 days of *active* time |
 | 34 | `STORY_TIME_FACTOR` allowed values in non-prod: any positive float, or specific tiers (1.0 / 0.1 / 0.01)? | Any positive float; env validator rejects non-1.0 in prod |
+| 35 | Per-user daily AI cost caps per tier: $0.50 / $2 / $10? | These for v1; tune via telemetry after first month |
+| 36 | Provider failover order: Anthropic → Bedrock → Vertex → Template? | Yes; user-supplied keys bypass to template on failure |
+| 37 | Sandbox staging env: separate Fly.io app, or Vercel preview deploys? | Separate Fly.io app + Neon branch DB; Vercel previews for UI-only changes |
+| 38 | Lapsed-email cadence: every 14 days, or once per 30-day cycle? | Once per 30 days max regardless of re-lapse |
+| 39 | Streak grace days: 1/week of streak, capped at 5? | Yes for v1 |
+| 40 | Analytics retention: 90 days raw + indefinite rollups, or longer raw? | 90 days raw, then aggregate; full retention for paying users (privacy-respecting) |
+| 41 | Email provider: Resend vs Postmark? | Resend (cheaper, react-email native) |
+| 42 | Payment provider: Stripe vs Paddle? | Stripe (lowest friction, best dev ergonomics; merchant-of-record concerns deferred) |
+| 43 | Sentry vs alternative (Datadog, BetterStack)? | Sentry (free tier covers v1; switch if scale demands) |
+| 44 | First localized language for Phase 9a? | Spanish (largest second-language base for English-medium games) — confirm pre-launch |
+| 45 | Voice TTS provider: ElevenLabs vs OpenAI TTS? | ElevenLabs (higher quality for character voices); OpenAI fallback for cost emergencies |
+| 46 | PvP duels default: opt-in or opt-out per player? | Opt-in via `users.pvp_enabled` flag, defaults false |
+| 47 | Guild size cap: 50? | Yes for v1; expand if data shows demand |
 
 Resolve as features come up. Update `docs/DECISIONS.md` with chosen path.
