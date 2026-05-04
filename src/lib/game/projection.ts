@@ -99,6 +99,7 @@ export function reduce(state: Projection, event: Event): Projection {
     case "memory.created":
     case "narration.emitted":
     case "tool_validation_failed":
+    case "wonder.fired":
       return state;
 
     case "turn.begun":

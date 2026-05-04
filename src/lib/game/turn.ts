@@ -352,6 +352,62 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     }
   }
 
+  // Wonder events (Phase 4.5 Day 17). Per-turn 1% chance to inject
+  // a single unsolicited "what was that?" flavor line. Appended to
+  // relevantMemories as a synthetic high-salience memory so the
+  // narrator can weave it in without seeing extra mechanics.
+  let firedWonder: { id: string; flavor: string } | null = null;
+  try {
+    const { pickWonder } = await import("../wonders/select");
+    // Compose a stable seed: session seed + turn number gives a
+    // deterministic wonder choice for reproducibility.
+    const wonderSeed = (sessionSeed ^ (turnNumber * 0x9e3779b1)) >>> 0;
+    // Pull the last few turn's wonder events for cooldown.
+    const recentWonderIds = pendingEvents
+      .filter((e): e is Event & { kind: "wonder.fired" } => e.kind === "wonder.fired")
+      .map((e) => e.wonderId);
+    const fullEventLog = (await readLog(db, sessionId)).map(rowToEvent);
+    const recentFromLog = fullEventLog
+      .filter((e): e is Event & { kind: "wonder.fired" } => e.kind === "wonder.fired")
+      .slice(-15)
+      .map((e) => e.wonderId);
+    const wonder = pickWonder({
+      seed: wonderSeed,
+      formId: form.id,
+      locationId: location.id,
+      recentWonderIds: [...recentWonderIds, ...recentFromLog],
+    });
+    if (wonder) {
+      firedWonder = { id: wonder.id, flavor: wonder.narrationFlavor };
+      pendingEvents.push({
+        kind: "wonder.fired",
+        wonderId: wonder.id,
+        flavor: wonder.narrationFlavor,
+      });
+      // Inject as a memory so the narrator gets it through the
+      // existing prompt path. High salience so it stands out.
+      relevantMemories = [
+        {
+          id: `wonder:${wonder.id}:${turnNumber}`,
+          summary: `WONDER (this turn only): ${wonder.narrationFlavor}`,
+          salience: 0.95,
+          eventSeqRange: [turnNumber, turnNumber + 1],
+        },
+        ...relevantMemories,
+      ];
+      log.info("turn.wonder.fired", {
+        sessionId,
+        turn: turnNumber,
+        wonderId: wonder.id,
+      });
+    }
+  } catch (err) {
+    log.warn("turn.wonder.failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   const baseInput = {
     projection: speculativeProjection,
     lastEvents: [turnBegunEvent, intentEvent, rollEvent],
@@ -360,6 +416,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     intent: intent.verb,
     relevantMemories,
   };
+  void firedWonder;
 
   let activeNarrator = narrator;
   let narrate: import("./types").NarrateOutput;

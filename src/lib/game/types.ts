@@ -90,6 +90,7 @@ export type Event =
   | { kind: "memory.created"; memoryId: string; summary: string }
   | { kind: "narration.emitted"; text: string; toolCallsApplied: number }
   | { kind: "tool_validation_failed"; tool: string; error: string }
+  | { kind: "wonder.fired"; wonderId: string; flavor: string }
   | { kind: "session.ended"; reason: "death" | "win" | "cap" };
 
 export type EventKind = Event["kind"];
