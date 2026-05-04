@@ -49,6 +49,16 @@ export function makeNarrator(args: {
     title: string;
     fragment: string;
   } | null;
+  /** Phase 9 atlas. Regional voice + sub-populations + signature
+   *  resources for the current location. Pre-fetched once per
+   *  turn by the API route via lib/world/regions. */
+  regionFlavor?: {
+    locationId: string;
+    raceId: string | null;
+    raceVoice: string | null;
+    subPopulations: string[];
+    signatureResources: string[];
+  } | null;
 }): Narrator {
   const mode = args.mode ?? getNarratorMode();
   if (mode === "remote") {
@@ -68,6 +78,7 @@ export function makeNarrator(args: {
       metaArcFlavor: args.metaArcFlavor,
       moodPreset: args.moodPreset,
       chapterFragment: args.chapterFragment,
+      regionFlavor: args.regionFlavor,
     });
   }
   return new TemplateNarrator({ form: args.form, location: args.location });

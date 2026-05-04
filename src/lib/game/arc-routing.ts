@@ -52,6 +52,143 @@ const ROUTES: ArcRoute[] = [
     // archive room. The mid-landing is for the climber forms.
     startingRoomId: "spire-archive",
   },
+  // Phase-9 world: free-form arcs (no scripted beats yet). The
+  // narrator drives. Including these as routes makes the cities
+  // discoverable by `arcTagline` lookups even though pickArc
+  // can return null for them — the tagline + flavor still helps
+  // the run-start UI and the picker.
+  {
+    arcId: "the-spoke-square",
+    formId: null,
+    locationId: "caelum-by-the-wash",
+    tagline:
+      "You wake at the heart of the metropolis where the five rivers meet. Five roads radiate outward. Pick one.",
+  },
+  {
+    arcId: "the-loom-square-morning",
+    formId: null,
+    locationId: "threadwarden",
+    tagline:
+      "The looms are speaking. A bolt is on display in the square. The master who wove it has perhaps a season left.",
+  },
+  {
+    arcId: "the-pontoon-mile-tide",
+    formId: null,
+    locationId: "saltgale",
+    tagline:
+      "Low tide. The mudglass kilns are hot. A Branchman across the pontoon is watching you and has not yet decided what to charge.",
+  },
+  {
+    arcId: "above-the-cloudline",
+    formId: null,
+    locationId: "highfield-ascending",
+    tagline:
+      "You wake on a windbench above the cloud-mass. A Topgrove offers cloudtea without comment.",
+  },
+  {
+    arcId: "the-tide-out",
+    formId: null,
+    locationId: "the-coral-anchorage",
+    tagline:
+      "The tidal causeway is half-emerged. A Drowncaller eyes you. Dawn meal is over and the day is open.",
+  },
+  {
+    arcId: "the-outer-quadrangle",
+    formId: null,
+    locationId: "the-long-indices",
+    tagline:
+      "You enter the outermost library quadrangle. Speech is permitted here. Each square inward is quieter.",
+  },
+  // Town arcs — short, flavor-led.
+  {
+    arcId: "the-pass-square",
+    formId: null,
+    locationId: "three-notches",
+    tagline: "The pass is open. Bow at each notch on the way up.",
+  },
+  {
+    arcId: "the-drying-slope",
+    formId: null,
+    locationId: "coldspoon",
+    tagline: "The cloudtea is drying. The wind does the work.",
+  },
+  {
+    arcId: "the-low-tide-walk",
+    formId: null,
+    locationId: "mudmoth",
+    tagline: "The mud glows blue. Don't step in it barefoot.",
+  },
+  {
+    arcId: "the-fen-edge",
+    formId: null,
+    locationId: "tallowfen",
+    tagline: "The reeds are taller than you. The wax burns clean enough to write by.",
+  },
+  {
+    arcId: "the-mill-courtyard",
+    formId: null,
+    locationId: "cataract-mile",
+    tagline: "The mile of cataracts is loud. Conversation here is in hand-signs.",
+  },
+  {
+    arcId: "the-silence-gate",
+    formId: null,
+    locationId: "quietmile",
+    tagline: "Cross the silence-gate. Honor the vow.",
+  },
+  {
+    arcId: "wheat-day",
+    formId: null,
+    locationId: "furrowmouth",
+    tagline: "The market bell rings. Today is a single grain. The wholesalers know which.",
+  },
+  {
+    arcId: "the-ropewalk",
+    formId: null,
+    locationId: "knots-landing",
+    tagline: "The ropewalk is two hundred yards. The makers walk backward as the rope twists.",
+  },
+  {
+    arcId: "the-bell-pier",
+    formId: null,
+    locationId: "briny-bell",
+    tagline: "The bells are about to ring. The tide is on time.",
+  },
+  {
+    arcId: "the-crab-pier",
+    formId: null,
+    locationId: "crab-by-crab",
+    tagline: "Every crab on the coast in named tubs. Ask by name.",
+  },
+  // Per-form starting-room overrides for the new world.
+  {
+    arcId: "indices-hush-cursed-book",
+    formId: "cursed-book",
+    locationId: "the-long-indices",
+    tagline: "You wake in the silent reading-room. A Hush-reader has not yet turned your first page.",
+    startingRoomId: "the-hush-room",
+  },
+  {
+    arcId: "anchorage-egg-galley",
+    formId: "dragon-egg",
+    locationId: "the-coral-anchorage",
+    tagline: "You wake on the dawn-galley table. The halflings have just left the meal.",
+    startingRoomId: "the-dawn-galley",
+  },
+  {
+    arcId: "highfield-egg-cellars",
+    formId: "dragon-egg",
+    locationId: "highfield-ascending",
+    tagline: "You wake banked in a cider cask. The Whitebark master will not look until first light.",
+    startingRoomId: "the-cider-cellars",
+  },
+  {
+    arcId: "tallowfen-core",
+    formId: "dungeon-core",
+    locationId: "tallowfen",
+    tagline: "You wake at the bottom of a peat-pool. The reeds above you are taller than the sky used to be.",
+    startingRoomId: "the-fen-edge",
+  },
   {
     arcId: "keep-the-warmth",
     formId: "dragon-egg",

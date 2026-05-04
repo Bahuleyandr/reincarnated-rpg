@@ -216,6 +216,28 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Phase 9 atlas: regional flavor for the current location
+    // (race + voice + sub-populations + signature resources).
+    // Returns null for race-agnostic locations (the original 6).
+    let regionFlavor:
+      | {
+          locationId: string;
+          raceId: string | null;
+          raceVoice: string | null;
+          subPopulations: string[];
+          signatureResources: string[];
+        }
+      | null = null;
+    try {
+      const { regionFlavorFor } = await import("@/lib/world/regions");
+      regionFlavor = regionFlavorFor(location.id);
+    } catch (err) {
+      log.warn("turn.region_fetch_failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     const narrator = makeNarrator({
       form,
       location,
@@ -228,6 +250,7 @@ export async function POST(req: NextRequest) {
       metaArcFlavor,
       moodPreset: resolvedMood,
       chapterFragment,
+      regionFlavor,
     });
 
     // Safety net: deterministic template-narrator that runs offline.

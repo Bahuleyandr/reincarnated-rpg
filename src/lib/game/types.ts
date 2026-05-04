@@ -467,14 +467,37 @@ export function pickFormId(reincarnatedAs: string | null | undefined): string {
   return "generic-creature";
 }
 
-/** Available locations a campaign can pick. Used by random-start. */
+/** Available locations a campaign can pick. Used by random-start.
+ *  Phase-9 world expansion added the racial homelands + metropolis +
+ *  10 small towns. The original six remain (the typed-form arcs
+ *  use them); the new entries broaden the random-start surface. */
 export const AVAILABLE_LOCATIONS = [
+  // Original Phase-1 locations — remain canonical for the four typed
+  // forms' starter arcs.
   "collapsed-tunnel",
   "forsaken-village",
   "sunless-spire",
   "drowned-orchard",
   "salt-cathedral",
   "hollow-market",
+  // Phase-9 world atlas — metropolis + five racial homelands.
+  "caelum-by-the-wash",
+  "threadwarden",
+  "saltgale",
+  "highfield-ascending",
+  "the-coral-anchorage",
+  "the-long-indices",
+  // Phase-9 small towns (one per spoke pair).
+  "three-notches",
+  "coldspoon",
+  "mudmoth",
+  "tallowfen",
+  "cataract-mile",
+  "quietmile",
+  "furrowmouth",
+  "knots-landing",
+  "briny-bell",
+  "crab-by-crab",
 ] as const;
 
 export type LocationId = (typeof AVAILABLE_LOCATIONS)[number];

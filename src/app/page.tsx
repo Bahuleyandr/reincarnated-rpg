@@ -175,6 +175,12 @@ export default function Home() {
 
         <div className="text-[10px] text-stone-600 flex items-center gap-4 flex-wrap">
           <Link
+            href="/world"
+            className="underline underline-offset-2 hover:text-amber-400"
+          >
+            the world →
+          </Link>
+          <Link
             href="/daily"
             className="underline underline-offset-2 hover:text-amber-400"
           >

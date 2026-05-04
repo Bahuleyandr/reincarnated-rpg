@@ -43,13 +43,36 @@ export interface DailyChallenge {
  * frame for whatever players declare.
  */
 export const CHALLENGE_POOL: Array<{ formId: string; locationId: string }> = [
+  // Typed-form classics (the original 4 wedge-tested combinations).
   { formId: "lesser-slime", locationId: "collapsed-tunnel" },
   { formId: "cursed-book", locationId: "sunless-spire" },
   { formId: "dragon-egg", locationId: "forsaken-village" },
   { formId: "dungeon-core", locationId: "sunless-spire" },
+  // Cross-typed combos.
   { formId: "lesser-slime", locationId: "drowned-orchard" },
   { formId: "cursed-book", locationId: "salt-cathedral" },
   { formId: "dungeon-core", locationId: "hollow-market" },
+  // Phase-9 world: typed forms in the racial homelands.
+  { formId: "lesser-slime", locationId: "caelum-by-the-wash" },
+  { formId: "lesser-slime", locationId: "saltgale" },
+  { formId: "cursed-book", locationId: "the-long-indices" },
+  { formId: "cursed-book", locationId: "threadwarden" },
+  { formId: "dragon-egg", locationId: "highfield-ascending" },
+  { formId: "dragon-egg", locationId: "the-coral-anchorage" },
+  { formId: "dungeon-core", locationId: "tallowfen" },
+  { formId: "dungeon-core", locationId: "the-long-indices" },
+  // Generic-creature in the new world — open-ended declarations.
+  { formId: "generic-creature", locationId: "caelum-by-the-wash" },
+  { formId: "generic-creature", locationId: "threadwarden" },
+  { formId: "generic-creature", locationId: "saltgale" },
+  { formId: "generic-creature", locationId: "highfield-ascending" },
+  { formId: "generic-creature", locationId: "the-coral-anchorage" },
+  { formId: "generic-creature", locationId: "the-long-indices" },
+  // Small-town daily features (one rotation through the towns).
+  { formId: "generic-creature", locationId: "mudmoth" },
+  { formId: "generic-creature", locationId: "quietmile" },
+  { formId: "generic-creature", locationId: "crab-by-crab" },
+  { formId: "generic-creature", locationId: "coldspoon" },
 ];
 
 /**

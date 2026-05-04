@@ -268,6 +268,22 @@ export async function POST(req: NextRequest) {
         });
       }
 
+      let regionFlavor:
+        | {
+            locationId: string;
+            raceId: string | null;
+            raceVoice: string | null;
+            subPopulations: string[];
+            signatureResources: string[];
+          }
+        | null = null;
+      try {
+        const { regionFlavorFor } = await import("@/lib/world/regions");
+        regionFlavor = regionFlavorFor(location.id);
+      } catch {
+        /* race-agnostic */
+      }
+
       const narrator = makeNarrator({
         form,
         location,
@@ -280,6 +296,7 @@ export async function POST(req: NextRequest) {
         metaArcFlavor,
         moodPreset: resolvedMood,
         chapterFragment,
+        regionFlavor,
       });
       const fallbackNarrator = new TemplateNarrator({ form, location });
 
