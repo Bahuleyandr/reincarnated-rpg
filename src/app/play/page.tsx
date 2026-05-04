@@ -14,6 +14,7 @@ import { InventoryPanel } from "@/components/InventoryPanel";
 import { NearbyBox } from "@/components/NearbyBox";
 import { QuestLog } from "@/components/QuestLog";
 import { StatusSidebar } from "@/components/StatusSidebar";
+import { InRunCompanions } from "@/components/InRunCompanions";
 import { Transcript, type TranscriptEntry } from "@/components/Transcript";
 import { TutorialHint } from "@/components/TutorialHint";
 import type { Projection, RollResult } from "@/lib/game/types";
@@ -415,6 +416,9 @@ export default function Play() {
           </div>
         )}
         <Transcript entries={entries} />
+        <div className="px-4 py-1">
+          <InRunCompanions />
+        </div>
         {error && (
           <p className="px-4 py-1 text-red-400 text-xs">{error}</p>
         )}

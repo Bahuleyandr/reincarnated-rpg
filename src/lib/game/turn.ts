@@ -1270,6 +1270,28 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
         err: err instanceof Error ? err.message : String(err),
       });
     }
+    // Roadmap 64: in-run companions level up on a winning end.
+    // Death + cap are no-ops — they don't earn the level. Failure
+    // is non-blocking; the run-end pipeline shouldn't break if
+    // the companion subsystem hits an error.
+    if (projection.status === "won") {
+      try {
+        const { levelUpAlive } = await import("../companions/in-run");
+        const leveled = await levelUpAlive(db, sessionId);
+        if (leveled.length > 0) {
+          log.info("turn.companions.leveled", {
+            sessionId,
+            count: leveled.length,
+            slugs: leveled.map((l) => l.slug),
+          });
+        }
+      } catch (err) {
+        log.warn("turn.companions.levelup_failed", {
+          sessionId,
+          err: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
     // Tutorial graduation (Phase 5.5 Day 36-37). On any
     // terminal status for a tutorial session, flip the user's
     // tutorial_completed flag so the next session is normal.
