@@ -12,7 +12,8 @@
       "description": "You took your first turn in another world.",
       "predicate": { "type": "eventOfKind", "kind": "turn.begun" },
       "relevantKinds": ["turn.begun"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the newly-arrived"
     },
     {
       "id": "mortal-reminder",
@@ -23,7 +24,8 @@
         "match": { "kind": "session.ended", "reason": "death" }
       },
       "relevantKinds": ["session.ended"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the once-dead"
     },
     {
       "id": "first-survival",
@@ -34,7 +36,8 @@
         "match": { "kind": "session.ended", "reason": "win" }
       },
       "relevantKinds": ["session.ended"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the unbroken"
     },
     {
       "id": "without-verdict",
@@ -87,7 +90,8 @@
         ]
       },
       "relevantKinds": ["relationship.updated"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the reformed"
     },
     {
       "id": "lucky-roll",
@@ -98,7 +102,8 @@
         "match": { "kind": "roll.resolved", "roll.total": { "$gte": 12 } }
       },
       "relevantKinds": ["roll.resolved"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the world-bent"
     },
     {
       "id": "snake-eyes",
@@ -150,7 +155,8 @@
         ]
       },
       "relevantKinds": ["turn.begun"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the patient"
     },
     {
       "id": "barely",
@@ -164,7 +170,8 @@
         }
       },
       "relevantKinds": ["damage.applied"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the cycle-blinked"
     },
     {
       "id": "iron-touched",
@@ -187,7 +194,8 @@
         }
       },
       "relevantKinds": ["form_state.changed"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the wyrm-aware"
     },
     {
       "id": "self-undone",
@@ -264,7 +272,8 @@
         "spec": ">= 20"
       },
       "relevantKinds": ["turn.begun"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the long-walked"
     },
     {
       "id": "five-named",
@@ -330,7 +339,8 @@
         }
       },
       "relevantKinds": ["npc.introduced"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the wyrm-seen"
     },
     {
       "id": "introduced-wrong-reader",
@@ -373,7 +383,8 @@
         "spec": ">= 3"
       },
       "relevantKinds": ["session.ended"],
-      "scope": "lifetime"
+      "scope": "lifetime",
+      "titleAwarded": "thrice-died"
     },
     {
       "id": "thrice-survived",
@@ -388,7 +399,8 @@
         "spec": ">= 3"
       },
       "relevantKinds": ["session.ended"],
-      "scope": "lifetime"
+      "scope": "lifetime",
+      "titleAwarded": "thrice-light"
     },
     {
       "id": "ten-lived",
@@ -400,7 +412,8 @@
         "spec": ">= 10"
       },
       "relevantKinds": ["session.ended"],
-      "scope": "lifetime"
+      "scope": "lifetime",
+      "titleAwarded": "the veteran"
     },
     {
       "id": "named-thrice",
@@ -424,7 +437,8 @@
         "spec": ">= 49"
       },
       "relevantKinds": ["turn.begun"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the marathon"
     },
     {
       "id": "absorber-five",
@@ -531,7 +545,8 @@
         ]
       },
       "relevantKinds": ["session.ended"],
-      "scope": "session"
+      "scope": "session",
+      "titleAwarded": "the quiet"
     }
   ]
 }

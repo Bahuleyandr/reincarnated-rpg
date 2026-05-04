@@ -76,6 +76,11 @@ export const users = pgTable("users", {
    *  Anon sessions never accumulate; only logged-in users have a
    *  durable soul. */
   legacyTraits: jsonb("legacy_traits").notNull().default({}),
+  /** Slug of the title the player has chosen to pin (from
+   *  content/achievements.json, achievement.titleAwarded). Validated
+   *  on POST /api/settings/title against the player's actual
+   *  unlocks. Null = no title displayed. */
+  pinnedTitle: text("pinned_title"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

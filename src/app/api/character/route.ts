@@ -147,7 +147,10 @@ export async function GET(req: NextRequest) {
   // Legacy traits — cross-run scars and gifts. The pure listEarnedTraits
   // helper handles the catalog lookup + sort.
   const userRow = await db
-    .select({ legacyTraits: users.legacyTraits })
+    .select({
+      legacyTraits: users.legacyTraits,
+      pinnedTitle: users.pinnedTitle,
+    })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
@@ -156,11 +159,33 @@ export async function GET(req: NextRequest) {
   const { listEarnedTraits } = await import("@/lib/legacy/apply");
   const legacyTraits = listEarnedTraits(traitCounts);
 
+  // Available titles — derived from the player's unlocked
+  // achievements that have titleAwarded set. The character page
+  // chooser uses this list; the title-set route validates against
+  // the same predicate.
+  const { listAchievements } = await import("@/lib/achievements/catalog");
+  const { achievementsUnlocked } = await import("@/lib/db/schema");
+  const unlocks = await db
+    .select({ achievementId: achievementsUnlocked.achievementId })
+    .from(achievementsUnlocked)
+    .where(eq(achievementsUnlocked.userId, userId));
+  const unlockedIds = new Set(unlocks.map((u) => u.achievementId));
+  const availableTitles = listAchievements()
+    .filter((a) => a.titleAwarded && unlockedIds.has(a.id))
+    .map((a) => ({
+      slug: a.titleAwarded as string,
+      label: a.titleAwarded as string,
+      sourceAchievement: a.id,
+    }));
+  const pinnedTitle = userRow[0]?.pinnedTitle ?? null;
+
   return NextResponse.json({
     totalCampaigns,
     campaignsByStatus,
     formDistribution: formRows,
     legacyTraits,
+    availableTitles,
+    pinnedTitle,
     energy: energy
       ? {
           energy: energy.energy,
