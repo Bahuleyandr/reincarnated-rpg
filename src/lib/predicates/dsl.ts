@@ -195,6 +195,9 @@ const TOOL_TO_KINDS: Record<ToolCall["name"], readonly string[]> = {
   ],
   // Phase 5 Day 21: gather_resource emits craft.gathered + inventory.added.
   gather_resource: ["craft.gathered"],
+  // Phase 5 Day 22: craft_recipe emits craft.completed + inventory
+  // mutations + xp.granted.
+  craft_recipe: ["craft.completed"],
   narrate_only: [],
 };
 

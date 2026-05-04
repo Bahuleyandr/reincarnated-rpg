@@ -1,0 +1,152 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Crafting recipes — Phase 5 Day 22. Each recipe consumes its inputs, produces its output, awards skill XP, and consumes 1 craft credit. Skills (Day 23-24) gate access via requiredLevel; until skills land the requiredLevel is treated as 0 by the validator. requiresLocation pins a recipe to a workshop-style room (e.g. smithing requires a forge). xp values are tuned so casual play reaches level 5 in a session, level 10 in a week — see POST_MVP_PLAN.md Day 23-24."
+  },
+  "recipes": [
+    {
+      "id": "smelt-iron-ingot",
+      "skill": "smelting",
+      "requiredLevel": 1,
+      "inputs": [
+        { "itemId": "iron-ore", "qty": 2 },
+        { "itemId": "coal", "qty": 1 }
+      ],
+      "output": { "itemId": "iron-ingot", "qty": 1 },
+      "xp": 5
+    },
+    {
+      "id": "smelt-copper-ingot",
+      "skill": "smelting",
+      "requiredLevel": 1,
+      "inputs": [
+        { "itemId": "copper-ore", "qty": 2 },
+        { "itemId": "coal", "qty": 1 }
+      ],
+      "output": { "itemId": "copper-ingot", "qty": 1 },
+      "xp": 5
+    },
+    {
+      "id": "smelt-silver-ingot",
+      "skill": "smelting",
+      "requiredLevel": 5,
+      "inputs": [
+        { "itemId": "silver-ore", "qty": 2 },
+        { "itemId": "coal", "qty": 2 }
+      ],
+      "output": { "itemId": "silver-ingot", "qty": 1 },
+      "xp": 12
+    },
+    {
+      "id": "smith-iron-knife",
+      "skill": "smithing",
+      "requiredLevel": 1,
+      "inputs": [
+        { "itemId": "iron-ingot", "qty": 1 },
+        { "itemId": "wood-oak", "qty": 1 }
+      ],
+      "output": { "itemId": "small-knife", "qty": 1 },
+      "xp": 8
+    },
+    {
+      "id": "smith-iron-nail-bundle",
+      "skill": "smithing",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "iron-ingot", "qty": 1 }],
+      "output": { "itemId": "iron-nails", "qty": 5 },
+      "xp": 4
+    },
+    {
+      "id": "smith-copper-coin-blank",
+      "skill": "smithing",
+      "requiredLevel": 2,
+      "inputs": [{ "itemId": "copper-ingot", "qty": 1 }],
+      "output": { "itemId": "copper-blank", "qty": 4 },
+      "xp": 6
+    },
+    {
+      "id": "mill-oak-planks",
+      "skill": "woodcutting",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "wood-oak", "qty": 2 }],
+      "output": { "itemId": "plank-oak", "qty": 1 },
+      "xp": 3
+    },
+    {
+      "id": "mill-pine-planks",
+      "skill": "woodcutting",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "wood-pine", "qty": 2 }],
+      "output": { "itemId": "plank-pine", "qty": 1 },
+      "xp": 3
+    },
+    {
+      "id": "alchemy-emberleaf-tincture",
+      "skill": "alchemy",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "herb-emberleaf", "qty": 2 }],
+      "output": { "itemId": "potion-emberleaf", "qty": 1 },
+      "xp": 6
+    },
+    {
+      "id": "alchemy-silverroot-decoction",
+      "skill": "alchemy",
+      "requiredLevel": 3,
+      "inputs": [
+        { "itemId": "herb-silverroot", "qty": 1 },
+        { "itemId": "salt-block", "qty": 1 }
+      ],
+      "output": { "itemId": "potion-silverroot", "qty": 1 },
+      "xp": 10
+    },
+    {
+      "id": "cook-bread-loaf",
+      "skill": "cooking",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "wood-pine", "qty": 1 }],
+      "output": { "itemId": "bread-loaf", "qty": 1 },
+      "xp": 3
+    },
+    {
+      "id": "cook-salted-pelt-ration",
+      "skill": "cooking",
+      "requiredLevel": 2,
+      "inputs": [
+        { "itemId": "pelt-wolf", "qty": 1 },
+        { "itemId": "salt-block", "qty": 1 }
+      ],
+      "output": { "itemId": "ration-pelt", "qty": 2 },
+      "xp": 5
+    },
+    {
+      "id": "weave-linen-cord",
+      "skill": "farming",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "cloth-linen", "qty": 2 }],
+      "output": { "itemId": "linen-cord", "qty": 1 },
+      "xp": 3
+    },
+    {
+      "id": "shape-clay-bowl",
+      "skill": "farming",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "clay", "qty": 2 }],
+      "output": { "itemId": "clay-bowl", "qty": 1 },
+      "xp": 3
+    },
+    {
+      "id": "smith-arc-blade",
+      "skill": "smithing",
+      "requiredLevel": 8,
+      "inputs": [
+        { "itemId": "silver-ingot", "qty": 2 },
+        { "itemId": "crystal-arc", "qty": 1 },
+        { "itemId": "wood-oak", "qty": 1 }
+      ],
+      "output": { "itemId": "arc-blade", "qty": 1 },
+      "xp": 30
+    }
+  ]
+}
