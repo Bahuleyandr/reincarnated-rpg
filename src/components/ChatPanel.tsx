@@ -21,12 +21,17 @@ interface Props {
 }
 
 export function ChatPanel({ room, canSpeak }: Props) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const roomKey = room.roomId ? `${room.locationId}:${room.roomId}` : null;
+  const [messageState, setMessageState] = useState<{
+    roomKey: string | null;
+    messages: ChatMessage[];
+  }>({ roomKey: null, messages: [] });
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const messages = messageState.roomKey === roomKey ? messageState.messages : [];
 
   // Initial load + reconnect on room change.
   useEffect(() => {
@@ -34,16 +39,13 @@ export function ChatPanel({ room, canSpeak }: Props) {
     let abortCtrl: AbortController | null = null;
     let reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
 
-    if (!room.roomId) {
-      setMessages([]);
-      return;
-    }
+    if (!room.roomId || !roomKey) return;
 
     async function loadInitial() {
       const r = await fetch("/api/chat/recent");
       if (!r.ok || cancelled) return;
       const d = (await r.json()) as { messages: ChatMessage[] };
-      if (!cancelled) setMessages(d.messages);
+      if (!cancelled) setMessageState({ roomKey, messages: d.messages });
     }
     async function streamLoop() {
       while (!cancelled) {
@@ -77,20 +79,20 @@ export function ChatPanel({ room, canSpeak }: Props) {
                       }
                     | { type: "error"; error: string };
                   if (ev.type === "message") {
-                    setMessages((prev) => {
+                    setMessageState((prev) => {
+                      const prevMessages = prev.roomKey === roomKey ? prev.messages : [];
                       // Dedupe in case initial load and stream overlap.
-                      if (prev.some((m) => m.id === ev.message.id))
-                        return prev;
-                      return [...prev, ev.message].slice(-50);
+                      if (prevMessages.some((m) => m.id === ev.message.id)) return prev;
+                      return {
+                        roomKey,
+                        messages: [...prevMessages, ev.message].slice(-50),
+                      };
                     });
                   } else if (ev.type === "hello" && ev.room) {
                     // If the stream's room doesn't match what we
                     // expected, the player must have moved before
                     // we connected — reload initial state.
-                    if (
-                      ev.room.locationId !== room.locationId ||
-                      ev.room.roomId !== room.roomId
-                    ) {
+                    if (ev.room.locationId !== room.locationId || ev.room.roomId !== room.roomId) {
                       cancelled = true;
                       break;
                     }
@@ -126,7 +128,7 @@ export function ChatPanel({ room, canSpeak }: Props) {
         /* ignore */
       }
     };
-  }, [room.locationId, room.roomId]);
+  }, [room.locationId, room.roomId, roomKey]);
 
   // Auto-scroll to bottom on new message when panel is open.
   useEffect(() => {
@@ -170,45 +172,35 @@ export function ChatPanel({ room, canSpeak }: Props) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full px-4 py-2 flex items-center justify-between text-left hover:bg-stone-900"
+        className="flex w-full items-center justify-between px-4 py-2 text-left hover:bg-stone-900"
       >
-        <span className="text-stone-100 text-xs">
+        <span className="text-xs text-stone-100">
           chat{" "}
           <span className="text-stone-500">
             ({messages.length}
             {messages.length === 50 ? "+" : ""})
           </span>
         </span>
-        <span className="text-[10px] text-stone-600">
-          {open ? "▼" : "▶"}
-        </span>
+        <span className="text-[10px] text-stone-600">{open ? "▼" : "▶"}</span>
       </button>
       {open && (
         <div className="border-t border-stone-800">
-          <div
-            ref={scrollRef}
-            className="max-h-64 overflow-y-auto px-4 py-2 space-y-1 text-xs"
-          >
+          <div ref={scrollRef} className="max-h-64 space-y-1 overflow-y-auto px-4 py-2 text-xs">
             {messages.length === 0 ? (
-              <p className="text-stone-600 italic text-[11px]">
+              <p className="text-[11px] text-stone-600 italic">
                 no one has spoken in this room recently.
               </p>
             ) : (
               messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`leading-5 ${m.isSelf ? "opacity-80" : ""}`}
-                >
-                  <span className="text-stone-400 text-[10px] mr-2">
+                <div key={m.id} className={`leading-5 ${m.isSelf ? "opacity-80" : ""}`}>
+                  <span className="mr-2 text-[10px] text-stone-400">
                     {new Date(m.createdAt).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
                   </span>
                   <span
-                    className={`text-[11px] mr-2 ${
-                      m.isSelf ? "text-amber-300" : "text-stone-300"
-                    }`}
+                    className={`mr-2 text-[11px] ${m.isSelf ? "text-amber-300" : "text-stone-300"}`}
                   >
                     {m.username ? `@${m.username}` : m.displayName}
                   </span>
@@ -218,20 +210,17 @@ export function ChatPanel({ room, canSpeak }: Props) {
             )}
           </div>
           {canSpeak && (
-            <form
-              onSubmit={send}
-              className="border-t border-stone-800 p-2 flex items-center gap-2"
-            >
+            <form onSubmit={send} className="flex items-center gap-2 border-t border-stone-800 p-2">
               <input
                 type="text"
                 value={text}
                 onChange={(e) => setText(e.target.value.slice(0, 280))}
                 placeholder="say something… (visible to anyone in this room)"
-                className="flex-1 bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs focus:outline-none focus:border-stone-500"
+                className="flex-1 border border-stone-700 bg-stone-950 px-3 py-1.5 text-xs text-stone-100 focus:border-stone-500 focus:outline-none"
                 disabled={busy}
               />
               <span
-                className={`text-[10px] w-8 text-right ${
+                className={`w-8 text-right text-[10px] ${
                   charsLeft < 30 ? "text-amber-400" : "text-stone-600"
                 }`}
               >
@@ -240,20 +229,18 @@ export function ChatPanel({ room, canSpeak }: Props) {
               <button
                 type="submit"
                 disabled={busy || !text.trim()}
-                className="border border-stone-300 text-stone-100 py-1 px-3 hover:bg-stone-100 hover:text-stone-950 transition-colors disabled:opacity-50 text-xs"
+                className="border border-stone-300 px-3 py-1 text-xs text-stone-100 transition-colors hover:bg-stone-100 hover:text-stone-950 disabled:opacity-50"
               >
                 say
               </button>
             </form>
           )}
           {error && (
-            <p className="text-red-400 text-[11px] px-3 py-1 border-t border-stone-800">
-              {error}
-            </p>
+            <p className="border-t border-stone-800 px-3 py-1 text-[11px] text-red-400">{error}</p>
           )}
-          <p className="text-[10px] text-stone-700 px-3 py-1.5 border-t border-stone-900">
-            chat is OOC — your in-game form does NOT see these messages.
-            visible only to players physically in this room.
+          <p className="border-t border-stone-900 px-3 py-1.5 text-[10px] text-stone-700">
+            chat is OOC — your in-game form does NOT see these messages. visible only to players
+            physically in this room.
           </p>
         </div>
       )}
