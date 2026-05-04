@@ -1009,6 +1009,19 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
         err: err instanceof Error ? err.message : String(err),
       });
     }
+    // Tutorial graduation (Phase 5.5 Day 36-37). On any
+    // terminal status for a tutorial session, flip the user's
+    // tutorial_completed flag so the next session is normal.
+    try {
+      const { graduateTutorial } = await import("../tutorial/graduate");
+      await graduateTutorial(db, sessionId, world.userId);
+    } catch (err) {
+      log.warn("turn.tutorial.graduate_failed", {
+        sessionId,
+        userId: world.userId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   log.info("turn.complete", {

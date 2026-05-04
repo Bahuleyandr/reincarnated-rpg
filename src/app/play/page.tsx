@@ -15,6 +15,7 @@ import { NearbyBox } from "@/components/NearbyBox";
 import { QuestLog } from "@/components/QuestLog";
 import { StatusSidebar } from "@/components/StatusSidebar";
 import { Transcript, type TranscriptEntry } from "@/components/Transcript";
+import { TutorialHint } from "@/components/TutorialHint";
 import type { Projection, RollResult } from "@/lib/game/types";
 
 export default function Play() {
@@ -22,6 +23,8 @@ export default function Play() {
   const [entries, setEntries] = useState<TranscriptEntry[]>([]);
   const [hasAccount, setHasAccount] = useState(false);
   const [campaignId, setCampaignId] = useState<string | null>(null);
+  const [isTutorial, setIsTutorial] = useState(false);
+  const [tutorialDraft, setTutorialDraft] = useState("");
   const [busy, setBusy] = useState(false);
   // When non-null, a 409 turn-lock conflict triggered an auto-retry.
   // The InputBox uses this to show "settling..." instead of the
@@ -68,6 +71,7 @@ export default function Play() {
         setProjection(data.projection);
         setHasAccount(!!data.hasAccount);
         setCampaignId(data.campaignId ?? null);
+        setIsTutorial(!!data.isTutorial);
         setArcTagline(data.arcTagline ?? null);
         setEntries(
           (data.narrations as string[]).map((text) => ({
@@ -420,11 +424,21 @@ export default function Play() {
             campaignId={campaignId}
           />
         ) : (
-          <InputBox
-            onSubmit={handleInput}
-            disabled={busy}
-            settling={settling}
-          />
+          <>
+            {isTutorial && projection && (
+              <TutorialHint
+                turn={projection.turn + 1}
+                onUseExample={(text) => setTutorialDraft(text)}
+                onSkip={() => setIsTutorial(false)}
+              />
+            )}
+            <InputBox
+              onSubmit={handleInput}
+              disabled={busy}
+              settling={settling}
+              draft={tutorialDraft}
+            />
+          </>
         )}
       </section>
 

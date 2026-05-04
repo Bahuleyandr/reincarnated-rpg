@@ -117,6 +117,11 @@ export const users = pgTable("users", {
    *  reincarnation picker filters formIds whose latest entry is
    *  within 24h. Trimmed to last 7 days on each write. */
   recentFormDeaths: jsonb("recent_form_deaths").notNull().default([]),
+  /** True once the user has completed (or skipped) the
+   *  first-10-minutes tutorial (Phase 5.5 Day 36-37). New users
+   *  default false; their first session opens with is_tutorial
+   *  set on the session row. */
+  tutorialCompleted: boolean("tutorial_completed").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -234,6 +239,12 @@ export const sessions = pgTable(
     /** Anon craft credits pool — same semantics as users.craftCredits.
      *  Logged-in sessions IGNORE this. Phase 5 Day 20. */
     craftCredits: integer("craft_credits").notNull().default(10),
+    /** True for the new-user tutorial session. The play page reads
+     *  this to render TutorialHint; the orchestrator excludes
+     *  tutorial sessions from leaderboards / meta-arc contributions
+     *  to keep them isolated from the live world.
+     *  Phase 5.5 Day 36-37. */
+    isTutorial: boolean("is_tutorial").notNull().default(false),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
     turnLockToken: text("turn_lock_token"),

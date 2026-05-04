@@ -29,7 +29,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
-import { campaigns, sessions } from "@/lib/db/schema";
+import { campaigns, sessions, users } from "@/lib/db/schema";
 import { createSession } from "@/lib/game/session";
 import {
   AVAILABLE_LOCATIONS,
@@ -132,9 +132,27 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Phase 5.5 Day 36-37: new logged-in users without
+    // tutorial_completed get a tutorial session. Triggered only
+    // when the player has no campaignId and no campaigns yet.
+    let isTutorial = false;
+    if (userId && !campaignId) {
+      try {
+        const [u] = await db
+          .select({ done: users.tutorialCompleted })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+        if (u && !u.done) isTutorial = true;
+      } catch {
+        /* ignore */
+      }
+    }
+
     const result = await createSession(db, formId, {
       locationId,
       reincarnatedAs,
+      isTutorial,
     });
     if (campaignId) {
       await db

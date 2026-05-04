@@ -302,6 +302,13 @@
       "when": 1778140000000,
       "tag": "0042_recurring_npcs",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1778150000000,
+      "tag": "0043_tutorial_state",
+      "breakpoints": true
     }
   ]
 }

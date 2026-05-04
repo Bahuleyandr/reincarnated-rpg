@@ -22,12 +22,19 @@ export interface CreateSessionResult {
   sessionId: string;
   formId: string;
   seed: number;
+  isTutorial: boolean;
 }
 
 export async function createSession(
   db: Db,
   formId: string,
-  opts: { locationId?: string; reincarnatedAs?: string | null } = {},
+  opts: {
+    locationId?: string;
+    reincarnatedAs?: string | null;
+    /** Phase 5.5 Day 36-37. Set true for the new-user tutorial
+     *  session. Excludes from leaderboards / meta-arc. */
+    isTutorial?: boolean;
+  } = {},
 ): Promise<CreateSessionResult> {
   const sessionId = uuidv7();
   const seed = randomBytes(4).readUInt32BE(0);
@@ -40,11 +47,13 @@ export async function createSession(
     "../energy/tiers"
   );
   const blessedFree = effectiveTier(getTier("free"), new Date()).tier;
+  const isTutorial = opts.isTutorial ?? false;
   await db.insert(sessions).values({
     id: sessionId,
     cookieHmac,
     formId,
     energy: blessedFree.max,
+    isTutorial,
     ...(opts.locationId ? { locationId: opts.locationId } : {}),
     ...(opts.reincarnatedAs !== undefined
       ? { reincarnatedAs: opts.reincarnatedAs }
@@ -54,5 +63,5 @@ export async function createSession(
     { kind: "session.started", formId, seed },
   ]);
 
-  return { sessionId, formId, seed };
+  return { sessionId, formId, seed, isTutorial };
 }
