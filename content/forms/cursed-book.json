@@ -10,6 +10,8 @@
   "displayName": "Cursed Book",
   "tagline": "You woke up between covers, and someone left you open.",
 
+  "dice": "3d6kh2",
+
   "vitals": {
     "pages_intact":  { "max": 12, "start": 12, "death": 0 },
     "ink":           { "max": 8,  "start": 8,  "death": null }

@@ -26,7 +26,7 @@ import { classifyHaiku } from "./classify-haiku";
 import { appendEvents, readLog, rowToEvent } from "./events";
 import { applyEvents, loadProjection, writeSnapshot } from "./projection";
 import { classify } from "./classify";
-import { roll2d6, rollFromDice } from "./rules";
+import { rollDice, rollFromDice } from "./rules";
 import { sanitizePlayerInput } from "./sanitize";
 import { checkTone, checkToneFast } from "./tone";
 import { validateToolsToEvents } from "./tools";
@@ -273,12 +273,15 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     }
   }
   const mod = baseMod + luckPenalty + adaptiveBonus;
+  // Phase 9: form-specific dice variants. Defaults to 2d6 when
+  // the form doesn't opt in.
+  const diceVariant = form.dice ?? "2d6";
   const roll = args.rollOverride
     ? {
         ...rollFromDice(args.rollOverride.d1, args.rollOverride.d2, args.rollOverride.mod ?? mod),
         seed,
       }
-    : roll2d6(seed, mod);
+    : rollDice(diceVariant, seed, mod);
   const rollEvent: Event = {
     kind: "roll.resolved",
     roll,

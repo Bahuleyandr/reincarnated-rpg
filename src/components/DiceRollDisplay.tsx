@@ -72,6 +72,12 @@ export function DiceRollDisplay({ roll, animate = true }: Props) {
 
   const tumbleClass = tumbling ? "text-stone-300 animate-pulse" : "text-stone-300";
 
+  // Form-specific dice variants: render either as "d1 + d2" or
+  // (for 1d12) as the single die's value. Variant label appears
+  // before the dice when the form opted out of plain 2d6.
+  const isSingleDie = roll.variant === "1d12";
+  const variantLabel = roll.variant && roll.variant !== "2d6" ? roll.variant : null;
+
   return (
     <div
       className="flex items-baseline gap-2 text-xs text-stone-500 select-none"
@@ -80,14 +86,26 @@ export function DiceRollDisplay({ roll, animate = true }: Props) {
       <span aria-hidden className={tumbling ? "inline-block animate-spin-slow" : ""}>
         🎲
       </span>
+      {variantLabel && (
+        <span
+          className="text-[10px] tracking-widest text-stone-600 uppercase"
+          data-testid="roll-variant"
+        >
+          {variantLabel}
+        </span>
+      )}
       <span>
         <span className={tumbleClass} data-testid="roll-d1">
           {d1Display}
         </span>
-        <span className="text-stone-700"> + </span>
-        <span className={tumbleClass} data-testid="roll-d2">
-          {d2Display}
-        </span>
+        {!isSingleDie && (
+          <>
+            <span className="text-stone-700"> + </span>
+            <span className={tumbleClass} data-testid="roll-d2">
+              {d2Display}
+            </span>
+          </>
+        )}
         {roll.mod !== 0 && (
           <>
             <span className="text-stone-700"> {sign}</span>

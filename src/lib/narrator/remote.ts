@@ -639,6 +639,10 @@ prior text: "${input.previousAttempt.text.slice(0, 200)}"
     ? `you_are: ${reincarnatedAs}\nform: ${input.projection.form.id}`
     : `form: ${input.projection.form.id}`;
 
+  const variantLabel =
+    input.roll.variant && input.roll.variant !== "2d6"
+      ? ` variant=${input.roll.variant}`
+      : "";
   return `${retryHint}<projection>
 turn: ${input.projection.turn}
 status: ${input.projection.status}
@@ -667,7 +671,7 @@ xp: ${input.projection.xp}
 
 <roll>
 classifier_verb: ${input.intent}
-roll: d1=${input.roll.d1} d2=${input.roll.d2} mod=${input.roll.mod} total=${input.roll.total} band=${input.roll.band}
+roll: d1=${input.roll.d1} d2=${input.roll.d2} mod=${input.roll.mod} total=${input.roll.total} band=${input.roll.band}${variantLabel}
 </roll>
 
 <memories>
