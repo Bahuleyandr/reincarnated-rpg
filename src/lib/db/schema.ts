@@ -1617,4 +1617,37 @@ export const dailyRuns = pgTable(
 export type DailyRun = typeof dailyRuns.$inferSelect;
 export type NewDailyRun = typeof dailyRuns.$inferInsert;
 
+/**
+ * Roadmap item 63 — player-as-NPC retirement. Ascended (and
+ * eventually permadied) players land here; the recurring-NPC
+ * engine merges this DB pool with the file-based content/npcs/
+ * catalog at lookup time so retired players can show up in
+ * other players' future runs.
+ */
+export const retiredPlayers = pgTable("retired_players", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  templateId: text("template_id").notNull().unique(),
+  displayName: text("display_name").notNull(),
+  reason: text("reason").notNull(),
+  factionId: text("faction_id"),
+  topSkillId: text("top_skill_id"),
+  topSkillLevel: integer("top_skill_level").notNull().default(0),
+  totalCampaigns: integer("total_campaigns").notNull().default(0),
+  distinctForms: integer("distinct_forms").notNull().default(0),
+  lastWords: text("last_words"),
+  baseLow: real("base_low").notNull().default(0.02),
+  baseHigh: real("base_high").notNull().default(0.05),
+  wyrmThreshold: integer("wyrm_threshold").notNull().default(500),
+  perPriorBonus: real("per_prior_bonus").notNull().default(0.01),
+  maxAppear: real("max_appear").notNull().default(0.25),
+  retiredAt: timestamp("retired_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type RetiredPlayer = typeof retiredPlayers.$inferSelect;
+export type NewRetiredPlayer = typeof retiredPlayers.$inferInsert;
+
 export const _sql = sql; // re-export for migration writers if needed

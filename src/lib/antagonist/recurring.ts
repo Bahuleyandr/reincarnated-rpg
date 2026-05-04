@@ -83,6 +83,41 @@ export function clearRecurringNpcCache(): void {
 }
 
 /**
+ * Roadmap 63 — merge the file-based catalog with retired-player
+ * rows. Async because it reads the DB. The runtime path that
+ * eventually wires recurring NPCs into turn.ts should call this
+ * instead of `listRecurringNpcs` so retired players get a chance
+ * to appear too. The returned list is sorted by templateId for
+ * deterministic ordering.
+ */
+export async function listAllRecurring(
+  db: import("../db/client").Db,
+  opts: { limit?: number } = {},
+): Promise<RecurringNpcMeta[]> {
+  const fileCatalog = listRecurringNpcs();
+  try {
+    const { listRetiredAsRecurring } = await import("../retirement/retire");
+    const retired = await listRetiredAsRecurring(db, opts);
+    // De-dupe by templateId — the file catalog wins on collision
+    // (no realistic way the file can use a "retired:" prefix).
+    const seen = new Set(fileCatalog.map((m) => m.templateId));
+    const merged = [...fileCatalog];
+    for (const m of retired) {
+      if (seen.has(m.templateId)) continue;
+      merged.push(m);
+      seen.add(m.templateId);
+    }
+    return merged.sort((a, b) => a.templateId.localeCompare(b.templateId));
+  } catch {
+    // Retirement infra unavailable (tests, isolated runs) → just
+    // return the file catalog.
+    return [...fileCatalog].sort((a, b) =>
+      a.templateId.localeCompare(b.templateId),
+    );
+  }
+}
+
+/**
  * Pure: per-NPC appearance probability.
  *
  *   base  = baseLow when arcProgress < wyrmPhaseThreshold else baseHigh
