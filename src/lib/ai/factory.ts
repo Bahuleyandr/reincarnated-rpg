@@ -40,6 +40,21 @@ export type ProviderName = "anthropic" | "openai-compatible";
 let cached: AIProvider | null = null;
 let cachedName: ProviderName | null = null;
 
+/**
+ * Phase 7 Day 40-41 wiring (post-launch follow-up): when
+ * AI_FAILOVER=true, env-default callers get the FailoverProvider
+ * (anthropic → bedrock → vertex → template) instead of the bare
+ * AnthropicProvider. Per-call success/failure flows into the
+ * provider_health table; 'down' / 'manual_down' providers are
+ * skipped automatically. BYO-LLM users still get their explicit
+ * provider — we don't second-guess their key choice.
+ *
+ * Health-tracker reads/writes need a `db` handle, so the factory
+ * defers the wrapper construction to a separate
+ * `getProviderWithFailover(db)` callsite. The default sync
+ * `getProvider()` keeps returning the bare provider for code
+ * paths that don't have a db (template-narrator boot, scripts).
+ */
 export function getProvider(name?: ProviderName): AIProvider {
   const target =
     name ??
@@ -58,6 +73,33 @@ export function getProvider(name?: ProviderName): AIProvider {
   }
   cachedName = target;
   return cached;
+}
+
+/**
+ * Failover-aware provider. Returns FailoverProvider when
+ * AI_FAILOVER=true and AI_PROVIDER is anthropic (the only
+ * provider currently in the failover chain). Otherwise falls
+ * through to the bare getProvider().
+ *
+ * Use this in the turn route when you want anthropic-down-falls-
+ * to-bedrock-falls-to-vertex routing. Pass the db handle so the
+ * health writes work.
+ */
+export function getProviderWithFailover(args: {
+  db: import("../db/client").Db;
+  preferredId?: string;
+}): AIProvider {
+  if (process.env.AI_FAILOVER !== "true") {
+    return getProvider();
+  }
+  // The wrapper class lives in failover.ts; lazy-loaded so the
+  // bedrock/vertex stubs aren't even imported when failover is off.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { FailoverProvider } = require("./failover") as typeof import("./failover");
+  return new FailoverProvider({
+    db: args.db,
+    preferredId: args.preferredId,
+  });
 }
 
 export interface ResolvedProvider {
@@ -79,9 +121,11 @@ export interface ResolvedProvider {
   useLlmTone: boolean;
 }
 
-function envDefault(): ResolvedProvider {
+function envDefault(db?: Db): ResolvedProvider {
   return {
-    provider: getProvider(),
+    provider: db
+      ? getProviderWithFailover({ db })
+      : getProvider(),
     source: "env-default",
     modelOverride: null,
     classifierModelOverride: null,
@@ -110,7 +154,7 @@ export async function getProviderForUser(
     pinnedNarrationModel?: string | null;
   },
 ): Promise<ResolvedProvider> {
-  if (!userId) return envDefault();
+  if (!userId) return envDefault(db);
 
   const rows = await db
     .select()
@@ -118,10 +162,10 @@ export async function getProviderForUser(
     .where(eq(userLlmPrefs.userId, userId))
     .limit(1);
   const prefs = rows[0];
-  if (!prefs) return envDefault();
+  if (!prefs) return envDefault(db);
 
   const preset: LlmPreset | undefined = findPreset(prefs.presetId);
-  if (!preset) return envDefault();
+  if (!preset) return envDefault(db);
 
   // Pin guard: if the campaign was started under a different preset
   // than the user is currently configured with, the user-specific
@@ -131,7 +175,7 @@ export async function getProviderForUser(
     pin?.pinnedPresetId &&
     pin.pinnedPresetId !== prefs.presetId
   ) {
-    return envDefault();
+    return envDefault(db);
   }
 
   const apiKey = prefs.apiKeyEnc ? decryptSecret(prefs.apiKeyEnc) : "";

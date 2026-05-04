@@ -1,0 +1,14 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-04" },
+  "chapterId": 11,
+  "book": 3,
+  "chapterInBook": 3,
+  "weekStart": "Year 1, Week 11",
+  "weekEnd": "Year 1, Week 11",
+  "title": "The Forsaken Are Not Where We Left Them",
+  "theme": "the Forsaken faction (still locked at this point) leaves traces in unexpected locations",
+  "worldEvent": "in Drowned Orchard, a small ring of stones appears overnight; the Forsaken's mark, but they aren't supposed to be active",
+  "narratorPromptFragment": "The current world-chapter is BOOK III, CHAPTER 3: THE FORSAKEN ARE NOT WHERE WE LEFT THEM. A small ring of stones appeared in Drowned Orchard overnight — the mark of the Forsaken faction, who shouldn't be active in the world yet. People who walk past the ring report a quiet that follows them home. Branch IV (which can unlock the Forsaken) is approaching. Reference the ring of stones, the quiet, and a sense of being noticed by something that hasn't introduced itself.",
+  "factionAlignmentBonuses": { "choristers": 0.95, "rust_hand": 0.95, "idle": 1.05, "forsaken": 1.20 },
+  "locationsAffected": ["drowned-orchard"]
+}

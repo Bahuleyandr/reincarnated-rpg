@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Book II, Chapter 2 — A Door That Wasn't There."
+  },
+  "chapterId": 6,
+  "book": 2,
+  "chapterInBook": 2,
+  "weekStart": "Year 1, Week 6",
+  "weekEnd": "Year 1, Week 6",
+  "title": "A Door That Wasn't There",
+  "theme": "old passages re-open; the map of the world is one room larger",
+  "worldEvent": "a stone door appears in the side of the collapsed-tunnel that was not there in Year 0",
+  "narratorPromptFragment": "The current world-chapter is BOOK II, CHAPTER 2: A DOOR THAT WASN'T THERE. A door has appeared in the collapsed-tunnel that was not there before — older than the rock around it. The walls remember it; the air does not. If the player is in collapsed-tunnel, reference the door; otherwise, reference dust drifting somewhere it shouldn't.",
+  "factionAlignmentBonuses": {
+    "choristers": 1.0,
+    "rust_hand": 1.0,
+    "idle": 1.10,
+    "forsaken": 1.05
+  },
+  "locationsAffected": ["collapsed-tunnel"]
+}

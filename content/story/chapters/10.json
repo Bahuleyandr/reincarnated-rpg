@@ -1,0 +1,14 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-04" },
+  "chapterId": 10,
+  "book": 3,
+  "chapterInBook": 2,
+  "weekStart": "Year 1, Week 10",
+  "weekEnd": "Year 1, Week 10",
+  "title": "Cipher Speaks",
+  "theme": "one of the Twins surfaces and gives a speech; the other does not surface",
+  "worldEvent": "Cipher gives a public address in Hollow Market; the speech is recorded by the Choristers",
+  "narratorPromptFragment": "The current world-chapter is BOOK III, CHAPTER 2: CIPHER SPEAKS. Cipher (one of the Twins) gave a public speech in Hollow Market this week. The Choristers recorded it; the recording disagrees subtly with what people who heard the speech remember. Cinder did not appear. Reference Cipher only — never Cinder — unless the player asks specifically.",
+  "factionAlignmentBonuses": { "choristers": 1.10, "rust_hand": 1.0, "idle": 1.0, "forsaken": 1.05 },
+  "locationsAffected": ["hollow-market", "salt-cathedral"]
+}

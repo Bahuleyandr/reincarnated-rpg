@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Book I, Chapter 3 — Salt at the Threshold. The salt road is busier than it should be; merchants come down from the cathedral with their hair tied wrong."
+  },
+  "chapterId": 3,
+  "book": 1,
+  "chapterInBook": 3,
+  "weekStart": "Year 1, Week 3",
+  "weekEnd": "Year 1, Week 3",
+  "title": "Salt at the Threshold",
+  "theme": "the salt road moves; small caravans go where caravans don't usually go",
+  "worldEvent": "merchants from Salt Cathedral arrive in unexpected places, hair tied with the wrong knots",
+  "narratorPromptFragment": "The current world-chapter is BOOK I, CHAPTER 3: SALT AT THE THRESHOLD. Salt is on the air everywhere — even where there's no reason for it. Merchants from the Salt Cathedral are appearing in towns that aren't on the trade routes; their hair is tied with wrong knots, their carts heavier than they should be. The Choristers are sending out a quiet word. Don't name the word.",
+  "factionAlignmentBonuses": {
+    "choristers": 1.10,
+    "rust_hand": 0.95,
+    "idle": 1.0,
+    "forsaken": 1.0
+  },
+  "locationsAffected": ["salt-cathedral", "hollow-market", "forsaken-village"]
+}
