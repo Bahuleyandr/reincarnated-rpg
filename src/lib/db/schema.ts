@@ -90,6 +90,16 @@ export const users = pgTable("users", {
    *  difficulty layer to add +1 to roll modifiers after 3+ deaths.
    *  Phase 2 Day 12. */
   adaptiveDeathStreak: integer("adaptive_death_streak").notNull().default(0),
+  /** Opt-in flag for inline scene images. Default 'false' — players
+   *  must explicitly enable in /settings. Stored as text matching
+   *  the isAdmin convention used elsewhere in this table.
+   *  Phase 3 Day 14. */
+  sceneImagesEnabled: text("scene_images_enabled").notNull().default("false"),
+  /** Per-month image generation budget. Resets when month_key
+   *  changes (YYYY-MM format). Free tier capped at SCENE_IMAGE_FREE_CAP;
+   *  paid tiers higher. */
+  sceneImagesMonthlyCount: integer("scene_images_monthly_count").notNull().default(0),
+  sceneImagesMonthKey: text("scene_images_month_key"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -871,5 +881,46 @@ export const gifts = pgTable("gifts", {
 
 export type Gift = typeof gifts.$inferSelect;
 export type NewGift = typeof gifts.$inferInsert;
+
+/**
+ * Scene images (Phase 3 Day 14). Opt-in, cost-gated. Generated at
+ * a small set of trigger moments (turn 1 awakening, first NPC,
+ * death, win, wyrm-fell). UNIQUE on (session_id, trigger, turn) so
+ * accidental re-fires don't double-spend.
+ *
+ * status:
+ *   'pending'  — record created; provider call queued.
+ *   'ready'    — image_url populated; serve it.
+ *   'failed'   — provider rejected; error column has the reason.
+ *   'skipped'  — preflight (cost cap, opt-out) chose not to call;
+ *                no provider cost.
+ */
+export const sceneImages = pgTable(
+  "scene_images",
+  {
+    id: uuid("id").primaryKey(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    trigger: text("trigger").notNull(),
+    turn: integer("turn").notNull(),
+    prompt: text("prompt").notNull(),
+    imageUrl: text("image_url"),
+    provider: text("provider"),
+    model: text("model"),
+    costUsd: real("cost_usd").notNull().default(0),
+    status: text("status").notNull().default("pending"),
+    error: text("error"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    readyAt: timestamp("ready_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("scene_images_unique_per_trigger").on(t.sessionId, t.trigger, t.turn),
+    index("scene_images_session_idx").on(t.sessionId, t.turn),
+  ],
+);
+
+export type SceneImage = typeof sceneImages.$inferSelect;
+export type NewSceneImage = typeof sceneImages.$inferInsert;
 
 export const _sql = sql; // re-export for migration writers if needed
