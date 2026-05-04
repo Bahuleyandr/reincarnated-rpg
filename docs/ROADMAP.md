@@ -64,6 +64,20 @@ Tracked here so we can see what's accumulated above the MVP line. See `docs/POST
 | 2026-05-03 | Blessing of the Gods | `b7a3ddd` |
 | 2026-05-03 | Daily-streak blessing (1→5 stack) | `4363b0b` |
 | 2026-05-03 | Moderation + curses + power-creep ceilings | `1922be6` |
+| 2026-05-04 | Phase 1 — Predicate engine + legacy traits + achievements + titles + daily/weekly objectives | (rolled-up branch) |
+| 2026-05-04 | Phase 2 — Companions, gifting, run replay/share, mood presets, adaptive difficulty | (rolled-up branch) |
+| 2026-05-04 | Phase 3 — Long Wyrm raid HP + scene images foundation | `868b5b2` / `94eda97` |
+| 2026-05-04 | Phase 4.5 Day 15 — Public lore page (24h delay) | `5afa1fb` |
+| 2026-05-04 | Phase 4.5 Day 16 — Foreshadowing memory plants | `87dbbc9` |
+| 2026-05-04 | Phase 4.5 Day 17 — Wonder events (1% per-turn ambient) | `2f98a7a` |
+| 2026-05-04 | Phase 5 Day 18-19 — Currency primitive + NPC vendors (central bank) | `569242b` |
+| 2026-05-04 | Phase 5 Day 20 — Resource items + craft credits (0.1-energy crafting) | `2b41eb4` |
+| 2026-05-04 | Phase 5 Day 21 — gather_resource tool + location resource tagging | `c4f0be3` |
+| 2026-05-04 | Phase 5 Day 22 — craft_recipe tool + 15-recipe catalog | `b290ea6` |
+| 2026-05-04 | Phase 5 Day 23-24 — 7 skills + 7 trainer NPCs + XP curve | `d2f0e13` |
+| 2026-05-04 | Phase 5 Day 25 — Buy/sell loop end-to-end + economy eval | `aff01d8` |
+| 2026-05-04 | Phase 5 Day 26 — Economy telemetry + /god/economy dashboard | `011eda8` |
+| 2026-05-04 | Phase 5 Day 27 — Skills/recipes UI + economy achievements | (this commit) |
 
 ## Pre-Phase-1 polish (~14 dev days)
 

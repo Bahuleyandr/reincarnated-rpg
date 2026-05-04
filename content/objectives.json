@@ -130,6 +130,56 @@
       },
       "relevantKinds": ["session.ended"],
       "reward": { "kind": "energy", "amount": 20 }
+    },
+    {
+      "id": "daily-gather-five",
+      "label": "Gather Five",
+      "description": "Bring five raw resources out of the world.",
+      "period": "daily",
+      "target": 5,
+      "predicate": { "type": "eventOfKind", "kind": "craft.gathered" },
+      "relevantKinds": ["craft.gathered"],
+      "reward": { "kind": "energy", "amount": 2 }
+    },
+    {
+      "id": "daily-craft-something",
+      "label": "Craft Something",
+      "description": "Make one thing from raw materials.",
+      "period": "daily",
+      "target": 1,
+      "predicate": { "type": "eventOfKind", "kind": "craft.completed" },
+      "relevantKinds": ["craft.completed"],
+      "reward": { "kind": "energy", "amount": 2 }
+    },
+    {
+      "id": "daily-trade-once",
+      "label": "Make a Trade",
+      "description": "Buy or sell with an NPC vendor.",
+      "period": "daily",
+      "target": 1,
+      "predicate": { "type": "eventOfKind", "kind": "trade.completed" },
+      "relevantKinds": ["trade.completed"],
+      "reward": { "kind": "energy", "amount": 2 }
+    },
+    {
+      "id": "weekly-craft-five",
+      "label": "Five Crafts This Week",
+      "description": "Make five things this week.",
+      "period": "weekly",
+      "target": 5,
+      "predicate": { "type": "eventOfKind", "kind": "craft.completed" },
+      "relevantKinds": ["craft.completed"],
+      "reward": { "kind": "energy", "amount": 10 }
+    },
+    {
+      "id": "weekly-three-trades",
+      "label": "Three Trades This Week",
+      "description": "Conclude three trades this week.",
+      "period": "weekly",
+      "target": 3,
+      "predicate": { "type": "eventOfKind", "kind": "trade.completed" },
+      "relevantKinds": ["trade.completed"],
+      "reward": { "kind": "energy", "amount": 8 }
     }
   ]
 }
