@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { ChatPanel } from "@/components/ChatPanel";
 import { EnergyBar } from "@/components/EnergyBar";
+import { ObjectiveRibbon } from "@/components/ObjectiveRibbon";
 import { InputBox } from "@/components/InputBox";
 import { InventoryPanel } from "@/components/InventoryPanel";
 import { NearbyBox } from "@/components/NearbyBox";
@@ -338,6 +339,7 @@ export default function Play() {
     <main className="min-h-screen bg-stone-950 text-stone-200 font-mono grid md:grid-cols-[260px_1fr_260px] grid-rows-[1fr]">
       <aside className="border-r border-stone-800 flex flex-col overflow-y-auto">
         <EnergyBar />
+        <ObjectiveRibbon />
         <StatusSidebar projection={projection} />
       </aside>
 
