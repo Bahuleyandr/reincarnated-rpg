@@ -1532,6 +1532,179 @@ After launch, with real data on what players actually do, the post-launch work f
 - Schema: `world_npcs.derived_from_user_id` field; the NPC's `personality_card` is generated from the source user's run history.
 - Massive lore depth for almost free; the world fills up with the players who were here.
 
+### 9g — In-run companions (active NPC companions) (~3-4 days)
+
+**Why**: Day 7-8 already plans *cross-run bonded companions* — NPCs that recur as memory and dialogue across reincarnations. This is the next step: let players actively *summon* a bonded companion to fight alongside them in the current run. Adds mechanical variety, emotional stakes (companions can die), and party-like texture without the complexity of true multiplayer.
+
+A natural complement to player-as-NPC retirement (9f): once that lands, a player's bonded companion might be *another player's retired character*. The world's NPCs are partly each other's veterans.
+
+**Schema migration `0058_active_companions.sql`**
+```sql
+CREATE TABLE companion_sessions (
+  id uuid PRIMARY KEY,
+  session_id uuid NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+  npc_id text NOT NULL,                       -- references world_npcs.slug
+  summoned_at timestamptz NOT NULL DEFAULT now(),
+  status text NOT NULL DEFAULT 'active',      -- 'active' | 'fled' | 'died' | 'dismissed'
+  vitals jsonb NOT NULL,                       -- companion's own vitals (HP, etc.)
+  inventory jsonb NOT NULL DEFAULT '[]'::jsonb,
+  xp_earned integer NOT NULL DEFAULT 0,
+  UNIQUE (session_id)                          -- one active companion per session for v1
+);
+```
+
+**New tool**: `summon_companion(npcId)`. Validates:
+- Bonded relationship ≥ +3 with this NPC (uses Day 7-8 bond data).
+- NPC not currently summoned in another active session.
+- NPC's last status wasn't `died` permanently (the cycle doesn't restore companions; they're persistent).
+- Current location allows companions (some locations are form-restricted, e.g. The Whispering Marrow accepts only forms with `intangible=true`).
+- Player has 5 coins (anchored cost; coins represent the call across time).
+
+**Companion turn behavior**
+
+After the player's narration emits each turn, the engine runs a *companion sub-narration*:
+1. Haiku 4.5 call (~$0.0005 per turn at typical token sizes).
+2. Inputs: player's narration + tool batch, companion's `personality_card`, relationship state, current vitals, recent companion history (last 3 turns).
+3. Output: 1-2 sentences describing the companion's action this turn + optionally one tool call from a constrained pool: `heal_ally`, `attack_target`, `hand_item`, `block_for`, `flee`.
+4. The companion's tool calls run through the same `applyTools` validation as the player's. Atomicity preserved.
+5. The 1-2 companion sentences are appended to the player's narration with a small visual delimiter ("Kethra steps in: ").
+
+Companion vitals tracked separately. Companion can take damage from hard-moves directed at the party (narrator may target companion explicitly). Death = `companion.died` event → permanent grief lore (writes to `world_lore` with category `companion_death`) → relationship reset to -2 → one-time "the lesser-slime that was forgotten her" memory plant in the player's run.
+
+**XP routing**: companion earns 50% of the player's XP each turn. XP funnels to the bonded NPC record on `world_npcs.metadata.companion_xp` so the companion *grows* across the player's runs. High-XP companions get unlocked tool variants (a level-5 Kethra learns `cast_ward`).
+
+**Cost gating (ties into Day 38 ceilings)**: companion sub-narration counts against the player's daily AI cost cap. Free tier players summon companions sparingly; patron tier essentially unlimited.
+
+**Files**
+- `src/lib/companions/summon.ts` — pure: can-summon validation.
+- `src/lib/companions/sub-narrate.ts` — Haiku call + tool extraction.
+- `src/lib/companions/death.ts` — death-event handling + lore writeback.
+- `src/lib/companions/xp.ts` — pure: 50% XP routing + level-up triggers.
+- `src/app/api/companions/summon/route.ts` — tool route.
+- `src/components/CompanionPanel.tsx` — sidebar showing active companion + vitals + XP bar + dismiss button.
+- New tools registered in `lib/game/tools.ts`: `heal_ally`, `attack_target`, `hand_item`, `block_for`, `flee`.
+- `tests/integration/companions-active.test.ts` — summon insufficient bond → reject; companion heals when player < 3 HP; companion dies on lethal hit; XP funnels.
+
+**Acceptance**: Player with bonded Kethra at +3 calls `summon_companion("kethra")`. Kethra appears in the projection. Each turn, Kethra's sub-narration adds a 1-2 sentence action and occasionally a tool call. Player low on HP → Kethra heals. Lethal hit lands on Kethra → companion dies, lore writes, relationship resets.
+
+**Gotchas**
+- Companion form is fixed at the NPC's archetype. A bonded healer companion stays a healer — no "what if Kethra reincarnates with you?" quirk in v1; defer to a later milestone.
+- Form-vocabulary: companion narration must respect the *companion's* form rules, not the player's. A slime player + a healer companion → narrator wraps companion lines in healer-voice (with hands, with sight, with words).
+- One-companion-per-session keeps narrative coherent + cost bounded. Multi-companion can come later if data shows demand.
+
+### 9h — Party play (2-3 player parties) (~7-10 days)
+
+**Why**: Co-play with 2-3 real players in the same campaign — the strongest possible expression of the wedge ("every form is a different game"). A slime + a cursed book + a dragon-egg in the same scene shows the form-asymmetric play in a way single-player never can. Endgame social hook + content multiplier (replays of legendary parties become shareable spectacle).
+
+**Design choices (locked)**
+
+- **Round-robin lockstep**, not simultaneous. Player A submits input → narration runs → Player B's turn opens. Coherent, respects the existing single-player turn architecture, avoids concurrency complexity.
+- **2-3 players max** for v1. 4+ becomes unwieldy narratively (the narrator has to juggle too many forms in one prose block).
+- **All party members must be in the same location.** Moving requires the leader to propose; other members must "ready up" before the move resolves.
+- **Energy is per-player.** Each pays their own turn.
+- **Vitals + inventory are per-player.** Items not shared by default; trades require explicit `give_item` tool calls.
+- **One shared world state** (location, NPCs in scene, lore writes, faction contributions). Per-player projections for character state.
+- **Faction-mixed parties allowed.** Cross-faction parties accumulate "tension" stat that affects rolls; same-faction parties get small cohesion bonus. Story-flavor-rich.
+- **Death-of-one ≠ end-of-run.** If a member dies, the run continues for survivors. The dead member's session ends individually with normal end-of-run flow (lore, traits, archive).
+
+**Schema migration `0059_parties.sql`**
+```sql
+CREATE TABLE parties (
+  id uuid PRIMARY KEY,
+  host_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  max_members integer NOT NULL DEFAULT 3 CHECK (max_members BETWEEN 2 AND 3),
+  status text NOT NULL DEFAULT 'forming',     -- 'forming' | 'active' | 'completed' | 'disbanded'
+  shared_world_state jsonb NOT NULL DEFAULT '{}'::jsonb,
+  current_turn_user_id uuid REFERENCES users(id),
+  turn_order uuid[] NOT NULL DEFAULT '{}'::uuid[],  -- ordered list of user_ids
+  faction_tension integer NOT NULL DEFAULT 0,       -- 0 = same-faction, +N = cross-faction friction
+  created_at timestamptz NOT NULL DEFAULT now(),
+  started_at timestamptz,
+  ended_at timestamptz
+);
+
+CREATE TABLE party_members (
+  party_id uuid NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  session_id uuid NOT NULL REFERENCES sessions(id),
+  joined_at timestamptz NOT NULL DEFAULT now(),
+  status text NOT NULL DEFAULT 'active',       -- 'active' | 'left' | 'died'
+  PRIMARY KEY (party_id, user_id)
+);
+
+CREATE TABLE party_invitations (
+  id uuid PRIMARY KEY,
+  party_id uuid NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
+  invited_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  invited_by_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status text NOT NULL DEFAULT 'pending',      -- 'pending' | 'accepted' | 'declined' | 'expired'
+  created_at timestamptz NOT NULL DEFAULT now(),
+  responded_at timestamptz,
+  expires_at timestamptz NOT NULL DEFAULT (now() + interval '15 minutes')
+);
+
+ALTER TABLE sessions ADD COLUMN party_id uuid REFERENCES parties(id);
+```
+
+**Phased implementation (~7-10 days)**
+
+**Day 1-2: Party formation**
+- Tools: `create_party(maxMembers)`, `invite_to_party(username)`, `accept_invitation(inviteId)`, `decline_invitation(inviteId)`, `leave_party()`, `start_party()` (host only).
+- UI: `/play/party` page showing pending invites + active party roster + "ready to start" button.
+- Invite flow: 15-min expiry on invitations; max 3 active invites per party at once.
+
+**Day 3: Shared world state**
+- The party's `shared_world_state` jsonb mirrors `projection.location` + `projection.npcs` + `projection.quest`. Each member's individual `projection` keeps `form` + `vitals` + `inventory` + `xp` per-player.
+- Reconciliation: every turn write merges the actor's effects into both per-player projection AND party world state.
+
+**Day 4-5: Round-robin turn engine**
+- `parties.current_turn_user_id` flips after each completed turn. Skip dead/left members.
+- Only the current-turn user's POST to `/api/turn` succeeds; other members' POSTs return 409 "not your turn".
+- Per-turn UI: every member sees the live narration as it streams. Active player has the input box; others see "Player A is acting..." with a 3-min timeout.
+- Timeout handling: if a member doesn't act within 3 minutes, their turn auto-passes (`pass` action) and play moves on. Twice in a row = removed from turn order (they're inactive).
+
+**Day 6: Narrator party context**
+- System prompt extended: "you are narrating a party of N. Each member has their own form, vitals, and history. The current acting player is [User-A] in the form of [slime]. Other party members: [User-B as cursed-book, User-C as dragon-egg]. Respect each form's negative vocabulary; the slime cannot see what the book reads."
+- Per-form `negativeVocab` enforcement: the tone-checker (existing) extends to flag a passage that violates ANY active form's negative vocabulary unless the action explicitly involves another form.
+- Cost: ~1.5-2× per-turn cost due to bigger context. Patron tier covers without cap concerns; supporter tier may hit caps; free tier explicitly blocked from party play (the cost-gate at Day 38 enforces this).
+
+**Day 7: Inter-player interaction tools**
+- New tools: `give_item(toUserId, itemId, qty)`, `heal_ally(toUserId, amount)`, `protect(allyUserId)`, `taunt_ally(allyUserId)`. Each respects form rules (a slime cannot `give_item` to a non-engulfable form; the book can't `heal_ally` without a healing passage in its `verbMappings`).
+- Cross-faction parties: any inter-player action accumulates faction_tension; high tension causes hard-moves to target the *party* not just the actor. Story-rich friction.
+
+**Day 8: Party death + run end**
+- One-member-dies: their session ends normally (lore + archive). They become a *spectator* with read-only access to the party's continuing run. Spectator chat enabled.
+- Host-leaves: leadership transfers to next-in-turn-order. Party continues.
+- All-die: run ends for everyone with collective lore entry "the party of N fell at [location]".
+- Win: all surviving members complete the run. Each gets full reward + bonus "shared survival" achievement.
+
+**Day 9-10: UI polish + party-chat + tests**
+- Party-chat panel reusing existing chat infrastructure (party-only channel).
+- Live party status (whose turn, party HP overview, faction balance, tension meter).
+- Spectator mode for dead members.
+- Tests: 3-player party formation, cross-faction tension math, member-leaves-mid-run, party-of-3-survives-Wyrm-encounter.
+
+**Cost & tier rules**
+- **Free tier**: cannot host or join party runs (cost-cap doesn't allow consistent multi-form narration).
+- **Supporter tier**: can join parties hosted by a supporter or patron. Cannot host.
+- **Patron tier**: can host parties of up to 3.
+- This caps Anthropic spend and gives a clear value prop for tier upgrades.
+
+**Open questions**
+- Inviting non-friends: by username only, or via a friends list? → Username for v1; friends list deferred.
+- Party rolls vs individual rolls: each player rolls separately. → Confirmed.
+- Party splits (members move to different locations): not allowed in v1; would require multi-projection narration. → Confirmed.
+- Party persistence across reincarnations: when a party run ends, do members stay grouped? → No; each run is its own party. Players can re-form. Bonded-companion-style "party history" tracked on `parties.metadata.recurring_with: [userId, ...]` so frequent partners get a small narration nod.
+
+**Acceptance**: Three users (one slime, one cursed-book, one dragon-egg) form a party at Iron-Reach. They take 10 round-robin turns. Mid-run the slime takes a fatal hit; their session ends with lore writeback. Book + Dragon-Egg continue; eventually win. Spectator slime watches the conclusion. Each survivor gets their own end-of-run rewards. The host's character page shows "party run with [book-player] and [egg-player]" in the recent runs list.
+
+**Gotchas**
+- Roll seed: each player has their own deterministic roll seed (derived from their session seed + turn). Don't share seeds across the party — that breaks the "your dice are your dice" guarantee.
+- Faction tension: balance carefully. Too high and parties never form cross-faction; too low and the system feels invisible. Tune via telemetry.
+- Death flow: a dying member's projection still updates from the party world state; they shouldn't see "frozen" content. Spectator means read-only, not paused.
+- One member's bad_luck doesn't apply to other members' rolls — each player carries their own curse. Cross-applying creates blame-game dynamics; avoid.
+- Cost spikes are real. Monitor closely after launch; adjust tier rules if needed.
+
 ### Phase 9 ongoing-after: localization for narration (longer-term)
 
 Multilingual narration is its own milestone. Requires either:
@@ -1717,7 +1890,11 @@ Day 73+   NPC dialogue (3-5d)
 Day 78+   player-authored forms (5-7d)
 Day 85+   Phase 6a: player-driven marketplace (~7d)
 Day 85+   Phase 6b: ascension (~7-10d, parallel to 6a)
-Month 3+  Phase 9: post-launch deepening (~20d, sequenced by need)
+Month 3+  Phase 9: post-launch deepening (~30d total, sequenced by need)
+          ├─ 9a localization (~3d)         ├─ 9e dice variants (~2d)
+          ├─ 9b voice TTS (~3d)            ├─ 9f player-as-NPC (~2d)
+          ├─ 9c PvP duels (~5d)            ├─ 9g in-run companions (~3-4d)
+          ├─ 9d guilds (~5d)               └─ 9h party play (~7-10d)
 + ongoing: weekly chapter authoring (~2-4h/week, 4-chapter buffer)
 + ongoing: Year 2+ sketch · sub-factions · tier-2 NPC cast · form polish
 ```
@@ -1777,5 +1954,12 @@ Each day ships a green build with unit + integration tests, lint clean, and merg
 | 45 | Voice TTS provider: ElevenLabs vs OpenAI TTS? | ElevenLabs (higher quality for character voices); OpenAI fallback for cost emergencies |
 | 46 | PvP duels default: opt-in or opt-out per player? | Opt-in via `users.pvp_enabled` flag, defaults false |
 | 47 | Guild size cap: 50? | Yes for v1; expand if data shows demand |
+| 48 | In-run companion limit: one per session, or scale by tier? | One for v1; tier-scale (patron: 2) considered post-launch |
+| 49 | Companion sub-narration model: Haiku 4.5, or smaller (Haiku 3.5 / Sonnet for high-stakes)? | Haiku 4.5 for v1; A/B test the cheaper option once shipped |
+| 50 | Party play tier gating: free locked-out, supporter join-only, patron host? | Yes — anchors the patron value prop |
+| 51 | Party size: 2-3 only, or allow 4-5 for patron tier? | 2-3 only for v1; the narrator gets unwieldy past 3 |
+| 52 | Cross-faction party tension: linear or accelerating with diversity? | Linear for v1; revisit if too punitive |
+| 53 | Party member timeout: 3 min auto-pass? Or no timeout (real-time waiting)? | 3 min auto-pass; real persistent worlds need flow control |
+| 54 | Spectator mode for dead party members: read-only narration + party chat? | Yes both |
 
 Resolve as features come up. Update `docs/DECISIONS.md` with chosen path.
