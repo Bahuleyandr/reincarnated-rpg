@@ -309,6 +309,13 @@
       "when": 1778150000000,
       "tag": "0043_tutorial_state",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1778160000000,
+      "tag": "0044_world_calendar",
+      "breakpoints": true
     }
   ]
 }

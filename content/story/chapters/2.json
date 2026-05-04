@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Book I, Chapter 2 — A Name in the Dust. The first known wonder fires more often. The Choristers' singing carries further than usual."
+  },
+  "chapterId": 2,
+  "book": 1,
+  "chapterInBook": 2,
+  "weekStart": "Year 1, Week 2",
+  "weekEnd": "Year 1, Week 2",
+  "title": "A Name in the Dust",
+  "theme": "a name is being whispered in places no one whispered before",
+  "worldEvent": "Choristers in the Salt Cathedral begin a long song that lasts three nights",
+  "narratorPromptFragment": "The current world-chapter is BOOK I, CHAPTER 2: A NAME IN THE DUST. A name no one knows is being whispered close to the player's perception more often than is comfortable. The Choristers in the Salt Cathedral have begun a long, low song; if the player is inland, they cannot hear it but the silence underneath their day has a shape. Don't name the name.",
+  "factionAlignmentBonuses": {
+    "choristers": 1.15,
+    "rust_hand": 1.0,
+    "idle": 1.0,
+    "forsaken": 1.0
+  },
+  "locationsAffected": ["salt-cathedral", "hollow-market"]
+}

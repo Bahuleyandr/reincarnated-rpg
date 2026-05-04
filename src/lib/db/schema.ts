@@ -122,9 +122,58 @@ export const users = pgTable("users", {
    *  default false; their first session opens with is_tutorial
    *  set on the session row. */
   tutorialCompleted: boolean("tutorial_completed").notNull().default(false),
+  /** Daily AI cost accrual (Phase 7 Day 38). Resets lazily on the
+   *  first call after UTC midnight via lib/ai/cost-gate.ts.
+   *  Free $0.50/d, supporter $2/d, patron $10/d. */
+  dailyAiCostUsdToday: real("daily_ai_cost_usd_today").notNull().default(0),
+  dailyAiCostResetAt: timestamp("daily_ai_cost_reset_at", {
+    withTimezone: true,
+  })
+    .notNull()
+    .defaultNow(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Phase 7 Day 38. Single-row world calendar — Book/Chapter/Year
+ * + chapter_started_at. Roll-over driven by an hourly cron.
+ */
+export const worldCalendar = pgTable("world_calendar", {
+  id: integer("id").primaryKey(),
+  currentBook: integer("current_book").notNull().default(1),
+  currentChapter: integer("current_chapter").notNull().default(1),
+  chapterStartedAt: timestamp("chapter_started_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  year: integer("year").notNull().default(1),
+});
+
+export type WorldCalendar = typeof worldCalendar.$inferSelect;
+
+/**
+ * World-level append-only events (chapter advances, branch
+ * resolutions, voice firings). Distinct from the session-scoped
+ * `events` table — these aren't bound to a single run.
+ */
+export const worldEvents = pgTable(
+  "world_events",
+  {
+    id: uuid("id").primaryKey(),
+    kind: text("kind").notNull(),
+    payload: jsonb("payload").notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("world_events_created_idx").on(t.createdAt),
+    index("world_events_kind_idx").on(t.kind, t.createdAt),
+  ],
+);
+
+export type WorldEvent = typeof worldEvents.$inferSelect;
+export type NewWorldEvent = typeof worldEvents.$inferInsert;
 
 export const campaigns = pgTable(
   "campaigns",
