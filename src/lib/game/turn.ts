@@ -376,6 +376,33 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
         err: err instanceof Error ? err.message : String(err),
       });
     }
+
+    // Player notes pinned to this location (Phase 5.5 Day 32-33).
+    // Top-3 (form-filtered) injected as memories — the narrator
+    // can weave "you remember a warning whispered here" naturally.
+    try {
+      const { topNotes } = await import("../locations/notes");
+      const notes = await topNotes(db, location.id, {
+        formId: form.id,
+        limit: 3,
+      });
+      if (notes.length > 0) {
+        const noteMemories: import("./types").Memory[] = notes.map(
+          (n, i) => ({
+            id: `note:${n.id}`,
+            summary: `NOTE (left here by another player, ${n.votes} agree): "${n.text}"`,
+            salience: 0.45 - i * 0.02,
+            eventSeqRange: [-1, -1] as [number, number],
+          }),
+        );
+        relevantMemories = [...noteMemories, ...relevantMemories];
+      }
+    } catch (err) {
+      log.warn("turn.location_notes.recall_failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   // Wonder events (Phase 4.5 Day 17). Per-turn 1% chance to inject

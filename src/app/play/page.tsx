@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ChatPanel } from "@/components/ChatPanel";
 import { CoinBadge } from "@/components/CoinBadge";
 import { EnergyBar } from "@/components/EnergyBar";
+import { LocationNotes } from "@/components/LocationNotes";
 import { ObjectiveRibbon } from "@/components/ObjectiveRibbon";
 import { InputBox } from "@/components/InputBox";
 import { InventoryPanel } from "@/components/InventoryPanel";
@@ -429,6 +430,13 @@ export default function Play() {
 
       <aside className="border-l border-stone-800 bg-stone-900/40 flex flex-col overflow-y-auto">
         <QuestLog projection={projection} />
+        {projection && (
+          <LocationNotes
+            locationId={projection.location.id}
+            formId={projection.form.id}
+            canLeave={hasAccount}
+          />
+        )}
         <InventoryPanel projection={projection} />
         {nearby && projection && (
           <NearbyBox

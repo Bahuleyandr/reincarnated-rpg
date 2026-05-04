@@ -1007,6 +1007,60 @@ export type UserSkill = typeof userSkills.$inferSelect;
 export type NewUserSkill = typeof userSkills.$inferInsert;
 
 /**
+ * Asynchronous location notes (Phase 5.5 Day 32-33). Players
+ * leave one-line notes pinned to a location; other players passing
+ * through later see the top-voted ones. Auto-expire 30d. Notes
+ * with 3+ distinct flagger votes auto-hide pending admin review.
+ */
+export const locationNotes = pgTable(
+  "location_notes",
+  {
+    id: uuid("id").primaryKey(),
+    locationId: text("location_id").notNull(),
+    formId: text("form_id"),
+    authorUserId: uuid("author_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    text: text("text").notNull(),
+    votes: integer("votes").notNull().default(0),
+    flagCount: integer("flag_count").notNull().default(0),
+    flagged: boolean("flagged").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    index("location_notes_author_idx").on(t.authorUserId),
+  ],
+);
+
+export type LocationNote = typeof locationNotes.$inferSelect;
+export type NewLocationNote = typeof locationNotes.$inferInsert;
+
+export const locationNoteVotes = pgTable(
+  "location_note_votes",
+  {
+    noteId: uuid("note_id")
+      .notNull()
+      .references(() => locationNotes.id, { onDelete: "cascade" }),
+    voterUserId: uuid("voter_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    voteKind: text("vote_kind").notNull().default("up"),
+    votedAt: timestamp("voted_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("location_note_votes_pk").on(t.noteId, t.voterUserId),
+  ],
+);
+
+export type LocationNoteVote = typeof locationNoteVotes.$inferSelect;
+export type NewLocationNoteVote = typeof locationNoteVotes.$inferInsert;
+
+/**
  * Daily coin-flow rollup (Phase 5 Day 26). Upserted per turn that
  * emits coin-affecting events. The /god/economy page groups this by
  * date for the "today" panel and by source for the "top vendors"
