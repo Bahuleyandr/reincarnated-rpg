@@ -13,29 +13,17 @@
  * lastUpdated=T-50min (regenInterval=45min) gets +1 → energy=6,
  * lastUpdated=T-5min (so the next +1 is 40 minutes away, not 45).
  *
- * Race condition: read→compute→write. With concurrent turns from one
- * player, a race could grant one extra turn — accepted; cost is
- * negligible. A future Postgres advisory-lock variant could harden
- * if needed.
+ * Mutating helpers take a transaction-scoped advisory lock so parallel
+ * turn requests cannot both spend the same point of energy.
  */
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 import type { Db } from "../db/client";
 import { sessions, users } from "../db/schema";
 import { log } from "../util/log";
 
-import {
-  DEFAULT_TIER_ID,
-  effectiveTier,
-  getTier,
-  type Blessing,
-  type Tier,
-} from "./tiers";
-import {
-  claimDailyStreak,
-  type DailyGrant,
-  type StreakState,
-} from "./streak";
+import { DEFAULT_TIER_ID, effectiveTier, getTier, type Blessing, type Tier } from "./tiers";
+import { claimDailyStreak, type DailyGrant, type StreakState } from "./streak";
 
 export interface EnergyState {
   /** Current energy. */
@@ -73,11 +61,7 @@ export interface EnergyView extends EnergyState {
 
 /** Pure function: apply regen to a state given the active tier and a
  *  timestamp. Returns a new state — does NOT mutate the input. */
-export function applyRegen(
-  state: EnergyState,
-  tier: Tier,
-  now: number,
-): EnergyState {
+export function applyRegen(state: EnergyState, tier: Tier, now: number): EnergyState {
   const lastMs = state.lastUpdatedAt.getTime();
   const elapsed = now - lastMs;
   if (elapsed <= 0) return state;
@@ -138,7 +122,7 @@ export function viewState(
 
 // ---- Persistence helpers ------------------------------------------
 
-interface ReadOpts {
+export interface ReadOpts {
   /** Logged-in user. When set, reads from users.* and ignores
    *  sessionId for storage. */
   userId?: string | null;
@@ -207,11 +191,7 @@ async function readRaw(db: Db, opts: ReadOpts): Promise<EnergyState | null> {
   return null;
 }
 
-async function writeRaw(
-  db: Db,
-  opts: ReadOpts,
-  state: EnergyState,
-): Promise<void> {
+async function writeRaw(db: Db, opts: ReadOpts, state: EnergyState): Promise<void> {
   if (opts.userId) {
     await db
       .update(users)
@@ -238,6 +218,18 @@ async function writeRaw(
       .where(eq(sessions.id, opts.sessionId));
     return;
   }
+}
+
+async function withEnergyLock<T>(
+  db: Db,
+  opts: ReadOpts,
+  fn: (lockedDb: Db) => Promise<T>,
+): Promise<T> {
+  const key = opts.userId ? `user:${opts.userId}` : `session:${opts.sessionId ?? "unknown"}`;
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${key}))`);
+    return fn(tx as unknown as Db);
+  });
 }
 
 /** Resolve the EFFECTIVE tier for a state — applies blessing logic.
@@ -275,24 +267,23 @@ function withDailyClaim(
  *  persisted. Also claims the daily-streak grant on the first call of
  *  a new UTC day — loading the page counts as "logging in", so the
  *  bonus arrives whether or not the player has spent a turn. */
-export async function getEnergyView(
-  db: Db,
-  opts: ReadOpts,
-): Promise<EnergyView | null> {
-  const raw = await readRaw(db, opts);
-  if (!raw) return null;
-  const now = Date.now();
-  const claimed = withDailyClaim(raw, new Date(now));
-  const tier = resolveTier(claimed.state, now);
-  const refilled = applyRegen(claimed.state, tier, now);
-  const dirty =
-    claimed.grant !== null ||
-    refilled.energy !== raw.energy ||
-    refilled.lastUpdatedAt.getTime() !== raw.lastUpdatedAt.getTime();
-  if (dirty) {
-    await writeRaw(db, opts, refilled);
-  }
-  return viewState(refilled, tier, now, claimed.grant);
+export async function getEnergyView(db: Db, opts: ReadOpts): Promise<EnergyView | null> {
+  return withEnergyLock(db, opts, async (lockedDb) => {
+    const raw = await readRaw(lockedDb, opts);
+    if (!raw) return null;
+    const now = Date.now();
+    const claimed = withDailyClaim(raw, new Date(now));
+    const tier = resolveTier(claimed.state, now);
+    const refilled = applyRegen(claimed.state, tier, now);
+    const dirty =
+      claimed.grant !== null ||
+      refilled.energy !== raw.energy ||
+      refilled.lastUpdatedAt.getTime() !== raw.lastUpdatedAt.getTime();
+    if (dirty) {
+      await writeRaw(lockedDb, opts, refilled);
+    }
+    return viewState(refilled, tier, now, claimed.grant);
+  });
 }
 
 /** Public: spend N energy. Claims the daily streak first (so a
@@ -304,28 +295,46 @@ export async function trySpend(
   opts: ReadOpts,
   amount = 1,
 ): Promise<{ ok: boolean; view: EnergyView | null }> {
-  const raw = await readRaw(db, opts);
-  if (!raw) return { ok: false, view: null };
-  const now = Date.now();
-  const claimed = withDailyClaim(raw, new Date(now));
-  const tier = resolveTier(claimed.state, now);
-  const refilled = applyRegen(claimed.state, tier, now);
-  if (refilled.energy < amount) {
-    const dirty =
-      claimed.grant !== null ||
-      refilled.energy !== raw.energy ||
-      refilled.lastUpdatedAt.getTime() !== raw.lastUpdatedAt.getTime();
-    if (dirty) {
-      await writeRaw(db, opts, refilled);
+  return withEnergyLock(db, opts, async (lockedDb) => {
+    const raw = await readRaw(lockedDb, opts);
+    if (!raw) return { ok: false, view: null };
+    const now = Date.now();
+    const claimed = withDailyClaim(raw, new Date(now));
+    const tier = resolveTier(claimed.state, now);
+    const refilled = applyRegen(claimed.state, tier, now);
+    if (refilled.energy < amount) {
+      const dirty =
+        claimed.grant !== null ||
+        refilled.energy !== raw.energy ||
+        refilled.lastUpdatedAt.getTime() !== raw.lastUpdatedAt.getTime();
+      if (dirty) {
+        await writeRaw(lockedDb, opts, refilled);
+      }
+      return { ok: false, view: viewState(refilled, tier, now, claimed.grant) };
     }
-    return { ok: false, view: viewState(refilled, tier, now, claimed.grant) };
-  }
-  const next: EnergyState = {
-    ...refilled,
-    energy: refilled.energy - amount,
-  };
-  await writeRaw(db, opts, next);
-  return { ok: true, view: viewState(next, tier, now, claimed.grant) };
+    const next: EnergyState = {
+      ...refilled,
+      energy: refilled.energy - amount,
+    };
+    await writeRaw(lockedDb, opts, next);
+    return { ok: true, view: viewState(next, tier, now, claimed.grant) };
+  });
+}
+
+export async function refundEnergy(db: Db, opts: ReadOpts, amount = 1): Promise<EnergyView | null> {
+  return withEnergyLock(db, opts, async (lockedDb) => {
+    const raw = await readRaw(lockedDb, opts);
+    if (!raw) return null;
+    const now = Date.now();
+    const tier = resolveTier(raw, now);
+    const refilled = applyRegen(raw, tier, now);
+    const next: EnergyState = {
+      ...refilled,
+      energy: Math.min(tier.max, refilled.energy + amount),
+    };
+    await writeRaw(lockedDb, opts, next);
+    return viewState(next, tier, now);
+  });
 }
 
 /** Admin override: set tier and/or refill to max. */

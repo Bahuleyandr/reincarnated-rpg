@@ -1,4 +1,3 @@
-import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
@@ -6,11 +5,7 @@ import { sessions } from "@/lib/db/schema";
 import { readLog, rowToEvent } from "@/lib/game/events";
 import { initialProjection } from "@/lib/game/projection";
 import { applyTools } from "@/lib/game/tools";
-import type {
-  FormTemplate,
-  LocationTemplate,
-  Projection,
-} from "@/lib/game/types";
+import type { FormTemplate, LocationTemplate, Projection } from "@/lib/game/types";
 import { uuidv7 } from "@/lib/util/uuidv7";
 
 const FORM: FormTemplate = {
@@ -116,17 +111,11 @@ describe("applyTools — happy path", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const events = (await readLog(db, sessionId)).map(rowToEvent);
-    expect(events.map((e) => e.kind)).toEqual([
-      "moved",
-      "time.passed",
-      "sensed",
-    ]);
+    expect(events.map((e) => e.kind)).toEqual(["moved", "time.passed", "sensed"]);
   });
 
   test("narrate_only yields no event row", async () => {
-    const result = await applyTools(db, sessionId, projection, [
-      { name: "narrate_only" },
-    ]);
+    const result = await applyTools(db, sessionId, projection, [{ name: "narrate_only" }]);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.events).toHaveLength(0);

@@ -6,7 +6,7 @@ A persistent text RPG where every reincarnation form plays as a fundamentally di
 
 ## What it is
 
-You wake up reincarnated. Maybe as a slime. Maybe as a cursed book. Maybe as a dungeon core. Each form changes what the AI is *allowed* to do, not just how it describes things — a slime has no hands, no eyes, no voice, and the tool-calling backend enforces that.
+You wake up reincarnated. Maybe as a slime. Maybe as a cursed book. Maybe as a dungeon core. Each form changes what the AI is _allowed_ to do, not just how it describes things — a slime has no hands, no eyes, no voice, and the tool-calling backend enforces that.
 
 - **2d6 PbtA resolution** — 10+ success, 7-9 partial (with form-specific hard-move), 6- miss. Server rolls, server validates, the dice can't lie.
 - **Event-sourced** — every action is an immutable event. Replay any session from zero. Branch any timeline.
@@ -25,16 +25,16 @@ Form #2 (Cursed Book) drops in M4 and validates the form-template architecture a
 
 ## Stack
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 16 (App Router), TypeScript strict |
-| DB | Postgres 16 + pgvector (local: Docker; prod: Neon) |
-| ORM | Drizzle |
-| AI | Anthropic Claude Sonnet 4.6 (narration) + Haiku 4.5 (classifier, tone-check) |
-| Embeddings | Voyage `voyage-3-lite` (512-dim) |
-| Tests | Jest unit/integration, Playwright e2e |
-| Deploy | Fly.io |
-| Cookie | `jose` HS256, anon session ID |
+| Layer      | Choice                                                                       |
+| ---------- | ---------------------------------------------------------------------------- |
+| Framework  | Next.js 16 (App Router), TypeScript strict                                   |
+| DB         | Postgres 16 + pgvector (local: Docker; prod: Neon)                           |
+| ORM        | Drizzle                                                                      |
+| AI         | Anthropic Claude Sonnet 4.6 (narration) + Haiku 4.5 (classifier, tone-check) |
+| Embeddings | Voyage `voyage-3-lite` (512-dim)                                             |
+| Tests      | Jest unit/integration, Playwright e2e                                        |
+| Deploy     | Fly.io                                                                       |
+| Cookie     | `jose` HS256, anon session ID                                                |
 
 ## Local development
 
@@ -61,25 +61,30 @@ Set `NARRATOR=remote` (and `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`) in `.env.loca
 
 ## Scripts
 
-| Command | What it does |
-|---|---|
-| `npm run dev:up` | Bring up Postgres + WSL keepalive in one foreground command |
-| `npm run dev:down` | Stop the Postgres container |
-| `npm run dev` | Next.js dev server at <http://localhost:3000> |
-| `npm run build` | Production build (uses `output: standalone` for the Docker image) |
-| `npm run start` | Run production build |
-| `npm run lint` | ESLint |
-| `npm run typecheck` | tsc --noEmit |
-| `npm run format` | Prettier write |
-| `npm run db:push` | Drizzle push schema to local DB (no migration files) |
-| `npm run db:generate` | Generate migration SQL from schema diffs |
-| `npm run db:migrate` | Apply generated migrations |
-| `npm run db:seed` | Load `content/*` into `templates_*` tables |
-| `npm test` | Unit then integration (sequential — DB suites need exclusive Postgres access) |
-| `npm run test:unit` | Pure unit tests, parallel |
-| `npm run test:integration` | DB-backed tests, `--runInBand` |
-| `npm run test:e2e` | Playwright e2e (requires `npm run dev` running) |
-| `npm run eval` | Run the 20 golden scenarios against the configured narrator |
+| Command                    | What it does                                                                  |
+| -------------------------- | ----------------------------------------------------------------------------- |
+| `npm run dev:up`           | Bring up Postgres + WSL keepalive in one foreground command                   |
+| `npm run dev:down`         | Stop the Postgres container                                                   |
+| `npm run dev`              | Next.js dev server at <http://localhost:3000>                                 |
+| `npm run build`            | Production build (uses `output: standalone` for the Docker image)             |
+| `npm run start`            | Run production build                                                          |
+| `npm run lint`             | ESLint                                                                        |
+| `npm run typecheck`        | tsc --noEmit                                                                  |
+| `npm run format`           | Prettier write                                                                |
+| `npm run db:push`          | Drizzle push schema to local DB (no migration files)                          |
+| `npm run db:generate`      | Generate migration SQL from schema diffs                                      |
+| `npm run db:migrate`       | Apply generated migrations                                                    |
+| `npm run db:migrate:prod`  | Runtime-safe migration runner for the Fly image                               |
+| `npm run db:seed`          | Load `content/*` into `templates_*` tables                                    |
+| `npm run db:seed:prod`     | Runtime-safe content seed runner for the Fly image                            |
+| `npm run content:validate` | Validate authored JSON content references                                     |
+| `npm test`                 | Unit then integration (sequential — DB suites need exclusive Postgres access) |
+| `npm run test:unit`        | Pure unit tests, parallel                                                     |
+| `npm run test:db`          | Fail-fast DATABASE_URL reachability check                                     |
+| `npm run test:integration` | DB-backed tests, `--runInBand`                                                |
+| `npm run test:e2e`         | Playwright e2e (requires `npm run dev` running)                               |
+| `npm run eval`             | Run the 20 golden scenarios against the configured narrator                   |
+| `npm run smoke`            | Hit `/api/health` for deploy smoke checks                                     |
 
 ## Documentation
 
@@ -95,4 +100,4 @@ Set `NARRATOR=remote` (and `ANTHROPIC_API_KEY` + `VOYAGE_API_KEY`) in `.env.loca
 
 ## License
 
-Source code: MIT (TBD). Game content under `content/` is CC BY-NC 4.0 — see [content/LICENSE](content/LICENSE).
+Source code: MIT. Game content under `content/` is CC BY-NC 4.0 — see [content/LICENSE](content/LICENSE).

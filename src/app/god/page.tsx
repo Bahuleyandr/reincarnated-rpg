@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface Phase {
   phase: string;
@@ -38,7 +37,6 @@ interface GodResp {
 }
 
 export default function GodPage() {
-  const router = useRouter();
   const [data, setData] = useState<GodResp | null>(null);
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
@@ -114,7 +112,7 @@ export default function GodPage() {
   } | null>(null);
   const [energyTier, setEnergyTier] = useState<string>("");
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     const [r, w, l, e] = await Promise.all([
       fetch("/api/god"),
@@ -154,7 +152,7 @@ export default function GodPage() {
       setTiers(ed.tiers);
     }
     setLoading(false);
-  }
+  }, []);
 
   async function lookupEnergy() {
     if (!energyUsername.trim()) return;
@@ -334,20 +332,20 @@ export default function GodPage() {
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    void Promise.resolve().then(() => load());
+  }, [load]);
 
   if (loading)
     return (
-      <main className="min-h-screen bg-stone-950 text-stone-500 font-mono flex items-center justify-center">
+      <main className="flex min-h-screen items-center justify-center bg-stone-950 font-mono text-stone-500">
         loading…
       </main>
     );
   if (forbidden) {
     return (
-      <main className="min-h-screen bg-stone-950 text-stone-200 font-mono flex flex-col items-center justify-center gap-4">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stone-950 font-mono text-stone-200">
         <p className="text-red-400">forbidden — admin only.</p>
-        <p className="text-stone-500 text-xs">
+        <p className="text-xs text-stone-500">
           Promote yourself by SQL:{" "}
           <code className="text-stone-300">
             UPDATE users SET is_admin = 'true' WHERE email = '...';
@@ -355,7 +353,7 @@ export default function GodPage() {
         </p>
         <Link
           href="/"
-          className="text-stone-500 hover:text-stone-300 underline underline-offset-2 text-xs"
+          className="text-xs text-stone-500 underline underline-offset-2 hover:text-stone-300"
         >
           ← home
         </Link>
@@ -364,7 +362,7 @@ export default function GodPage() {
   }
   if (!data)
     return (
-      <main className="min-h-screen bg-stone-950 text-stone-500 font-mono flex items-center justify-center">
+      <main className="flex min-h-screen items-center justify-center bg-stone-950 font-mono text-stone-500">
         no data
       </main>
     );
@@ -432,72 +430,57 @@ export default function GodPage() {
     }
   }
 
-  const distEntries = Object.entries(data.distribution).sort(
-    (a, b) => b[1] - a[1],
-  );
+  const distEntries = Object.entries(data.distribution).sort((a, b) => b[1] - a[1]);
   const totalDist = distEntries.reduce((s, [, n]) => s + n, 0);
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-200 font-mono px-6 py-10">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <main className="min-h-screen bg-stone-950 px-6 py-10 font-mono text-stone-200">
+      <div className="mx-auto max-w-4xl space-y-6">
         <header className="flex items-baseline justify-between">
           <h1 className="text-xl text-stone-100">
-            god-mod console{" "}
-            <span className="text-xs text-stone-500">
-              ({data.admin.username})
-            </span>
+            god-mod console <span className="text-xs text-stone-500">({data.admin.username})</span>
           </h1>
           <Link
             href="/"
-            className="text-xs text-stone-500 hover:text-stone-300 underline underline-offset-2"
+            className="text-xs text-stone-500 underline underline-offset-2 hover:text-stone-300"
           >
             ← home
           </Link>
         </header>
 
-        <section className="border border-stone-800 p-4 bg-stone-900/40 grid grid-cols-4 gap-3 text-xs">
+        <section className="grid grid-cols-4 gap-3 border border-stone-800 bg-stone-900/40 p-4 text-xs">
           <Stat label="phase" value={data.arc.phaseLabel} accent="text-amber-300" />
-          <Stat
-            label="progress"
-            value={`${data.arc.progress} / 1000`}
-          />
-          <Stat
-            label="live players"
-            value={data.livePlayers}
-            accent="text-emerald-300"
-          />
+          <Stat label="progress" value={`${data.arc.progress} / 1000`} />
+          <Stat label="live players" value={data.livePlayers} accent="text-emerald-300" />
           <Stat label="cycle" value={data.arc.meta?.cycle ?? 1} />
         </section>
 
-        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
-          <h2 className="text-stone-100 text-sm">nudge the wyrm</h2>
-          <p className="text-[11px] text-stone-500 leading-5">
-            Push progress up or down, or snap directly to a phase. Records
-            an admin contribution row tagged{" "}
-            <code className="text-stone-300">admin:&lt;reason&gt;</code> and
-            updates the arc atomically.
+        <section className="space-y-3 border border-stone-800 bg-stone-900/40 p-4">
+          <h2 className="text-sm text-stone-100">nudge the wyrm</h2>
+          <p className="text-[11px] leading-5 text-stone-500">
+            Push progress up or down, or snap directly to a phase. Records an admin contribution row
+            tagged <code className="text-stone-300">admin:&lt;reason&gt;</code> and updates the arc
+            atomically.
           </p>
           <div className="grid grid-cols-3 gap-3">
             <label className="block space-y-1">
-              <span className="text-[10px] uppercase tracking-widest text-stone-600">
-                delta
-              </span>
+              <span className="text-[10px] tracking-widest text-stone-600 uppercase">delta</span>
               <input
                 type="number"
                 value={delta}
                 onChange={(e) => setDelta(Number(e.target.value))}
                 disabled={!!setPhase}
-                className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 disabled:opacity-50"
+                className="w-full border border-stone-700 bg-stone-950 px-3 py-2 text-stone-100 disabled:opacity-50"
               />
             </label>
             <label className="block space-y-1">
-              <span className="text-[10px] uppercase tracking-widest text-stone-600">
+              <span className="text-[10px] tracking-widest text-stone-600 uppercase">
                 or set phase
               </span>
               <select
                 value={setPhase}
                 onChange={(e) => setSetPhase(e.target.value)}
-                className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100"
+                className="w-full border border-stone-700 bg-stone-950 px-3 py-2 text-stone-100"
               >
                 <option value="">(use delta)</option>
                 {data.phases.map((p) => (
@@ -508,15 +491,13 @@ export default function GodPage() {
               </select>
             </label>
             <label className="block space-y-1">
-              <span className="text-[10px] uppercase tracking-widest text-stone-600">
-                reason
-              </span>
+              <span className="text-[10px] tracking-widest text-stone-600 uppercase">reason</span>
               <input
                 type="text"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="e.g. event-dampener"
-                className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100"
+                className="w-full border border-stone-700 bg-stone-950 px-3 py-2 text-stone-100"
               />
             </label>
           </div>
@@ -524,29 +505,28 @@ export default function GodPage() {
             type="button"
             onClick={nudge}
             disabled={busy}
-            className="border border-stone-300 text-stone-100 py-1 px-4 hover:bg-stone-100 hover:text-stone-950 transition-colors disabled:opacity-50 text-sm"
+            className="border border-stone-300 px-4 py-1 text-sm text-stone-100 transition-colors hover:bg-stone-100 hover:text-stone-950 disabled:opacity-50"
           >
             apply nudge
           </button>
         </section>
 
-        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
-          <h2 className="text-stone-100 text-sm">inject world event</h2>
-          <p className="text-[11px] text-stone-500 leading-5">
-            Writes a high-salience world memory under every active user.
-            Their next campaign's first turn picks it up as ambient
-            context. Use sparingly.
+        <section className="space-y-3 border border-stone-800 bg-stone-900/40 p-4">
+          <h2 className="text-sm text-stone-100">inject world event</h2>
+          <p className="text-[11px] leading-5 text-stone-500">
+            Writes a high-salience world memory under every active user. Their next campaign's first
+            turn picks it up as ambient context. Use sparingly.
           </p>
           <textarea
             value={eventSummary}
             onChange={(e) => setEventSummary(e.target.value)}
             rows={3}
             placeholder='e.g. "Word reaches every road: a tower in the east has fallen overnight, and the wells around it taste of salt."'
-            className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 text-sm"
+            className="w-full border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100"
           />
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1">
-              <span className="text-[10px] uppercase tracking-widest text-stone-600">
+              <span className="text-[10px] tracking-widest text-stone-600 uppercase">
                 salience (0-1)
               </span>
               <input
@@ -556,11 +536,11 @@ export default function GodPage() {
                 max={1}
                 value={eventSalience}
                 onChange={(e) => setEventSalience(Number(e.target.value))}
-                className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100"
+                className="w-full border border-stone-700 bg-stone-950 px-3 py-2 text-stone-100"
               />
             </label>
             <label className="block space-y-1">
-              <span className="text-[10px] uppercase tracking-widest text-stone-600">
+              <span className="text-[10px] tracking-widest text-stone-600 uppercase">
                 tags (comma-sep)
               </span>
               <input
@@ -568,7 +548,7 @@ export default function GodPage() {
                 value={eventTags}
                 onChange={(e) => setEventTags(e.target.value)}
                 placeholder="tower-fell, salt-water"
-                className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100"
+                className="w-full border border-stone-700 bg-stone-950 px-3 py-2 text-stone-100"
               />
             </label>
           </div>
@@ -576,33 +556,31 @@ export default function GodPage() {
             type="button"
             onClick={injectEvent}
             disabled={busy || !eventSummary.trim()}
-            className="border border-amber-700 text-amber-300 py-1 px-4 hover:bg-amber-950 transition-colors disabled:opacity-50 text-sm"
+            className="border border-amber-700 px-4 py-1 text-sm text-amber-300 transition-colors hover:bg-amber-950 disabled:opacity-50"
           >
             inject across the world
           </button>
         </section>
 
         {worldTheme && (
-          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
-            <h2 className="text-stone-100 text-sm">
+          <section className="space-y-3 border border-stone-800 bg-stone-900/40 p-4">
+            <h2 className="text-sm text-stone-100">
               weekly theme{" "}
-              <span className="text-[10px] text-stone-500 font-normal">
-                active:{" "}
-                <span className="text-emerald-400">{worldTheme.activeId}</span>
+              <span className="text-[10px] font-normal text-stone-500">
+                active: <span className="text-emerald-400">{worldTheme.activeId}</span>
                 {worldTheme.overrideActive ? " (admin-pinned)" : " (rotation)"}
               </span>
             </h2>
-            <p className="text-[11px] text-stone-500 leading-5">
-              The theme rotates by ISO week deterministically. Pinning
-              overrides the rotation until you clear it. Affects arc
-              picker weights, reincarnation option weights, meta-arc
+            <p className="text-[11px] leading-5 text-stone-500">
+              The theme rotates by ISO week deterministically. Pinning overrides the rotation until
+              you clear it. Affects arc picker weights, reincarnation option weights, meta-arc
               feed/starve multipliers, and the turn cap.
             </p>
             <div className="flex items-center gap-3">
               <select
                 value={pinTheme}
                 onChange={(e) => setPinTheme(e.target.value)}
-                className="bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 text-xs flex-1"
+                className="flex-1 border border-stone-700 bg-stone-950 px-3 py-2 text-xs text-stone-100"
               >
                 <option value="">(rotation)</option>
                 {worldTheme.catalog.map((t) => (
@@ -615,7 +593,7 @@ export default function GodPage() {
                 type="button"
                 onClick={() => pinThemeId(pinTheme || null)}
                 disabled={busy}
-                className="border border-stone-300 text-stone-100 py-1 px-4 hover:bg-stone-100 hover:text-stone-950 transition-colors disabled:opacity-50 text-xs"
+                className="border border-stone-300 px-4 py-1 text-xs text-stone-100 transition-colors hover:bg-stone-100 hover:text-stone-950 disabled:opacity-50"
               >
                 {pinTheme ? "pin theme" : "clear override"}
               </button>
@@ -623,15 +601,14 @@ export default function GodPage() {
           </section>
         )}
 
-        {error && <p className="text-red-400 text-xs">{error}</p>}
-        {success && <p className="text-emerald-400 text-xs">{success}</p>}
+        {error && <p className="text-xs text-red-400">{error}</p>}
+        {success && <p className="text-xs text-emerald-400">{success}</p>}
 
-        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
-          <h2 className="text-stone-100 text-sm">energy + tiers</h2>
-          <p className="text-[11px] text-stone-500 leading-5">
-            Look up a user by username, change their tier, or refill
-            their energy. Free tier ~32 turns/day, supporter ~72,
-            patron ~144.
+        <section className="space-y-3 border border-stone-800 bg-stone-900/40 p-4">
+          <h2 className="text-sm text-stone-100">energy + tiers</h2>
+          <p className="text-[11px] leading-5 text-stone-500">
+            Look up a user by username, change their tier, or refill their energy. Free tier ~32
+            turns/day, supporter ~72, patron ~144.
           </p>
           <div className="flex items-center gap-3">
             <input
@@ -639,34 +616,28 @@ export default function GodPage() {
               value={energyUsername}
               onChange={(e) => setEnergyUsername(e.target.value)}
               placeholder="username"
-              className="bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs flex-1"
+              className="flex-1 border border-stone-700 bg-stone-950 px-3 py-1.5 text-xs text-stone-100"
             />
             <button
               type="button"
               onClick={lookupEnergy}
               disabled={busy}
-              className="border border-stone-300 text-stone-100 py-1 px-4 hover:bg-stone-100 hover:text-stone-950 text-xs"
+              className="border border-stone-300 px-4 py-1 text-xs text-stone-100 hover:bg-stone-100 hover:text-stone-950"
             >
               look up
             </button>
           </div>
           {energyLookup && (
-            <div className="border border-stone-800 p-3 bg-stone-950 space-y-3">
+            <div className="space-y-3 border border-stone-800 bg-stone-950 p-3">
               <div className="text-xs">
-                <span className="text-stone-100">
-                  {energyLookup.user.username}
-                </span>
+                <span className="text-stone-100">{energyLookup.user.username}</span>
                 {" — "}
                 {energyLookup.energy ? (
                   <span className="text-stone-400">
-                    tier{" "}
-                    <span className="text-amber-400">
-                      {energyLookup.energy.tierLabel}
-                    </span>
-                    , energy{" "}
+                    tier <span className="text-amber-400">{energyLookup.energy.tierLabel}</span>,
+                    energy{" "}
                     <span className="text-stone-100">
-                      {energyLookup.energy.energy} /{" "}
-                      {energyLookup.energy.max}
+                      {energyLookup.energy.energy} / {energyLookup.energy.max}
                     </span>
                   </span>
                 ) : (
@@ -677,7 +648,7 @@ export default function GodPage() {
                 <select
                   value={energyTier}
                   onChange={(e) => setEnergyTier(e.target.value)}
-                  className="bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs"
+                  className="border border-stone-700 bg-stone-950 px-3 py-1.5 text-xs text-stone-100"
                 >
                   {tiers.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -689,7 +660,7 @@ export default function GodPage() {
                   type="button"
                   onClick={() => applyEnergyChange({ tier: energyTier })}
                   disabled={busy}
-                  className="border border-stone-300 text-stone-100 py-1 px-3 hover:bg-stone-100 hover:text-stone-950 text-xs"
+                  className="border border-stone-300 px-3 py-1 text-xs text-stone-100 hover:bg-stone-100 hover:text-stone-950"
                 >
                   set tier
                 </button>
@@ -697,7 +668,7 @@ export default function GodPage() {
                   type="button"
                   onClick={() => applyEnergyChange({ refillToMax: true })}
                   disabled={busy}
-                  className="border border-emerald-700 text-emerald-300 py-1 px-3 hover:bg-emerald-950 text-xs"
+                  className="border border-emerald-700 px-3 py-1 text-xs text-emerald-300 hover:bg-emerald-950"
                 >
                   refill to max
                 </button>
@@ -706,10 +677,10 @@ export default function GodPage() {
           )}
         </section>
 
-        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
-          <h2 className="text-stone-100 text-sm flex items-baseline justify-between">
+        <section className="space-y-3 border border-stone-800 bg-stone-900/40 p-4">
+          <h2 className="flex items-baseline justify-between text-sm text-stone-100">
             <span>chronicle (the central lore)</span>
-            <label className="text-[10px] text-stone-500 font-normal flex items-center gap-1.5">
+            <label className="flex items-center gap-1.5 text-[10px] font-normal text-stone-500">
               <input
                 type="checkbox"
                 checked={loreShowRedacted}
@@ -718,25 +689,24 @@ export default function GodPage() {
               show redacted
             </label>
           </h2>
-          <p className="text-[11px] text-stone-500 leading-5">
-            Salience decays with a 30-day half-life so old entries
-            don't crowd out recent ones. Redact to drop an entry from
-            recall immediately (audit-preserving). Edit to fix the
+          <p className="text-[11px] leading-5 text-stone-500">
+            Salience decays with a 30-day half-life so old entries don't crowd out recent ones.
+            Redact to drop an entry from recall immediately (audit-preserving). Edit to fix the
             judge's regrettable wording.
           </p>
 
           <details className="border border-stone-800 bg-stone-950/50">
-            <summary className="px-3 py-2 text-xs text-stone-400 cursor-pointer hover:text-stone-200">
+            <summary className="cursor-pointer px-3 py-2 text-xs text-stone-400 hover:text-stone-200">
               + write lore entry directly (bypass the judge)
             </summary>
-            <div className="p-3 space-y-3 border-t border-stone-800">
+            <div className="space-y-3 border-t border-stone-800 p-3">
               <textarea
                 value={newLoreSummary}
                 onChange={(e) => setNewLoreSummary(e.target.value)}
                 rows={2}
                 placeholder="canonical summary (1-2 sentences, past tense, third person)"
                 maxLength={500}
-                className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 text-xs"
+                className="w-full border border-stone-700 bg-stone-950 px-3 py-2 text-xs text-stone-100"
               />
               <textarea
                 value={newLoreProse}
@@ -744,17 +714,17 @@ export default function GodPage() {
                 rows={3}
                 placeholder="optional richer prose for the public feed"
                 maxLength={1500}
-                className="w-full bg-stone-950 border border-stone-700 px-3 py-2 text-stone-100 text-xs"
+                className="w-full border border-stone-700 bg-stone-950 px-3 py-2 text-xs text-stone-100"
               />
               <div className="grid grid-cols-3 gap-3">
                 <label className="block space-y-1">
-                  <span className="text-[10px] uppercase tracking-widest text-stone-600">
+                  <span className="text-[10px] tracking-widest text-stone-600 uppercase">
                     category
                   </span>
                   <select
                     value={newLoreCategory}
                     onChange={(e) => setNewLoreCategory(e.target.value)}
-                    className="w-full bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs"
+                    className="w-full border border-stone-700 bg-stone-950 px-3 py-1.5 text-xs text-stone-100"
                   >
                     {[
                       "city-event",
@@ -774,7 +744,7 @@ export default function GodPage() {
                   </select>
                 </label>
                 <label className="block space-y-1">
-                  <span className="text-[10px] uppercase tracking-widest text-stone-600">
+                  <span className="text-[10px] tracking-widest text-stone-600 uppercase">
                     salience (0-1)
                   </span>
                   <input
@@ -783,14 +753,12 @@ export default function GodPage() {
                     min={0}
                     max={1}
                     value={newLoreSalience}
-                    onChange={(e) =>
-                      setNewLoreSalience(Number(e.target.value))
-                    }
-                    className="w-full bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs"
+                    onChange={(e) => setNewLoreSalience(Number(e.target.value))}
+                    className="w-full border border-stone-700 bg-stone-950 px-3 py-1.5 text-xs text-stone-100"
                   />
                 </label>
                 <label className="block space-y-1">
-                  <span className="text-[10px] uppercase tracking-widest text-stone-600">
+                  <span className="text-[10px] tracking-widest text-stone-600 uppercase">
                     tags (comma-sep)
                   </span>
                   <input
@@ -798,7 +766,7 @@ export default function GodPage() {
                     value={newLoreTags}
                     onChange={(e) => setNewLoreTags(e.target.value)}
                     placeholder="tower-fell, salt"
-                    className="w-full bg-stone-950 border border-stone-700 px-3 py-1.5 text-stone-100 text-xs"
+                    className="w-full border border-stone-700 bg-stone-950 px-3 py-1.5 text-xs text-stone-100"
                   />
                 </label>
               </div>
@@ -806,7 +774,7 @@ export default function GodPage() {
                 type="button"
                 onClick={writeLore}
                 disabled={busy || !newLoreSummary.trim()}
-                className="border border-amber-700 text-amber-300 py-1 px-4 hover:bg-amber-950 transition-colors disabled:opacity-50 text-xs"
+                className="border border-amber-700 px-4 py-1 text-xs text-amber-300 transition-colors hover:bg-amber-950 disabled:opacity-50"
               >
                 write to the chronicle
               </button>
@@ -829,9 +797,9 @@ export default function GodPage() {
                         : "border-stone-800 bg-stone-950"
                     }`}
                   >
-                    <div className="flex items-baseline gap-2 mb-1">
+                    <div className="mb-1 flex items-baseline gap-2">
                       {l.category && (
-                        <span className="text-[10px] uppercase tracking-widest text-amber-500">
+                        <span className="text-[10px] tracking-widest text-amber-500 uppercase">
                           {l.category}
                         </span>
                       )}
@@ -847,12 +815,8 @@ export default function GodPage() {
                           edited
                         </span>
                       )}
-                      {l.isRedacted && (
-                        <span className="text-[10px] text-red-400">
-                          redacted
-                        </span>
-                      )}
-                      <span className="text-[10px] text-stone-700 ml-auto">
+                      {l.isRedacted && <span className="text-[10px] text-red-400">redacted</span>}
+                      <span className="ml-auto text-[10px] text-stone-700">
                         {l.id.slice(0, 8)}…
                       </span>
                     </div>
@@ -867,7 +831,7 @@ export default function GodPage() {
                             })
                           }
                           rows={2}
-                          className="w-full bg-stone-900 border border-stone-700 px-2 py-1 text-stone-100 text-[11px]"
+                          className="w-full border border-stone-700 bg-stone-900 px-2 py-1 text-[11px] text-stone-100"
                         />
                         <textarea
                           value={display.prose ?? ""}
@@ -879,7 +843,7 @@ export default function GodPage() {
                           }
                           rows={3}
                           placeholder="(optional prose)"
-                          className="w-full bg-stone-900 border border-stone-700 px-2 py-1 text-stone-100 text-[11px]"
+                          className="w-full border border-stone-700 bg-stone-900 px-2 py-1 text-[11px] text-stone-100"
                         />
                         <div className="flex items-center gap-2">
                           <input
@@ -894,7 +858,7 @@ export default function GodPage() {
                                 salience: Number(e.target.value),
                               })
                             }
-                            className="bg-stone-900 border border-stone-700 px-2 py-1 text-stone-100 text-[11px] w-20"
+                            className="w-20 border border-stone-700 bg-stone-900 px-2 py-1 text-[11px] text-stone-100"
                           />
                           <input
                             type="text"
@@ -908,20 +872,20 @@ export default function GodPage() {
                                   .filter(Boolean),
                               })
                             }
-                            className="flex-1 bg-stone-900 border border-stone-700 px-2 py-1 text-stone-100 text-[11px]"
+                            className="flex-1 border border-stone-700 bg-stone-900 px-2 py-1 text-[11px] text-stone-100"
                           />
                           <button
                             type="button"
                             onClick={() => saveEdit(display)}
                             disabled={busy}
-                            className="border border-stone-300 text-stone-100 py-0.5 px-2 hover:bg-stone-100 hover:text-stone-950 text-[11px]"
+                            className="border border-stone-300 px-2 py-0.5 text-[11px] text-stone-100 hover:bg-stone-100 hover:text-stone-950"
                           >
                             save
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditingLore(null)}
-                            className="border border-stone-700 text-stone-400 py-0.5 px-2 hover:border-stone-500 text-[11px]"
+                            className="border border-stone-700 px-2 py-0.5 text-[11px] text-stone-400 hover:border-stone-500"
                           >
                             cancel
                           </button>
@@ -931,23 +895,18 @@ export default function GodPage() {
                       <>
                         <div className="text-stone-300">{l.summary}</div>
                         {l.prose && (
-                          <div className="text-stone-500 text-[11px] mt-1 italic">
-                            {l.prose}
-                          </div>
+                          <div className="mt-1 text-[11px] text-stone-500 italic">{l.prose}</div>
                         )}
-                        <div className="text-[10px] text-stone-700 mt-1 flex items-center gap-2">
+                        <div className="mt-1 flex items-center gap-2 text-[10px] text-stone-700">
                           <span>
-                            {l.sourceFormId ?? "?"} ·{" "}
-                            {l.sourceLocationId ?? "?"} ·{" "}
+                            {l.sourceFormId ?? "?"} · {l.sourceLocationId ?? "?"} ·{" "}
                             {l.sourcePhase ?? "?"}
                           </span>
-                          {l.tags.length > 0 && (
-                            <span>{l.tags.join(" · ")}</span>
-                          )}
+                          {l.tags.length > 0 && <span>{l.tags.join(" · ")}</span>}
                           <button
                             type="button"
                             onClick={() => setEditingLore(l)}
-                            className="ml-auto text-stone-500 hover:text-stone-300 underline underline-offset-2"
+                            className="ml-auto text-stone-500 underline underline-offset-2 hover:text-stone-300"
                           >
                             edit
                           </button>
@@ -955,7 +914,7 @@ export default function GodPage() {
                             <button
                               type="button"
                               onClick={() => redact(l.id)}
-                              className="text-red-500 hover:text-red-300 underline underline-offset-2"
+                              className="text-red-500 underline underline-offset-2 hover:text-red-300"
                             >
                               redact
                             </button>
@@ -969,26 +928,21 @@ export default function GodPage() {
           </ul>
         </section>
 
-        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
-          <h2 className="text-stone-100 text-sm">
+        <section className="space-y-3 border border-stone-800 bg-stone-900/40 p-4">
+          <h2 className="text-sm text-stone-100">
             current distribution ({totalDist} active campaigns last 7d)
           </h2>
           {distEntries.length === 0 ? (
-            <p className="text-stone-500 text-xs italic">
-              no active campaigns.
-            </p>
+            <p className="text-xs text-stone-500 italic">no active campaigns.</p>
           ) : (
-            <ul className="text-xs space-y-1">
+            <ul className="space-y-1 text-xs">
               {distEntries.map(([formId, n]) => {
                 const pct = totalDist > 0 ? (n / totalDist) * 100 : 0;
                 const saturated = pct >= 30;
                 return (
-                  <li
-                    key={formId}
-                    className="flex items-center gap-3"
-                  >
-                    <span className="text-stone-300 w-32">{formId}</span>
-                    <div className="flex-1 h-2 bg-stone-900 border border-stone-800 relative">
+                  <li key={formId} className="flex items-center gap-3">
+                    <span className="w-32 text-stone-300">{formId}</span>
+                    <div className="relative h-2 flex-1 border border-stone-800 bg-stone-900">
                       <div
                         className={`absolute inset-y-0 left-0 ${
                           saturated ? "bg-amber-700" : "bg-stone-700"
@@ -996,7 +950,7 @@ export default function GodPage() {
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className="text-stone-500 w-20 text-right">
+                    <span className="w-20 text-right text-stone-500">
                       {n} ({pct.toFixed(0)}%)
                     </span>
                   </li>
@@ -1005,22 +959,18 @@ export default function GodPage() {
             </ul>
           )}
           <p className="text-[10px] text-stone-600 italic">
-            Forms over 30% (amber) are saturated — the picker is
-            de-weighting them automatically.
+            Forms over 30% (amber) are saturated — the picker is de-weighting them automatically.
           </p>
         </section>
 
-        <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
-          <h2 className="text-stone-100 text-sm">recent contributions</h2>
+        <section className="space-y-3 border border-stone-800 bg-stone-900/40 p-4">
+          <h2 className="text-sm text-stone-100">recent contributions</h2>
           {data.recentContributions.length === 0 ? (
-            <p className="text-stone-500 text-xs italic">none yet.</p>
+            <p className="text-xs text-stone-500 italic">none yet.</p>
           ) : (
             <ul className="space-y-1 text-[11px]">
               {data.recentContributions.slice(0, 12).map((c) => (
-                <li
-                  key={c.id}
-                  className="flex items-baseline gap-3 border-b border-stone-900 pb-1"
-                >
+                <li key={c.id} className="flex items-baseline gap-3 border-b border-stone-900 pb-1">
                   <span
                     className={`whitespace-nowrap ${
                       c.delta > 0
@@ -1032,10 +982,8 @@ export default function GodPage() {
                   >
                     {c.delta > 0 ? `+${c.delta}` : c.delta}
                   </span>
-                  <span className="text-stone-300 flex-1 truncate">
-                    {c.prose ?? c.reason}
-                  </span>
-                  <span className="text-stone-600 whitespace-nowrap">
+                  <span className="flex-1 truncate text-stone-300">{c.prose ?? c.reason}</span>
+                  <span className="whitespace-nowrap text-stone-600">
                     {new Date(c.createdAt).toLocaleTimeString()}
                   </span>
                 </li>
@@ -1058,10 +1006,8 @@ function Stat({
   accent?: string;
 }) {
   return (
-    <div className="border border-stone-800 p-3 bg-stone-950">
-      <div className="text-[10px] uppercase tracking-widest text-stone-600">
-        {label}
-      </div>
+    <div className="border border-stone-800 bg-stone-950 p-3">
+      <div className="text-[10px] tracking-widest text-stone-600 uppercase">{label}</div>
       <div className={accent}>{value}</div>
     </div>
   );

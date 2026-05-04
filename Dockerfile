@@ -33,15 +33,17 @@ ENV HOSTNAME=0.0.0.0
 #   - public/        — static assets
 #   - .next/static/  — client chunks
 #   - content/       — form/location/beat JSONs read at runtime
-#   - src/lib/db/migrations/ — applied via drizzle-kit on boot or via a
-#     separate one-off `fly ssh console -C "npm run db:migrate"`
+#   - src/lib/db/migrations/ — applied with production-safe Node scripts
+#     copied below (no dev dependencies required in the runtime image)
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/content ./content
 COPY --from=builder /app/src/lib/db/migrations ./src/lib/db/migrations
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
-COPY --from=builder /app/scripts/load-env.ts ./scripts/load-env.ts
+COPY --from=builder /app/scripts/migrate-prod.mjs ./scripts/migrate-prod.mjs
+COPY --from=builder /app/scripts/seed-runtime.mjs ./scripts/seed-runtime.mjs
+COPY --from=builder /app/scripts/smoke.mjs ./scripts/smoke.mjs
 
 # Run as non-root.
 RUN groupadd -r app && useradd -r -g app -s /sbin/nologin app

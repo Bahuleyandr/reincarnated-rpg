@@ -33,18 +33,9 @@ const int4range = customType<{ data: [number, number]; driverData: string }>({
   },
 });
 
-export const sessionStatus = pgEnum("session_status", [
-  "active",
-  "dead",
-  "won",
-  "capped",
-]);
+export const sessionStatus = pgEnum("session_status", ["active", "dead", "won", "capped"]);
 
-export const campaignStatus = pgEnum("campaign_status", [
-  "active",
-  "completed",
-  "abandoned",
-]);
+export const campaignStatus = pgEnum("campaign_status", ["active", "completed", "abandoned"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
@@ -67,9 +58,7 @@ export const users = pgTable("users", {
    *  applyRegen() reads (now - this) and credits floor((delta) /
    *  regenInterval) ticks, advancing this timestamp by exactly that
    *  many intervals so partial intervals don't get lost. */
-  energyUpdatedAt: timestamp("energy_updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  energyUpdatedAt: timestamp("energy_updated_at", { withTimezone: true }).notNull().defaultNow(),
   /** Daily-streak count, 0..5. Bumped when the player takes their
    *  first turn on a UTC day immediately following a previous
    *  login day. Reset to 1 if they missed at least one day. Capped
@@ -79,12 +68,8 @@ export const users = pgTable("users", {
    *  a turn. Null until the first turn ever. Compared as a string
    *  in lib/energy/streak.ts. */
   streakLastDayUtc: text("streak_last_day_utc"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const campaigns = pgTable(
@@ -127,12 +112,8 @@ export const campaigns = pgTable(
      *  catalog option). Stored as jsonb for forward-compat in case
      *  bonuses grow into multi-field arrays. */
     starterBonus: jsonb("starter_bonus"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
     metadata: jsonb("metadata"),
   },
@@ -146,12 +127,7 @@ export const campaigns = pgTable(
   ],
 );
 
-export const entityKind = pgEnum("entity_kind", [
-  "npc",
-  "location",
-  "item",
-  "faction",
-]);
+export const entityKind = pgEnum("entity_kind", ["npc", "location", "item", "faction"]);
 
 export const sessions = pgTable(
   "sessions",
@@ -189,16 +165,19 @@ export const sessions = pgTable(
     /** Anon daily-streak count, 0..5. Same semantics as users.streak_count. */
     streakCount: integer("streak_count").notNull().default(0),
     streakLastDayUtc: text("streak_last_day_utc"),
-    startedAt: timestamp("started_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
+    turnLockToken: text("turn_lock_token"),
+    turnLockExpiresAt: timestamp("turn_lock_expires_at", {
+      withTimezone: true,
+    }),
     turnCount: integer("turn_count").notNull().default(0),
     status: sessionStatus("status").notNull().default("active"),
   },
   (t) => [
     index("sessions_campaign_idx").on(t.campaignId),
     index("sessions_last_active_idx").on(t.lastActiveAt),
+    index("sessions_turn_lock_expires_idx").on(t.turnLockExpiresAt),
   ],
 );
 
@@ -214,9 +193,7 @@ export const events = pgTable(
     kind: text("kind").notNull(),
     payload: jsonb("payload").notNull(),
     seed: bigint("seed", { mode: "number" }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("events_session_seq_uniq").on(t.sessionId, t.seq),
@@ -230,9 +207,7 @@ export const projections = pgTable("projections", {
     .references(() => sessions.id, { onDelete: "cascade" }),
   upToSeq: integer("up_to_seq").notNull(),
   state: jsonb("state").notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const entities = pgTable(
@@ -245,17 +220,9 @@ export const entities = pgTable(
     kind: entityKind("kind").notNull(),
     slug: text("slug").notNull(),
     data: jsonb("data").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [
-    uniqueIndex("entities_session_kind_slug_uniq").on(
-      t.sessionId,
-      t.kind,
-      t.slug,
-    ),
-  ],
+  (t) => [uniqueIndex("entities_session_kind_slug_uniq").on(t.sessionId, t.kind, t.slug)],
 );
 
 export const memories = pgTable(
@@ -269,9 +236,7 @@ export const memories = pgTable(
     embedding: vector("embedding", { dimensions: 512 }),
     eventSeqRange: int4range("event_seq_range").notNull(),
     salience: real("salience").notNull().default(0.5),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("memories_session_idx").on(t.sessionId)],
 );
@@ -280,41 +245,31 @@ export const templatesForms = pgTable("templates_forms", {
   id: text("id").primaryKey(),
   version: integer("version").notNull(),
   data: jsonb("data").notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const templatesLocations = pgTable("templates_locations", {
   id: text("id").primaryKey(),
   data: jsonb("data").notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const templatesNpcs = pgTable("templates_npcs", {
   id: text("id").primaryKey(),
   data: jsonb("data").notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const templatesItems = pgTable("templates_items", {
   id: text("id").primaryKey(),
   data: jsonb("data").notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const templatesQuests = pgTable("templates_quests", {
   id: text("id").primaryKey(),
   data: jsonb("data").notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 /**
@@ -354,9 +309,7 @@ export const aiCalls = pgTable(
     durationMs: integer("duration_ms").notNull().default(0),
     success: text("success").notNull().default("true"),
     errorMsg: text("error_msg"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("ai_calls_session_idx").on(t.sessionId),
@@ -434,12 +387,8 @@ export const userLlmPrefs = pgTable("user_llm_prefs", {
   /** AES-256-GCM ciphertext of the API key. Null for ollama-local
    *  (or any future preset where needsApiKey=false). */
   apiKeyEnc: text("api_key_enc"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 /**
@@ -491,12 +440,8 @@ export const worldNpcs = pgTable(
     /** Original NPC entity data (template id, attitude, etc) merged
      *  with accumulated facts. */
     data: jsonb("data").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("world_npcs_user_slug_uniq").on(t.userId, t.slug),
@@ -523,14 +468,15 @@ export const worldMemories = pgTable(
     embedding: vector("embedding", { dimensions: 512 }),
     /** Tags such as 'death', 'win', 'saved:berra', 'killed:wolf'. Used
      *  for filtering and for tying memories to NPCs. */
-    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    tags: text("tags")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     salience: real("salience").notNull().default(0.5),
     sourceCampaignId: uuid("source_campaign_id"),
     sourceFormId: text("source_form_id"),
     sourceLocationId: text("source_location_id"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("world_memories_user_idx").on(t.userId)],
 );
@@ -580,7 +526,10 @@ export const worldLore = pgTable(
      *  'artifact', 'npc-fate', 'cult', 'plague', 'wyrm-event'. */
     category: text("category"),
     /** Tags array — finer-grained than category. */
-    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    tags: text("tags")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     /** Attribution. NULL on admin-injected events. */
     sourceUserId: uuid("source_user_id").references(() => users.id, {
       onDelete: "set null",
@@ -592,21 +541,16 @@ export const worldLore = pgTable(
     /** The wyrm phase at the time the event happened. Lets future
      *  rendering color old lore by world-state. */
     sourcePhase: text("source_phase"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     /** Bumped whenever an admin edits an entry via PUT /api/god/lore.
      *  Equal to createdAt on initial insert. The /meta UI shows
      *  "edited" when this differs. */
-    updatedAt: timestamp("updated_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     /** Admin who last edited this entry. Null on initial promotion;
      *  set to admin user id on PUT. Display-only — for audit. */
-    lastEditedByUserId: uuid("last_edited_by_user_id").references(
-      () => users.id,
-      { onDelete: "set null" },
-    ),
+    lastEditedByUserId: uuid("last_edited_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     /** Time-limited events — null = permanent. Set by:
      *   - the lore judge for genuinely time-limited events (rare),
      *   - admin via /god/lore/[id] DELETE (redact = set to NOW()). */
@@ -661,19 +605,13 @@ export const roomMessages = pgTable(
     /** Snapshot username for logged-in users. Null for anon. */
     username: text("username"),
     formId: text("form_id").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     /** Hot query: WHERE location_id=X AND room_id=Y ORDER BY
      *  created_at DESC LIMIT N. Composite covers both eq's plus
      *  the ORDER. */
-    index("room_messages_room_created_idx").on(
-      t.locationId,
-      t.roomId,
-      t.createdAt,
-    ),
+    index("room_messages_room_created_idx").on(t.locationId, t.roomId, t.createdAt),
     index("room_messages_session_idx").on(t.sessionId),
   ],
 );
@@ -711,9 +649,7 @@ export const metaArcs = pgTable("meta_arcs", {
   /** Free-form metadata: phase-specific flavor strings, last
    *  significant event, etc. */
   meta: jsonb("meta"),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 /**
@@ -751,9 +687,7 @@ export const metaContributions = pgTable(
     /** Phase the arc was in WHEN this contribution landed. Lets us
      *  show "rising-phase contributions" vs "feasting-phase". */
     phaseAtContribution: text("phase_at_contribution"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("meta_contributions_arc_idx").on(t.arcId, t.createdAt),

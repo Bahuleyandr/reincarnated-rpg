@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Dungeon-core failed spawn result."
+  },
+  "id": "warped-minion",
+  "displayName": "warped minion",
+  "kind": "npc",
+  "tagline": "obedient in outline, uneven in execution.",
+  "vitals": {
+    "hp": { "max": 3, "start": 3 }
+  },
+  "stats": {
+    "speed": 0,
+    "awareness": 0,
+    "threat": 1
+  },
+  "attitudeDefault": -1,
+  "attitudeRange": [-2, 1],
+  "tags": ["minion", "warped", "fragile"]
+}

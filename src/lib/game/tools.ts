@@ -1,133 +1,62 @@
 /**
- * Tool registry — Zod validators per ToolCall + atomicity wrapper.
+ * Tool registry - Zod validators per ToolCall plus state/content guardrails.
  *
- * The orchestrator (day 6's turn.ts) hands off the model's emitted tool
- * calls to `applyTools`. Behavior:
+ * `validateToolsToEvents` is the core path used by the turn orchestrator:
+ * it validates a whole narrator tool batch and returns in-memory events
+ * without touching the database. The accepted turn is then appended in one
+ * batch by `runTurn`.
  *
- *   1. Validate every tool's payload via its Zod schema.
- *   2. For tools whose validity depends on projection state
- *      (e.g. `remove_inventory` of an item not held), run a precondition
- *      check.
- *   3. Convert each ToolCall to its Event counterpart.
- *   4. Append the whole batch in a single Postgres transaction (via
- *      `events.appendEvents`). Either all events land or none do — that's
- *      the all-or-nothing guarantee in ADR-011.
- *   5. On any validation/precondition failure: skip the batch, append
- *      a single `tool_validation_failed` event, return the error so the
- *      orchestrator can re-prompt (max 1 retry per ADR-011).
- *
- * The narrate_only tool is a no-op event-wise; it exists so the model
- * can signal "nothing mechanical this turn" without spuriously calling
- * a state-mutating tool to look compliant.
+ * `applyTools` is kept as a legacy wrapper for tests and scripts that still
+ * want "validate then append" behavior.
  */
-import { z } from "zod";
-import type { drizzle } from "drizzle-orm/postgres-js";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
+import { z } from "zod";
+
+import type { Db } from "../db/client";
 import { uuidv7 } from "../util/uuidv7";
 
 import { appendEvents, type AppendedEvent } from "./events";
-import type { Event, Projection, ToolCall } from "./types";
+import { inventoryCapacity, inventoryUsed, SAFETY_CAPS } from "./safety";
+import type {
+  Event,
+  FormTemplate,
+  LocationTemplate,
+  Projection,
+  RollBand,
+  ToolCall,
+} from "./types";
 
-type Db = ReturnType<typeof drizzle>;
+export { inventoryCapacity, inventoryUsed, SAFETY_CAPS } from "./safety";
 
 const targetSchema = z.string().min(1);
 const slugSchema = z.string().regex(/^[a-z0-9-]+$/i, "lowercase-kebab slug");
 const nonEmptyString = z.string().min(1);
 
-/**
- * Anti-OP / anti-godlike caps. The per-call zod limits (±10 delta,
- * 0-10 damage, 0-5 heal, 1-5 inventory) prevent wild single-tool
- * outliers; these absolute caps prevent slow runaway accumulation
- * across many turns. The narrator can still describe powerful
- * scenes — these caps only bound the mechanical state.
- *
- * Tighten or relax in one place. Update the corresponding zod
- * schema and the precondition checks in checkPrecondition() if you
- * change a value here.
- */
-export const SAFETY_CAPS = {
-  /** Absolute value any field in projection.form.state may take. */
-  formStateAbsMax: 20,
-  /** Per-call apply_damage cap (mirrors zod). */
-  damagePerCallMax: 10,
-  /** Per-call heal cap (mirrors zod). */
-  healPerCallMax: 5,
-  /** Per-call add_inventory qty cap (mirrors zod). */
-  invQtyPerCallMax: 5,
-  /** Default backpack slots every player has. */
-  inventoryBase: 10,
-  /** Absolute hard cap on inventory slots. With ANY combination of
-   *  spells, blessings, extra bags, signature buffs — total stays
-   *  below this. The user's spec: 10 base, 30 max, capped with all
-   *  bonuses. */
-  inventoryHardMax: 30,
-  /** Max number of tool calls a single model response may emit per
-   *  turn. Anti-power-creep: a narrator that emits 30 tool calls is
-   *  almost certainly hallucinating an action movie; cap forces it
-   *  to consolidate into a coherent beat instead. The orchestrator
-   *  trims overflow before validation, recording the truncation in
-   *  the tool_validation_failed event log. */
-  maxToolsPerTurn: 6,
-  /** Per-call grant_xp cap. Tightened from the zod max (999) so a
-   *  single turn can't level the player into orbit. Multiple
-   *  grant_xp calls per turn still stack but each is small. */
-  grantXpPerCallMax: 50,
-} as const;
-
-/**
- * Effective inventory capacity = base + bag_slots bonus from
- * form.state, clamped to [base, hardMax]. Capacity bonuses can come
- * from the catalog's starterBonus, signature verbs, world events,
- * etc. — they all funnel through projection.form.state.bag_slots.
- */
-export function inventoryCapacity(projection: Projection): number {
-  const bonus = (projection.form.state["bag_slots"] as number) ?? 0;
-  return Math.max(
-    SAFETY_CAPS.inventoryBase,
-    Math.min(
-      SAFETY_CAPS.inventoryHardMax,
-      SAFETY_CAPS.inventoryBase + bonus,
-    ),
-  );
-}
-
-/** Sum of qty across every inventory stack. */
-export function inventoryUsed(projection: Projection): number {
-  return projection.inventory.reduce((sum, i) => sum + i.qty, 0);
-}
-
 const toolSchemas = {
   heal: z.object({
     name: z.literal("heal"),
     target: targetSchema,
-    /** Safety cap: 0-5 per call. Multiple heal tools per turn is
-     *  legal but each is bounded; the projection's vitalsMax also
-     *  clamps the resulting vital — no infinite-HP runaway. */
-    amount: z.number().int().min(0).max(5),
+    amount: z.number().int().min(0).max(SAFETY_CAPS.healPerCallMax),
     vital: z.string().optional(),
   }),
   apply_damage: z.object({
     name: z.literal("apply_damage"),
     target: targetSchema,
-    /** Safety cap: 0-10 per call. Larger numbers usually indicate
-     *  model hallucination; smaller-by-design keeps PvP-shaped runs
-     *  approachable. */
-    amount: z.number().int().min(0).max(10),
+    amount: z.number().int().min(0).max(SAFETY_CAPS.damagePerCallMax),
     source: nonEmptyString,
     vital: z.string().optional(),
   }),
   change_form_state: z.object({
     name: z.literal("change_form_state"),
     field: nonEmptyString,
-    /** Safety cap: ±10 per call. The post-apply clamp also caps the
-     *  field's accumulated absolute value (see SAFETY_CAPS). */
     delta: z.number().int().min(-10).max(10),
   }),
   add_inventory: z.object({
     name: z.literal("add_inventory"),
     itemId: slugSchema,
-    /** Cap at 5 per call to prevent runaway loot. */
-    qty: z.number().int().min(1).max(5),
+    qty: z.number().int().min(1).max(SAFETY_CAPS.invQtyPerCallMax),
   }),
   remove_inventory: z.object({
     name: z.literal("remove_inventory"),
@@ -175,10 +104,7 @@ const toolSchemas = {
   }),
   grant_xp: z.object({
     name: z.literal("grant_xp"),
-    /** Power-creep cap: 0..50 per call. Multiple grant_xp tools per
-     *  turn still stack but each individual call stays in a sane
-     *  range. The narrator cannot dump "+999 XP" in one tool call. */
-    amount: z.number().int().min(0).max(50),
+    amount: z.number().int().min(0).max(SAFETY_CAPS.grantXpPerCallMax),
     reason: nonEmptyString,
   }),
   create_memory: z.object({
@@ -219,100 +145,104 @@ export type ApplyToolsResult =
   | { ok: true; events: AppendedEvent[] }
   | { ok: false; failure: ToolValidationFailure };
 
-/**
- * Validate every tool call (schema + state preconditions), then either:
- *   - convert to events and append in one tx (success path), OR
- *   - append a single `tool_validation_failed` event and return the
- *     failure so the orchestrator can re-prompt (failure path).
- *
- * The model receives at most one retry; orchestrator policy lives in
- * turn.ts. This function is one half of the retry loop.
- */
+export type ValidateToolsResult =
+  | { ok: true; events: Event[] }
+  | { ok: false; failure: ToolValidationFailure };
+
+export interface ToolValidationContext {
+  form?: FormTemplate;
+  location?: LocationTemplate;
+  intent?: string;
+  rollBand?: RollBand;
+  /** The repo has no canonical item catalog yet; pass this once one exists. */
+  knownItemIds?: ReadonlySet<string>;
+}
+
+export interface ValidateToolsArgs extends ToolValidationContext {
+  projection: Projection;
+  tools: ToolCall[];
+}
+
 export async function applyTools(
   db: Db,
   sessionId: string,
   projection: Projection,
   tools: ToolCall[],
+  context: ToolValidationContext = {},
 ): Promise<ApplyToolsResult> {
-  if (tools.length === 0) {
-    return { ok: true, events: [] };
-  }
-
-  // Anti-power-creep: a single turn cannot emit more than
-  // SAFETY_CAPS.maxToolsPerTurn tool calls. If the model bursts
-  // beyond that, treat the whole batch as a validation failure so
-  // the existing retry path prompts the narrator to consolidate.
-  if (tools.length > SAFETY_CAPS.maxToolsPerTurn) {
-    const failure: ToolValidationFailure = {
-      tool: "(batch)",
-      error: `too many tool calls in one turn: ${tools.length} > ${SAFETY_CAPS.maxToolsPerTurn}`,
-    };
+  const validated = validateToolsToEvents({
+    projection,
+    tools,
+    ...context,
+  });
+  if (!validated.ok) {
     await appendEvents(db, sessionId, [
       {
         kind: "tool_validation_failed",
-        tool: failure.tool,
-        error: failure.error,
+        tool: validated.failure.tool,
+        error: validated.failure.error,
       },
     ]);
-    return { ok: false, failure };
+    return validated;
   }
 
-  for (const tool of tools) {
-    const parsed = toolCallSchema.safeParse(tool);
-    if (!parsed.success) {
-      const message = parsed.error.issues
-        .map((i) => `${i.path.join(".")}: ${i.message}`)
-        .join("; ");
-      const failure: ToolValidationFailure = {
-        tool: (tool as { name?: string }).name ?? "unknown",
-        error: message,
-      };
-      await appendEvents(db, sessionId, [
-        {
-          kind: "tool_validation_failed",
-          tool: failure.tool,
-          error: failure.error,
-        },
-      ]);
-      return { ok: false, failure };
-    }
-    const precondError = checkPrecondition(parsed.data, projection);
-    if (precondError) {
-      const failure: ToolValidationFailure = {
-        tool: parsed.data.name,
-        error: precondError,
-      };
-      await appendEvents(db, sessionId, [
-        {
-          kind: "tool_validation_failed",
-          tool: failure.tool,
-          error: failure.error,
-        },
-      ]);
-      return { ok: false, failure };
-    }
-  }
-
-  const events: Event[] = [];
-  for (const tool of tools) {
-    const evt = toolToEvent(tool, projection);
-    if (evt) events.push(evt);
-  }
-  const inserted = await appendEvents(db, sessionId, events);
+  const inserted = await appendEvents(db, sessionId, validated.events);
   return { ok: true, events: inserted };
 }
 
-/**
- * Per-tool precondition checks against the current projection.
- * Returns null on pass, error string on fail.
- *
- * Day-4 scope: the cheap, obvious checks. Beat triggers and form-card
- * verb whitelisting plug in later (day 5/6).
- */
+export function validateToolsToEvents(args: ValidateToolsArgs): ValidateToolsResult {
+  const { projection, tools } = args;
+  if (tools.length === 0) return { ok: true, events: [] };
+
+  if (tools.length > SAFETY_CAPS.maxToolsPerTurn) {
+    return {
+      ok: false,
+      failure: {
+        tool: "(batch)",
+        error: `too many tool calls in one turn: ${tools.length} > ${SAFETY_CAPS.maxToolsPerTurn}`,
+      },
+    };
+  }
+
+  const parsedTools: ToolCall[] = [];
+  for (const tool of tools) {
+    const parsed = toolCallSchema.safeParse(tool);
+    if (!parsed.success) {
+      return {
+        ok: false,
+        failure: {
+          tool: (tool as { name?: string }).name ?? "unknown",
+          error: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+        },
+      };
+    }
+
+    const precondError = checkPrecondition(parsed.data, projection, args);
+    if (precondError) {
+      return {
+        ok: false,
+        failure: { tool: parsed.data.name, error: precondError },
+      };
+    }
+    parsedTools.push(parsed.data);
+  }
+
+  const events: Event[] = [];
+  for (const tool of parsedTools) {
+    const evt = toolToEvent(tool, projection);
+    if (evt) events.push(evt);
+  }
+  return { ok: true, events };
+}
+
 export function checkPrecondition(
   tool: ToolCall,
   projection: Projection,
+  context: ToolValidationContext = {},
 ): string | null {
+  const allowanceError = checkToolAllowance(tool, context);
+  if (allowanceError) return allowanceError;
+
   switch (tool.name) {
     case "remove_inventory": {
       const held = projection.inventory.find((i) => i.itemId === tool.itemId);
@@ -337,18 +267,14 @@ export function checkPrecondition(
     case "heal": {
       if (tool.target === "$SELF" && tool.vital) {
         const exists = tool.vital in projection.form.vitals;
-        if (!exists) {
-          return `${tool.name}: form has no vital '${tool.vital}'`;
-        }
+        if (!exists) return `${tool.name}: form has no vital '${tool.vital}'`;
+      }
+      if (tool.target !== "$SELF" && !projection.npcs[tool.target]) {
+        return `${tool.name}: unknown target entity: ${tool.target}`;
       }
       return null;
     }
     case "change_form_state": {
-      // Safety cap: no form-state field may accumulate past ±20.
-      // Prevents godlike runaway buffs (e.g. wyrm_attuned creeping
-      // to 999 over a long run) and matches the tightened per-call
-      // delta cap (±10) so two tool calls can still bring a fresh
-      // field to 20 in one turn but not beyond.
       const current = projection.form.state[tool.field] ?? 0;
       const next = current + tool.delta;
       if (next > SAFETY_CAPS.formStateAbsMax) {
@@ -360,10 +286,9 @@ export function checkPrecondition(
       return null;
     }
     case "add_inventory": {
-      // Backpack capacity guardrail. Players carry up to 10 slots
-      // by default; spells / blessings / extra bags can raise the
-      // capacity via projection.form.state.bag_slots, but the hard
-      // cap is 30 regardless of how many bonuses stack.
+      if (context.knownItemIds && !context.knownItemIds.has(tool.itemId)) {
+        return `add_inventory: unknown item: ${tool.itemId}`;
+      }
       const capacity = inventoryCapacity(projection);
       const used = inventoryUsed(projection);
       const next = used + tool.qty;
@@ -372,11 +297,36 @@ export function checkPrecondition(
       }
       return null;
     }
-    case "move_to":
+    case "move_to": {
+      const location = context.location;
+      if (!location) return null;
+      const current = location.rooms.find((r) => r.id === projection.location.roomId);
+      if (!current) {
+        return `move_to: current room missing from location: ${projection.location.roomId}`;
+      }
+      const target = location.rooms.find((r) => r.id === tool.roomId);
+      if (!target) return `move_to: unknown room: ${tool.roomId}`;
+      const connected = current.exits.some((e) => e.toRoomId === tool.roomId);
+      if (!connected) {
+        return `move_to: room ${tool.roomId} is not connected to ${projection.location.roomId}`;
+      }
+      return null;
+    }
+    case "discover_location": {
+      const location = context.location;
+      if (location && !location.rooms.some((r) => r.id === tool.locationId)) {
+        return `discover_location: unknown room/location: ${tool.locationId}`;
+      }
+      return null;
+    }
+    case "introduce_npc": {
+      if (!npcTemplateExists(tool.templateId)) {
+        return `introduce_npc: unknown npc template: ${tool.templateId}`;
+      }
+      return null;
+    }
     case "pass_time":
     case "sense":
-    case "discover_location":
-    case "introduce_npc":
     case "update_quest_objective":
     case "grant_xp":
     case "create_memory":
@@ -385,15 +335,62 @@ export function checkPrecondition(
   }
 }
 
-/**
- * Convert a validated ToolCall into the corresponding Event.
- * Returns null for `narrate_only` (logged separately as
- * `narration.emitted` by the orchestrator).
- */
-export function toolToEvent(
-  tool: ToolCall,
-  projection: Projection,
-): Event | null {
+function checkToolAllowance(tool: ToolCall, context: ToolValidationContext): string | null {
+  const { form, intent } = context;
+  if (!form || !intent) return null;
+  if (tool.name === "narrate_only" || tool.name === "create_memory") return null;
+
+  const allowed = new Set<string>(form.verbMappings?.[intent]?.tools ?? []);
+  const hardMoveTools = toolsFromHardMoves(form.hardMoves);
+  for (const name of hardMoveTools) allowed.add(name);
+
+  if (context.rollBand === "partial" || context.rollBand === "miss") {
+    allowed.add("apply_damage");
+    allowed.add("change_form_state");
+    allowed.add("introduce_npc");
+    allowed.add("move_to");
+    allowed.add("pass_time");
+    allowed.add("sense");
+  }
+
+  if (allowed.size > 0 && !allowed.has(tool.name)) {
+    return `tool ${tool.name} is not allowed for form=${form.id} intent=${intent} band=${context.rollBand ?? "unknown"}`;
+  }
+  return null;
+}
+
+function toolsFromHardMoves(hardMoves: FormTemplate["hardMoves"]): Set<string> {
+  const out = new Set<string>();
+  const maybeMoves =
+    hardMoves && typeof hardMoves === "object" ? (hardMoves as { moves?: unknown[] }).moves : null;
+  if (!Array.isArray(maybeMoves)) return out;
+  for (const move of maybeMoves) {
+    if (!move || typeof move !== "object") continue;
+    const raw = move as {
+      tool?: unknown;
+      tools?: Array<{ name?: unknown } | string>;
+    };
+    if (typeof raw.tool === "string") out.add(raw.tool);
+    if (!Array.isArray(raw.tools)) continue;
+    for (const tool of raw.tools) {
+      if (typeof tool === "string") out.add(tool);
+      else if (tool && typeof tool.name === "string") out.add(tool.name);
+    }
+  }
+  return out;
+}
+
+const npcTemplateCache = new Map<string, boolean>();
+
+function npcTemplateExists(templateId: string): boolean {
+  const cached = npcTemplateCache.get(templateId);
+  if (cached !== undefined) return cached;
+  const ok = existsSync(join(process.cwd(), "content", "npcs", `${templateId}.json`));
+  npcTemplateCache.set(templateId, ok);
+  return ok;
+}
+
+export function toolToEvent(tool: ToolCall, projection: Projection): Event | null {
   switch (tool.name) {
     case "apply_damage":
       return {
@@ -454,9 +451,6 @@ export function toolToEvent(
         locationId: tool.locationId,
       };
     case "introduce_npc": {
-      // npcId on the event is a fresh slug derived from templateId; the
-      // orchestrator may resolve a known instance. For day 4 we assume
-      // each introduce creates a new instance (rare collisions OK).
       const npcId = `${tool.templateId}-${uuidv7().slice(0, 8)}`;
       return {
         kind: "npc.introduced",

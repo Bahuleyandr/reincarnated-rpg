@@ -141,6 +141,13 @@
       "when": 1777826553169,
       "tag": "0019_streak_blessing",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1777830000000,
+      "tag": "0020_session_turn_locks",
+      "breakpoints": true
     }
   ]
 }

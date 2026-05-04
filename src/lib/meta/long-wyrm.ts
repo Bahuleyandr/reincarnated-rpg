@@ -29,11 +29,7 @@
 import { and, count, desc, eq, gt, sql } from "drizzle-orm";
 
 import type { Db } from "../db/client";
-import {
-  metaArcs,
-  metaContributions,
-  type MetaArc,
-} from "../db/schema";
+import { metaArcs, metaContributions, type MetaArc } from "../db/schema";
 import type { Event } from "../game/types";
 import { uuidv7 } from "../util/uuidv7";
 import { log } from "../util/log";
@@ -101,9 +97,7 @@ export const PHASES: PhaseInfo[] = [
 
 export function phaseForProgress(progress: number): PhaseInfo {
   const clamped = Math.max(0, Math.min(PROGRESS_MAX - 1, progress));
-  return (
-    PHASES.find((p) => clamped >= p.min && clamped < p.max) ?? PHASES[0]
-  );
+  return PHASES.find((p) => clamped >= p.min && clamped < p.max) ?? PHASES[0];
 }
 
 /** Ensures the singleton row exists. Idempotent — safe on every boot. */
@@ -120,11 +114,7 @@ export async function ensureLongWyrmExists(db: Db): Promise<void> {
 }
 
 export async function getCurrentArc(db: Db): Promise<MetaArc | null> {
-  const rows = await db
-    .select()
-    .from(metaArcs)
-    .where(eq(metaArcs.id, LONG_WYRM_ID))
-    .limit(1);
+  const rows = await db.select().from(metaArcs).where(eq(metaArcs.id, LONG_WYRM_ID)).limit(1);
   return rows[0] ?? null;
 }
 
@@ -155,8 +145,7 @@ export function planContribution(events: Event[]): ContributionPlan | null {
   let delta = 0;
   const reasons: string[] = [];
   const lastEnd = [...events].reverse().find((e) => e.kind === "session.ended");
-  const outcome =
-    lastEnd && lastEnd.kind === "session.ended" ? lastEnd.reason : null;
+  const outcome = lastEnd && lastEnd.kind === "session.ended" ? lastEnd.reason : null;
 
   if (outcome === "death") {
     delta += 5;
@@ -176,17 +165,9 @@ export function planContribution(events: Event[]): ContributionPlan | null {
   for (const e of events) {
     if (e.kind === "absorbed") absorbCount += 1;
     if (e.kind === "healed") healCount += 1;
-    if (
-      e.kind === "form_state.changed" &&
-      e.field === "wyrm_marked" &&
-      e.delta > 0
-    )
+    if (e.kind === "form_state.changed" && e.field === "wyrm_marked" && e.delta > 0)
       wyrmMarkedHits += 1;
-    if (
-      e.kind === "form_state.changed" &&
-      e.field === "wyrm_attuned" &&
-      e.delta > 0
-    )
+    if (e.kind === "form_state.changed" && e.field === "wyrm_attuned" && e.delta > 0)
       wyrmAttunedHits += 1;
   }
   if (absorbCount >= 3) {
@@ -245,10 +226,7 @@ export async function recordContribution(
       .select({ id: metaContributions.id })
       .from(metaContributions)
       .where(
-        and(
-          eq(metaContributions.arcId, arcId),
-          eq(metaContributions.sessionId, opts.sessionId),
-        ),
+        and(eq(metaContributions.arcId, arcId), eq(metaContributions.sessionId, opts.sessionId)),
       )
       .limit(1);
     if (dupes.length > 0) return getCurrentArc(db);
@@ -290,11 +268,8 @@ export async function recordContribution(
 
   // Advance arc state. Atomic UPDATE so concurrent contributions
   // don't double-count. We use SQL expressions to clamp.
-  const nextProgress = Math.max(
-    0,
-    Math.min(PROGRESS_MAX, cur.progress + themedDelta),
-  );
-  let nextPhase = phaseForProgress(nextProgress);
+  const nextProgress = Math.max(0, Math.min(PROGRESS_MAX, cur.progress + themedDelta));
+  const nextPhase = phaseForProgress(nextProgress);
   // Cataclysm: if we hit broken's max, reset to 0/stirring and mark
   // the meta with a "cycle" counter.
   let resetMeta: Record<string, unknown> | null = null;
@@ -304,9 +279,7 @@ export async function recordContribution(
     finalProgress = 0;
     finalPhase = PHASES[0];
     const prevCycle =
-      ((cur.meta as Record<string, unknown> | null)?.["cycle"] as
-        | number
-        | undefined) ?? 1;
+      ((cur.meta as Record<string, unknown> | null)?.["cycle"] as number | undefined) ?? 1;
     resetMeta = {
       ...(cur.meta as Record<string, unknown> | null),
       cycle: prevCycle + 1,
@@ -378,12 +351,7 @@ export async function metaSummary(db: Db, days = 30) {
       phaseAt: metaContributions.phaseAtContribution,
     })
     .from(metaContributions)
-    .where(
-      and(
-        eq(metaContributions.arcId, LONG_WYRM_ID),
-        gt(metaContributions.createdAt, since),
-      ),
-    )
+    .where(and(eq(metaContributions.arcId, LONG_WYRM_ID), gt(metaContributions.createdAt, since)))
     .groupBy(metaContributions.formId, metaContributions.phaseAtContribution);
 
   return { arc, contribs, sinceDays: days };

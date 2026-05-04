@@ -60,78 +60,38 @@ const SUCCESS_PHRASES: Record<string, string[]> = {
     "You let your forward edge thin and pour yourself ahead.",
     "Gravity does most of the deciding; you merely permit it.",
   ],
-  split: [
-    "You think two thoughts at once. Briefly, you are two boundaries around one essence.",
-  ],
-  sense_tremor: [
-    "You let your boundary widen; the room writes itself across your awareness.",
-  ],
-  dissolve: [
-    "Your acids find weakness in the matter and unmake it without ceremony.",
-  ],
-  smother: [
-    "You spread across what breathes and let it breathe nothing.",
-  ],
+  split: ["You think two thoughts at once. Briefly, you are two boundaries around one essence."],
+  sense_tremor: ["You let your boundary widen; the room writes itself across your awareness."],
+  dissolve: ["Your acids find weakness in the matter and unmake it without ceremony."],
+  smother: ["You spread across what breathes and let it breathe nothing."],
   mimic_shape: [
     "Your boundary remembers the shape of stillness, and you become a part of the floor.",
   ],
-  wait: [
-    "You remain very still. Time passes through you like water.",
-  ],
+  wait: ["You remain very still. Time passes through you like water."],
 };
 
 const PARTIAL_PHRASES: Record<string, string[]> = {
-  absorb: [
-    "The absorb begins, then the wrongness arrives.",
-  ],
-  ooze: [
-    "You move, but the floor's chemistry pulls a piece of you the wrong direction.",
-  ],
-  split: [
-    "Two of you persist for an instant; one of you remembers something the other cannot.",
-  ],
-  sense_tremor: [
-    "Your awareness widens, and the answers it returns are not the ones you wanted.",
-  ],
-  dissolve: [
-    "You weaken the matter, but a vapor rises from the breakdown that you cannot ignore.",
-  ],
-  smother: [
-    "You pin the breath, but its panic carries on a chemistry you taste long after.",
-  ],
-  mimic_shape: [
-    "You keep the shape, mostly. A small portion of you remains a slime.",
-  ],
-  wait: [
-    "Time passes through you, and not all of it leaves you unchanged.",
-  ],
+  absorb: ["The absorb begins, then the wrongness arrives."],
+  ooze: ["You move, but the floor's chemistry pulls a piece of you the wrong direction."],
+  split: ["Two of you persist for an instant; one of you remembers something the other cannot."],
+  sense_tremor: ["Your awareness widens, and the answers it returns are not the ones you wanted."],
+  dissolve: ["You weaken the matter, but a vapor rises from the breakdown that you cannot ignore."],
+  smother: ["You pin the breath, but its panic carries on a chemistry you taste long after."],
+  mimic_shape: ["You keep the shape, mostly. A small portion of you remains a slime."],
+  wait: ["Time passes through you, and not all of it leaves you unchanged."],
 };
 
 const MISS_PHRASES: Record<string, string[]> = {
-  absorb: [
-    "Whatever you reached for slips your boundary and is gone, and worse comes after.",
-  ],
-  ooze: [
-    "You go, but the going makes a sound, and something is now listening.",
-  ],
-  split: [
-    "The split fails. You remain one, but one cohered around a wound.",
-  ],
+  absorb: ["Whatever you reached for slips your boundary and is gone, and worse comes after."],
+  ooze: ["You go, but the going makes a sound, and something is now listening."],
+  split: ["The split fails. You remain one, but one cohered around a wound."],
   sense_tremor: [
     "Your boundary widens, and the cavern writes silence across your awareness, and that, too, is information.",
   ],
-  dissolve: [
-    "Your acids waste themselves on the wrong thing.",
-  ],
-  smother: [
-    "Whatever you spread across had no breath to take.",
-  ],
-  mimic_shape: [
-    "Your boundary refuses the shape; you are wholly yourself, in the wrong place.",
-  ],
-  wait: [
-    "Time passes. Time does not care about you.",
-  ],
+  dissolve: ["Your acids waste themselves on the wrong thing."],
+  smother: ["Whatever you spread across had no breath to take."],
+  mimic_shape: ["Your boundary refuses the shape; you are wholly yourself, in the wrong place."],
+  wait: ["Time passes. Time does not care about you."],
 };
 
 export class TemplateNarrator implements Narrator {
@@ -174,11 +134,7 @@ export class TemplateNarrator implements Narrator {
 
 function pickPhrase(verb: string, band: RollBand, seed: number): string {
   const bank =
-    band === "success"
-      ? SUCCESS_PHRASES
-      : band === "partial"
-        ? PARTIAL_PHRASES
-        : MISS_PHRASES;
+    band === "success" ? SUCCESS_PHRASES : band === "partial" ? PARTIAL_PHRASES : MISS_PHRASES;
   const list = bank[verb] ?? bank.wait ?? ["You hold."];
   const idx = Math.abs(seed | 0) % list.length;
   return list[idx];
@@ -227,9 +183,7 @@ function primaryToolsFor(
   for (const name of toolNames) {
     switch (name) {
       case "move_to": {
-        const room = location.rooms.find(
-          (r) => r.id === projection.location.roomId,
-        );
+        const room = location.rooms.find((r) => r.id === projection.location.roomId);
         const exit = room?.exits[0];
         if (exit) out.push({ name: "move_to", roomId: exit.toRoomId });
         break;
@@ -251,8 +205,7 @@ function primaryToolsFor(
       }
       case "remove_inventory": {
         const item = projection.inventory[0];
-        if (item)
-          out.push({ name: "remove_inventory", itemId: item.itemId, qty: 1 });
+        if (item) out.push({ name: "remove_inventory", itemId: item.itemId, qty: 1 });
         break;
       }
       case "apply_damage":
@@ -324,9 +277,7 @@ function concretizeMoveTool(
       const roomId = String(raw.roomId ?? "");
       if (roomId === "$WRONG_ROOM") {
         // Pick any non-current adjacent room.
-        const cur = location.rooms.find(
-          (r) => r.id === projection.location.roomId,
-        );
+        const cur = location.rooms.find((r) => r.id === projection.location.roomId);
         const exit = cur?.exits[0];
         if (!exit) return null;
         return { name: "move_to", roomId: exit.toRoomId };
@@ -335,7 +286,7 @@ function concretizeMoveTool(
     }
     case "absorb": {
       const itemId = String(raw.itemId ?? "");
-      if (itemId === "$ITEM") {
+      if (itemId.startsWith("$")) {
         const item = projection.inventory[0];
         if (!item) return null;
         return { name: "absorb", itemId: item.itemId, into: String(raw.into ?? "essence") };
@@ -353,6 +304,12 @@ function concretizeMoveTool(
     }
     case "pass_time":
       return { name: "pass_time", ticks: Number(raw.ticks ?? 1) };
+    case "sense":
+      return {
+        name: "sense",
+        modality: "vibration",
+        detail: String(raw.detail ?? raw.tag ?? "the room answers faintly"),
+      };
     default:
       return null;
   }

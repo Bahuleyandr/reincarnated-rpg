@@ -8,7 +8,6 @@ import postgres from "postgres";
 import { env } from "../util/env";
 
 declare global {
-  // eslint-disable-next-line no-var
   var __reincarnatedPg: ReturnType<typeof postgres> | undefined;
 }
 

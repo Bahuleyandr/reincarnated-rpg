@@ -29,6 +29,13 @@ primary_region = "bom"
     soft_limit = 50
     hard_limit = 100
 
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
 [[vm]]
   size = "shared-cpu-1x"
   memory = "512mb"
@@ -44,8 +51,9 @@ primary_region = "bom"
 #        VOYAGE_API_KEY=pa-... \
 #        NARRATOR=remote
 #   3. fly deploy
-#   4. fly ssh console -C "npm run db:migrate"   # apply migrations once
-#   5. fly ssh console -C "npm run db:seed"      # load forms + locations
+#   4. fly ssh console -C "node scripts/migrate-prod.mjs"  # apply migrations
+#   5. fly ssh console -C "node scripts/seed-runtime.mjs"  # load content
+#   6. fly ssh console -C "node scripts/smoke.mjs http://127.0.0.1:3000"
 #
 # To roll forward: `git tag v0.1.X && git push --tags && fly deploy`.
 # To roll back: `fly releases list` then `fly deploy --image <prev>`.

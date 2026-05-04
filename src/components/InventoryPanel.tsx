@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  inventoryCapacity,
-  inventoryUsed,
-  SAFETY_CAPS,
-} from "@/lib/game/tools";
+import { inventoryCapacity, inventoryUsed, SAFETY_CAPS } from "@/lib/game/safety";
 import type { Projection } from "@/lib/game/types";
 
 interface Props {
@@ -22,19 +18,12 @@ export function InventoryPanel({ projection }: Props) {
   const isAtHardMax = capacity >= SAFETY_CAPS.inventoryHardMax;
 
   return (
-    <section
-      className="px-4 py-3 space-y-3 text-xs"
-      data-testid="inventory-panel"
-    >
+    <section className="space-y-3 px-4 py-3 text-xs" data-testid="inventory-panel">
       <div className="space-y-1">
         <div className="flex items-baseline justify-between">
-          <h4 className="text-stone-400 uppercase tracking-wider text-[10px]">
-            inventory
-          </h4>
+          <h4 className="text-[10px] tracking-wider text-stone-400 uppercase">inventory</h4>
           <span
-            className={`text-[10px] ${
-              isFull ? "text-red-400" : "text-stone-500"
-            }`}
+            className={`text-[10px] ${isFull ? "text-red-400" : "text-stone-500"}`}
             title={
               isAtHardMax
                 ? `at hard cap (${SAFETY_CAPS.inventoryHardMax})`
@@ -45,7 +34,7 @@ export function InventoryPanel({ projection }: Props) {
             {isAtHardMax ? " ✦" : ""}
           </span>
         </div>
-        <div className="h-1 bg-stone-900 border border-stone-800 relative overflow-hidden">
+        <div className="relative h-1 overflow-hidden border border-stone-800 bg-stone-900">
           <div
             className={`absolute inset-y-0 left-0 ${
               isFull ? "bg-red-700" : pct > 80 ? "bg-amber-700" : "bg-stone-600"
@@ -58,11 +47,7 @@ export function InventoryPanel({ projection }: Props) {
         ) : (
           <ul className="space-y-0.5">
             {items.map((i) => (
-              <li
-                key={i.itemId}
-                className="flex justify-between"
-                data-testid={`item-${i.itemId}`}
-              >
+              <li key={i.itemId} className="flex justify-between" data-testid={`item-${i.itemId}`}>
                 <span className="text-stone-300">{i.itemId}</span>
                 <span className="text-stone-500">×{i.qty}</span>
               </li>
@@ -72,7 +57,7 @@ export function InventoryPanel({ projection }: Props) {
       </div>
 
       <div className="space-y-1">
-        <h4 className="text-stone-400 uppercase tracking-wider text-[10px]">
+        <h4 className="text-[10px] tracking-wider text-stone-400 uppercase">
           known ({npcs.length})
         </h4>
         {npcs.length === 0 ? (
@@ -80,11 +65,7 @@ export function InventoryPanel({ projection }: Props) {
         ) : (
           <ul className="space-y-0.5">
             {npcs.map(([id, npc]) => (
-              <li
-                key={id}
-                className="flex justify-between"
-                data-testid={`npc-${id}`}
-              >
+              <li key={id} className="flex justify-between" data-testid={`npc-${id}`}>
                 <span className="text-stone-300">{npc.name}</span>
                 <span
                   className={

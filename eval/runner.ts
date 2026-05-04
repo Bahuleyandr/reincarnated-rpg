@@ -10,11 +10,8 @@ import "../scripts/load-env";
  * Per scenario:
  *   1. TRUNCATE all session-scoped tables (one shared dev DB).
  *   2. Create session row + seed events from `setup.events`.
- *   3. (Future) Apply rollOverride by patching the next roll.
- *      Day-12 scope: rollOverride is recorded in the report but
- *      not yet injected — runTurn calls roll2d6 with the session
- *      seed. Tightening this lands when the orchestrator grows a
- *      `rollOverride` knob.
+ *   3. Apply rollOverride directly through runTurn when the scenario
+ *      supplies one.
  *   4. Drive one runTurn() with the scenario's `input`.
  *   5. Match emitted events against `expected.events` (loose),
  *      `expected.eventsAny` (any one matches), `expected.eventsAbsent`,
@@ -188,6 +185,7 @@ async function runScenario(
       location,
       narrator,
       beatPack,
+      rollOverride: scenario.rollOverride,
     });
     if (result.ok) narration = result.narration;
   } catch (err) {
@@ -253,10 +251,7 @@ async function runScenario(
   };
 }
 
-function matchesEvent(
-  event: Record<string, unknown>,
-  expected: Record<string, unknown>,
-): boolean {
+function matchesEvent(event: Record<string, unknown>, expected: Record<string, unknown>): boolean {
   for (const [k, v] of Object.entries(expected)) {
     if (k.startsWith("_")) continue;
     const actual = pluck(event, k);
@@ -316,7 +311,10 @@ function renderMarkdown(results: ScenarioResult[]): string {
     "|---|---|---|---|",
   ];
   for (const r of results) {
-    const a = r.assertions.length === 0 ? "—" : `${r.assertions.filter((x) => x.passed).length}/${r.assertions.length}`;
+    const a =
+      r.assertions.length === 0
+        ? "—"
+        : `${r.assertions.filter((x) => x.passed).length}/${r.assertions.length}`;
     lines.push(`| ${r.id} | ${r.status} | ${r.id} | ${a} |`);
   }
   return lines.join("\n");

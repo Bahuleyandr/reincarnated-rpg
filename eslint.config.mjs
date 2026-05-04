@@ -9,6 +9,7 @@ const eslintConfig = defineConfig([
   {
     plugins: { "unused-imports": unusedImports },
     rules: {
+      "react/no-unescaped-entities": "off",
       "unused-imports/no-unused-imports": "error",
       "unused-imports/no-unused-vars": [
         "warn",
@@ -16,13 +17,7 @@ const eslintConfig = defineConfig([
       ],
     },
   },
-  globalIgnores([
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-    "src/lib/db/migrations/**",
-  ]),
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "src/lib/db/migrations/**"]),
 ]);
 
 export default eslintConfig;

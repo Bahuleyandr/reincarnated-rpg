@@ -9,19 +9,11 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import type { Db } from "@/lib/db/client";
-import { sessions } from "@/lib/db/schema";
-import {
-  loadForm,
-  loadLocation,
-} from "@/lib/game/content";
+import { loadForm, loadLocation } from "@/lib/game/content";
 import { readLog, rowToEvent } from "@/lib/game/events";
 import { createSession } from "@/lib/game/session";
 import { _resetSessionCacheForTests, runTurn } from "@/lib/game/turn";
-import type {
-  NarrateInput,
-  NarrateOutput,
-  Narrator,
-} from "@/lib/game/types";
+import type { NarrateInput, NarrateOutput, Narrator } from "@/lib/game/types";
 
 let client: postgres.Sql;
 let db: Db;
@@ -49,10 +41,7 @@ class MockNarrator implements Narrator {
   constructor(private responses: NarrateOutput[]) {}
   async narrate(input: NarrateInput): Promise<NarrateOutput> {
     this.attempts.push(input);
-    const response =
-      this.responses[
-        Math.min(this.attempts.length - 1, this.responses.length - 1)
-      ];
+    const response = this.responses[Math.min(this.attempts.length - 1, this.responses.length - 1)];
     return response;
   }
 }
@@ -67,9 +56,7 @@ describe("tool-validation retry (ADR-011)", () => {
     const mock = new MockNarrator([
       {
         text: "Reaching for something you do not hold.",
-        toolCalls: [
-          { name: "remove_inventory", itemId: "ghost-stone", qty: 1 },
-        ],
+        toolCalls: [{ name: "remove_inventory", itemId: "ghost-stone", qty: 1 }],
       },
       {
         text: "On reflection, you reach for nothing.",
@@ -93,12 +80,8 @@ describe("tool-validation retry (ADR-011)", () => {
     // Mock should have been called twice (first + retry).
     expect(mock.attempts).toHaveLength(2);
     // The second call must carry the failure context.
-    expect(mock.attempts[1].previousAttempt?.failureKind).toBe(
-      "tool_validation",
-    );
-    expect(mock.attempts[1].previousAttempt?.failureReason).toMatch(
-      /remove_inventory/,
-    );
+    expect(mock.attempts[1].previousAttempt?.failureKind).toBe("tool_validation");
+    expect(mock.attempts[1].previousAttempt?.failureReason).toMatch(/remove_inventory/);
 
     const events = (await readLog(db, created.sessionId)).map(rowToEvent);
     const kinds = events.map((e) => e.kind);
@@ -106,10 +89,9 @@ describe("tool-validation retry (ADR-011)", () => {
     expect(kinds).toContain("tool_validation_failed");
     // Narration is the retry's text.
     const narration = events.find((e) => e.kind === "narration.emitted");
-    expect(
-      (narration as { kind: "narration.emitted"; text: string } | undefined)
-        ?.text,
-    ).toBe("On reflection, you reach for nothing.");
+    expect((narration as { kind: "narration.emitted"; text: string } | undefined)?.text).toBe(
+      "On reflection, you reach for nothing.",
+    );
   });
 
   test("first attempt fails AND retry also fails: orchestrator falls back, narration text from retry preserved", async () => {
@@ -119,16 +101,12 @@ describe("tool-validation retry (ADR-011)", () => {
     const mock = new MockNarrator([
       {
         text: "first try.",
-        toolCalls: [
-          { name: "remove_inventory", itemId: "ghost-stone", qty: 1 },
-        ],
+        toolCalls: [{ name: "remove_inventory", itemId: "ghost-stone", qty: 1 }],
       },
       {
         // Second attempt also broken (model didn't read the hint).
         text: "second try, also wrong.",
-        toolCalls: [
-          { name: "remove_inventory", itemId: "still-not-held", qty: 1 },
-        ],
+        toolCalls: [{ name: "remove_inventory", itemId: "still-not-held", qty: 1 }],
       },
     ]);
 

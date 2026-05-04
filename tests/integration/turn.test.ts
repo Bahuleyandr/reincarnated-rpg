@@ -3,11 +3,7 @@ import postgres from "postgres";
 
 import type { Db } from "@/lib/db/client";
 import { sessions } from "@/lib/db/schema";
-import {
-  loadBeatPack,
-  loadForm,
-  loadLocation,
-} from "@/lib/game/content";
+import { loadBeatPack, loadForm, loadLocation } from "@/lib/game/content";
 import { readLog, rowToEvent } from "@/lib/game/events";
 import { _resetSessionCacheForTests, runTurn } from "@/lib/game/turn";
 import { createSession } from "@/lib/game/session";
@@ -61,6 +57,33 @@ describe("runTurn — happy path", () => {
     expect(kinds).toContain("intent.classified");
     expect(kinds).toContain("roll.resolved");
     expect(kinds).toContain("narration.emitted");
+  });
+
+  test("rollOverride pins the emitted roll for eval scenarios", async () => {
+    const form = loadForm("lesser-slime");
+    const location = loadLocation("collapsed-tunnel");
+    const narrator = new TemplateNarrator({ form, location });
+
+    const created = await createSession(db, "lesser-slime");
+    const result = await runTurn({
+      db,
+      sessionId: created.sessionId,
+      input: "I ooze toward the slope",
+      form,
+      location,
+      narrator,
+      rollOverride: { d1: 6, d2: 4, mod: 0 },
+    });
+
+    if (!result.ok) throw new Error(`turn failed: ${result.error}`);
+    const events = (await readLog(db, created.sessionId)).map(rowToEvent);
+    const roll = events.find((e) => e.kind === "roll.resolved");
+    expect(roll?.kind).toBe("roll.resolved");
+    if (roll?.kind === "roll.resolved") {
+      expect(roll.roll.d1).toBe(6);
+      expect(roll.roll.d2).toBe(4);
+      expect(roll.roll.band).toBe("success");
+    }
   });
 
   test("two turns advance the projection roomId on a successful ooze", async () => {
@@ -264,9 +287,7 @@ describe("runTurn — moderation", () => {
     expect(r.projection.form.state["bad_luck"]).toBeUndefined();
     const events = (await readLog(db, created.sessionId)).map(rowToEvent);
     const badLuckEvents = events.filter(
-      (e) =>
-        e.kind === "form_state.changed" &&
-        (e as { field: string }).field === "bad_luck",
+      (e) => e.kind === "form_state.changed" && (e as { field: string }).field === "bad_luck",
     );
     expect(badLuckEvents).toHaveLength(0);
   });
