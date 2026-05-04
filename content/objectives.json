@@ -1,0 +1,135 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Daily and weekly objectives. Each entry has a JSON-DSL predicate that, when matched against the per-turn event slice, increments progress by 1. completed_at flips when progress meets target; reward_claimed_at fills in after explicit claim. periodKey is 'YYYY-MM-DD' (daily) or 'YYYY-Www' (weekly)."
+  },
+  "objectives": [
+    {
+      "id": "daily-three-turns",
+      "label": "Three Turns Today",
+      "description": "Take three turns in any form before the day ends (UTC).",
+      "period": "daily",
+      "target": 3,
+      "predicate": { "type": "eventOfKind", "kind": "turn.begun" },
+      "relevantKinds": ["turn.begun"],
+      "reward": { "kind": "energy", "amount": 3 }
+    },
+    {
+      "id": "daily-survive-once",
+      "label": "Survive a Run",
+      "description": "Finish a run with status 'won'.",
+      "period": "daily",
+      "target": 1,
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "session.ended", "reason": "win" }
+      },
+      "relevantKinds": ["session.ended"],
+      "reward": { "kind": "energy", "amount": 5 }
+    },
+    {
+      "id": "daily-die-once",
+      "label": "Die With Grace",
+      "description": "End a run in death. The cycle smiles.",
+      "period": "daily",
+      "target": 1,
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "session.ended", "reason": "death" }
+      },
+      "relevantKinds": ["session.ended"],
+      "reward": { "kind": "energy", "amount": 2 }
+    },
+    {
+      "id": "daily-friend",
+      "label": "Bend Toward Someone",
+      "description": "Bring an NPC's relationship up by 1.",
+      "period": "daily",
+      "target": 1,
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "relationship.updated", "delta": { "$gte": 1 } }
+      },
+      "relevantKinds": ["relationship.updated"],
+      "reward": { "kind": "energy", "amount": 2 }
+    },
+    {
+      "id": "daily-discover",
+      "label": "Step Into a New Room",
+      "description": "Discover one new location.",
+      "period": "daily",
+      "target": 1,
+      "predicate": { "type": "eventOfKind", "kind": "location.discovered" },
+      "relevantKinds": ["location.discovered"],
+      "reward": { "kind": "energy", "amount": 2 }
+    },
+    {
+      "id": "daily-absorb",
+      "label": "Take Something In",
+      "description": "Absorb one item.",
+      "period": "daily",
+      "target": 1,
+      "predicate": { "type": "eventOfKind", "kind": "absorbed" },
+      "relevantKinds": ["absorbed"],
+      "reward": { "kind": "energy", "amount": 2 }
+    },
+    {
+      "id": "daily-good-roll",
+      "label": "A Lucky Hour",
+      "description": "Roll a 10+ once.",
+      "period": "daily",
+      "target": 1,
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "roll.resolved", "roll.total": { "$gte": 10 } }
+      },
+      "relevantKinds": ["roll.resolved"],
+      "reward": { "kind": "energy", "amount": 1 }
+    },
+    {
+      "id": "weekly-five-runs",
+      "label": "Five Runs This Week",
+      "description": "Complete five runs (any outcome) before the week ends.",
+      "period": "weekly",
+      "target": 5,
+      "predicate": { "type": "eventOfKind", "kind": "session.ended" },
+      "relevantKinds": ["session.ended"],
+      "reward": { "kind": "energy", "amount": 15 }
+    },
+    {
+      "id": "weekly-five-forms",
+      "label": "Five Different Forms",
+      "description": "Start runs in five different forms this week.",
+      "period": "weekly",
+      "target": 5,
+      "predicate": { "type": "eventOfKind", "kind": "session.started" },
+      "relevantKinds": ["session.started"],
+      "reward": { "kind": "energy", "amount": 10 }
+    },
+    {
+      "id": "weekly-twenty-turns",
+      "label": "Twenty Turns This Week",
+      "description": "Take twenty turns this week.",
+      "period": "weekly",
+      "target": 20,
+      "predicate": { "type": "eventOfKind", "kind": "turn.begun" },
+      "relevantKinds": ["turn.begun"],
+      "reward": { "kind": "energy", "amount": 12 }
+    },
+    {
+      "id": "weekly-three-survives",
+      "label": "Three Survivals",
+      "description": "Survive three runs this week.",
+      "period": "weekly",
+      "target": 3,
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "session.ended", "reason": "win" }
+      },
+      "relevantKinds": ["session.ended"],
+      "reward": { "kind": "energy", "amount": 20 }
+    }
+  ]
+}

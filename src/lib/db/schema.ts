@@ -774,4 +774,37 @@ export const achievementsUnlocked = pgTable(
 export type AchievementUnlocked = typeof achievementsUnlocked.$inferSelect;
 export type NewAchievementUnlocked = typeof achievementsUnlocked.$inferInsert;
 
+/**
+ * Daily / weekly objective progress per user per period. UNIQUE
+ * (user_id, objective_id, period_key) ensures one row per
+ * objective/period; the runner upserts increments. completed_at
+ * fills in when progress meets target; reward_claimed_at fills in
+ * after the player explicitly claims via /api/objectives/claim.
+ */
+export const objectiveProgress = pgTable(
+  "objective_progress",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    objectiveId: text("objective_id").notNull(),
+    /** 'YYYY-MM-DD' for daily; 'YYYY-Www' (ISO) for weekly. */
+    periodKey: text("period_key").notNull(),
+    progress: integer("progress").notNull().default(0),
+    target: integer("target").notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    rewardClaimedAt: timestamp("reward_claimed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("obj_user_obj_period_unique").on(t.userId, t.objectiveId, t.periodKey),
+    index("obj_user_period_idx").on(t.userId, t.periodKey),
+  ],
+);
+
+export type ObjectiveProgress = typeof objectiveProgress.$inferSelect;
+export type NewObjectiveProgress = typeof objectiveProgress.$inferInsert;
+
 export const _sql = sql; // re-export for migration writers if needed

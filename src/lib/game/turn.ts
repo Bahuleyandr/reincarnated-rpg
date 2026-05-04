@@ -465,6 +465,22 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   projection = await loadProjection(db, sessionId, form, location);
   await writeSnapshot(db, projection);
 
+  // Objective progress (Phase 1 Day 6). Increment any matching
+  // objectives based on the events emitted this turn. Best-effort —
+  // never breaks the turn pipeline.
+  if (world?.userId) {
+    try {
+      const { tickObjectives } = await import("../objectives/runner");
+      await tickObjectives(db, world.userId, pendingEvents);
+    } catch (err) {
+      log.warn("objectives.tick_failed", {
+        sessionId,
+        userId: world.userId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   for (const tool of acceptedToolCalls) {
     if (tool.name !== "create_memory") continue;
     try {
