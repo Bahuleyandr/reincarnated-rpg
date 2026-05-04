@@ -20,6 +20,7 @@ export default function Play() {
   const [projection, setProjection] = useState<Projection | null>(null);
   const [entries, setEntries] = useState<TranscriptEntry[]>([]);
   const [hasAccount, setHasAccount] = useState(false);
+  const [campaignId, setCampaignId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // When non-null, a 409 turn-lock conflict triggered an auto-retry.
   // The InputBox uses this to show "settling..." instead of the
@@ -65,6 +66,7 @@ export default function Play() {
         if (cancelled) return;
         setProjection(data.projection);
         setHasAccount(!!data.hasAccount);
+        setCampaignId(data.campaignId ?? null);
         setArcTagline(data.arcTagline ?? null);
         setEntries(
           (data.narrations as string[]).map((text) => ({
@@ -414,6 +416,7 @@ export default function Play() {
             onRestart={restart}
             busy={busy}
             hasAccount={hasAccount}
+            campaignId={campaignId}
           />
         ) : (
           <InputBox
@@ -449,16 +452,105 @@ export default function Play() {
   );
 }
 
+/**
+ * EpitaphForm — Phase 5.5 Day 30. Shown inside Recap on death for
+ * logged-in players. Submits a 280-char last-words to
+ * POST /api/campaigns/[id]/epitaph; on success the entry surfaces
+ * in the same location's lore 24h later.
+ */
+function EpitaphForm({ campaignId }: { campaignId: string }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const max = 280;
+
+  if (submitted) {
+    return (
+      <p className="text-stone-500 text-xs italic leading-5 border-t border-stone-800/60 pt-3">
+        ✦ your last words have been carved into the stone here. another
+        soul will read them tomorrow.
+      </p>
+    );
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    const trimmed = text.trim();
+    if (trimmed.length === 0) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await fetch(`/api/campaigns/${campaignId}/epitaph`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: trimmed }),
+      });
+      if (!r.ok) {
+        const data = (await r.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? `submit failed (${r.status})`);
+        return;
+      }
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "network error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className="space-y-2 border-t border-stone-800/60 pt-3"
+    >
+      <label className="block text-stone-400 text-xs leading-5">
+        ✦ your last words?{" "}
+        <span className="text-stone-600 italic">
+          (visible to others passing through here, in 24h)
+        </span>
+      </label>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value.slice(0, max))}
+        rows={3}
+        maxLength={max}
+        disabled={busy}
+        placeholder="i was almost something"
+        className="w-full bg-stone-950 border border-stone-800 px-3 py-2 text-sm text-stone-200 placeholder-stone-700 focus:outline-none focus:border-stone-600"
+      />
+      <div className="flex items-center justify-between text-[10px] text-stone-600">
+        <span className="tabular-nums">
+          {text.length}/{max}
+        </span>
+        <button
+          type="submit"
+          disabled={busy || text.trim().length === 0}
+          className="text-stone-300 hover:text-stone-100 underline underline-offset-4 text-xs disabled:opacity-50"
+        >
+          carve it
+        </button>
+      </div>
+      {error && (
+        <p className="text-red-400 text-[10px]">{error.replace(/_/g, " ")}</p>
+      )}
+    </form>
+  );
+}
+
 function Recap({
   projection,
   onRestart,
   busy,
   hasAccount,
+  campaignId,
 }: {
   projection: Projection;
   onRestart(): void;
   busy: boolean;
   hasAccount: boolean;
+  campaignId: string | null;
 }) {
   const status = projection.status;
   const turn = projection.turn;
@@ -531,6 +623,9 @@ function Recap({
           </span>
         </li>
       </ul>
+      {status === "dead" && hasAccount && campaignId && (
+        <EpitaphForm campaignId={campaignId} />
+      )}
       <div className="flex items-baseline gap-4 flex-wrap pt-1">
         <button
           type="button"

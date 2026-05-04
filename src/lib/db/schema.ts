@@ -658,6 +658,13 @@ export const worldLore = pgTable(
     index("world_lore_salience_idx").on(t.salience, t.createdAt),
     index("world_lore_category_idx").on(t.category),
     index("world_lore_user_idx").on(t.sourceUserId),
+    /** Phase 5.5 Day 30. Hot query: "recent epitaphs at <locationId>"
+     *  used by the next-campaign turn-1 memory injection. */
+    index("world_lore_location_category_idx").on(
+      t.sourceLocationId,
+      t.category,
+      t.createdAt,
+    ),
   ],
 );
 

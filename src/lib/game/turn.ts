@@ -350,6 +350,32 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
         err: err instanceof Error ? err.message : String(err),
       });
     }
+
+    // Location-tied lore (Phase 5.5 Day 30). Players who died here
+    // before may have left an epitaph; pick the top-2 by salience
+    // and inject as memories so the narrator can weave "you
+    // remember a phrase carved here" naturally.
+    try {
+      const { recentLocationLore } = await import("../locations/lore");
+      const lore = await recentLocationLore(db, location.id, {
+        category: "epitaph",
+        limit: 2,
+      });
+      if (lore.length > 0) {
+        const loreMemories: import("./types").Memory[] = lore.map((l) => ({
+          id: `epitaph:${l.id}`,
+          summary: `EPITAPH (left here by another life): "${l.summary}"`,
+          salience: 0.5,
+          eventSeqRange: [-1, -1] as [number, number],
+        }));
+        relevantMemories = [...loreMemories, ...relevantMemories];
+      }
+    } catch (err) {
+      log.warn("turn.location_lore.recall_failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   // Wonder events (Phase 4.5 Day 17). Per-turn 1% chance to inject
