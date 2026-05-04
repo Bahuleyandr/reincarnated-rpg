@@ -10,6 +10,8 @@
   "displayName": "Dragon Egg",
   "tagline": "You woke up curled tight, and the world is mostly the inside of your shell.",
 
+  "dice": "2d6r1",
+
   "vitals": {
     "warmth":    { "max": 10, "start": 8, "death": 0 },
     "heartbeat": { "max": 10, "start": 10, "death": 0 }

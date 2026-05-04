@@ -20,6 +20,13 @@ export interface RollResult {
   total: number;
   band: RollBand;
   seed: number;
+  /** Phase 9 form-specific dice variants. "2d6" for legacy/default;
+   *  forms can opt into 3d6kh2 / 2d6r1 / 1d12 via their JSON
+   *  template. d1/d2 still carry "two dice the UI should show"
+   *  regardless of variant; the variant id lets the UI label them
+   *  and the narrator flavor the roll text. Optional for backward
+   *  compat with replay events written before this field. */
+  variant?: "2d6" | "3d6kh2" | "2d6r1" | "1d12";
 }
 
 export type SessionStatus = "active" | "dead" | "won" | "capped";
@@ -338,6 +345,10 @@ export interface FormTemplate {
     }
   >;
   hardMoves?: unknown;
+  /** Phase 9 form-specific dice variant. When unset, the form
+   *  rolls the default 2d6. See src/lib/game/rules.ts for the
+   *  catalog and rationale per form. */
+  dice?: "2d6" | "3d6kh2" | "2d6r1" | "1d12";
 }
 
 export interface LocationRoom {

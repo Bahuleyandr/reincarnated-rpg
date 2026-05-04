@@ -10,6 +10,8 @@
   "displayName": "Dungeon Core",
   "tagline": "You woke up in a chamber you cannot leave, and the dungeon is yours.",
 
+  "dice": "1d12",
+
   "vitals": {
     "mana":      { "max": 12, "start": 8, "death": null },
     "integrity": { "max": 8,  "start": 8, "death": 0 }
