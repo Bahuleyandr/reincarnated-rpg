@@ -112,6 +112,11 @@ export const users = pgTable("users", {
    *  hits 0 the next action charges 1 energy and refills the pool
    *  to 10 (net: 1 energy per 10 craft actions). Phase 5 Day 20. */
   craftCredits: integer("craft_credits").notNull().default(10),
+  /** Per-form 24h cooldown audit (Phase 5.5 Day 29). Shape:
+   *  Array<{ formId: string, diedAt: ISO timestamp }>. The
+   *  reincarnation picker filters formIds whose latest entry is
+   *  within 24h. Trimmed to last 7 days on each write. */
+  recentFormDeaths: jsonb("recent_form_deaths").notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -274,6 +274,13 @@
       "when": 1778100000000,
       "tag": "0038_economy_telemetry",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1778110000000,
+      "tag": "0039_form_cooldowns",
+      "breakpoints": true
     }
   ]
 }

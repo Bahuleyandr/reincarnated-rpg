@@ -21,10 +21,23 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
 import { offerReincarnations } from "@/lib/game/reincarnation-picker";
+import {
+  SESSION_COOKIE_NAME,
+  verifyCookie,
+} from "@/lib/session/cookie";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const n = Math.max(3, Math.min(12, Number(url.searchParams.get("n") ?? "6")));
-  const offer = await offerReincarnations(db, { n });
+  // Phase 5.5 Day 29: thread the caller's userId so the picker can
+  // filter cooling forms. Anon visitors send no cookie / non-user
+  // cookie → undefined userId → no cooldowns applied.
+  const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+  let userId: string | undefined;
+  if (cookie) {
+    const verified = await verifyCookie(cookie);
+    userId = verified?.userId ?? undefined;
+  }
+  const offer = await offerReincarnations(db, { n, userId });
   return NextResponse.json(offer);
 }
