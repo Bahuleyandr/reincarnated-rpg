@@ -347,6 +347,21 @@ const TOOL_DEFINITIONS: ProviderTool[] = [
     },
   },
   {
+    name: "list_item",
+    description:
+      "Post one of the player's items to the cross-player marketplace at a fixed price. Escrows the item out of inventory immediately; a buyer's purchase pays the seller minus a 10% sink fee. 7-day TTL; cancel returns the item. Use only when the player explicitly says they're listing for sale (\"list 3 iron ingots at 30c each\"). qty 1-99, pricePerUnit 1-100000, optional note up to 160 chars. Only available to logged-in players; anon sessions silently no-op.",
+    input_schema: {
+      type: "object",
+      properties: {
+        itemId: { type: "string" },
+        qty: { type: "integer", minimum: 1, maximum: 99 },
+        pricePerUnit: { type: "integer", minimum: 1, maximum: 100000 },
+        note: { type: "string", maxLength: 160 },
+      },
+      required: ["itemId", "qty", "pricePerUnit"],
+    },
+  },
+  {
     name: "narrate_only",
     description:
       "Emit no mechanical change this turn. Use this when nothing in projection state changes.",

@@ -207,6 +207,10 @@ const TOOL_TO_KINDS: Record<ToolCall["name"], readonly string[]> = {
   pledge_faction: ["faction.pledged"],
   // Post-Phase-8 dialogue tool.
   speak_to: ["dialogue.exchanged"],
+  // Phase 9 marketplace: list_item emits inventory.removed (escrow)
+  // + marketplace.listed (audit). Either signal counts as "the
+  // player invoked list_item this slice".
+  list_item: ["marketplace.listed"],
   narrate_only: [],
 };
 
