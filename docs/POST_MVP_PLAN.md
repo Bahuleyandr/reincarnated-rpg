@@ -65,10 +65,14 @@ The wedge — *"a text RPG where every life is a different game, and the world r
 | **50** | **scheduled world events** | Wyrm Voice + other synchronized injections |
 | **51** | **story authoring tooling** | CLI scaffolder + validator + eval scenario 22 |
 | **52** | **story admin dashboard** | `/god/story` for live ops |
+| **53** | **Catch-Up Codex** | per-chapter summary + mid-year onboarding flow |
+| **54** | **Year Archive** | end-of-year snapshot + `/world/year/[n]` pages + Year 2 seed |
 
-Days 53+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days), ascension (7-10 days), player-driven marketplace (7+ days). Treat them as independent milestones after Day 52 lands.
+Days 55+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days), ascension (7-10 days), player-driven marketplace (7+ days). Treat them as independent milestones after Day 54 lands.
 
 Story bible source-of-truth: `docs/STORY_BIBLE.md`. Read it before authoring chapter content or wiring story machinery.
+
+**World clock locked at 1:1 real time** (ADR-019). 1 chapter = 7 real days, UTC. 1 Year = 365 real days. Admin pause is the only way to halt the clock. Test/preview environments use `STORY_TIME_FACTOR` env var to accelerate; production hard-codes 1.0.
 
 ---
 
@@ -1089,14 +1093,82 @@ CREATE INDEX world_events_pending_idx ON world_events (scheduled_at) WHERE fired
 
 **Acceptance**: A new branch can be added live via the admin dashboard mid-year if data shows player actions don't fit the planned paths.
 
+### Day 53: Catch-Up Codex (mid-year entry)
+
+**Why**: World clock locked at 1:1 (ADR-019). New players joining on Day 87 walk into Book III Ch 12 — they don't get to play Book I. The Codex is how they catch up: an auto-generated condensed briefing of every chapter and branch resolution before their entry point.
+
+**Schema migration `0049_catchup_codex.sql`**
+```sql
+CREATE TABLE chapter_summaries (
+  chapter_id integer PRIMARY KEY,
+  year integer NOT NULL DEFAULT 1,
+  summary_short text NOT NULL,        -- 1-2 sentences for the Codex
+  summary_long text NOT NULL,         -- paragraph with the chapter's flavor
+  branch_outcome jsonb,                -- if this chapter had a branch, the resolved path
+  notable_deaths jsonb,                -- top famous deaths from the chapter
+  generated_at timestamptz NOT NULL DEFAULT now()
+);
+```
+
+**New files**
+- `src/lib/story/codex.ts` — at chapter advance, generate the summary via Haiku 4.5 (cheap, one call per chapter advance, deterministic seed). Pulls from: chapter content, resolved branch, top famous deaths, faction-state snapshot. Cached forever in the table.
+- `src/app/codex/page.tsx` — Catch-Up Codex page. Shows every chapter through the player's join-week as a scrollable timeline. New players see this on first login if they joined after Book I. Existing players can browse it any time.
+- `src/components/CodexEntry.tsx` — chapter card with the short/long summary + collapsed details.
+- Hook in registration (Day 1 of player) — if `world_calendar.current_chapter > 1`, mark the user with `needs_codex_briefing=true` and route to `/codex/welcome` first.
+- `tests/integration/codex.test.ts` — chapter advances generate summaries; codex page renders correctly for a Day-87 join.
+
+**Acceptance**: A user registers on Day 87 → first hits `/codex/welcome` → reads condensed lore for Books I, II, and Ch 9-12 of Book III → graduates into normal play. Existing players can revisit Codex any time via a nav link.
+
+**Gotchas**
+- Don't auto-show Codex on every login — only first registration mid-year. Veterans hate forced briefings.
+- Generation is one-shot per chapter on advance; never regenerate. The summary is canon.
+- Codex summaries are public; they appear on the Year Archive page (next day) and in OG previews.
+
+### Day 54: Year Archive (Year 1 → readable history when Year 2 begins)
+
+**Why**: A real-time year is a real-time year — but once it's done, it should become *history*, not vanish. The Archive lets Year-2 players read Year 1 like a book; lore that decayed in live play is preserved here forever; the year's outcome (Renewal / Echo / Hollow / Mortal / Inversion / Long Sleep) gets a dedicated monument page.
+
+**Schema migration `0050_year_archive.sql`**
+```sql
+CREATE TABLE year_archives (
+  year integer PRIMARY KEY,
+  ending_id text NOT NULL,
+  archived_at timestamptz NOT NULL DEFAULT now(),
+  full_summary text NOT NULL,
+  faction_final_state jsonb NOT NULL,
+  notable_players jsonb NOT NULL,      -- first-to-sit, top contributors, top epitaphs
+  notable_deaths jsonb NOT NULL,
+  branches_resolved jsonb NOT NULL,
+  voice_recordings jsonb DEFAULT '[]'::jsonb,  -- the Wyrm Voice lines from that year
+  permanent_lore_ids bigint[]          -- world_lore ids that survived decay
+);
+```
+
+**New files**
+- `src/lib/story/archive.ts` — at end-of-year (Ch 48 advance), snapshot everything into `year_archives`. Idempotent.
+- `src/app/world/year/[n]/page.tsx` — public year-summary page. Renders the year as a long-form story: cosmology recap, the 12 Books, the resolved branches, the ending. Shareable URL with OG image showing the ending.
+- `src/app/world/archive/page.tsx` — index of all archived years.
+- `src/lib/story/year-2-seed.ts` — at Year 2 start (Day 366), read Year 1 archive + apply Year 2 modifiers per the ending (Renewal: rebalanced forms; Echo: permadeath default; etc.).
+- `tests/integration/year-archive.test.ts` — simulate year-end; archive populates; Year 2 starts with correct seed.
+
+**Acceptance**: Day 365 ends → Day 366 begins as Year 2 with the right ending applied → `/world/year/1` is a beautifully rendered permanent record. Year 2's new players can read it like a creation myth.
+
+### Day 38 addendum (calendar engine): pause + countdown
+
+**Already covered in Day 38**, but the spec needs to be explicit about pause + UI countdown:
+- Pause: admin-only toggle in `/god/story`. When paused, `world_calendar.paused_at` is set; `chapter_started_at` is bumped by the pause duration on resume. UI banner shows "the calendar is paused" while engaged.
+- UI countdown: every page (or at least the homepage and `/play`) shows "next chapter in 3d 4h 12m". Driven by `chapter_started_at + 7 days`. Always-visible reminder that time matters.
+- Test/preview: `STORY_TIME_FACTOR` env var. Default unset (1 chapter = 7 days). In staging, set to e.g. 0.01 → 1 chapter = ~1.7 hours, so a full year runs in ~6 days for QA. **Production hard-codes the factor to 1.** Validation in env.ts rejects non-1 in production.
+
 ### Phase 7 ongoing: weekly chapter authoring
 
-After Day 52, the calendar is running. Each Chapter then takes 2-4 hours of human authoring per week. Maintain a 4-chapter buffer ahead of "now" so we always have content ready. This is steady-state work, not a milestone.
+After Day 54, the calendar is running and the catch-up + archive infrastructure is in place. Each Chapter then takes 2-4 hours of human authoring per week. Maintain a 4-chapter buffer ahead of "now" so we always have content ready. This is steady-state work, not a milestone.
 
 **Failure modes to watch for**
 - Chapter content slipping below 2-week buffer → calendar hits an empty chapter → fallback to TemplateNarrator + a generic "the world is quiet this week" theme. Not great, but doesn't break the game.
 - Branch outcome ties → defaults fire (defined per branch in `content/story/branches/<n>.json`).
 - Faction balance flatlines → admin nudges via `god/story` dashboard. Or accept that some years are quiet.
+- Sustained engagement collapse → Long Sleep ending fires legitimately. Year 2 becomes a soft-reboot. Not a bug — the world reflects who showed up.
 
 ---
 
@@ -1246,13 +1318,17 @@ Day 48    endings machinery                 │
 Day 49    First-to-Sit + Edicts             │
 Day 50    scheduled world events            │
 Day 51    story authoring tooling           │
-Day 52    story admin dashboard ────────────┘
-Day 53+   NPC dialogue (3-5d)
-Day 58+   player-authored forms (5-7d)
-Day 65+   Phase 6a: player-driven marketplace (~7d)
-Day 65+   Phase 6b: ascension (~7-10d, parallel to 6a)
-+ ongoing: weekly chapter authoring (~2-4h/week)
+Day 52    story admin dashboard             │
+Day 53    Catch-Up Codex                    │
+Day 54    Year Archive ─────────────────────┘
+Day 55+   NPC dialogue (3-5d)
+Day 60+   player-authored forms (5-7d)
+Day 67+   Phase 6a: player-driven marketplace (~7d)
+Day 67+   Phase 6b: ascension (~7-10d, parallel to 6a)
++ ongoing: weekly chapter authoring (~2-4h/week, 4-chapter buffer)
 ```
+
+**Calendar pacing** (ADR-019): 1 chapter = 7 real days UTC. The world clock runs at 1:1 throughout. Phase 7 build (Day 38-54) takes ~17 dev days; the *story* it powers takes 365 real days to play through.
 
 Each day ships a green build with unit + integration tests, lint clean, and merged to master via the standard branch + push + merge flow. No skipping local CI.
 
@@ -1290,5 +1366,9 @@ Each day ships a green build with unit + integration tests, lint clean, and merg
 | 28 | Forsaken permadeath: irreversible, or "true death" only on second confirmation? | Two-step confirm; first death → admin notification, second → real |
 | 29 | Year-2 starting state: full carry-over of all individual progress, or partial reset? | Carry coins + skills + ascensions; reset bad_luck + active campaigns |
 | 30 | Failed-engagement "Long Sleep" ending threshold: 100 active players, or smaller? | 100 for v1; revisit after watching Books I-V engagement |
+| 31 | Codex briefing: forced for mid-year joiners, or skippable on registration? | Forced once on first login; skippable thereafter |
+| 32 | Year Archive write timing: at Ch 48 advance, or after a 7-day "wake" period? | At Ch 48 advance; lore is final at year-end |
+| 33 | Pause-during-chapter: extends chapter by pause duration, or chapter still rolls at the wall-clock 7d mark? | Extends — chapters are 7 days of *active* time |
+| 34 | `STORY_TIME_FACTOR` allowed values in non-prod: any positive float, or specific tiers (1.0 / 0.1 / 0.01)? | Any positive float; env validator rejects non-1.0 in prod |
 
 Resolve as features come up. Update `docs/DECISIONS.md` with chosen path.
