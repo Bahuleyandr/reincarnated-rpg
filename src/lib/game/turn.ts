@@ -1120,6 +1120,37 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
+  // Daily-run progress (Phase 9 growth bet). When the current
+  // session is a daily run, push the latest status + turn count
+  // + score into daily_runs. Best-effort; non-daily sessions and
+  // anon runs no-op.
+  if (world?.userId) {
+    try {
+      const { findDailyForSession, updateDailyProgress } = await import(
+        "../daily/challenge"
+      );
+      const daily = await findDailyForSession(db, sessionId);
+      if (daily) {
+        const status = projection.status as
+          | "active"
+          | "won"
+          | "dead"
+          | "capped";
+        await updateDailyProgress(db, {
+          userId: daily.userId,
+          utcDate: daily.utcDate,
+          status,
+          turnCount: projection.turn,
+        });
+      }
+    } catch (err) {
+      log.warn("turn.daily.progress_failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   // Anti-farm counter bumps (Phase 5 Day 26 follow-up). Per-vendor
   // sell flow + per-resource gather qty land in their respective
   // daily-key tables so the next turn's validator can enforce

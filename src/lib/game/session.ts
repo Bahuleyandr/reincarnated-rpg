@@ -34,10 +34,16 @@ export async function createSession(
     /** Phase 5.5 Day 36-37. Set true for the new-user tutorial
      *  session. Excludes from leaderboards / meta-arc. */
     isTutorial?: boolean;
+    /** Phase 9 daily shared-seed loop. When set, pins the
+     *  session's PRNG seed instead of generating a fresh one.
+     *  Two players with the same seed roll the same dice on
+     *  the same turn — the entire wedge of "today's daily" is
+     *  expressed through this. Range: 0..2^32-1. */
+    seed?: number;
   } = {},
 ): Promise<CreateSessionResult> {
   const sessionId = uuidv7();
-  const seed = randomBytes(4).readUInt32BE(0);
+  const seed = opts.seed ?? randomBytes(4).readUInt32BE(0);
   const cookieHmac = uuidv7().replace(/-/g, "");
 
   // Anon sessions start at the BLESSED-free cap (40) — same lure
