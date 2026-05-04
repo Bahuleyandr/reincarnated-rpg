@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Skills catalog — Phase 5 Day 23-24. Each skill is gated by a trainer NPC (learnedFromNpc — see content/npcs/<id>.json with metadata.teachesSkill). XP curve is `level = floor(sqrt(xp/50))` — see lib/economy/skills.ts. Casual play hits L5 in a session, L10 in a week, L20 is a brag. Each skill maps to specific recipe categories (smithing → smith-* recipes, alchemy → alchemy-* recipes, etc.) and gather affinities (mining → ore, woodcutting → wood, farming → herb)."
+  },
+  "skills": [
+    {
+      "id": "smithing",
+      "label": "smithing",
+      "description": "Heat, hammer, fold. The bones of every weapon and tool.",
+      "trainerNpcId": "master-halrik"
+    },
+    {
+      "id": "smelting",
+      "label": "smelting",
+      "description": "Coax metal out of stone. The first step before any blade.",
+      "trainerNpcId": "old-vassi-of-the-furnace"
+    },
+    {
+      "id": "alchemy",
+      "label": "alchemy",
+      "description": "Steam, decoction, the careful weighing of things bitter and sweet.",
+      "trainerNpcId": "mother-vael"
+    },
+    {
+      "id": "farming",
+      "label": "farming",
+      "description": "Seeds, soil, weeding, the patience to wait. Also the cord and the bowl.",
+      "trainerNpcId": "old-orin-of-the-furrows"
+    },
+    {
+      "id": "woodcutting",
+      "label": "woodcutting",
+      "description": "Chop, mill, square. Every handle started here.",
+      "trainerNpcId": "the-axe-named-thane"
+    },
+    {
+      "id": "mining",
+      "label": "mining",
+      "description": "Read the stone, find the seam, swing without breaking the wrist.",
+      "trainerNpcId": "deep-vald"
+    },
+    {
+      "id": "cooking",
+      "label": "cooking",
+      "description": "Salt, smoke, fire. The work of keeping people alive past today.",
+      "trainerNpcId": "kethra-the-keeper"
+    }
+  ]
+}

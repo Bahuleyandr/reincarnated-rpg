@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Mining trainer. Found at iron-reach (deep tunnels, away from Halrik's forge). Reads stone like a book and doesn't blink in the dark."
+  },
+  "id": "deep-vald",
+  "displayName": "Deep Vald",
+  "kind": "npc",
+  "tagline": "broad-shouldered, beard like a black river, eyes that don't reflect torchlight.",
+  "vitals": { "hp": { "max": 11, "start": 11 } },
+  "stats": { "speed": -1, "awareness": 2, "threat": 0 },
+  "attitudeDefault": 0,
+  "attitudeRange": [-1, 2],
+  "tags": ["human", "miner", "trainer", "named"],
+  "behavior": {
+    "default": "examines the rock face with a knuckle, listens longer than he looks",
+    "narrativeHooks": [
+      "Vald hasn't been to the surface in a year. He says it's loud up there.",
+      "He always finds the seam. Always. The other miners follow his pick when he stops to listen."
+    ]
+  },
+  "metadata": {
+    "templateId": "deep-vald",
+    "teachesSkill": "mining",
+    "teachingFee": 90,
+    "teachingLines": [
+      "The stone wants to break somewhere. Find that place. Strike it.",
+      "Don't fight the seam. The seam is a kindness."
+    ]
+  },
+  "interactions": {
+    "speak": "available",
+    "learn": "available — call learn_skill_from(npcId) with 90 coins"
+  }
+}

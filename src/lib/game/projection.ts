@@ -115,6 +115,12 @@ export function reduce(state: Projection, event: Event): Projection {
     // companion inventory.removed/added pair carries the
     // projection mutations and xp.granted carries the XP delta.
     case "craft.completed":
+    // Phase 5 Day 23-24: skill events live on the user_skills row
+    // and never affect the per-session projection. The orchestrator
+    // applies these as side effects after appendEvents.
+    case "skill.learned":
+    case "skill.xp_gained":
+    case "skill.leveled_up":
       return state;
 
     case "turn.begun":

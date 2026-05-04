@@ -260,6 +260,13 @@
       "when": 1778080000000,
       "tag": "0036_craft_credits",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1778090000000,
+      "tag": "0037_user_skills",
+      "breakpoints": true
     }
   ]
 }

@@ -18,6 +18,7 @@ import type { Db } from "../db/client";
 import { uuidv7 } from "../util/uuidv7";
 import { rollGather, validateGather } from "../economy/gather";
 import { validateRecipe } from "../economy/recipes";
+import { getTrainerForNpc } from "../economy/trainers";
 import { getVendorCatalog, validateTrade } from "../economy/vendor";
 
 import { appendEvents, type AppendedEvent } from "./events";
@@ -130,6 +131,10 @@ const toolSchemas = {
     name: z.literal("craft_recipe"),
     recipeId: slugSchema,
   }),
+  learn_skill_from: z.object({
+    name: z.literal("learn_skill_from"),
+    npcId: nonEmptyString,
+  }),
   narrate_only: z.object({
     name: z.literal("narrate_only"),
   }),
@@ -154,6 +159,7 @@ export const toolCallSchema = z.discriminatedUnion("name", [
   toolSchemas.trade_with_npc,
   toolSchemas.gather_resource,
   toolSchemas.craft_recipe,
+  toolSchemas.learn_skill_from,
   toolSchemas.narrate_only,
 ]);
 
@@ -189,6 +195,9 @@ export interface ToolValidationContext {
    *  earlier days the map is empty and skillLevel = 0 for all
    *  skill-gated rolls. */
   skillLevels?: Readonly<Record<string, number>>;
+  /** Skill ids the player already knows. Used by `learn_skill_from`
+   *  to reject duplicate-learn calls. */
+  knownSkills?: ReadonlySet<string>;
 }
 
 export interface ValidateToolsArgs extends ToolValidationContext {
@@ -262,6 +271,42 @@ export function validateToolsToEvents(args: ValidateToolsArgs): ValidateToolsRes
 
   const events: Event[] = [];
   for (const tool of parsedTools) {
+    if (tool.name === "learn_skill_from") {
+      // Multi-event tool: emits skill.learned + coins.spent. The
+      // user_skills row insert happens as a side effect in turn.ts
+      // after appendEvents.
+      const npc = projection.npcs[tool.npcId] as
+        | (Record<string, unknown> & { templateId?: unknown })
+        | undefined;
+      const templateId =
+        npc && typeof npc.templateId === "string"
+          ? npc.templateId
+          : tool.npcId.replace(/-[0-9a-f]{8}$/, "");
+      const trainer = getTrainerForNpc(templateId);
+      if (!trainer) {
+        return {
+          ok: false,
+          failure: {
+            tool: "learn_skill_from",
+            error: `learn_skill_from: trainer disappeared mid-turn for ${tool.npcId}`,
+          },
+        };
+      }
+      events.push({
+        kind: "skill.learned",
+        skillId: trainer.teachesSkill,
+        fromNpcId: tool.npcId,
+        fee: trainer.teachingFee,
+      });
+      if (trainer.teachingFee > 0) {
+        events.push({
+          kind: "coins.spent",
+          amount: trainer.teachingFee,
+          sink: `trainer:${templateId}`,
+        });
+      }
+      continue;
+    }
     if (tool.name === "craft_recipe") {
       // Multi-event tool: removes inputs, adds output, emits the
       // craft.completed audit + xp.granted (Day 23-24 hooks the
@@ -556,6 +601,27 @@ export function checkPrecondition(
       // delta might still overflow if output > total inputs (rare).
       return null;
     }
+    case "learn_skill_from": {
+      const npc = projection.npcs[tool.npcId] as
+        | (Record<string, unknown> & { templateId?: unknown })
+        | undefined;
+      if (!npc) return `learn_skill_from: unknown npc: ${tool.npcId}`;
+      const templateId =
+        typeof npc.templateId === "string"
+          ? npc.templateId
+          : tool.npcId.replace(/-[0-9a-f]{8}$/, "");
+      const trainer = getTrainerForNpc(templateId);
+      if (!trainer) {
+        return `learn_skill_from: ${tool.npcId} is not a trainer`;
+      }
+      if (context.knownSkills?.has(trainer.teachesSkill)) {
+        return `learn_skill_from: you already know ${trainer.teachesSkill}`;
+      }
+      if ((context.currentCoins ?? 0) < trainer.teachingFee) {
+        return `learn_skill_from: insufficient coins (need ${trainer.teachingFee}, have ${context.currentCoins ?? 0})`;
+      }
+      return null;
+    }
     case "trade_with_npc": {
       const npc = projection.npcs[tool.npcId] as
         | (Record<string, unknown> & { templateId?: unknown })
@@ -753,6 +819,7 @@ export function toolToEvent(tool: ToolCall, projection: Projection): Event | nul
     case "trade_with_npc":
     case "gather_resource":
     case "craft_recipe":
+    case "learn_skill_from":
       // Handled by the inline multi-event branch in
       // validateToolsToEvents; toolToEvent returns null so this
       // function stays 1:1-or-zero and predicate audits don't get

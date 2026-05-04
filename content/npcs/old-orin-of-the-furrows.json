@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Farming trainer. Found in forsaken-village (the few residual fields that still produce). Teaches farming, weaving, and pottery in a single bundle."
+  },
+  "id": "old-orin-of-the-furrows",
+  "displayName": "Old Orin of the Furrows",
+  "kind": "npc",
+  "tagline": "stooped, kind-eyed, smells of warm earth and pine smoke.",
+  "vitals": { "hp": { "max": 7, "start": 7 } },
+  "stats": { "speed": 0, "awareness": 1, "threat": -1 },
+  "attitudeDefault": 2,
+  "attitudeRange": [0, 3],
+  "tags": ["human", "farmer", "trainer", "named"],
+  "behavior": {
+    "default": "kneels in the dirt, fingers everything, talks to the seedlings",
+    "narrativeHooks": [
+      "Orin remembers the year the village died. He keeps planting anyway.",
+      "He calls every plant 'love.' Including the weeds. Especially the weeds."
+    ]
+  },
+  "metadata": {
+    "templateId": "old-orin-of-the-furrows",
+    "teachesSkill": "farming",
+    "teachingFee": 60,
+    "teachingLines": [
+      "The soil tells you what it wants if you stop talking long enough.",
+      "Patience is the only seed that grows in any season."
+    ]
+  },
+  "interactions": {
+    "speak": "available",
+    "learn": "available — call learn_skill_from(npcId) with 60 coins"
+  }
+}

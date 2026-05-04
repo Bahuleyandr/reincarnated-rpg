@@ -960,4 +960,37 @@ export const sceneImages = pgTable(
 export type SceneImage = typeof sceneImages.$inferSelect;
 export type NewSceneImage = typeof sceneImages.$inferInsert;
 
+/**
+ * Per-user skill rows (Phase 5 Day 23-24). Skills are cross-run —
+ * once learned via `learn_skill_from(npcId)`, the player keeps the
+ * skill across reincarnations. UNIQUE (user_id, skill_id) ensures
+ * idempotent learn calls. XP accrues on craft/gather events; level
+ * recomputes via floor(sqrt(xp/50)) — see lib/economy/skills.ts.
+ */
+export const userSkills = pgTable(
+  "user_skills",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    skillId: text("skill_id").notNull(),
+    level: integer("level").notNull().default(1),
+    xp: integer("xp").notNull().default(0),
+    learnedAt: timestamp("learned_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /** Slug of the NPC who taught this skill — null when granted via
+     *  admin or migration backfill. */
+    learnedFromNpcId: text("learned_from_npc_id"),
+  },
+  (t) => [
+    uniqueIndex("user_skills_user_skill_uniq").on(t.userId, t.skillId),
+    index("user_skills_user_idx").on(t.userId),
+  ],
+);
+
+export type UserSkill = typeof userSkills.$inferSelect;
+export type NewUserSkill = typeof userSkills.$inferInsert;
+
 export const _sql = sql; // re-export for migration writers if needed
