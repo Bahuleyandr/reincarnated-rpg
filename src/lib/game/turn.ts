@@ -1077,6 +1077,46 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
+  // Marketplace listing persistence (Phase 9). For each
+  // marketplace.listed event this turn, insert a row into
+  // marketplace_listings via the existing listings lib. The
+  // companion inventory.removed already escrowed the item; here
+  // we mint the listing row so /api/marketplace can surface it.
+  // Replay-from-zero reproduces every row from the event log.
+  try {
+    const listEvents = pendingEvents.filter(
+      (e): e is Event & { kind: "marketplace.listed" } =>
+        e.kind === "marketplace.listed",
+    );
+    if (listEvents.length > 0 && world?.userId) {
+      const { listItem } = await import("../marketplace/listings");
+      for (const e of listEvents) {
+        const r = await listItem(db, {
+          sellerUserId: world.userId,
+          itemId: e.itemId,
+          qty: e.qty,
+          pricePerUnit: e.pricePerUnit,
+          note: e.note,
+          // The escrow already ran via inventory.removed in the
+          // same batch, so the qty is by definition adequate.
+          currentInventoryQty: e.qty,
+        });
+        if (!r.ok) {
+          log.warn("turn.marketplace.list_failed", {
+            sessionId,
+            itemId: e.itemId,
+            error: r.error,
+          });
+        }
+      }
+    }
+  } catch (err) {
+    log.warn("turn.marketplace.persist_failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   // Anti-farm counter bumps (Phase 5 Day 26 follow-up). Per-vendor
   // sell flow + per-resource gather qty land in their respective
   // daily-key tables so the next turn's validator can enforce

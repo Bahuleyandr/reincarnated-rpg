@@ -168,6 +168,19 @@ export type Event =
       utterance: string;
     }
   | {
+      /** Phase 9 marketplace audit. Companion inventory.removed
+       *  carries the projection mutation; the orchestrator
+       *  side-effect after events land inserts the
+       *  marketplace_listings row. listingId is filled in by
+       *  the post-event side-effect (not the validator) so
+       *  replay-from-zero is deterministic given the event log. */
+      kind: "marketplace.listed";
+      itemId: string;
+      qty: number;
+      pricePerUnit: number;
+      note: string | null;
+    }
+  | {
       /** Phase 5 Day 23-24. Player paid a trainer NPC and learned a
        *  new skill. Idempotent — second learn calls are no-ops on
        *  the user_skills row. Companion `coins.spent` carries the
@@ -291,6 +304,19 @@ export type ToolCall =
       name: "speak_to";
       npcId: string;
       utterance: string;
+    }
+  | {
+      /** Phase 9 marketplace tool. Escrow an item from the player's
+       *  inventory and post it as a marketplace listing. Companion
+       *  inventory.removed carries the projection mutation; the
+       *  marketplace_listings row is inserted by the orchestrator
+       *  side-effect after events land. 7-day TTL; cancel returns
+       *  the item via inventory.added. */
+      name: "list_item";
+      itemId: string;
+      qty: number;
+      pricePerUnit: number;
+      note?: string;
     }
   | { name: "narrate_only" };
 

@@ -149,6 +149,13 @@ const toolSchemas = {
     npcId: nonEmptyString,
     utterance: z.string().min(1).max(280),
   }),
+  list_item: z.object({
+    name: z.literal("list_item"),
+    itemId: nonEmptyString,
+    qty: z.number().int().min(1).max(99),
+    pricePerUnit: z.number().int().min(1).max(100_000),
+    note: z.string().max(160).optional(),
+  }),
   narrate_only: z.object({
     name: z.literal("narrate_only"),
   }),
@@ -177,6 +184,7 @@ export const toolCallSchema = z.discriminatedUnion("name", [
   toolSchemas.rename_inventory,
   toolSchemas.pledge_faction,
   toolSchemas.speak_to,
+  toolSchemas.list_item,
   toolSchemas.narrate_only,
 ]);
 
@@ -526,6 +534,37 @@ export function validateToolsToEvents(args: ValidateToolsArgs): ValidateToolsRes
       }
       continue;
     }
+    if (tool.name === "list_item") {
+      // Multi-event tool: escrow the item out of the player's
+      // inventory + emit the marketplace.listed audit event. The
+      // orchestrator side-effect (in turn.ts) inserts the actual
+      // marketplace_listings row after events land. Validation
+      // re-runs the inventory check inline so a stale projection
+      // can't slip past.
+      const held = projection.inventory.find((i) => i.itemId === tool.itemId);
+      if (!held || held.qty < tool.qty) {
+        return {
+          ok: false,
+          failure: {
+            tool: "list_item",
+            error: `list_item: only ${held?.qty ?? 0} of ${tool.itemId} held, asked ${tool.qty}`,
+          },
+        };
+      }
+      events.push({
+        kind: "inventory.removed",
+        itemId: tool.itemId,
+        qty: tool.qty,
+      });
+      events.push({
+        kind: "marketplace.listed",
+        itemId: tool.itemId,
+        qty: tool.qty,
+        pricePerUnit: tool.pricePerUnit,
+        note: tool.note ?? null,
+      });
+      continue;
+    }
     const evt = toolToEvent(tool, projection);
     if (evt) events.push(evt);
   }
@@ -732,6 +771,20 @@ export function checkPrecondition(
       }
       return null;
     }
+    case "list_item": {
+      // The escrow + audit emission happens in
+      // validateToolsToEvents; this precondition gives the
+      // narrator a clean rejection BEFORE the multi-event branch
+      // runs (which would also reject, but with a more confusing
+      // mid-batch failure trace).
+      const held = projection.inventory.find(
+        (i) => i.itemId === tool.itemId,
+      );
+      if (!held || held.qty < tool.qty) {
+        return `list_item: only ${held?.qty ?? 0} of ${tool.itemId} held, asked ${tool.qty}`;
+      }
+      return null;
+    }
     case "pass_time":
     case "sense":
     case "update_quest_objective":
@@ -900,6 +953,7 @@ export function toolToEvent(tool: ToolCall, projection: Projection): Event | nul
     case "craft_recipe":
     case "learn_skill_from":
     case "pledge_faction":
+    case "list_item":
       // Handled by the inline multi-event branch in
       // validateToolsToEvents; toolToEvent returns null so this
       // function stays 1:1-or-zero and predicate audits don't get

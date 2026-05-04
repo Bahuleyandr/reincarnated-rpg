@@ -128,6 +128,11 @@ export function reduce(state: Projection, event: Event): Projection {
     // the dialogue_turns table carries persistent state. Reducer
     // no-op keeps replay deterministic.
     case "dialogue.exchanged":
+    // Phase 9 marketplace: marketplace.listed is audit-only; the
+    // companion inventory.removed mutates projection. The
+    // marketplace_listings row is inserted by the orchestrator
+    // side-effect in turn.ts.
+    case "marketplace.listed":
       return state;
 
     case "turn.begun":
