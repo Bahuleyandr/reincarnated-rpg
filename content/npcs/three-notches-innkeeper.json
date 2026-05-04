@@ -1,0 +1,19 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-05", "notes": "Half-dwarven innkeeper at Three Notches. Runs the only inn at the foot of the pass." },
+  "id": "three-notches-innkeeper",
+  "displayName": "Bren Half-Dwarf",
+  "kind": "npc",
+  "tagline": "tall enough for the dwarven north wing, short enough for the human south one. genuinely kind.",
+  "vitals": { "hp": { "max": 6, "start": 6 } },
+  "stats": { "awareness": 2, "patience": 3, "will": 2 },
+  "attitudeDefault": 2,
+  "attitudeRange": [0, 3],
+  "tags": ["half-dwarven", "three-notches", "innkeeper", "recurring"],
+  "metadata": {
+    "templateId": "three-notches-innkeeper",
+    "recurring": true,
+    "voice": "warm, attentive, switches between dwarven wind-pace and human direct-pace by guest",
+    "topicsOfInterest": ["the next storm", "your room (north or south)", "cloudtea brewing"],
+    "appearanceProbability": { "baseLow": 0.05, "baseHigh": 0.08, "wyrmPhaseThreshold": 500, "perPriorEncounterBonus": 0.02, "maxAppearanceProbability": 0.20 }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Caelum's signature recurring herald. Stands at the bronze compass-rose and shouts the day's news in five-way pidgin. Knows everyone's face; pretends not to."
+  },
+  "id": "the-spoke-square-herald",
+  "displayName": "the Herald",
+  "kind": "npc",
+  "tagline": "small, weathered, voice trained for the open square; carries a five-script tablet.",
+  "vitals": { "hp": { "max": 5, "start": 5 } },
+  "stats": { "awareness": 3, "will": 2 },
+  "attitudeDefault": 1,
+  "attitudeRange": [0, 2],
+  "tags": ["caelum-by-the-wash", "metropolis", "herald", "recurring"],
+  "behavior": {
+    "default": "stands on the bronze compass-rose and projects.",
+    "narrativeHooks": [
+      "Knows everyone's face; pretends not to.",
+      "Switches scripts mid-sentence depending on who is in earshot.",
+      "Refuses to deliver news that isn't paid for."
+    ]
+  },
+  "metadata": {
+    "templateId": "the-spoke-square-herald",
+    "recurring": true,
+    "voice": "five-way pidgin, professional projection, switches scripts mid-sentence",
+    "topicsOfInterest": ["arrivals at the quay", "rumor", "today's prices"],
+    "appearanceProbability": {
+      "baseLow": 0.06,
+      "baseHigh": 0.10,
+      "wyrmPhaseThreshold": 500,
+      "perPriorEncounterBonus": 0.02,
+      "maxAppearanceProbability": 0.20
+    }
+  }
+}

@@ -6,14 +6,14 @@
  *                             current session.
  */
 import { NextRequest, NextResponse } from "next/server";
+import { and, eq, isNotNull } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import {
   listInRunCompanions,
   summonCompanion,
 } from "@/lib/companions/in-run";
-import { sessions } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { sessions, worldNpcs } from "@/lib/db/schema";
 import {
   SESSION_COOKIE_NAME,
   verifyCookie,
@@ -44,9 +44,50 @@ export async function GET(req: NextRequest) {
     .from(sessions)
     .where(eq(sessions.id, ctx.sessionId))
     .limit(1);
+
+  // Bonded NPCs the user has that AREN'T in this session yet —
+  // candidates the player can summon. Anon sessions skip
+  // (worldNpcs are user-keyed).
+  let summonable: Array<{
+    slug: string;
+    name: string;
+    timesMet: number;
+    relationshipScore: number;
+  }> = [];
+  if (ctx.userId) {
+    const inRunIds = new Set(rows.map((r) => r.worldNpcId));
+    const bonded = await db
+      .select({
+        id: worldNpcs.id,
+        slug: worldNpcs.slug,
+        name: worldNpcs.name,
+        timesMet: worldNpcs.timesMet,
+        relationshipScore: worldNpcs.relationshipScore,
+        lastSeenStatus: worldNpcs.lastSeenStatus,
+      })
+      .from(worldNpcs)
+      .where(
+        and(
+          eq(worldNpcs.userId, ctx.userId),
+          isNotNull(worldNpcs.bondedAt),
+        ),
+      );
+    summonable = bonded
+      .filter(
+        (n) => !inRunIds.has(n.id) && n.lastSeenStatus !== "dead",
+      )
+      .map((n) => ({
+        slug: n.slug,
+        name: n.name,
+        timesMet: n.timesMet,
+        relationshipScore: n.relationshipScore,
+      }));
+  }
+
   return NextResponse.json({
     sessionId: s?.id ?? ctx.sessionId,
     companions: rows,
+    summonable,
   });
 }
 

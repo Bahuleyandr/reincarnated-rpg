@@ -1,0 +1,49 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Rust-Hand-faction ascended form (default). The Rust Hand traffics in iron's slow inevitability. The Ascendant has stopped fighting the rust and started conducting it."
+  },
+  "id": "rust-hand-ascendant",
+  "displayName": "Rust Hand Ascendant",
+  "tagline": "You stopped fighting the rust. You started conducting it.",
+  "vitals": {
+    "iron": { "max": 26, "start": 26, "death": 0 },
+    "patience": { "max": 26, "start": 26, "death": null }
+  },
+  "stats": {
+    "will": 3,
+    "weight": 3,
+    "awareness": 3,
+    "kindling": 2
+  },
+  "verbs": ["mark", "weather", "join", "rest", "wyrm-iron"],
+  "verbMappings": {
+    "mark": { "tools": ["change_form_state"], "rollStat": "will" },
+    "weather": { "tools": ["pass_time"], "rollStat": "patience" },
+    "join": { "tools": ["update_relationship"], "rollStat": "will" },
+    "rest": { "tools": ["heal"], "rollStat": null },
+    "wyrm-iron": { "tools": ["sense", "change_form_state"], "rollStat": "awareness" }
+  },
+  "negativeVocab": {
+    "rule": "Rust Hand Ascendants do not gleam. Vocabulary of polish does not fit.",
+    "words": ["gleam", "shine", "polish", "burnished", "lustre"]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick one. The Ascendant's costs land in iron going wrong slowly.",
+    "moves": [
+      { "id": "join-failed", "narrative": "A join you forged today will fail in a year. You can already see it.", "tools": [{ "name": "change_form_state", "field": "future_failures", "delta": 1 }] },
+      { "id": "iron-wrong", "narrative": "The iron took the rust at the wrong angle. You let it.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "iron", "source": "wrong rust" }] },
+      { "id": "tool-spent", "narrative": "A tool that has served you many years will not see another season.", "tools": [{ "name": "change_form_state", "field": "tools_retired", "delta": 1 }] },
+      { "id": "rust-mark", "narrative": "A rust-mark on your own forearm has spread.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 2, "vital": "iron", "source": "mark spread" }] },
+      { "id": "wyrm-iron", "narrative": "An iron blank sings under your hammer in a frequency you did not strike. The Long Wyrm has hummed under your forge.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "Rust-Hand prose is unhurried, attentive to slow change, comfortable with imperfection.",
+    "passages": [
+      { "id": "01-the-mark", "scenario": "The Rust Hand Ascendant inspects a forge piece a year after forging it", "wordCount": 140, "text": "The piece has come back. The customer who took it home a year ago has brought it for the first inspection.\n\nYou turn it in your hand. The mark you laid on the head has settled correctly; the rust has begun where you wanted it to begin and not where you didn't. You give the customer a single nod. They are pleased; they will be more pleased in another year, when the mark will deepen into the patina you predicted.\n\nThe rust is doing what you asked it to do. This took a long time to learn. Now it is yours." }
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Chorister × farming ascended form. The player who pledged to the Choristers and topped out in farming tends the high garden the choir sings to. The plants there grow in time with the verses; the harvest is shared at the long-song festivals."
+  },
+  "id": "garden-keeper-of-the-spire",
+  "displayName": "Garden Keeper of the Spire",
+  "tagline": "You tend the high garden the choir sings to. The plants keep time.",
+  "vitals": {
+    "soil": { "max": 24, "start": 24, "death": 0 },
+    "season": { "max": 24, "start": 18, "death": null }
+  },
+  "stats": {
+    "patience": 4,
+    "awareness": 3,
+    "will": 2,
+    "kindling": 2
+  },
+  "verbs": ["tend", "prune", "wait", "sow", "wyrm-furrow"],
+  "verbMappings": {
+    "tend": { "tools": ["change_form_state"], "rollStat": "patience" },
+    "prune": { "tools": ["change_form_state"], "rollStat": "awareness" },
+    "wait": { "tools": ["pass_time"], "rollStat": null },
+    "sow": { "tools": ["change_form_state"], "rollStat": "kindling" },
+    "wyrm-furrow": { "tools": ["sense", "change_form_state"], "rollStat": "awareness" }
+  },
+  "negativeVocab": {
+    "rule": "Garden Keepers do not rush. Vocabulary of haste does not fit.",
+    "words": ["rush", "hurry", "quickly", "instantly", "immediately"]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick one. The Keeper's costs are usually a row going wrong or a season slipping.",
+    "moves": [
+      { "id": "row-wrong", "narrative": "A row of seedlings has come up wrong — twisted or too pale.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "soil", "source": "wrong row" }] },
+      { "id": "season-slipped", "narrative": "The season has slipped a little. You will harvest later than planned.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 2, "vital": "season", "source": "slip" }] },
+      { "id": "pruning-error", "narrative": "You took a cut you should not have.", "tools": [{ "name": "change_form_state", "field": "wrong_pruned", "delta": 1 }] },
+      { "id": "harvest-thin", "narrative": "The harvest will be smaller than the choir hoped.", "tools": [{ "name": "change_form_state", "field": "thin_harvest", "delta": 1 }] },
+      { "id": "wyrm-furrow", "narrative": "One row has settled into a perfectly straight line you did not lay. The Long Wyrm has straightened a furrow under your soil.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "Garden-Keeper prose is patient, attentive to small changes, with verbs of waiting.",
+    "passages": [
+      { "id": "01-the-row", "scenario": "The Keeper walks the rows at first light", "wordCount": 130, "text": "First light along the high garden has its own color.\n\nYou walk the rows slowly. You count the seedlings without counting; you would notice if a number were wrong without being able to say which one. The choir's last verse last night settled the plants; you can see the settling in how their leaves face.\n\nA single row is wrong. You stop. You crouch. You decide what to do, which is mostly to wait until the next verse and see if the plants want to right themselves. They usually do. You will be back at the third hour to check." }
+    ]
+  }
+}

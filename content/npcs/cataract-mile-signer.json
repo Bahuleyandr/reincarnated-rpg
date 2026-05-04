@@ -1,0 +1,19 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-05", "notes": "The lead signer at Cataract Mile. Communicates entirely in hand-signs over the constant water-roar." },
+  "id": "cataract-mile-signer",
+  "displayName": "Aune the Signer",
+  "kind": "npc",
+  "tagline": "all hands, no voice; can convey contract terms in eleven gestures.",
+  "vitals": { "hp": { "max": 6, "start": 6 } },
+  "stats": { "awareness": 4, "agility": 3, "will": 2 },
+  "attitudeDefault": 1,
+  "attitudeRange": [0, 3],
+  "tags": ["cataract-mile", "signer", "recurring"],
+  "metadata": {
+    "templateId": "cataract-mile-signer",
+    "recurring": true,
+    "voice": "silent in the prose; everything is gestures + a barely-audible accompanying hum",
+    "topicsOfInterest": ["paper counts", "orcish customers", "the wheel's rhythm"],
+    "appearanceProbability": { "baseLow": 0.04, "baseHigh": 0.07, "wyrmPhaseThreshold": 500, "perPriorEncounterBonus": 0.02, "maxAppearanceProbability": 0.20 }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "The Long Indices' signature recurring orc. A Hush-reader who once spoke. Took the vow at 19; broke it at 31 in a single sentence; took it again at 32 and has not broken it since. The reasons are written in a folio nobody reads."
+  },
+  "id": "the-hush-reader-vohn",
+  "displayName": "Vohn the Returned",
+  "kind": "npc",
+  "tagline": "broad-shouldered, vestigial-tusked, ink-stained; communicates only by marginalia.",
+  "vitals": { "hp": { "max": 10, "start": 10 } },
+  "stats": { "awareness": 4, "patience": 4, "will": 3 },
+  "attitudeDefault": 1,
+  "attitudeRange": [0, 3],
+  "tags": ["orcish", "the-long-indices", "hush-reader", "recurring"],
+  "behavior": {
+    "default": "writes a single careful word in the margin of whatever book is in front of them.",
+    "narrativeHooks": [
+      "Conducts entire conversations through the margin of a passed folio.",
+      "Once spoke. Once. The sentence is in a folio nobody reads.",
+      "Will not eat in front of strangers."
+    ]
+  },
+  "metadata": {
+    "templateId": "the-hush-reader-vohn",
+    "recurring": true,
+    "faction": "orcish",
+    "voice": "silent — communicates by marginalia only; the prose narrates what they wrote",
+    "topicsOfInterest": ["the sentence broken", "marginalia ethics", "what the silence is for"],
+    "appearanceProbability": {
+      "baseLow": 0.02,
+      "baseHigh": 0.05,
+      "wyrmPhaseThreshold": 500,
+      "perPriorEncounterBonus": 0.02,
+      "maxAppearanceProbability": 0.18
+    }
+  }
+}

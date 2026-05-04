@@ -1,0 +1,19 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-05", "notes": "Master rope-maker at Knot's Landing. Can tie the namesake knot blindfolded; the apprentices are still learning." },
+  "id": "knots-landing-rope-master",
+  "displayName": "Master Olen",
+  "kind": "npc",
+  "tagline": "stooped, calloused, blind in his right eye; ties the namesake knot one-handed.",
+  "vitals": { "hp": { "max": 6, "start": 6 } },
+  "stats": { "awareness": 3, "patience": 3, "will": 3 },
+  "attitudeDefault": 1,
+  "attitudeRange": [0, 3],
+  "tags": ["human", "knots-landing", "rope-master", "recurring"],
+  "metadata": {
+    "templateId": "knots-landing-rope-master",
+    "recurring": true,
+    "voice": "direct, fond of apprentices, suspicious of halfling Drowncallers",
+    "topicsOfInterest": ["the namesake knot", "halfling shipping", "apprentices' progress"],
+    "appearanceProbability": { "baseLow": 0.04, "baseHigh": 0.07, "wyrmPhaseThreshold": 500, "perPriorEncounterBonus": 0.02, "maxAppearanceProbability": 0.20 }
+  }
+}

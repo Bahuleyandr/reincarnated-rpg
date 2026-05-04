@@ -1,0 +1,58 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Ascended meta-form for the forsaken faction. The player who refused all four factions' offers and ascended on the strength of refusal itself. The Revenant is awake when the world is asleep, and asleep when the world is awake. Their schedule is wrong on purpose."
+  },
+  "id": "forsaken-revenant",
+  "displayName": "Forsaken Revenant",
+  "tagline": "You refused every offer the world made you, and the world stopped offering.",
+  "vitals": {
+    "vigil": { "max": 28, "start": 28, "death": 0 },
+    "refusal": { "max": 28, "start": 28, "death": null }
+  },
+  "stats": {
+    "will": 4,
+    "awareness": 3,
+    "patience": 2,
+    "agility": 2
+  },
+  "verbs": [
+    "refuse",
+    "watch",
+    "leave",
+    "return",
+    "endure"
+  ],
+  "verbMappings": {
+    "refuse": { "tools": ["change_form_state"], "rollStat": "will" },
+    "watch": { "tools": ["sense"], "rollStat": "awareness" },
+    "leave": { "tools": ["move_to"], "rollStat": "agility" },
+    "return": { "tools": ["move_to"], "rollStat": "patience" },
+    "endure": { "tools": ["pass_time"], "rollStat": "will" }
+  },
+  "negativeVocab": {
+    "rule": "The Revenant is not warm and is not joined. Vocabulary of belonging — community, family, kin, fellowship — does not apply about them.",
+    "words": [
+      "kin", "family", "fellowship", "community", "comrades", "brothers", "sisters", "tribe"
+    ]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick one. The Revenant's costs are usually a brief return to the world and the resulting fatigue.",
+    "moves": [
+      { "id": "drawn-back", "narrative": "Someone you refused calls again. You answer this time and you should not have.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "refusal", "source": "drawn back" }] },
+      { "id": "the-wrong-light", "narrative": "Day finds you when you meant to be asleep. The wrong light catches you.", "tools": [{ "name": "change_form_state", "field": "schedule_inverted", "delta": -1 }] },
+      { "id": "vigil-broken", "narrative": "You sleep when you meant to watch. The thing you were watching for arrives anyway.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 2, "vital": "vigil", "source": "sleep" }] },
+      { "id": "remembered-by-wrong", "narrative": "Someone the world has forgotten remembers you, and approaches.", "tools": [{ "name": "introduce_npc", "templateId": "ambient-threat", "attitude": -1 }] },
+      { "id": "wyrm-noticed", "narrative": "The Long Wyrm passes nearby and registers your refusal. It does not require your faction; it does require your attention.", "tools": [{ "name": "change_form_state", "field": "wyrm_marked", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "The Revenant moves at night, sleeps by day, and never settles. Prose about them is short, declarative, and does not warm.",
+    "passages": [
+      { "id": "01-the-watch", "scenario": "The Revenant maintains a vigil through the small hours", "wordCount": 150, "text": "The third hour after midnight is yours.\n\nNo one is watching the road but you. You did not promise to. You watch anyway. The wind off the field is cold; you are colder. The thing you are watching for has not come tonight, but it will come on a night, and you will be here for that one.\n\nThe Wyrm passes very far below the road and registers your refusal. You do not return the gesture. After a while you stand. After a longer while you sit again. The hour goes on." },
+      { "id": "02-the-call", "scenario": "Someone the Revenant once refused calls again", "wordCount": 170, "text": "A name reaches you from a long way away. You know the voice; you said no to it once. You said no to it twice. You have not been asked a third time in a season.\n\nThe call is gentle. You can feel that it is gentle. You take a slow long breath and consider answering and decide that you will not. The voice fades.\n\nA cost has been paid for the not-answering, somewhere in your refusal. You feel it as a small subtraction. You can afford it. You have refused larger." }
+    ]
+  }
+}
