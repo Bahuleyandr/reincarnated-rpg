@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   bigserial,
+  boolean,
   customType,
   index,
   integer,
@@ -610,6 +611,12 @@ export const worldLore = pgTable(
      *   - the lore judge for genuinely time-limited events (rare),
      *   - admin via /god/lore/[id] DELETE (redact = set to NOW()). */
     expiresAt: timestamp("expires_at", { withTimezone: true }),
+    /** Admin redaction flag (Phase 4.5 Day 15). When true, the entry
+     *  is hidden from the public /lore feed regardless of age. The
+     *  /god/lore admin UI flips this on griefing content. The 24h
+     *  delay before public surfacing gives admins a window to do
+     *  this without leaking the content first. */
+    adminRedacted: boolean("admin_redacted").notNull().default(false),
   },
   (t) => [
     index("world_lore_salience_idx").on(t.salience, t.createdAt),
