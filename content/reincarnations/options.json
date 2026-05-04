@@ -911,6 +911,225 @@
       "tier": "rare",
       "weight": 0.4,
       "starterBonus": { "field": "wyrm_attuned", "value": 1 }
+    },
+
+    {
+      "id": "village-midwife-three-candles",
+      "label": "A village midwife on a night with three candles burning",
+      "description": "Two of them are for the mothers in the next two cottages. The third is yours, and it's down to a stub.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "smith-apprentice-first-solo",
+      "label": "A blacksmith's apprentice on their first solo day",
+      "description": "The master is at the next village. The bellows haven't lied yet, but they could.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "power", "value": 1 }
+    },
+    {
+      "id": "constable-undesired-shift",
+      "label": "A constable on a shift everyone else wanted out of",
+      "description": "The street is quiet because the street has decided to be quiet at you, specifically.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "young-elf-first-library-morning",
+      "label": "A young elf on their first morning allowed in the library alone",
+      "description": "You have been told which shelves not to climb. You have not been told why.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "dwarven-brewer-between-casks",
+      "label": "A dwarven brewer between casks",
+      "description": "One has just gone out. The next won't be ready for nine days. The taproom does not care.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": null
+    },
+    {
+      "id": "tavernkeeper-wrong-name",
+      "label": "A tavernkeeper who heard the wrong name shouted last night",
+      "description": "It was not a customer who shouted. It was someone outside, into the snow, walking away.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "traveling-scholar-lame-horse",
+      "label": "A traveling scholar whose horse went lame at dusk",
+      "description": "The notes are heavier than the saddlebag. The road is a half-day to the nearest farrier.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "baker-bread-didnt-rise",
+      "label": "A baker on the morning the bread didn't rise",
+      "description": "You have an hour before the first customer. The starter is sulking and you cannot tell why.",
+      "typedFormHint": "generic-creature",
+      "tier": "common",
+      "weight": 1.0,
+      "starterBonus": null
+    },
+
+    {
+      "id": "elf-outlived-grove",
+      "label": "An elf who has outlived their grove",
+      "description": "The trees you grew up beside have all been pulled down for ships. You are not yet sure what that makes you.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "dwarven-cartographer-empty-routes",
+      "label": "A dwarven cartographer of routes nobody walks anymore",
+      "description": "The Eastern passes have been closed since your grandmother's time. Your maps are correct, and useless, and beautiful.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "halfling-lost-family-ledger",
+      "label": "A halfling who lost their family ledger in a card game last week",
+      "description": "Three centuries of accounts. The winner is eating breakfast on a porch six villages over. You know which one.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "gnome-clockshop-bought-out",
+      "label": "A gnome whose clockwork shop was bought by someone who hates clocks",
+      "description": "He paid in full and then asked you to take everything down. The bell above the door no longer rings.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "orc-refused-three-challenges",
+      "label": "An orc who has refused three challenges this season",
+      "description": "Each of them was younger than your axe. You have started to understand what your mother meant.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "will", "value": 2 }
+    },
+    {
+      "id": "dukes-third-child",
+      "label": "A duke's third child with no inheritance and good shoulders",
+      "description": "The first will get the lands. The second will get the title. You will get a horse and a polite letter.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": null
+    },
+    {
+      "id": "scribe-between-alphabets",
+      "label": "A scribe between alphabets, hand cramping",
+      "description": "The text changes script three pages from now. You have not been told it changes.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "tax-collector-lost-ledger",
+      "label": "A tax collector who lost the ledger last week",
+      "description": "You remember most of the numbers. The villages remember different ones.",
+      "typedFormHint": "generic-creature",
+      "tier": "uncommon",
+      "weight": 0.7,
+      "starterBonus": null
+    },
+
+    {
+      "id": "baroness-mortgaged-to-strangers",
+      "label": "A baroness whose estate is mortgaged to names she does not know",
+      "description": "The papers were signed by your father's clerk. The clerk is also not someone you know.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "heir-without-title",
+      "label": "An heir who learned this morning the title is gone",
+      "description": "The house is the same. The servants are the same. The address on every letter that comes today will be different.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "will", "value": 2 }
+    },
+    {
+      "id": "goblin-mistaken-for-child",
+      "label": "A goblin who has been mistaken for a child three times today",
+      "description": "Twice you let it pass. The third time you found yourself given a sweet bun, and you ate it, and you do not know what to do now.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "agility", "value": 1 }
+    },
+    {
+      "id": "dwarf-returned-from-deep",
+      "label": "A dwarf returned to the surface after a generation underground",
+      "description": "The sun is too thin. The sky is too far. Your beard has not yet decided which way it grows up here.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "awareness", "value": 1 }
+    },
+    {
+      "id": "half-elf-no-first-language",
+      "label": "A half-elf who never learned which language was their first",
+      "description": "You count in one. You curse in the other. You dream in something between, and only sometimes.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "young-noble-bad-first-hunt",
+      "label": "A young noble at their first hunt that has gone badly",
+      "description": "The horn went silent four hills ago. The dogs have come back without the master. The forest is darker than you were told it would be.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": null
+    },
+    {
+      "id": "courier-letter-no-longer-needed",
+      "label": "A courier whose letter is no longer needed but who still must deliver it",
+      "description": "The recipient died on Tuesday. The sender does not know. You signed an oath about both of them.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "will", "value": 1 }
+    },
+    {
+      "id": "shipwright-uncommissioned-hull",
+      "label": "A shipwright between commissions, dreaming of a hull no one has asked for",
+      "description": "It would be too small for cargo and too heavy for racing. You have already started gathering the wood for it.",
+      "typedFormHint": "generic-creature",
+      "tier": "rare",
+      "weight": 0.5,
+      "starterBonus": { "field": "will", "value": 1 }
     }
   ]
 }
