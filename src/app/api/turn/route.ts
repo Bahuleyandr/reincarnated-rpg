@@ -173,9 +173,17 @@ export async function POST(req: NextRequest) {
     // network blip), runTurn routes the turn through this so the
     // session never stalls. The fallback flag is surfaced to /play.
     const fallbackNarrator = new TemplateNarrator({ form, location });
-    const starterFormState = ctx.starterBonus
-      ? { [ctx.starterBonus.field]: ctx.starterBonus.value }
-      : undefined;
+
+    // Compose starterFormState from campaign starterBonus + the
+    // player's legacy traits (cross-run, persistent). See
+    // src/lib/legacy/compose-starter.ts for the merge rule.
+    const { composeStarterFormState } = await import(
+      "@/lib/legacy/compose-starter"
+    );
+    const starterFormState = await composeStarterFormState(db, {
+      starterBonus: ctx.starterBonus,
+      userId: verified.userId ?? null,
+    });
     const result = await runTurn({
       db,
       sessionId,
