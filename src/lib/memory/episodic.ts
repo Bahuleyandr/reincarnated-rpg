@@ -109,6 +109,11 @@ export async function createMemory(
     summary: string;
     eventSeqRange: [number, number];
     salience?: number;
+    /** Phase 4.5 Day 16. When set, the memory is an echo —
+     *  retrieval surfaces only `echoHint` until projection.turn
+     *  reaches surfaceAfterTurn. */
+    surfaceAfterTurn?: number;
+    echoHint?: string;
   },
 ): Promise<string> {
   const embedding = await embedText(args.summary, "document");
@@ -120,6 +125,10 @@ export async function createMemory(
     embedding,
     eventSeqRange: args.eventSeqRange,
     salience: args.salience ?? 0.5,
+    ...(args.surfaceAfterTurn !== undefined
+      ? { surfaceAfterTurn: args.surfaceAfterTurn }
+      : {}),
+    ...(args.echoHint !== undefined ? { echoHint: args.echoHint } : {}),
   });
   return id;
 }
@@ -131,6 +140,12 @@ export interface RetrieveOptions {
   entitySlugs?: string[];
   /** Half-life for recency decay, in ms. Default 1h. */
   recencyHalfLifeMs?: number;
+  /** Phase 4.5 Day 16. Used to evaluate echo memories: those with
+   *  surface_after_turn > currentTurn surface only as hints, not
+   *  the full summary. Default = MAX_SAFE_INTEGER, treating every
+   *  memory as fully surfaced. The turn route always passes the
+   *  real value. */
+  currentTurn?: number;
 }
 
 export async function retrieveMemories(
@@ -142,14 +157,18 @@ export async function retrieveMemories(
   const k = opts.k ?? 4;
   const halfLifeMs = opts.recencyHalfLifeMs ?? 3_600_000;
   const entitySlugs = opts.entitySlugs ?? [];
+  const currentTurn = opts.currentTurn ?? Number.MAX_SAFE_INTEGER;
 
   const queryEmbedding = await embedText(query, "query");
   const vectorLiteral = `[${queryEmbedding.join(",")}]`;
 
   // Get top 3K candidates by cosine distance, then re-score with
-  // entity-overlap + recency in TS.
+  // entity-overlap + recency in TS. Phase 4.5 Day 16: also pull
+  // surface_after_turn + echo_hint so we can apply the foreshadow
+  // surface rule below.
   const rows = (await db.execute(sql`
     SELECT id, summary, salience, event_seq_range, created_at,
+           surface_after_turn, echo_hint,
            1 - (embedding <=> ${vectorLiteral}::vector) AS similarity
     FROM memories
     WHERE session_id = ${sessionId}
@@ -162,6 +181,8 @@ export async function retrieveMemories(
     salience: number;
     event_seq_range: string;
     created_at: Date | string;
+    surface_after_turn: number | null;
+    echo_hint: string | null;
     similarity: number;
   }>;
 
@@ -176,9 +197,17 @@ export async function retrieveMemories(
 
   scored.sort((a, b) => b.score - a.score);
 
+  // Apply echo-surface rule. If a memory is an echo (surface_after_turn
+  // not null) and the current turn hasn't reached the threshold, we
+  // surface only the redacted hint, NOT the full summary. After the
+  // threshold the full summary becomes available like any other
+  // memory.
   return scored.slice(0, k).map(({ row }) => ({
     id: row.id,
-    summary: row.summary,
+    summary:
+      row.surface_after_turn !== null && currentTurn < row.surface_after_turn
+        ? (row.echo_hint ?? row.summary)
+        : row.summary,
     salience: Number(row.salience),
     eventSeqRange: parseInt4range(row.event_seq_range),
   }));

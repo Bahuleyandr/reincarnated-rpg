@@ -232,6 +232,20 @@
       "when": 1778040000000,
       "tag": "0032_scene_images",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1778050000000,
+      "tag": "0033_lore_public_delay",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1778060000000,
+      "tag": "0034_memory_echoes",
+      "breakpoints": true
     }
   ]
 }

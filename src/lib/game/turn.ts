@@ -308,6 +308,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     relevantMemories = await retrieveMemories(db, sessionId, sanitized, {
       k: 4,
       entitySlugs,
+      currentTurn: turnNumber,
     });
   } catch (err) {
     log.warn("turn.memory.retrieve_failed", {
@@ -555,6 +556,38 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
         err: err instanceof Error ? err.message : String(err),
       });
     }
+  }
+
+  // Foreshadowing memory plants (Phase 4.5 Day 16). Pure rules pick
+  // at most one event from this turn's pendingEvents to plant as
+  // an echo memory. The echo surfaces only as a vague hint for the
+  // first few turns, then becomes a normal retrievable memory once
+  // projection.turn crosses surfaceAfterTurn. Best-effort.
+  try {
+    const { pickEchoPlant } = await import("../memory/echoes");
+    const echo = pickEchoPlant(pendingEvents);
+    if (echo) {
+      const surfaceAt = turnNumber + echo.plan.surfaceInTurns;
+      await createMemory(db, {
+        sessionId,
+        summary: echo.plan.fullSummary,
+        eventSeqRange: [turnNumber, turnNumber + 1],
+        salience: 0.7,
+        surfaceAfterTurn: surfaceAt,
+        echoHint: echo.plan.hint,
+      });
+      log.info("turn.echo.planted", {
+        sessionId,
+        turn: turnNumber,
+        surfaceAt,
+        sourceKind: echo.source.kind,
+      });
+    }
+  } catch (err) {
+    log.warn("turn.echo.plant_failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
   }
 
   if (world?.userId && projection.status !== "active") {
