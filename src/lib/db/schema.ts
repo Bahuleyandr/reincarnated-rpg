@@ -125,6 +125,13 @@ export const campaigns = pgTable(
      *  catalog option). Stored as jsonb for forward-compat in case
      *  bonuses grow into multi-field arrays. */
     starterBonus: jsonb("starter_bonus"),
+    /** Optional shareable token. Set when the player runs POST
+     *  /api/campaigns/[id]/share; cleared by DELETE. The token is
+     *  the only key in the URL — a 16-char random ID minted by
+     *  randomBytes. UNIQUE partial index on (share_token) WHERE
+     *  share_token IS NOT NULL. */
+    shareToken: text("share_token"),
+    sharedAt: timestamp("shared_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
