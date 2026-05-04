@@ -13,6 +13,8 @@ A persistent text RPG where every reincarnation form (slime, cursed book, dragon
 - **`docs/MECHANICS.md`** — 2d6 PbtA tables, form-stat ranges, hard-move menus.
 - **`docs/DECISIONS.md`** — ADR-style log of locked decisions.
 - **`docs/EVAL.md`** — golden-scenario format, scoring rubric, judge prompt.
+- **`docs/POST_MVP_PLAN.md`** — post-v0.1 roadmap. Days 1-37 + Phase 7 (Days 38-52, 365-day campaign machinery) + deferred Phase 6.
+- **`docs/STORY_BIBLE.md`** — Year-1 narrative spine: cosmology, 4 factions, 12 monthly Books × 4 weekly Chapters = 48 chapters, 10 branch decisions, 6 endings. Read before authoring chapter content or wiring story machinery.
 
 ## Core principles (do not violate)
 
