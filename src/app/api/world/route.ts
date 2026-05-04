@@ -30,6 +30,30 @@ export async function GET() {
   const override = (arc?.meta as { themeOverride?: string } | null)
     ?.themeOverride;
 
+  // Wyrm raid status (Phase 3 Day 13). hp/hp_max present from
+  // migration 0031; fellCount tracked in meta for "this is the
+  // Nth wyrm" texture.
+  const arcAny = arc as
+    | (typeof arc & {
+        hp?: number;
+        hpMax?: number;
+        meta?: { fellCount?: number; lastFellAt?: string } | null;
+      })
+    | null;
+  const wyrm = arcAny
+    ? {
+        hp: arcAny.hp ?? 1000,
+        hpMax: arcAny.hpMax ?? 1000,
+        phase: arcAny.phase,
+        phaseLabel: arcAny.phaseLabel,
+        progress: arcAny.progress,
+        progressMax: 1000,
+        contributorCount: arcAny.contributorCount,
+        fellCount: arcAny.meta?.fellCount ?? 0,
+        lastFellAt: arcAny.meta?.lastFellAt ?? null,
+      }
+    : null;
+
   return NextResponse.json({
     activeTheme: {
       id: theme.id,
@@ -42,6 +66,7 @@ export async function GET() {
     },
     overrideActive: !!override,
     isoWeek: isoWeekNumber(new Date()),
+    wyrm,
     catalog: WEEKLY_THEMES.map((t) => ({
       id: t.id,
       label: t.label,

@@ -294,6 +294,33 @@ export async function recordContribution(
   const isStarve = themedDelta < 0;
   const isFeed = themedDelta > 0;
 
+  // Raid HP (Phase 3 Day 13). Every contribution does damage
+  // equal to |themedDelta|, regardless of feed/starve. The flavor:
+  // every interaction with the world rouses the Wyrm a little.
+  // When hp hits 0, the arc "falls" — we reset hp to hp_max + emit
+  // a wyrm.fallen audit row in meta.lastFell.
+  const damage = Math.abs(themedDelta);
+  const curHp = (cur as unknown as { hp?: number }).hp ?? 1000;
+  const curHpMax = (cur as unknown as { hp_max?: number; hpMax?: number }).hpMax
+    ?? (cur as unknown as { hp_max?: number }).hp_max
+    ?? 1000;
+  const nextHp = Math.max(0, curHp - damage);
+  const wyrmFell = nextHp === 0 && curHp > 0;
+  const resetHp = wyrmFell ? curHpMax : nextHp;
+  let mergedMeta: Record<string, unknown> | null = resetMeta;
+  if (wyrmFell) {
+    const base = (resetMeta ?? cur.meta ?? null) as Record<string, unknown> | null;
+    const prevFells =
+      ((base?.["fellCount"] as number | undefined) ?? 0) + 1;
+    mergedMeta = {
+      ...(base ?? {}),
+      lastFellAt: new Date().toISOString(),
+      lastFellSessionId: opts.sessionId,
+      lastFellUserId: opts.userId,
+      fellCount: prevFells,
+    };
+  }
+
   await db
     .update(metaArcs)
     .set({
@@ -303,7 +330,8 @@ export async function recordContribution(
       totalFeeds: isFeed ? cur.totalFeeds + 1 : cur.totalFeeds,
       totalStarves: isStarve ? cur.totalStarves + 1 : cur.totalStarves,
       contributorCount: cur.contributorCount + 1,
-      ...(resetMeta ? { meta: resetMeta } : {}),
+      hp: resetHp,
+      ...(mergedMeta ? { meta: mergedMeta } : {}),
       updatedAt: new Date(),
     })
     .where(eq(metaArcs.id, arcId));
@@ -313,6 +341,10 @@ export async function recordContribution(
     sessionId: opts.sessionId,
     rawDelta: plan.delta,
     themedDelta,
+    damage,
+    hpBefore: curHp,
+    hpAfter: resetHp,
+    wyrmFell,
     theme: theme.id,
     reason: plan.reason,
     progressBefore: cur.progress,
@@ -321,6 +353,14 @@ export async function recordContribution(
     phaseAfter: finalPhase.phase,
     cataclysm: !!resetMeta,
   });
+
+  if (wyrmFell) {
+    log.info("meta.wyrm_fell", {
+      arcId,
+      sessionId: opts.sessionId,
+      userId: opts.userId,
+    });
+  }
 
   return await getCurrentArc(db);
 }
