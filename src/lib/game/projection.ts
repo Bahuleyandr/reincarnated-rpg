@@ -149,6 +149,16 @@ export function reduce(state: Projection, event: Event): Projection {
     case "inventory.removed":
       return reduceInventoryRemoved(state, event);
 
+    case "inventory.renamed": {
+      const idx = state.inventory.findIndex(
+        (i) => i.itemId === event.itemId,
+      );
+      if (idx === -1) return state; // not held; defensive no-op
+      const next = [...state.inventory];
+      next[idx] = { ...next[idx], customName: event.customName };
+      return { ...state, inventory: next };
+    }
+
     case "moved":
       return reduceMoved(state, event);
 

@@ -64,6 +64,14 @@ export type Event =
   | { kind: "form_state.changed"; field: string; delta: number }
   | { kind: "inventory.added"; itemId: string; qty: number }
   | { kind: "inventory.removed"; itemId: string; qty: number }
+  | {
+      /** Phase 5.5 Day 31. Player renamed an item in their
+       *  inventory. The custom name persists on that inventory
+       *  slot until the item is dropped/absorbed. */
+      kind: "inventory.renamed";
+      itemId: string;
+      customName: string;
+    }
   | { kind: "moved"; fromRoom: string; toRoom: string }
   | { kind: "time.passed"; ticks: number }
   | { kind: "sensed"; modality: string; detail: string }
@@ -242,6 +250,14 @@ export type ToolCall =
       name: "learn_skill_from";
       npcId: string;
     }
+  | {
+      /** Phase 5.5 Day 31. Rename an item in the player's
+       *  inventory. The narrator subsequently uses the custom
+       *  name. 1-32 chars, moderation-checked. No energy cost. */
+      name: "rename_inventory";
+      itemId: string;
+      customName: string;
+    }
   | { name: "narrate_only" };
 
 /**
@@ -307,7 +323,7 @@ export interface Projection {
     roomId: string;
     discovered: string[];
   };
-  inventory: Array<{ itemId: string; qty: number }>;
+  inventory: Array<{ itemId: string; qty: number; customName?: string }>;
   npcs: Record<string, { name: string; relationship: number } & Record<string, unknown>>;
   quest: {
     id: string | null;

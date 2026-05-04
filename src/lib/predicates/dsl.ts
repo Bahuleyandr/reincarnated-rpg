@@ -201,6 +201,8 @@ const TOOL_TO_KINDS: Record<ToolCall["name"], readonly string[]> = {
   // Phase 5 Day 23-24: learn_skill_from emits skill.learned +
   // coins.spent.
   learn_skill_from: ["skill.learned"],
+  // Phase 5.5 Day 31: rename_inventory emits inventory.renamed.
+  rename_inventory: ["inventory.renamed"],
   narrate_only: [],
 };
 

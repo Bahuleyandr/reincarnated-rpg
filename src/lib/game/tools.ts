@@ -135,6 +135,11 @@ const toolSchemas = {
     name: z.literal("learn_skill_from"),
     npcId: nonEmptyString,
   }),
+  rename_inventory: z.object({
+    name: z.literal("rename_inventory"),
+    itemId: slugSchema,
+    customName: z.string().min(1).max(32),
+  }),
   narrate_only: z.object({
     name: z.literal("narrate_only"),
   }),
@@ -160,6 +165,7 @@ export const toolCallSchema = z.discriminatedUnion("name", [
   toolSchemas.gather_resource,
   toolSchemas.craft_recipe,
   toolSchemas.learn_skill_from,
+  toolSchemas.rename_inventory,
   toolSchemas.narrate_only,
 ]);
 
@@ -601,6 +607,21 @@ export function checkPrecondition(
       // delta might still overflow if output > total inputs (rare).
       return null;
     }
+    case "rename_inventory": {
+      const held = projection.inventory.find((i) => i.itemId === tool.itemId);
+      if (!held) {
+        return `rename_inventory: item not held: ${tool.itemId}`;
+      }
+      // Reject control characters / pure whitespace.
+      const trimmed = tool.customName.trim();
+      if (trimmed.length === 0) {
+        return `rename_inventory: name is empty`;
+      }
+      if (/[\x00-\x1f]/.test(trimmed)) {
+        return `rename_inventory: control characters not allowed`;
+      }
+      return null;
+    }
     case "learn_skill_from": {
       const npc = projection.npcs[tool.npcId] as
         | (Record<string, unknown> & { templateId?: unknown })
@@ -825,6 +846,12 @@ export function toolToEvent(tool: ToolCall, projection: Projection): Event | nul
       // function stays 1:1-or-zero and predicate audits don't get
       // confused.
       return null;
+    case "rename_inventory":
+      return {
+        kind: "inventory.renamed",
+        itemId: tool.itemId,
+        customName: tool.customName.trim(),
+      };
     case "narrate_only":
       return null;
   }
