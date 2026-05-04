@@ -453,6 +453,18 @@ export const worldNpcs = pgTable(
     /** Original NPC entity data (template id, attitude, etc) merged
      *  with accumulated facts. */
     data: jsonb("data").notNull(),
+    /** Companion-bond timestamp. NULL = ordinary world NPC. Non-null
+     *  = the relationship score crossed +3 in some run; promoted to
+     *  recurring companion. Set once and never cleared (a bond
+     *  survives even if relationshipScore later drops below the
+     *  threshold — once they remember you, they remember). */
+    bondedAt: timestamp("bonded_at", { withTimezone: true }),
+    /** Personality card generated at bond time. Shape:
+     *  { voice: string, mannerisms: string[], topicsOfInterest: string[],
+     *    formMet: string }. Used by recall.ts to compose a 1-line
+     *  history beat the narrator weaves into turn 1 of new
+     *  campaigns. Generated once via a Haiku 4.5 call (cached). */
+    personalityCard: jsonb("personality_card"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

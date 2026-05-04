@@ -183,6 +183,13 @@
       "when": 1777970000000,
       "tag": "0025_objectives",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1777980000000,
+      "tag": "0026_companion_npcs",
+      "breakpoints": true
     }
   ]
 }

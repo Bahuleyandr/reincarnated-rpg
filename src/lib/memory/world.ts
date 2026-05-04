@@ -176,6 +176,7 @@ export async function persistRunToWorld(
     // Roll up NPCs.
     const rollups = rollUpNpcInteractions(events);
     let npcsUpserted = 0;
+    let companionsBonded = 0;
     for (const r of rollups) {
       const existing = await db
         .select()
@@ -188,9 +189,19 @@ export async function persistRunToWorld(
         )
         .limit(1);
       const now = new Date();
+      let npcId: string;
+      let postScore: number;
+      let postHelped: number;
+      let postHarmed: number;
+      let alreadyBonded: boolean;
       if (existing.length === 0) {
+        npcId = uuidv7();
+        postScore = r.relationshipDelta;
+        postHelped = r.helped;
+        postHarmed = r.harmed;
+        alreadyBonded = false;
         await db.insert(worldNpcs).values({
-          id: uuidv7(),
+          id: npcId,
           userId: opts.userId,
           slug: r.slug,
           name: r.name,
@@ -214,20 +225,55 @@ export async function persistRunToWorld(
         });
       } else {
         const cur = existing[0];
+        npcId = cur.id;
+        postScore = cur.relationshipScore + r.relationshipDelta;
+        postHelped = cur.timesHelped + r.helped;
+        postHarmed = cur.timesHarmed + r.harmed;
+        alreadyBonded = cur.bondedAt !== null;
         await db
           .update(worldNpcs)
           .set({
-            relationshipScore: cur.relationshipScore + r.relationshipDelta,
+            relationshipScore: postScore,
             timesMet: cur.timesMet + 1,
-            timesHelped: cur.timesHelped + r.helped,
-            timesHarmed: cur.timesHarmed + r.harmed,
+            timesHelped: postHelped,
+            timesHarmed: postHarmed,
             lastSeenCampaignId: opts.campaignId ?? cur.lastSeenCampaignId,
             updatedAt: now,
           })
           .where(eq(worldNpcs.id, cur.id));
       }
       npcsUpserted += 1;
+
+      // Companion bond check (Phase 2 Day 7-8). Pure threshold check;
+      // atomic UPDATE in materializeBond. Idempotent — already-bonded
+      // NPCs short-circuit on the WHERE clause.
+      if (!alreadyBonded) {
+        try {
+          const { shouldBond, materializeBond } = await import(
+            "../companions/bond"
+          );
+          if (shouldBond(postScore)) {
+            const result = await materializeBond(db, {
+              npcId,
+              npcName: r.name,
+              slug: r.slug,
+              formMet: opts.formId ?? null,
+              timesHelped: postHelped,
+              timesHarmed: postHarmed,
+              memorySummary: `${r.name}.`,
+            });
+            if (result.bonded) companionsBonded += 1;
+          }
+        } catch (err) {
+          log.warn("companions.bond_check_failed", {
+            userId: opts.userId,
+            npcId,
+            err: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
     }
+    void companionsBonded;
 
     // Write the run summary as a world_memory.
     const summary = composeRunSummary(events, {

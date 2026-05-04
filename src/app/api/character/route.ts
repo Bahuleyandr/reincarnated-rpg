@@ -179,6 +179,43 @@ export async function GET(req: NextRequest) {
     }));
   const pinnedTitle = userRow[0]?.pinnedTitle ?? null;
 
+  // Bonded companions — those who remember you (Phase 2 Day 7-8).
+  const { isNotNull: _isNotNull, desc: _desc, and: _and } = await import("drizzle-orm");
+  const companionRows = await db
+    .select({
+      id: worldNpcs.id,
+      name: worldNpcs.name,
+      slug: worldNpcs.slug,
+      relationshipScore: worldNpcs.relationshipScore,
+      bondedAt: worldNpcs.bondedAt,
+      personalityCard: worldNpcs.personalityCard,
+      lastSeenCampaignId: worldNpcs.lastSeenCampaignId,
+    })
+    .from(worldNpcs)
+    .where(
+      _and(eq(worldNpcs.userId, userId), _isNotNull(worldNpcs.bondedAt)),
+    )
+    .orderBy(_desc(worldNpcs.bondedAt))
+    .limit(50);
+  const companions = companionRows
+    .filter((r) => r.bondedAt !== null)
+    .map((r) => {
+      const card = (r.personalityCard ?? {}) as {
+        voice?: string;
+        formMet?: string | null;
+      };
+      return {
+        id: r.id,
+        name: r.name,
+        slug: r.slug,
+        relationshipScore: r.relationshipScore,
+        bondedAtMs: r.bondedAt!.getTime(),
+        formMet: card.formMet ?? null,
+        personalityHint: card.voice ?? null,
+        lastSeenInRun: r.lastSeenCampaignId ?? null,
+      };
+    });
+
   return NextResponse.json({
     totalCampaigns,
     campaignsByStatus,
@@ -186,6 +223,7 @@ export async function GET(req: NextRequest) {
     legacyTraits,
     availableTitles,
     pinnedTitle,
+    companions,
     energy: energy
       ? {
           energy: energy.energy,

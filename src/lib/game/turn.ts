@@ -290,6 +290,22 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
         err: err instanceof Error ? err.message : String(err),
       });
     }
+
+    // Companion recall (Phase 2 Day 7-8). Up to 2 bonded companions
+    // surface as Memory entries on turn 1. The narrator decides
+    // whether to weave them in.
+    try {
+      const { recallCompanions } = await import("../companions/recall");
+      const companions = await recallCompanions(db, world.userId, 2);
+      if (companions.length > 0) {
+        relevantMemories = [...companions, ...relevantMemories];
+      }
+    } catch (err) {
+      log.warn("turn.companions.recall_failed", {
+        userId: world.userId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   const baseInput = {
