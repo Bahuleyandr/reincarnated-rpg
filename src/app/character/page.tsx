@@ -8,6 +8,23 @@ interface CharacterResp {
   totalCampaigns: number;
   campaignsByStatus: Record<string, number>;
   formDistribution: Array<{ formId: string; n: number }>;
+  coins?: number;
+  skills?: Array<{
+    id: string;
+    level: number;
+    xp: number;
+    learnedFromNpcId: string | null;
+  }>;
+  recipes?: Array<{
+    id: string;
+    skill: string;
+    requiredLevel: number;
+    inputs: Array<{ itemId: string; qty: number }>;
+    output: { itemId: string; qty: number };
+    xp: number;
+    requiresLocation: string | null;
+    unlocked: boolean;
+  }>;
   legacyTraits?: Array<{
     id: string;
     label: string;
@@ -301,6 +318,98 @@ export default function CharacterPage() {
                 }
               }}
             />
+          </section>
+        )}
+
+        {data.coins !== undefined && (
+          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-1">
+            <h2 className="text-stone-100 text-sm">coins</h2>
+            <p className="text-amber-300 text-2xl tabular-nums">
+              ⊙ {data.coins.toLocaleString()}
+            </p>
+            <p className="text-stone-500 text-[11px] italic">
+              Coins persist across reincarnations. The cycle remembers
+              what you traded.
+            </p>
+          </section>
+        )}
+
+        {data.skills && data.skills.length > 0 && (
+          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+            <h2 className="text-stone-100 text-sm">
+              skills ({data.skills.length})
+            </h2>
+            <p className="text-[11px] text-stone-500 italic leading-5">
+              Skills you learned from trainers. Cross-run — once
+              learned, the soul keeps it.
+            </p>
+            <ul className="space-y-2">
+              {data.skills.map((s) => {
+                const xpForCurrent = Math.floor(s.level * s.level * 50);
+                const xpForNext = Math.floor(
+                  (s.level + 1) * (s.level + 1) * 50,
+                );
+                const intoLevel = Math.max(0, s.xp - xpForCurrent);
+                const span = xpForNext - xpForCurrent;
+                const pct = span > 0 ? (intoLevel / span) * 100 : 0;
+                return (
+                  <li key={s.id} className="text-xs">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-stone-200">{s.id}</span>
+                      <span className="text-stone-500">level {s.level}</span>
+                      <span className="text-stone-700 ml-auto tabular-nums">
+                        {s.xp.toLocaleString()} XP
+                      </span>
+                    </div>
+                    <div className="h-1 bg-stone-900 border border-stone-800 mt-1 relative overflow-hidden">
+                      <div
+                        className="absolute inset-y-0 left-0 bg-amber-700"
+                        style={{ width: `${Math.min(100, pct)}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
+        {data.recipes && data.recipes.length > 0 && (
+          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+            <h2 className="text-stone-100 text-sm">
+              recipe book ({data.recipes.filter((r) => r.unlocked).length}/
+              {data.recipes.length} unlocked)
+            </h2>
+            <p className="text-[11px] text-stone-500 italic leading-5">
+              Locked recipes show their skill requirement. Train with
+              the right NPC to unlock.
+            </p>
+            <ul className="space-y-1">
+              {data.recipes
+                .slice()
+                .sort((a, b) => {
+                  if (a.unlocked !== b.unlocked) return a.unlocked ? -1 : 1;
+                  if (a.skill !== b.skill) return a.skill.localeCompare(b.skill);
+                  return a.requiredLevel - b.requiredLevel;
+                })
+                .map((r) => (
+                  <li
+                    key={r.id}
+                    className={`text-xs flex items-baseline gap-2 ${
+                      r.unlocked ? "text-stone-300" : "text-stone-600"
+                    }`}
+                  >
+                    <span className="font-mono">{r.id}</span>
+                    <span className="text-stone-700">·</span>
+                    <span className="text-stone-500">{r.skill}</span>
+                    {!r.unlocked && (
+                      <span className="text-stone-700 ml-auto">
+                        needs L{r.requiredLevel}
+                      </span>
+                    )}
+                  </li>
+                ))}
+            </ul>
           </section>
         )}
 

@@ -547,6 +547,124 @@
       "relevantKinds": ["session.ended"],
       "scope": "session",
       "titleAwarded": "the quiet"
+    },
+    {
+      "id": "first-trade",
+      "label": "First Trade",
+      "description": "The first time coins changed hands with you in the middle.",
+      "predicate": { "type": "eventOfKind", "kind": "trade.completed" },
+      "relevantKinds": ["trade.completed"],
+      "scope": "lifetime",
+      "titleAwarded": "the broker"
+    },
+    {
+      "id": "first-gather",
+      "label": "First Gather",
+      "description": "You took something that grew.",
+      "predicate": { "type": "eventOfKind", "kind": "craft.gathered" },
+      "relevantKinds": ["craft.gathered"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "first-craft",
+      "label": "First Craft",
+      "description": "You made a thing that did not exist before.",
+      "predicate": { "type": "eventOfKind", "kind": "craft.completed" },
+      "relevantKinds": ["craft.completed"],
+      "scope": "lifetime",
+      "titleAwarded": "the maker"
+    },
+    {
+      "id": "first-smith",
+      "label": "First Smith",
+      "description": "Smithing crossed your fingers, then crossed your hands.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "craft.completed", "skill": "smithing" }
+      },
+      "relevantKinds": ["craft.completed"],
+      "scope": "lifetime",
+      "titleAwarded": "the smith"
+    },
+    {
+      "id": "first-skill-learned",
+      "label": "Apprentice",
+      "description": "A trainer accepted you. The skill is yours now, across all lives.",
+      "predicate": { "type": "eventOfKind", "kind": "skill.learned" },
+      "relevantKinds": ["skill.learned"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "three-skills-learned",
+      "label": "Three Trainers",
+      "description": "Three teachers. Three skills. The cycle is teaching back.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "skill.learned" },
+        "spec": ">= 3"
+      },
+      "relevantKinds": ["skill.learned"],
+      "scope": "lifetime",
+      "titleAwarded": "the polymath"
+    },
+    {
+      "id": "skill-leveled-five",
+      "label": "Practiced",
+      "description": "A skill reached level 5. The hands have begun to know.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "skill.leveled_up", "newLevel": { "$gte": 5 } }
+      },
+      "relevantKinds": ["skill.leveled_up"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "skill-leveled-ten",
+      "label": "Mastered",
+      "description": "A skill reached level 10. People know your name when you walk in.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "skill.leveled_up", "newLevel": { "$gte": 10 } }
+      },
+      "relevantKinds": ["skill.leveled_up"],
+      "scope": "lifetime",
+      "titleAwarded": "the master"
+    },
+    {
+      "id": "ten-trades",
+      "label": "Old Customer",
+      "description": "Ten trades concluded. Your face is becoming familiar.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "trade.completed" },
+        "spec": ">= 10"
+      },
+      "relevantKinds": ["trade.completed"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "ten-crafts",
+      "label": "Tradesman",
+      "description": "Ten things made. The hands remember.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "craft.completed" },
+        "spec": ">= 10"
+      },
+      "relevantKinds": ["craft.completed"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "fifty-gathered",
+      "label": "Patient Picker",
+      "description": "Fifty raw resources gathered. The world gives in increments.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "craft.gathered" },
+        "spec": ">= 50"
+      },
+      "relevantKinds": ["craft.gathered"],
+      "scope": "lifetime"
     }
   ]
 }

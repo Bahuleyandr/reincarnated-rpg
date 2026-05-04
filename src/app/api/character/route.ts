@@ -217,6 +217,38 @@ export async function GET(req: NextRequest) {
       };
     });
 
+  // Skills (Phase 5 Day 23-24, surfaced Day 27).
+  const { listUserSkills } = await import("@/lib/economy/skills");
+  const userSkillRows = await listUserSkills(db, userId);
+  const skillSummaries = userSkillRows.map((r) => ({
+    id: r.skillId,
+    level: r.level,
+    xp: r.xp,
+    learnedFromNpcId: r.learnedFromNpcId,
+  }));
+
+  // Recipes known: a recipe is "known" if the player has the
+  // required skill at the required level. We compute this from the
+  // skill levels we just read so the page doesn't need to call
+  // validateRecipe N times.
+  const { listRecipes } = await import("@/lib/economy/recipes");
+  const knownLevels = Object.fromEntries(
+    userSkillRows.map((r) => [r.skillId, r.level]),
+  );
+  const recipeSummaries = listRecipes().map((r) => ({
+    id: r.id,
+    skill: r.skill,
+    requiredLevel: r.requiredLevel,
+    inputs: r.inputs,
+    output: r.output,
+    xp: r.xp,
+    requiresLocation: r.requiresLocation ?? null,
+    /** Whether the player meets the skill-level gate. The recipe
+     *  also requires inputs at craft-time; this flag captures only
+     *  the skill prerequisite. */
+    unlocked: (knownLevels[r.skill] ?? 0) >= r.requiredLevel,
+  }));
+
   return NextResponse.json({
     totalCampaigns,
     campaignsByStatus,
@@ -225,6 +257,8 @@ export async function GET(req: NextRequest) {
     availableTitles,
     pinnedTitle,
     coins: userRow[0]?.coins ?? 0,
+    skills: skillSummaries,
+    recipes: recipeSummaries,
     companions,
     energy: energy
       ? {
