@@ -1650,4 +1650,42 @@ export const retiredPlayers = pgTable("retired_players", {
 export type RetiredPlayer = typeof retiredPlayers.$inferSelect;
 export type NewRetiredPlayer = typeof retiredPlayers.$inferInsert;
 
+/**
+ * Roadmap 64 — in-run companions. Bonded NPCs (from world_npcs)
+ * can be summoned into the active session as actual party
+ * members with their own HP, level, and death state. Death is
+ * permanent: HP→0 flips status to 'dead'; world_npcs.last_seen_status
+ * also goes to 'dead' so the next run knows the bond is broken.
+ */
+export const sessionCompanions = pgTable(
+  "session_companions",
+  {
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    worldNpcId: uuid("world_npc_id")
+      .notNull()
+      .references(() => worldNpcs.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
+    displayName: text("display_name").notNull(),
+    level: integer("level").notNull().default(1),
+    currentHp: integer("current_hp").notNull(),
+    maxHp: integer("max_hp").notNull(),
+    status: text("status").notNull().default("alive"),
+    joinedAtTurn: integer("joined_at_turn").notNull(),
+    joinedAt: timestamp("joined_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("session_companions_pk").on(t.sessionId, t.worldNpcId),
+    index("session_companions_session_idx").on(t.sessionId),
+    index("session_companions_status_idx").on(t.status),
+  ],
+);
+
+export type SessionCompanion = typeof sessionCompanions.$inferSelect;
+export type NewSessionCompanion = typeof sessionCompanions.$inferInsert;
+
 export const _sql = sql; // re-export for migration writers if needed

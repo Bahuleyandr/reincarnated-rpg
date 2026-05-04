@@ -407,6 +407,13 @@
       "when": 1778290000000,
       "tag": "0057_retired_players",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1778300000000,
+      "tag": "0058_in_run_companions",
+      "breakpoints": true
     }
   ]
 }
