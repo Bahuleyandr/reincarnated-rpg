@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { FamousDeathsTicker } from "@/components/FamousDeathsTicker";
 import { TodayTicker } from "@/components/TodayTicker";
 import { WyrmStatus } from "@/components/WyrmStatus";
 
@@ -81,6 +82,7 @@ export default function Home() {
     <main className="min-h-screen bg-stone-950 text-stone-200 font-mono flex items-center justify-center px-6 py-10">
       <div className="max-w-2xl w-full space-y-10">
         <TodayTicker />
+        <FamousDeathsTicker />
         <WyrmStatus />
         <header className="space-y-3">
           <h1 className="text-3xl tracking-tight text-stone-100">
