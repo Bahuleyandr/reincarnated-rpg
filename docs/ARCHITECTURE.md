@@ -1,26 +1,55 @@
 # Architecture
 
-Skeleton — flesh out as M1 days complete.
-
 ## Per-turn flow
 
 ```
-1. Player POSTs action to /api/turn
-2. Auth: verify signed cookie -> session_id
-3. Load projection at HEAD (cached snapshot + delta replay)
-4. Sanitize player input; store raw + rendered separately
-5. Classifier (Haiku 4.5): { verb (from form whitelist), confidence, entities }
-6. Roll engine: 2d6 + form-stat mod, seeded PRNG (seed stored in event)
-7. Retrieve memories: top-k by cosine similarity * entity-overlap * recency
-8. Narrator (Sonnet 4.6 OR TemplateNarrator): receives projection + roll + memories + form-card
-   -> returns { prose, tool_calls[] }
-9. Validate every tool call against rules engine (Zod + form whitelist + state preconditions)
-10. Atomicity: ALL tools in this response succeed-or-rollback as one event batch
-    - If any tool fails validation: emit `tool_validation_failed` event, re-prompt model with error, max 1 retry
-11. Append events: turn.begun, intent.classified, roll.resolved, [tool events...], narration.emitted
-12. Write projection snapshot at new seq
-13. Return { narration, projection, status } to client
+ 1. Player POSTs action to /api/turn (or /api/turn/stream)
+ 2. Auth: verify signed cookie -> session_id
+ 3. Moderation gate (cheap, deterministic; lib/moderation):
+    - injection patterns -> 400 reject (no energy spent)
+    - severe profanity   -> 422 reject + bad_luck stack (energy spent)
+    - mild profanity     -> proceed; bad_luck stack queued
+ 4. Acquire turn-lock (token + 90s expiry on sessions row).
+    Concurrent POSTs see the lock and 409 with currentLockExpiresAtMs
+    so the UI can show "settling..." + auto-retry.
+    (See ADR-020 + lib/game/turn-lock.)
+ 5. Energy gate (lib/energy/state.trySpend with advisory lock).
+    Out of energy -> 429 with the post-refill view.
+ 6. Load projection at HEAD (cached snapshot + delta replay)
+ 7. Sanitize player input; store raw + rendered separately
+ 8. Classifier (regex; or Haiku 4.5 if user opted in): { verb, confidence }
+ 9. Roll engine: 2d6 + form-stat mod − bad_luck penalty, seeded PRNG
+10. Retrieve memories: top-k cosine × entity-overlap × recency decay
+11. Narrator (Sonnet 4.6 OR TemplateNarrator): receives projection + roll
+    + memories + form-card -> returns { prose, tool_calls[] }
+12. Speculative event batching (lib/game/turn):
+    - validateToolsToEvents() validates the whole tool batch + builds
+      pendingEvents in-memory (no DB writes).
+    - If validation fails: emit tool_validation_failed, re-prompt
+      narrator with error + form-tone reminder, max 1 retry, then
+      fall back to narrate_only.
+13. Tone-drift check on the final accepted text (regex; LLM judge if
+    user opted in). One retry on violation.
+14. appendEvents in one transaction: turn.begun, intent.classified,
+    roll.resolved, [tool events...], narration.emitted.
+15. Write projection snapshot at the new seq.
+16. Beat matcher fires any qualifying beats; append their events.
+17. Return { narration, projection, roll, status } to client.
+18. finally { releaseTurnLock(token) } — token-strict release;
+    audit row writes regardless of outcome.
 ```
+
+## Turn-lock primitive (ADR-020)
+
+`sessions.turn_lock_token` + `sessions.turn_lock_expires_at` + an audit log table `turn_lock_events`.
+
+Acquire is atomic: a single guarded UPDATE — `WHERE turn_lock_token IS NULL OR turn_lock_expires_at < now()`. If the row updated, we own the lock.
+
+Release is token-strict — a delayed worker can't release a lock that's been re-acquired by someone else. Returns boolean (true if released, false if the lock was already gone). Either outcome writes an audit row.
+
+Force-release (admin) is exposed at `/api/god/locks` and writes `force_released` audit rows attributed to the actor.
+
+Default TTL 90 seconds. The next acquire on an expired lock auto-reclaims with `claimed_expired` audit kind, so orphaned locks self-heal within ~90s.
 
 ## Two principles enforce truth
 
