@@ -741,4 +741,32 @@ export const turnLockEvents = pgTable(
 export type TurnLockEvent = typeof turnLockEvents.$inferSelect;
 export type NewTurnLockEvent = typeof turnLockEvents.$inferInsert;
 
+/**
+ * Per-user achievement unlocks. UNIQUE (user_id, achievement_id) so
+ * the runner can be idempotent — duplicate unlocks are silently
+ * absorbed by the constraint. evidence_event_ids carries the audit
+ * trail (which events caused the match) for replay + UI attribution.
+ */
+export const achievementsUnlocked = pgTable(
+  "achievements_unlocked",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    achievementId: text("achievement_id").notNull(),
+    unlockedAt: timestamp("unlocked_at", { withTimezone: true }).notNull().defaultNow(),
+    campaignId: uuid("campaign_id").references(() => campaigns.id),
+    evidenceEventIds: uuid("evidence_event_ids").array(),
+  },
+  (t) => [
+    uniqueIndex("achievements_unique_per_user").on(t.userId, t.achievementId),
+    index("achievements_user_idx").on(t.userId),
+    index("achievements_unlocked_at_idx").on(t.unlockedAt),
+  ],
+);
+
+export type AchievementUnlocked = typeof achievementsUnlocked.$inferSelect;
+export type NewAchievementUnlocked = typeof achievementsUnlocked.$inferInsert;
+
 export const _sql = sql; // re-export for migration writers if needed

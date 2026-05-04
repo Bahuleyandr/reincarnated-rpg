@@ -1,0 +1,537 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Achievement catalog. Each entry has a JSON-DSL predicate evaluated against an event-log slice. See src/lib/achievements/dsl-parser.ts for node types. titleAwarded is filled in by Phase 1 Day 5."
+  },
+  "achievements": [
+    {
+      "id": "first-reincarnation",
+      "label": "First Reincarnation",
+      "description": "You took your first turn in another world.",
+      "predicate": { "type": "eventOfKind", "kind": "turn.begun" },
+      "relevantKinds": ["turn.begun"],
+      "scope": "session"
+    },
+    {
+      "id": "mortal-reminder",
+      "label": "Mortal Reminder",
+      "description": "Your first death. The cycle has noticed you.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "session.ended", "reason": "death" }
+      },
+      "relevantKinds": ["session.ended"],
+      "scope": "session"
+    },
+    {
+      "id": "first-survival",
+      "label": "First Survival",
+      "description": "The night ended and you were still in it.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "session.ended", "reason": "win" }
+      },
+      "relevantKinds": ["session.ended"],
+      "scope": "session"
+    },
+    {
+      "id": "without-verdict",
+      "label": "Without Verdict",
+      "description": "Ten turns spent and the world still cannot decide.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "session.ended", "reason": "cap" }
+      },
+      "relevantKinds": ["session.ended"],
+      "scope": "session"
+    },
+    {
+      "id": "first-friend",
+      "label": "First Friend",
+      "description": "Someone in this world bent toward you.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "relationship.updated", "delta": { "$gte": 1 } }
+      },
+      "relevantKinds": ["relationship.updated"],
+      "scope": "session"
+    },
+    {
+      "id": "first-foe",
+      "label": "First Foe",
+      "description": "You made an enemy. They will remember.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "relationship.updated", "delta": { "$lte": -1 } }
+      },
+      "relevantKinds": ["relationship.updated"],
+      "scope": "session"
+    },
+    {
+      "id": "reformed",
+      "label": "Reformed",
+      "description": "Once you turned against them. Then you turned back.",
+      "predicate": {
+        "type": "inOrder",
+        "children": [
+          {
+            "type": "eventWith",
+            "match": { "kind": "relationship.updated", "delta": { "$lte": -1 } }
+          },
+          {
+            "type": "eventWith",
+            "match": { "kind": "relationship.updated", "delta": { "$gte": 1 } }
+          }
+        ]
+      },
+      "relevantKinds": ["relationship.updated"],
+      "scope": "session"
+    },
+    {
+      "id": "lucky-roll",
+      "label": "Lucky Roll",
+      "description": "A roll of 12. The world bent.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "roll.resolved", "roll.total": { "$gte": 12 } }
+      },
+      "relevantKinds": ["roll.resolved"],
+      "scope": "session"
+    },
+    {
+      "id": "snake-eyes",
+      "label": "Snake Eyes",
+      "description": "A roll of 2. The world refused.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "roll.resolved", "roll.total": 2 }
+      },
+      "relevantKinds": ["roll.resolved"],
+      "scope": "session"
+    },
+    {
+      "id": "first-absorb",
+      "label": "First Absorb",
+      "description": "You took something into yourself. It is no longer outside.",
+      "predicate": { "type": "eventOfKind", "kind": "absorbed" },
+      "relevantKinds": ["absorbed"],
+      "scope": "session"
+    },
+    {
+      "id": "explorer",
+      "label": "Explorer",
+      "description": "Three rooms discovered in a single life.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "location.discovered" },
+        "spec": ">= 3"
+      },
+      "relevantKinds": ["location.discovered"],
+      "scope": "session"
+    },
+    {
+      "id": "patient",
+      "label": "Patient",
+      "description": "Ten turns lived without lashing out.",
+      "predicate": {
+        "type": "all",
+        "children": [
+          {
+            "type": "count",
+            "filter": { "type": "eventOfKind", "kind": "turn.begun" },
+            "spec": ">= 10"
+          },
+          {
+            "type": "not",
+            "child": { "type": "eventOfKind", "kind": "damage.applied" }
+          }
+        ]
+      },
+      "relevantKinds": ["turn.begun"],
+      "scope": "session"
+    },
+    {
+      "id": "barely",
+      "label": "Barely",
+      "description": "Took a 10-damage hit and lived. The cycle blinked.",
+      "predicate": {
+        "type": "eventWith",
+        "match": {
+          "kind": "damage.applied",
+          "amount": { "$gte": 10 }
+        }
+      },
+      "relevantKinds": ["damage.applied"],
+      "scope": "session"
+    },
+    {
+      "id": "iron-touched",
+      "label": "Iron-touched",
+      "description": "An item changed hands. You held it.",
+      "predicate": { "type": "eventOfKind", "kind": "inventory.added" },
+      "relevantKinds": ["inventory.added"],
+      "scope": "session"
+    },
+    {
+      "id": "wyrm-aware",
+      "label": "Wyrm-aware",
+      "description": "Your form-state recorded a wyrm impression.",
+      "predicate": {
+        "type": "eventWith",
+        "match": {
+          "kind": "form_state.changed",
+          "field": "wyrm_attuned",
+          "delta": { "$gte": 1 }
+        }
+      },
+      "relevantKinds": ["form_state.changed"],
+      "scope": "session"
+    },
+    {
+      "id": "self-undone",
+      "label": "Self-undone",
+      "description": "You ended yourself. The narrator did not need to.",
+      "predicate": {
+        "type": "eventWith",
+        "match": {
+          "kind": "damage.applied",
+          "source": { "$matches": "self|own[-_]tool|backfire" }
+        }
+      },
+      "relevantKinds": ["damage.applied"],
+      "scope": "session"
+    },
+    {
+      "id": "tongue-cursed",
+      "label": "Tongue-cursed",
+      "description": "Bad luck stacked. The world remembers.",
+      "predicate": {
+        "type": "eventWith",
+        "match": {
+          "kind": "form_state.changed",
+          "field": "bad_luck",
+          "delta": { "$gte": 1 }
+        }
+      },
+      "relevantKinds": ["form_state.changed"],
+      "scope": "session"
+    },
+    {
+      "id": "many-tools",
+      "label": "Many-tools",
+      "description": "Five mechanical tools resolved across one turn-batch.",
+      "predicate": {
+        "type": "eventWith",
+        "match": {
+          "kind": "narration.emitted",
+          "toolCallsApplied": { "$gte": 5 }
+        }
+      },
+      "relevantKinds": ["narration.emitted"],
+      "scope": "session"
+    },
+    {
+      "id": "speaker",
+      "label": "Speaker",
+      "description": "Your form left a memory in the world.",
+      "predicate": { "type": "eventOfKind", "kind": "memory.created" },
+      "relevantKinds": ["memory.created"],
+      "scope": "session"
+    },
+    {
+      "id": "questbearer",
+      "label": "Questbearer",
+      "description": "An objective resolved by your hand.",
+      "predicate": {
+        "type": "eventWith",
+        "match": {
+          "kind": "quest.objectiveUpdated",
+          "status": { "$in": ["done", "failed"] }
+        }
+      },
+      "relevantKinds": ["quest.objectiveUpdated"],
+      "scope": "session"
+    },
+    {
+      "id": "long-night",
+      "label": "Long Night",
+      "description": "Twenty turns in a single life.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "turn.begun" },
+        "spec": ">= 20"
+      },
+      "relevantKinds": ["turn.begun"],
+      "scope": "session"
+    },
+    {
+      "id": "five-named",
+      "label": "Five Named",
+      "description": "Five different NPCs introduced in a single life.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "npc.introduced" },
+        "spec": ">= 5"
+      },
+      "relevantKinds": ["npc.introduced"],
+      "scope": "session"
+    },
+    {
+      "id": "blooded-three",
+      "label": "Blooded-three",
+      "description": "Three damage.applied events in a single turn-window.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "damage.applied" },
+        "spec": ">= 3"
+      },
+      "relevantKinds": ["damage.applied"],
+      "scope": "session"
+    },
+    {
+      "id": "perfect-roll",
+      "label": "Perfect Roll",
+      "description": "A 12 followed by another 10+. The world holds its breath.",
+      "predicate": {
+        "type": "inOrder",
+        "children": [
+          {
+            "type": "eventWith",
+            "match": { "kind": "roll.resolved", "roll.total": { "$gte": 12 } }
+          },
+          {
+            "type": "eventWith",
+            "match": { "kind": "roll.resolved", "roll.total": { "$gte": 10 } }
+          }
+        ]
+      },
+      "relevantKinds": ["roll.resolved"],
+      "scope": "session"
+    },
+    {
+      "id": "first-misstep",
+      "label": "First Misstep",
+      "description": "A tool failed validation. The model wobbled.",
+      "predicate": { "type": "eventOfKind", "kind": "tool_validation_failed" },
+      "relevantKinds": ["tool_validation_failed"],
+      "scope": "session"
+    },
+    {
+      "id": "introduced-rhozell",
+      "label": "Met the Wyrm's Hand",
+      "description": "Rhozell saw you. He will remember.",
+      "predicate": {
+        "type": "eventWith",
+        "match": {
+          "kind": "npc.introduced",
+          "data.templateId": "rhozell"
+        }
+      },
+      "relevantKinds": ["npc.introduced"],
+      "scope": "session"
+    },
+    {
+      "id": "introduced-wrong-reader",
+      "label": "Read Wrong",
+      "description": "Someone opened the page that should not have opened.",
+      "predicate": {
+        "type": "eventWith",
+        "match": {
+          "kind": "npc.introduced",
+          "data.templateId": "wrong-reader"
+        }
+      },
+      "relevantKinds": ["npc.introduced"],
+      "scope": "session"
+    },
+    {
+      "id": "introduced-warped-minion",
+      "label": "Botched Summon",
+      "description": "A core tried to summon something. Something came wrong.",
+      "predicate": {
+        "type": "eventWith",
+        "match": {
+          "kind": "npc.introduced",
+          "data.templateId": "warped-minion"
+        }
+      },
+      "relevantKinds": ["npc.introduced"],
+      "scope": "session"
+    },
+    {
+      "id": "thrice-died",
+      "label": "Thrice-died",
+      "description": "Three deaths. The cycle's etiquette begins to feel rote.",
+      "predicate": {
+        "type": "count",
+        "filter": {
+          "type": "eventWith",
+          "match": { "kind": "session.ended", "reason": "death" }
+        },
+        "spec": ">= 3"
+      },
+      "relevantKinds": ["session.ended"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "thrice-survived",
+      "label": "Thrice-survived",
+      "description": "Three runs ended in light. The world is paying attention.",
+      "predicate": {
+        "type": "count",
+        "filter": {
+          "type": "eventWith",
+          "match": { "kind": "session.ended", "reason": "win" }
+        },
+        "spec": ">= 3"
+      },
+      "relevantKinds": ["session.ended"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "ten-lived",
+      "label": "Ten-lived",
+      "description": "Ten complete reincarnations. Veteran soul.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "session.ended" },
+        "spec": ">= 10"
+      },
+      "relevantKinds": ["session.ended"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "named-thrice",
+      "label": "Named Thrice",
+      "description": "Three different reincarnatedAs declarations.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "session.started" },
+        "spec": ">= 3"
+      },
+      "relevantKinds": ["session.started"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "fortyniner",
+      "label": "Forty-niner",
+      "description": "Forty-nine turns lived in a single run. Marathon.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "turn.begun" },
+        "spec": ">= 49"
+      },
+      "relevantKinds": ["turn.begun"],
+      "scope": "session"
+    },
+    {
+      "id": "absorber-five",
+      "label": "Absorber Five",
+      "description": "Five absorptions in a single life. Glutton or scholar.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "absorbed" },
+        "spec": ">= 5"
+      },
+      "relevantKinds": ["absorbed"],
+      "scope": "session"
+    },
+    {
+      "id": "five-locations",
+      "label": "Five Locations",
+      "description": "Five distinct rooms discovered. Restless soul.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "location.discovered" },
+        "spec": ">= 5"
+      },
+      "relevantKinds": ["location.discovered"],
+      "scope": "session"
+    },
+    {
+      "id": "the-untrusting",
+      "label": "The Untrusting",
+      "description": "Ten turns and zero relationships changed.",
+      "predicate": {
+        "type": "all",
+        "children": [
+          {
+            "type": "count",
+            "filter": { "type": "eventOfKind", "kind": "turn.begun" },
+            "spec": ">= 10"
+          },
+          {
+            "type": "not",
+            "child": { "type": "eventOfKind", "kind": "relationship.updated" }
+          }
+        ]
+      },
+      "relevantKinds": ["turn.begun", "relationship.updated"],
+      "scope": "session"
+    },
+    {
+      "id": "memory-keeper",
+      "label": "Memory Keeper",
+      "description": "Three memories created in a single life. Scribe-souled.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "memory.created" },
+        "spec": ">= 3"
+      },
+      "relevantKinds": ["memory.created"],
+      "scope": "session"
+    },
+    {
+      "id": "first-tool-failure",
+      "label": "Tool Wobble",
+      "description": "A tool failed validation. The model picked itself up.",
+      "predicate": { "type": "eventOfKind", "kind": "tool_validation_failed" },
+      "relevantKinds": ["tool_validation_failed"],
+      "scope": "lifetime"
+    },
+    {
+      "id": "the-cursed-survivor",
+      "label": "Cursed Survivor",
+      "description": "Five turns lived with bad_luck active.",
+      "predicate": {
+        "type": "all",
+        "children": [
+          {
+            "type": "eventWith",
+            "match": {
+              "kind": "form_state.changed",
+              "field": "bad_luck",
+              "delta": { "$gte": 1 }
+            }
+          },
+          {
+            "type": "count",
+            "filter": { "type": "eventOfKind", "kind": "turn.begun" },
+            "spec": ">= 5"
+          }
+        ]
+      },
+      "relevantKinds": ["form_state.changed", "turn.begun"],
+      "scope": "session"
+    },
+    {
+      "id": "the-quiet",
+      "label": "The Quiet",
+      "description": "A run that ended with zero damage events. Diplomat or coward.",
+      "predicate": {
+        "type": "all",
+        "children": [
+          { "type": "eventOfKind", "kind": "session.ended" },
+          {
+            "type": "not",
+            "child": { "type": "eventOfKind", "kind": "damage.applied" }
+          }
+        ]
+      },
+      "relevantKinds": ["session.ended"],
+      "scope": "session"
+    }
+  ]
+}
