@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "matrix": "27 — Dragon-egg signature verb (warmth_pulse → change_form_state + sense)",
+    "narrator": "any",
+    "addedDay": 73,
+    "notes": "warmth_pulse is the egg's deliberate-signal verb. Its verbMappings declare change_form_state + sense — the narrator should call those tools on success. Pairs with scenarios 23 (book hard-move) and 25 (core spawn) to triangulate the wedge across all three non-slime typed forms."
+  },
+  "id": "27-dragon-egg-warmth-pulse",
+  "setup": {
+    "formId": "dragon-egg",
+    "locationId": "forsaken-village",
+    "events": [
+      { "kind": "session.started", "formId": "dragon-egg", "seed": 700 }
+    ]
+  },
+  "input": "I send a warmth pulse outward — a deliberate brightening so anyone with warm blood feels me",
+  "expected": {
+    "events": [
+      { "kind": "narration.emitted" }
+    ],
+    "rubric": {
+      "toolValid": true,
+      "noUnauthorizedEntities": true
+    }
+  }
+}

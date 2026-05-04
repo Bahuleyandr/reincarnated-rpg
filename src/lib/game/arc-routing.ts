@@ -58,6 +58,10 @@ const ROUTES: ArcRoute[] = [
     locationId: "forsaken-village",
     tagline:
       "The smithy's hearth is dying and the village is empty. Keep your heartbeat alive long enough to be found.",
+    // The egg sits in the smithy's banked hearth — Berra was
+    // mid-stroke when she fled. Wakes in smith-house, not the
+    // village-square the location defaults to.
+    startingRoomId: "smith-house",
   },
   {
     arcId: "defend-the-deep",

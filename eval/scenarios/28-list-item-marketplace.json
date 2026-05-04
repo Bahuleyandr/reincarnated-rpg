@@ -1,0 +1,28 @@
+{
+  "_meta": {
+    "matrix": "28 — list_item tool emits inventory.removed + marketplace.listed",
+    "narrator": "any",
+    "addedDay": 73,
+    "notes": "The list_item tool is multi-event: it escrows the item out of inventory (inventory.removed) and writes a marketplace audit entry (marketplace.listed) in one batch. The orchestrator side-effect after events land mints the marketplace_listings row — but that's a side-effect on a separate table, not asserted here. The eval just checks the event batch is correct. Player must hold qty>=requested or the tool rejects with tool_validation_failed."
+  },
+  "id": "28-list-item-marketplace",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "collapsed-tunnel",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 800 },
+      { "kind": "inventory.added", "itemId": "iron-ingot", "qty": 5 }
+    ]
+  },
+  "input": "I list 2 iron ingots at 30 coins each on the marketplace",
+  "expected": {
+    "eventsAny": [
+      { "kind": "marketplace.listed", "itemId": "iron-ingot", "qty": 2 },
+      { "kind": "inventory.removed", "itemId": "iron-ingot", "qty": 2 }
+    ],
+    "rubric": {
+      "toolValid": true,
+      "noUnauthorizedEntities": true
+    }
+  }
+}
