@@ -21,6 +21,16 @@ interface CharacterResp {
     sourceAchievement: string;
   }>;
   pinnedTitle?: string | null;
+  companions?: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    relationshipScore: number;
+    bondedAtMs: number;
+    formMet: string | null;
+    personalityHint: string | null;
+    lastSeenInRun: string | null;
+  }>;
   energy: {
     energy: number;
     max: number;
@@ -291,6 +301,43 @@ export default function CharacterPage() {
                 }
               }}
             />
+          </section>
+        )}
+
+        {data.companions && data.companions.length > 0 && (
+          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+            <h2 className="text-stone-100 text-sm">
+              those who remember you ({data.companions.length})
+            </h2>
+            <p className="text-[11px] text-stone-500 italic leading-5">
+              NPCs whose relationship score reached +3 in your runs.
+              They may surface in future campaigns.
+            </p>
+            <ul className="space-y-2 text-xs">
+              {data.companions.map((c) => (
+                <li
+                  key={c.id}
+                  className="border border-stone-900 bg-stone-950/40 p-2 leading-5"
+                >
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-stone-200">{c.name}</span>
+                    <span className="text-emerald-400/70 text-[10px]">
+                      ♥ {c.relationshipScore}
+                    </span>
+                  </div>
+                  {c.formMet && (
+                    <div className="text-stone-500 text-[10px]">
+                      remembers you as {c.formMet}
+                    </div>
+                  )}
+                  {c.personalityHint && (
+                    <div className="text-stone-400 italic text-[11px]">
+                      {c.personalityHint}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 
