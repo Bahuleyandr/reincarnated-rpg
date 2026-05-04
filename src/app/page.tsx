@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { TodayTicker } from "@/components/TodayTicker";
+
 /** Mirror of the dashboard's pool — anon players get the same surprises. */
 const SURPRISE_POOL: string[] = [
   "a lesser slime",
@@ -77,6 +79,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-stone-950 text-stone-200 font-mono flex items-center justify-center px-6 py-10">
       <div className="max-w-2xl w-full space-y-10">
+        <TodayTicker />
         <header className="space-y-3">
           <h1 className="text-3xl tracking-tight text-stone-100">
             Reincarnated in Another World as…
