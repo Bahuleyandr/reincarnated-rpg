@@ -97,10 +97,20 @@ See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
 21. **Economic balance + telemetry** (Day 26) — anti-farm caps, daily coin-flow rollup, admin dashboard.
 22. **Skills/recipes UI + economy achievements** (Day 27).
 
-**Days 28+ — Bigger swings**
-23. **NPC dialogue system** (Day 28+) — multi-turn conversations with personality continuity (3-5d).
-24. **Player-authored forms** (Day 33+) — submission queue + admin approval (5-7d).
-25. **Player-driven marketplace** (Day 40+) — Phase 6: player-to-player listings (~7d, gated by Phase 5 telemetry).
+**Days 28-37 — Engagement deepening**
+23. **Famous deaths ticker** (Day 28) — memorable runs become public lore via the 24h-delay path.
+24. **Reincarnation cooldowns** (Day 29) — same form locked for 24h after death; forces variety.
+25. **Custom epitaphs** (Day 30) — last-words on death become location-tied lore.
+26. **Custom item naming** (Day 31) — `rename_inventory` tool; narrator picks up the rename.
+27. **Player notes in locations** (Day 32-33) — Dark Souls-style asynchronous one-liners.
+28. **Named antagonist (Rhozell)** (Day 34-35) — recurring villain with cross-run grudge memory.
+29. **First-10-minutes tutorial** (Day 36-37) — scripted slime intro for brand-new players.
+
+**Days 38+ — Bigger swings**
+30. **NPC dialogue system** (Day 38+) — multi-turn conversations with personality continuity (3-5d).
+31. **Player-authored forms** (Day 43+) — submission queue + admin approval (5-7d).
+32. **Player-driven marketplace** (Day 50+) — Phase 6a: P2P listings, gated by Phase 5 telemetry (~7d).
+33. **Ascension** (Day 50+, parallel) — Phase 6b: endgame meta-forms unlocked after ~50 runs (~7-10d).
 
 ## Post-MVP growth bets (month 2+)
 

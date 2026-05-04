@@ -46,8 +46,15 @@ The wedge — *"a text RPG where every life is a different game, and the world r
 | **25** | **buy/sell loop end-to-end** | tutorial vendor in starter zone + eval scenario |
 | **26** | **economic balance + telemetry** | sell-buy markup, anti-farm caps, resource respawn, coin-flow logs |
 | **27** | **skills/recipes UI + achievements** | character page skills tab + recipe book + economy achievements |
+| **28** | **famous deaths ticker** | memorability predicate + `world_lore` writeback + homepage ticker |
+| **29** | **reincarnation cooldowns** | `recent_form_deaths` + picker filter + UI surfacing |
+| **30** | **custom epitaphs** | recap-screen last-words → location-tied lore |
+| **31** | **custom item naming** | `rename_inventory` tool + projection field + narrator integration |
+| **32-33** | **player notes in locations** | `location_notes` table + `leave_note` tool + read/upvote/decay |
+| **34-35** | **named antagonist (Rhozell, the Wyrm's hand)** | personality card + cross-run memory + appearance hook |
+| **36-37** | **first-10-minutes tutorial** | scripted slime intro + graduation flow + new-user routing |
 
-Days 28+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days), player-driven economy / marketplace (7+ days). Treat them as independent milestones after Day 27 lands.
+Days 38+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days), ascension (7-10 days), player-driven marketplace (7+ days). Treat them as independent milestones after Day 37 lands.
 
 ---
 
@@ -630,11 +637,211 @@ CREATE TABLE coin_flow_daily (
 
 ---
 
-## Phase 6 — Player-driven economy (deferred, ~Month 2)
+---
+
+## Phase 5.5 — Engagement deepening (Day 28-37)
+
+Each feature here is small but shifts the *felt* texture of the game: deaths matter, lives feel different, the world feels lived-in by other players, and new players survive their first 10 minutes.
+
+### Day 28: Famous deaths ticker
+
+**Why**: Right now dying = restart. Make notable deaths *legendary* — write a `world_lore` entry on memorable deaths so the homepage ticker reads "Yesterday: Embershade, the unburnt, was crushed by the Long Wyrm on turn 47." Compounds with the 24h-delayed lore page and the streak system: breaking a 5-day streak by death becomes its own piece of public lore.
+
+**Schema**: none new. Reuses `world_lore` with `category: 'famous_death'`.
+
+**New files**
+- `src/lib/predicates/memorability.ts` — pure: given an event-log slice + projection, return `{ memorable: boolean, headline: string | null, salience: number }`. Triggers: died at <2 HP after 30+ turns, killed by named NPC, broke a 3+ day streak, died to own tool, first death of a brand-new form, longest run on the leaderboard ended.
+- `src/lib/lore/famous-death.ts` — given `(memorability, projection, user)`, build a one-line summary (deterministic template, NOT LLM) and write to `world_lore`.
+- Hook in `persistRunToWorld`: on death, evaluate memorability; if hit, write the lore entry.
+- `src/components/FamousDeathsTicker.tsx` — homepage strip showing the last 5 famous deaths. Reads from `/api/lore/public` filtered to `category='famous_death'`.
+- `tests/unit/memorability.test.ts` — predicate cases.
+- `tests/integration/famous-deaths.test.ts` — kill a slime in turn-2 (not memorable), kill another at <2HP after 30 turns (memorable, lore written, ticker shows it after 24h).
+
+**Acceptance**: A long, dramatic run ends in death → a famous-death lore entry is created → 24h later it appears on the homepage ticker. Trivial deaths (turn 1-2 starvation) don't trigger.
+
+**Gotchas**
+- Salience drives ticker ordering. Tune so the ticker doesn't drown in early-game deaths.
+- Don't echo the player's username if they're anon. Use `reincarnatedAs` if set, else "an unnamed slime".
+
+### Day 29: Reincarnation cooldowns
+
+**Why**: Forces variety. Just died as a slime → can't pick slime again for 24h. Makes form choice feel like commitment, not a slot machine.
+
+**Schema migration `0037_form_cooldowns.sql`**
+```sql
+ALTER TABLE users ADD COLUMN recent_form_deaths jsonb NOT NULL DEFAULT '[]'::jsonb;
+-- Shape: [{ formId: string, diedAt: string ISO timestamp }, ...]
+-- Trimmed to last 7 days on every write.
+```
+
+**New files**
+- `src/lib/forms/cooldown.ts` — pure: `coolingDown(recentDeaths, formId, now) → { cooling: boolean, untilMs: number | null }`. 24h cooldown per form.
+- Hook in `persistRunToWorld` on death: append `{ formId, diedAt: now }` and trim entries older than 7d.
+- `src/app/api/reincarnation/route.ts` (modify): filter cooldown forms from the picker; return them with `coolingDownUntilMs` so the UI can show a "available in 12h" hint instead of the form.
+- `src/components/ReincarnationPicker.tsx` (modify): visible cooldown badges on locked forms.
+- `tests/unit/form-cooldown.test.ts` — pure logic.
+- `tests/integration/cooldown.test.ts` — die as slime → slime hidden from picker → 24h later slime returns.
+
+**Acceptance**: Logged-in player dies as a lesser-slime → reincarnation picker shows "lesser-slime — available in 24h" greyed out → 24h later it's back.
+
+**Gotchas**
+- Anon sessions don't have form-history persistence; they get a session-scoped fallback (no cooldown — they only have one death anyway).
+- Admin override: `/god/cooldown` to clear a user's cooldown list (for support).
+
+### Day 30: Custom epitaphs
+
+**Why**: A 1-sentence epitaph gives the player narrative agency at the moment that matters most. The epitaph becomes location-tied lore — future players passing through the same room read it.
+
+**Schema migration `0038_epitaphs.sql`**
+```sql
+ALTER TABLE world_lore ADD COLUMN location_id text;
+-- Enables location-scoped public reads of lore (epitaphs, notes-as-lore).
+CREATE INDEX world_lore_location_idx ON world_lore (location_id) WHERE location_id IS NOT NULL;
+```
+
+**New files**
+- `src/app/api/campaigns/[id]/epitaph/route.ts` — POST endpoint. Accepts `{ text }` (≤ 280 chars). Validates: campaign belongs to caller, campaign is dead, no epitaph already submitted, moderation pass via `lib/moderation`. Writes `world_lore` row with `category='epitaph'`, `location_id` from the death location, `summary` = the epitaph text.
+- `src/components/Recap.tsx` (modify) — when status is 'dead', show a textarea: "your last words?" + submit button.
+- `src/lib/locations/lore.ts` — given a locationId, return recent epitaphs (24h-delayed via `public_at` rule from Day 15). Surface via memory retrieval on turn 1 of new campaigns whose form starts in that location.
+- `tests/integration/epitaph.test.ts` — submit on death; appears in next campaign's location memories after 24h; re-submit blocked.
+
+**Acceptance**: Player dies → recap shows epitaph input → they write "i was almost something" → submit → 24h later, a new player who reincarnates in the same location sees it surface in their narration as remembered lore.
+
+**Gotchas**
+- 280-char cap mirrors Twitter; long enough for poetry, short enough to discourage griefing.
+- Cannot edit after submission. Cannot submit on win/cap (epitaph is for the dead).
+
+### Day 31: Custom item naming
+
+**Why**: Tiny piece of player voice. The narrator already has a projection view; let the player rename items so the prose echoes their vocabulary.
+
+**Schema**: none. Custom names live in projection state via existing `form_state.changed` (or a new dedicated event).
+
+**New event kind**:
+```ts
+| { kind: "inventory.renamed"; itemId: string; customName: string }
+```
+
+**New files**
+- New tool: `rename_inventory(itemId, name)`. Validates: player holds item, name 1-32 chars, moderation pass. Costs no energy (it's a UI affordance, not an action).
+- `src/lib/game/projection.ts` (modify) — `inventory[].customName?: string`, populated from the event log. Default render: `customName ?? canonicalName`.
+- Narrator system prompt (modify) — when items have custom names, instruct the narrator to use them: "the player has named this 'Marrow' — refer to it as such."
+- `src/components/InventoryList.tsx` — inline-edit chip on each item: click → text input → submit → tool fires.
+- `tests/integration/rename-inventory.test.ts` — rename, projection reflects, narrator uses custom name.
+
+**Acceptance**: Player picks up rusted-dagger → names it "Marrow" → next narration references "Marrow" not "rusted dagger" until they drop or absorb it.
+
+**Gotchas**
+- Custom names persist with the item. If the item is dropped and re-picked-up by another player (unlikely in v1, possible with marketplace), name resets.
+- Don't let players name items into prompt-injection — the existing moderation pipeline handles this since `rename_inventory` payload runs through `moderate(name)`.
+
+### Day 32-33: Player notes in locations
+
+**Why**: Dark Souls' biggest social mechanic was asynchronous messages. Players leave one-line notes pinned to a location ("there is fog ahead", "praise the sun"); other players passing through see them. Massive emotional payoff for tiny code surface.
+
+**Schema migration `0039_location_notes.sql`**
+```sql
+CREATE TABLE location_notes (
+  id uuid PRIMARY KEY,
+  location_id text NOT NULL,
+  form_id text,                         -- optional: notes can be form-specific
+  author_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  text text NOT NULL,                   -- ≤160 chars
+  votes integer NOT NULL DEFAULT 0,
+  flagged boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  expires_at timestamptz NOT NULL DEFAULT (now() + interval '30 days')
+);
+CREATE INDEX location_notes_location_active_idx ON location_notes (location_id, votes DESC) WHERE NOT flagged AND expires_at > now();
+
+CREATE TABLE location_note_votes (
+  note_id uuid NOT NULL REFERENCES location_notes(id) ON DELETE CASCADE,
+  voter_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  voted_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (note_id, voter_user_id)
+);
+```
+
+**New files**
+- New tool: `leave_note(text)`. Costs 1 energy (notes have weight). Validates: text ≤160 chars, moderation pass, max 5 active notes per user globally, location matches projection. Inserts into `location_notes`.
+- `src/app/api/locations/[id]/notes/route.ts` — GET: top 3 notes by votes (form-filtered if form set). POST `/[noteId]/vote` to upvote (one per user, idempotent).
+- `src/lib/locations/notes.ts` — given a locationId+formId, returns the top-3 notes. Called on turn 1 / on `move_to` to inject notes into memory retrieval.
+- `src/components/LocationNotes.tsx` — small panel under the vitals showing notes when present. Vote button per note.
+- `tests/integration/notes.test.ts` — leave, read, vote (one per user), expiry hides note.
+
+**Acceptance**: Player A leaves "the rat is faster than it looks" in `collapsed_tunnel` → Player B reincarnates as a slime in `collapsed_tunnel` → notes panel shows the message → narrator weaves "you remember a warning whispered here: the rat is faster than it looks" into the opening prose.
+
+**Gotchas**
+- Cap of 5 active notes per user prevents spam.
+- 30-day auto-expiry keeps the note pool fresh.
+- Voting requires login (anon can read but not vote).
+- Flagged notes (3+ flags from distinct users) auto-hide pending admin review at `/god/notes`.
+
+### Day 34-35: Named antagonist — Rhozell, the Wyrm's hand
+
+**Why**: The Long Wyrm is a *force*; Rhozell is a *character*. Players need a villain with a name and a voice. Across runs, Rhozell remembers who killed him, who aided him, and shows up with the right attitude.
+
+**Schema migration `0040_recurring_npcs.sql`**
+```sql
+ALTER TABLE world_npcs ADD COLUMN is_recurring boolean NOT NULL DEFAULT false;
+ALTER TABLE world_npcs ADD COLUMN run_history jsonb NOT NULL DEFAULT '[]'::jsonb;
+-- Shape: [{ userId, sessionId, outcome: 'killed' | 'aided' | 'fled' | 'spared', at: ISO }, ...]
+CREATE INDEX npcs_recurring_idx ON world_npcs (is_recurring) WHERE is_recurring;
+```
+
+**New files**
+- `content/npcs/rhozell.json` — full personality card. Voice: vindictive, formal, eloquent. Mannerisms: cites the Wyrm in every third sentence. Topics: collecting debts, the Wyrm's slow waking, contempt for "soft forms". Faction: wyrm_loyal. Initial relationship: -2 (hostile until proven otherwise).
+- `src/lib/antagonist/rhozell.ts` — appearance hook called on turn 1: probability of Rhozell showing up scales with `(arc.progress > 0.5) ? 0.15 : 0.03`. Increases by +0.05 if the user's run_history shows past Rhozell encounters (he's hunting them).
+- `src/lib/antagonist/memory.ts` — pure: given Rhozell's `run_history` + the current user, generate a 1-line "history beat" the narrator weaves in: "Rhozell remembers your last face — a slime, drowned in the cistern. The grudge persists." Deterministic template, not LLM.
+- Hook in `runTurn` step 6 (memory retrieval, turn 1): if Rhozell roll succeeds, add him to relevantMemories with the history beat + introduce him as an `npc.introduced` event.
+- Hook in `applyTools` `update_relationship` for Rhozell: append to `run_history` on outcomes that matter (relationship hits ±3, NPC dies, etc.).
+- `tests/unit/rhozell.test.ts` — appearance probability with/without history.
+- `tests/integration/rhozell.test.ts` — kill Rhozell in run 1; he reappears in run 2 with grudge memory.
+
+**Acceptance**: Player kills Rhozell in their first run as a slime → reincarnates as a dragon-egg → on turn 1, Rhozell (or an avatar) appears with "you remember the slime that ended me; this time will be different." Continuity across reincarnations.
+
+**Gotchas**
+- Rhozell can "die" multiple times — he's an avatar of the Wyrm's intent, not a single NPC. Dying just resets him with a remembered grudge.
+- Don't auto-introduce on every turn — single appearance check, then Rhozell stays in projection like any other NPC.
+- Tone-checker may flag Rhozell's voice if it's too far from the form's negativeVocab; whitelist his quoted dialogue from form-tone checks (he's an outsider's voice).
+
+### Day 36-37: First-10-minutes guided slime tutorial
+
+**Why**: First impression is everything. Right now a brand-new player hits /play and gets dropped into "you ooze in darkness" with no idea what to type. A 3-turn scripted intro teaches the wedge — *each form plays differently* — by having the slime do exactly the things only slimes do (ooze, sense vibration, absorb), with hints in the UI.
+
+**Schema migration `0041_tutorial_state.sql`**
+```sql
+ALTER TABLE users ADD COLUMN tutorial_completed boolean NOT NULL DEFAULT false;
+ALTER TABLE sessions ADD COLUMN is_tutorial boolean NOT NULL DEFAULT false;
+```
+
+**New files**
+- `content/forms/tutorial-slime.json` — variant of lesser-slime with `tutorial: true` flag. Vitals tweaked (cohesion +2 so the player can't die on turn 1 by mistake).
+- `content/locations/tutorial-tunnel.json` — copy of collapsed-tunnel with safer hard-moves and one obvious feature per turn.
+- `src/lib/tutorial/script.ts` — turn-by-turn hints: turn 1 hint "try `ooze toward the slope`", turn 2 hint "try `sense the room`", turn 3 hint "try `absorb the moss`". Hints auto-fade after 30 seconds or first input.
+- `src/lib/tutorial/graduate.ts` — on `session.ended` (any reason) for a tutorial session: set `users.tutorial_completed=true`, redirect to reincarnation picker.
+- `src/app/api/auth/register/route.ts` (modify) — new users start a tutorial session by default. Existing users skip.
+- `src/components/TutorialHint.tsx` — animated hint above the input box.
+- `tests/integration/tutorial.test.ts` — fresh user → tutorial session → graduate → next session is normal.
+
+**Acceptance**: Brand-new user completes registration → lands in tutorial-tunnel as a tutorial-slime with explicit hints → after 3 turns + a graduation event → tutorial_completed=true → next session is normal. Existing users opening a new session never see the tutorial.
+
+**Gotchas**
+- Tutorial sessions are excluded from leaderboards and meta-arc contributions (no farming the wyrm via newbie spam).
+- Skipping is allowed: a "skip tutorial" link on the first turn marks completed=true and routes to reincarnation picker. We measure how many people skip vs complete; tune the script accordingly.
+- Don't give bonus energy/coins for completing — the reward is the experience itself.
+
+---
+
+## Phase 6 — Player-driven economy + ascension (deferred, ~Month 2)
+
+Two parallel month-2 milestones. Marketplace is gated on Phase 5 telemetry; ascension is gated on aggregate run counts (need ~50+ veteran players for it to matter).
+
+### 6a — Player-driven marketplace (~7 days)
 
 Once the central-bank phase has run for ~30 days and we have data on coin flow, open the player marketplace. **Do not start until Phase 5's telemetry shows stable inflow/outflow.**
 
-**Outline (~7 days)**
+**Outline**
 - Schema: `marketplace_listings` (sellerId, itemId, qty, askPrice, postedAt, expiresAt, soldAt, buyerId).
 - New tools: `list_for_sale(itemId, qty, price)`, `buy_listing(listingId)`, `cancel_listing(listingId)`.
 - Per-listing fee (1-5%) routed to the central bank — sinks player-to-player coin flow back into NPC vendor pools, prevents pure deflation.
@@ -643,6 +850,32 @@ Once the central-bank phase has run for ~30 days and we have data on coin flow, 
 - Vendor NPCs continue to exist as floor/ceiling anchors — they buy any common resource at base value, sell common resources at base × 1.5.
 
 **Decision pending**: marketplace fee % and the cap on active listings. Set after Phase 5 data lands.
+
+### 6b — Ascension (endgame; ~7-10 days)
+
+**Why**: Veterans need an endgame. After ~50 completed runs the game has shown its full deck; ascension offers a meaningful next step — pick a previous form and unlock its *Ascendant* variant (slime → Slime Ascendant; cursed-book → Tome Eternal). Modified vitals, new verbs, new hard-moves, often a new starter location.
+
+**Schema migration (sketch)**
+```sql
+ALTER TABLE users ADD COLUMN ascensions jsonb NOT NULL DEFAULT '[]'::jsonb;
+-- [{ baseFormId, ascendantFormId, unlockedAt, runsAtUnlock }, ...]
+ALTER TABLE users ADD COLUMN ascension_credits integer NOT NULL DEFAULT 0;
+-- Earned per completed run; spent to unlock ascensions.
+```
+
+**Outline**
+- Eligibility: 50 total completed runs (any reason: death/win/cap counts), accumulate `ascension_credits` 1 per completed run from run #50 onward.
+- Catalog: `content/ascendants/<form_id>.json` per ascendable form. Initial scope: 5 ascendants (slime, cursed-book, dragon-egg, dungeon-core, healer). New verbs/stats/hard-moves authored at Phase 5/6 polish quality.
+- Unlock UI at `/character/ascend`: pick a base form you've played, spend ascension_credits (cost scales: first ascendant 5 credits, second 10, third 20...) to unlock.
+- Reincarnation picker shows ascendants as a separate tier; choosing one feels distinct.
+- Achievements + titles: "First Ascendant", "Tome Eternal pilgrim", etc.
+
+**Open questions**
+- Does ascension consume the base form (you can no longer play lesser-slime once ascended)? Default: NO — ascendants are *additions*, not replacements.
+- Do ascendants' famous deaths get a different ticker treatment? Default: yes — `category='ascendant_death'` with bigger headlines.
+- Permadeath option for hardcore? Default: defer.
+
+**Estimated**: 7-10 days. Mostly content authoring (5 ascendant forms × ~1 day each) plus 2-3 days of unlock + UI plumbing.
 
 ---
 
@@ -728,9 +961,17 @@ Day 23-24 skills + XP + NPC trainers        │   (central-bank stabilized)
 Day 25    buy/sell loop end-to-end          │
 Day 26    economic balance + telemetry      │
 Day 27    skills/recipes UI + achievements ─┘
-Day 28+   NPC dialogue (3-5d)
-Day 33+   player-authored forms (5-7d)
-Day 40+   Phase 6: player-driven marketplace (~7d)
+Day 28    famous deaths ticker ─────────────┐
+Day 29    reincarnation cooldowns           │
+Day 30    custom epitaphs                   │
+Day 31    custom item naming                ├── Phase 5.5: engagement deepening
+Day 32-33 player notes in locations         │
+Day 34-35 named antagonist (Rhozell)        │
+Day 36-37 first-10-minutes tutorial ────────┘
+Day 38+   NPC dialogue (3-5d)
+Day 43+   player-authored forms (5-7d)
+Day 50+   Phase 6a: player-driven marketplace (~7d)
+Day 50+   Phase 6b: ascension (~7-10d, parallel to 6a)
 ```
 
 Each day ships a green build with unit + integration tests, lint clean, and merged to master via the standard branch + push + merge flow. No skipping local CI.
@@ -753,5 +994,14 @@ Each day ships a green build with unit + integration tests, lint clean, and merg
 | 12 | Resource respawn: per-location turn-count, real-time, or never (infinite)? | Infinite for v1; add caps in Day 26 telemetry pass |
 | 13 | Marketplace fee %: ? | TBD after Phase 5 data |
 | 14 | Marketplace listing cap per user: ? | TBD after Phase 5 data |
+| 15 | Famous-death predicate threshold: which deaths qualify? | The 6 hand-picked predicates in Day 28; tune via salience telemetry |
+| 16 | Reincarnation cooldown duration: 24h, 12h, or per-form-rarity? | 24h flat for v1 |
+| 17 | Custom epitaph max length: 280 chars (Twitter-style) or 500 (more poetry)? | 280 for v1 |
+| 18 | Item rename persistence: stays with item even if dropped/traded, or resets? | Resets on transfer (relevant when marketplace lands) |
+| 19 | Player-note voting: any logged-in user, or require to have visited the same location? | Any logged-in for v1 |
+| 20 | Rhozell appearance probability tuning: flat 5%, scaled by run history, or arc-progress-gated? | 3% baseline, +5% if grudge history exists, gated to arc.progress > 0.3 |
+| 21 | Tutorial: mandatory or skippable? | Skippable (skip link on turn 1) |
+| 22 | Ascension cost curve: linear (5,10,15...) or geometric (5,10,20,40)? | Geometric for v1 — keeps the carrot visible |
+| 23 | Ascendant base forms: keep 5 (slime/book/egg/core/healer) or expand to all 50+ in batch 2? | 5 for v1; expand if data shows demand |
 
 Resolve as features come up. Update `docs/DECISIONS.md` with chosen path.
