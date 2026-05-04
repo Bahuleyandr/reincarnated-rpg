@@ -255,6 +255,57 @@ const TOOL_DEFINITIONS: ProviderTool[] = [
     },
   },
   {
+    name: "trade_with_npc",
+    description:
+      "Buy or sell with an NPC vendor. Validated against the NPC's catalog and the player's coins (for buy) or inventory (for sell). Use only when the NPC has a vendor catalog (introduced as a vendor or trainer with a price list).",
+    input_schema: {
+      type: "object",
+      properties: {
+        npcId: { type: "string" },
+        action: { type: "string", enum: ["buy", "sell"] },
+        itemId: { type: "string" },
+        qty: { type: "integer", minimum: 1, maximum: 10 },
+      },
+      required: ["npcId", "action", "itemId", "qty"],
+    },
+  },
+  {
+    name: "gather_resource",
+    description:
+      "Gather a raw resource available at the player's current location. Quantity is server-rolled 1-3 (skill-bonused). Use when the player is harvesting wood, ore, herbs, etc.",
+    input_schema: {
+      type: "object",
+      properties: {
+        resourceId: { type: "string" },
+      },
+      required: ["resourceId"],
+    },
+  },
+  {
+    name: "craft_recipe",
+    description:
+      "Craft a known recipe (smelt, smith, mill, alchemy, cook, etc.). Validator checks inputs, skill level, and (when set) location. The recipe id determines what's produced and which skill XP gets awarded.",
+    input_schema: {
+      type: "object",
+      properties: {
+        recipeId: { type: "string" },
+      },
+      required: ["recipeId"],
+    },
+  },
+  {
+    name: "learn_skill_from",
+    description:
+      "Pay an NPC trainer to learn a new skill. The skill is cross-run (persists across reincarnations). Idempotent — safe to call when the player already knows the skill (rejected with a clean error).",
+    input_schema: {
+      type: "object",
+      properties: {
+        npcId: { type: "string" },
+      },
+      required: ["npcId"],
+    },
+  },
+  {
     name: "narrate_only",
     description:
       "Emit no mechanical change this turn. Use this when nothing in projection state changes.",

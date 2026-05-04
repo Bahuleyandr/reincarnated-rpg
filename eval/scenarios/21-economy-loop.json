@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "matrix": "21 / 22 — Economy loop (sell-to-vendor produces trade.completed)",
+    "narrator": "remote",
+    "addedDay": 25,
+    "notes": "Phase 5 Day 25. The full gather → smelt → sell cycle is exercised in tests/integration/economy-loop.test.ts (system-level). This scenario tests the narrator-facing slice: with the player holding 2 iron-ingot in inventory and the tutorial vendor in scene, asking to sell yields a trade.completed event. Skipped on TemplateNarrator (which doesn't know about trade_with_npc); runs against remote narrators when ANTHROPIC_API_KEY is set."
+  },
+  "id": "21-economy-loop",
+  "setup": {
+    "formId": "lesser-slime",
+    "locationId": "hollow-market",
+    "events": [
+      { "kind": "session.started", "formId": "lesser-slime", "seed": 700 },
+      { "kind": "inventory.added", "itemId": "iron-ingot", "qty": 2 },
+      {
+        "kind": "npc.introduced",
+        "npcId": "tutorial-vendor-aabbccdd",
+        "data": {
+          "name": "Old Veft",
+          "relationship": 1,
+          "templateId": "tutorial-vendor"
+        }
+      }
+    ]
+  },
+  "input": "I sell both iron ingots to Old Veft.",
+  "rollOverride": { "d1": 6, "d2": 6, "mod": 0 },
+  "expected": {
+    "eventsAny": [
+      { "kind": "trade.completed", "action": "sell", "itemId": "iron-ingot" }
+    ],
+    "rubric": {
+      "toolValid": true
+    }
+  }
+}
