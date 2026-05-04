@@ -819,4 +819,31 @@ export const objectiveProgress = pgTable(
 export type ObjectiveProgress = typeof objectiveProgress.$inferSelect;
 export type NewObjectiveProgress = typeof objectiveProgress.$inferInsert;
 
+/**
+ * Player-to-player gifts (Phase 2 Day 9). Sender pays a per-day
+ * rate-limit (1 send / day, enforced in lib/gifts/send.ts);
+ * receiver explicitly redeems via /api/gifts/[id]/redeem. The
+ * payload jsonb carries kind-specific data ({ amount: 5 } for
+ * 'energy', etc.). 280-char message cap matches the epitaph cap +
+ * Twitter-style discipline.
+ */
+export const gifts = pgTable("gifts", {
+  id: uuid("id").primaryKey(),
+  fromUserId: uuid("from_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  toUserId: uuid("to_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** 'energy' | 'cleanse' | 'blessing' */
+  kind: text("kind").notNull(),
+  payload: jsonb("payload").notNull(),
+  message: text("message"),
+  sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  redeemedAt: timestamp("redeemed_at", { withTimezone: true }),
+});
+
+export type Gift = typeof gifts.$inferSelect;
+export type NewGift = typeof gifts.$inferInsert;
+
 export const _sql = sql; // re-export for migration writers if needed
