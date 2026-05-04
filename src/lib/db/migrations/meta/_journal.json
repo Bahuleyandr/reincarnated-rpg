@@ -162,6 +162,13 @@
       "when": 1777940000000,
       "tag": "0022_legacy_traits",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1777950000000,
+      "tag": "0023_achievements",
+      "breakpoints": true
     }
   ]
 }

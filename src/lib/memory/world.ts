@@ -388,6 +388,26 @@ export async function persistRunToWorld(
       });
     }
 
+    // Achievements pass (Phase 1 Day 4). Both session-scope and
+    // lifetime-scope evaluation runs at session end. Best-effort.
+    try {
+      const { evaluateSessionAchievements, evaluateLifetimeAchievements } =
+        await import("../achievements/runner");
+      await evaluateSessionAchievements(
+        db,
+        opts.userId,
+        events,
+        opts.campaignId ?? null,
+      );
+      await evaluateLifetimeAchievements(db, opts.userId, opts.campaignId ?? null);
+    } catch (err) {
+      log.warn("achievements.run_end_failed", {
+        userId: opts.userId,
+        sessionId: opts.sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return { npcsUpserted, memoriesWritten: 1 };
   } catch (err) {
     log.error("world.persist_failed", {
