@@ -34,6 +34,7 @@ import { sessions, users, worldMemories, worldNpcs } from "../db/schema";
 import type { Event, Memory, Projection } from "../game/types";
 import { applyImprint, imprintTraitFromDeath } from "../legacy/imprint";
 import { embedText } from "./episodic";
+import { applyEvents } from "../game/projection";
 import { rowToEvent, readLog } from "../game/events";
 import {
   getCurrentArc,
@@ -428,6 +429,99 @@ export async function persistRunToWorld(
       );
     } catch (err) {
       log.warn("legacy.imprint_failed", {
+        userId: opts.userId,
+        sessionId: opts.sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    // Famous deaths (Phase 5.5 Day 28). Pure memorability predicate
+    // decides if the death warrants a public lore entry; if yes, a
+    // deterministic headline goes into world_lore with
+    // category='famous_death'. The 24h-public-delay (Day 15) carries
+    // forward — entry is invisible on /lore until tomorrow.
+    try {
+      const ended = events.find(
+        (e): e is Event & { kind: "session.ended" } =>
+          e.kind === "session.ended",
+      );
+      if (ended?.reason === "death") {
+        const { evaluateMemorability } = await import(
+          "../predicates/memorability"
+        );
+        const { writeFamousDeath } = await import("../lore/famous-death");
+        // Build the protagonist label.
+        const finalProjection = applyEvents(
+          {
+            sessionId: opts.sessionId,
+            upToSeq: 0,
+            form: {
+              id: opts.formId ?? "lesser-slime",
+              vitals: {},
+              vitalsMax: {},
+              vitalsDeath: {},
+              stats: {},
+              state: {},
+            },
+            location: {
+              id: opts.locationId ?? "collapsed-tunnel",
+              roomId: "",
+              discovered: [],
+            },
+            inventory: [],
+            npcs: {},
+            quest: { id: null, objectives: {} },
+            xp: 0,
+            turn: 0,
+            status: "active",
+            reincarnatedAs: null,
+          },
+          events,
+        );
+        // Probe streakBefore + first-death-of-form from user state.
+        const [userRow] = await db
+          .select({
+            streak: users.streakCount,
+            reincarnatedAs: users.legacyTraits, // dummy; we just need the row to exist
+          })
+          .from(users)
+          .where(eq(users.id, opts.userId))
+          .limit(1);
+        // Has the user ever died as this form before?
+        const priorDeaths = await db
+          .select({ id: worldMemories.id })
+          .from(worldMemories)
+          .where(
+            and(
+              eq(worldMemories.userId, opts.userId),
+              eq(worldMemories.sourceFormId, opts.formId ?? "lesser-slime"),
+              sql`${worldMemories.tags} @> ARRAY['death']::text[]`,
+            ),
+          )
+          .limit(1);
+        const firstDeathOfForm = priorDeaths.length === 0;
+        const protagonistLabel = `the ${(opts.formId ?? "soul").replace(/-/g, " ")}`;
+        const arc = await getCurrentArc(db);
+        const memorability = evaluateMemorability({
+          events,
+          projection: finalProjection,
+          protagonistLabel,
+          streakBefore: userRow?.streak ?? 0,
+          firstDeathOfForm,
+        });
+        if (memorability.memorable) {
+          await writeFamousDeath(db, memorability, {
+            userId: opts.userId,
+            sessionId: opts.sessionId,
+            campaignId: opts.campaignId ?? null,
+            formId: opts.formId ?? null,
+            locationId: opts.locationId ?? null,
+            phase: arc?.phase ?? null,
+          });
+        }
+      }
+    } catch (err) {
+      log.warn("famous_death.writeback_failed", {
         userId: opts.userId,
         sessionId: opts.sessionId,
         err: err instanceof Error ? err.message : String(err),
