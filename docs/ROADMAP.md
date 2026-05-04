@@ -65,6 +65,18 @@ Tracked here so we can see what's accumulated above the MVP line. See `docs/POST
 | 2026-05-03 | Daily-streak blessing (1→5 stack) | `4363b0b` |
 | 2026-05-03 | Moderation + curses + power-creep ceilings | `1922be6` |
 
+## Pre-Phase-1 polish (~14 dev days)
+
+See `docs/POLISH_PLAN.md`. Foundation maturity work before Phase 1 begins:
+
+- **0a** Commit + document local WIP (turn-lock + deployment infra + threat NPCs + speculative event batching)
+- **0b** Operational maturity (turn-lock hardening, /api/ready split, Sentry observability, E2E smoke in CI, connection pooling)
+- **0c** UI/UX polish (dice-roll animation, form-flavor accents, turn-in-flight surface, empty states + recap, onboarding nudges)
+- **0d** Engagement quick wins (threat-NPC integration tests + content validation in CI, today's-runs ticker, session lobby with spectate)
+- **0e** Cleanup sweep (scripts standardization, dead-code purge, doc accuracy pass)
+
+After Phase 0 lands, Phase 1 of POST_MVP_PLAN begins on a hardened foundation.
+
 ## Post-MVP — next ~30 days
 
 See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
