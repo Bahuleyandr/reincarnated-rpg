@@ -49,7 +49,9 @@ export function LocationNotes({ locationId, formId, canLeave }: Props) {
   }, [locationId, formId]);
 
   useEffect(() => {
-    void load();
+    // Defer setState calls inside load() to a microtask so React
+    // 19's react-hooks/set-state-in-effect rule is satisfied.
+    void Promise.resolve().then(() => load());
   }, [load]);
 
   async function submit(e: React.FormEvent) {

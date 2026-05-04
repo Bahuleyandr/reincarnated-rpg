@@ -27,7 +27,11 @@ export const options = {
   },
 };
 
-export default function () {
+// k6 requires the load-driver to be the default export. The
+// import/no-anonymous-default-export warning is noisy here —
+// give the function a name to satisfy it without changing
+// runtime behavior.
+export default function k6Driver() {
   // Anon session.
   const sessionRes = http.post(
     `${BASE}/api/session`,

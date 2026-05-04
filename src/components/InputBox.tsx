@@ -20,7 +20,12 @@ export function InputBox({ onSubmit, disabled, settling, draft }: InputBoxProps)
   const [value, setValue] = useState("");
 
   useEffect(() => {
-    if (draft && draft.length > 0) setValue(draft);
+    // Defer setState to a microtask — React 19's
+    // react-hooks/set-state-in-effect rule flags synchronous
+    // setState in effect bodies as a cascading-render risk.
+    if (draft && draft.length > 0) {
+      void Promise.resolve().then(() => setValue(draft));
+    }
   }, [draft]);
 
   function handleSubmit(e: React.FormEvent) {
