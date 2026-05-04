@@ -1,0 +1,95 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Communication modes per race. Used by the narrator (regionFlavor block) and the dialogue system to render in-character utterance modes — orcs write rather than speak; halflings use signal flags at sea; dwarves use kite-signals across the cloud-mass; humans speak directly; elves speak directly with the act. Mechanical implications: certain agreements (oaths, contracts) require the right modality."
+  },
+  "modes": {
+    "human": {
+      "primary": "spoken",
+      "summary": "direct speech, time-pressured. apprentices whisper; masters speak slowly.",
+      "narratorHint": "render speech as direct quotation. masters use shorter sentences than apprentices."
+    },
+    "elven": {
+      "primary": "spoken",
+      "summary": "spoken with the act in public; off-act in private. ledger-mind tracks favors.",
+      "narratorHint": "in public: breathy, rhythmic, performative. off-act: clipped, profane. switch when context shifts."
+    },
+    "dwarven": {
+      "primary": "spoken-with-pauses",
+      "auxiliary": "kite-signals",
+      "summary": "wind-paced spoken communication; Skybeam pollination kites carry coded signals across cloud-mass.",
+      "narratorHint": "long pauses between sentences. cross-terrace messages render as kite-signal observations.",
+      "kiteSignal": {
+        "summary": "single-tone bone-flute attached to a pollination kite; specific frequencies correspond to specific messages.",
+        "examples": [
+          "high steady — clear weather",
+          "low pulsed — frost incoming",
+          "two short, one long — emergency at lower terrace"
+        ]
+      }
+    },
+    "halfling": {
+      "primary": "spoken",
+      "auxiliary": "signal-flags",
+      "summary": "spoken at close range; waxed signal flags between ships and from reef-edge platforms.",
+      "narratorHint": "spoken halfling is clipped and salt-cured. signal flags are in named patterns (flagcloth via 'drowncaller-flag-cloth').",
+      "signalFlag": {
+        "summary": "heavy waxed canvas in halfling colors. specific pattern combinations are legible at sea-distance.",
+        "examples": [
+          "anchor-and-line — friendly approach",
+          "single-cross — wreck imminent, do not approach",
+          "four-ribbon — flagship on station"
+        ]
+      }
+    },
+    "orcish": {
+      "primary": "written",
+      "auxiliary": "spoken-quietly",
+      "summary": "writing is the default; quiet spoken speech happens but the orc is faintly disappointed in themselves for it.",
+      "narratorHint": "render orcish 'speech' as marginalia on a passed folio. Hush-readers communicate ONLY in marginalia.",
+      "marginalia": {
+        "summary": "single careful word in the margin of a passed book; the receiver writes their reply nearby.",
+        "examples": [
+          "yes",
+          "(query: the third clause?)",
+          "(refused, with patience)"
+        ]
+      }
+    },
+    "mixed-metropolis": {
+      "primary": "spoken",
+      "auxiliary": "five-script-pidgin",
+      "summary": "Caelum's working pidgin lets all five races trade in cargo zones. No fluent native speakers; everyone uses it.",
+      "narratorHint": "render pidgin transactions as short clipped exchanges with switching scripts."
+    }
+  },
+  "mechanicalImplications": [
+    {
+      "id": "orcish-oaths-must-be-written",
+      "summary": "An oath given verbally to an orc is not binding by their custom. The oath must be written down + countersigned in marginalia.",
+      "narratorEffect": "When a player promises something verbally to an orcish NPC, the NPC will hand them paper without comment. Refusing to write seals nothing."
+    },
+    {
+      "id": "halfling-naval-flags-required",
+      "summary": "Hiring the halfling navy requires the customer to fly a recognized flag. No flag, no contract.",
+      "narratorEffect": "A flagless ship at the Coral Anchorage will be refused service politely. Buying flagcloth at the Anchorage is the customary first step."
+    },
+    {
+      "id": "dwarven-clearance-by-kite",
+      "summary": "Crossing onto a Highfield orchard terrace requires Gust-watcher clearance, signaled by kite. Without clearance, the path is closed by old custom.",
+      "narratorEffect": "Trespassers are not assaulted; they are simply not addressed by anyone, until a Gust-watcher's kite is posted."
+    },
+    {
+      "id": "elven-act-discount",
+      "summary": "Branchmen offer better terms to clients who endure the act for three full meetings. Customers who skip the act pay 10-15% more.",
+      "narratorEffect": "The narrator can describe an explicit 'act discount' in pricing dialogue."
+    },
+    {
+      "id": "human-succession-honored",
+      "summary": "A human master's last commission cannot be refused by the apprentice. Even if the apprentice is in another city, the request reaches them and is honored.",
+      "narratorEffect": "If a Threadwarden master commissions a piece in their last year, the prose treats the apprentice's response as inevitable."
+    }
+  ]
+}
