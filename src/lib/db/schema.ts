@@ -135,6 +135,17 @@ export const users = pgTable("users", {
    *  player calls the pledge_faction tool. Null until pledged. */
   factionId: text("faction_id"),
   factionPledgedAt: timestamp("faction_pledged_at", { withTimezone: true }),
+  /** Stripe customer + subscription state (Phase 8 Day 69-71).
+   *  customer_id is set on first checkout; subscription_status
+   *  flips via webhooks ('active' | 'canceled' | 'past_due' |
+   *  null). subscription_current_period_end keeps tier benefits
+   *  accurate without re-querying Stripe on every cost-cap read. */
+  stripeCustomerId: text("stripe_customer_id"),
+  subscriptionStatus: text("subscription_status"),
+  subscriptionCurrentPeriodEnd: timestamp(
+    "subscription_current_period_end",
+    { withTimezone: true },
+  ),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -385,6 +396,34 @@ export const reengagementLog = pgTable(
 
 export type ReengagementLog = typeof reengagementLog.$inferSelect;
 export type NewReengagementLog = typeof reengagementLog.$inferInsert;
+
+/**
+ * Phase 8 Day 69-71. Webhook event audit + dedup. Stripe sends
+ * the same event multiple times occasionally; pk on the stripe
+ * event id makes our handler idempotent.
+ */
+export const stripeEvents = pgTable(
+  "stripe_events",
+  {
+    id: text("id").primaryKey(),
+    eventType: text("event_type").notNull(),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    payload: jsonb("payload").notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("stripe_events_received_idx").on(t.receivedAt),
+    index("stripe_events_user_idx").on(t.userId),
+  ],
+);
+
+export type StripeEvent = typeof stripeEvents.$inferSelect;
+export type NewStripeEvent = typeof stripeEvents.$inferInsert;
 
 export const campaigns = pgTable(
   "campaigns",
