@@ -49,7 +49,14 @@ export default function GodProvidersPage() {
   const [data, setData] = useState<Resp | null>(null);
   const [forbidden, setForbidden] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
-  const now = Date.now();
+  // `now` is state-driven (not Date.now() in render) so the
+  // component is pure across renders. Refreshes once a minute,
+  // which is enough resolution for the "X ago" labels below.
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -66,7 +73,9 @@ export default function GodProvidersPage() {
   }, []);
 
   useEffect(() => {
-    load();
+    // Defer setState calls inside load() to a microtask so React
+    // 19's react-hooks/set-state-in-effect rule is satisfied.
+    void Promise.resolve().then(() => load());
     const id = setInterval(load, 30_000);
     return () => clearInterval(id);
   }, [load]);

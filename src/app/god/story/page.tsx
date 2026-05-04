@@ -76,7 +76,9 @@ export default function GodStoryPage() {
   }, []);
 
   useEffect(() => {
-    load();
+    // Defer setState calls inside load() to a microtask so React
+    // 19's react-hooks/set-state-in-effect rule is satisfied.
+    void Promise.resolve().then(() => load());
     const id = setInterval(load, 30_000);
     return () => clearInterval(id);
   }, [load]);

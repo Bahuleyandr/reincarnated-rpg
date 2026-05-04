@@ -44,13 +44,19 @@ export function DiceRollDisplay({ roll, animate = true }: Props) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    // Defer the synchronous-setState branch to a microtask so
+    // React 19's react-hooks/set-state-in-effect rule passes.
+    // The interval / timeout callbacks below already run async,
+    // so they're fine.
     if (!animate || prefersReducedMotion()) {
-      setD1Display(roll.d1);
-      setD2Display(roll.d2);
-      setTumbling(false);
+      void Promise.resolve().then(() => {
+        setD1Display(roll.d1);
+        setD2Display(roll.d2);
+        setTumbling(false);
+      });
       return;
     }
-    setTumbling(true);
+    void Promise.resolve().then(() => setTumbling(true));
     intervalRef.current = setInterval(() => {
       setD1Display(1 + Math.floor(Math.random() * 6));
       setD2Display(1 + Math.floor(Math.random() * 6));

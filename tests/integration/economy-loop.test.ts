@@ -10,6 +10,7 @@
  * (sell), gather_resource, craft_recipe, learn_skill_from,
  * coin balance + craft credit consumption.
  */
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
@@ -299,9 +300,7 @@ describe("Phase 5 Day 25: full economic loop", () => {
     const skills = await db
       .select()
       .from(userSkills)
-      .where(({ userId: u }) =>
-        require("drizzle-orm").eq(u, userId),
-      );
+      .where(eq(userSkills.userId, userId));
     expect(skills.length).toBe(1);
     expect(skills[0].skillId).toBe("smelting");
 
