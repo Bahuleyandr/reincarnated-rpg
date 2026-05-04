@@ -1,0 +1,142 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Wonder events. Each turn rolls a 1% chance to fire one. The selected wonder's narrationFlavor injects into the narrator's prompt for that turn only. Some wonders have an optionalToolEffect that runs through the normal applyTools validation. Per-id cooldown prevents the same wonder from firing twice in a 10-turn window."
+  },
+  "wonders": [
+    {
+      "id": "whisper_unknown",
+      "narrationFlavor": "A name you don't know is whispered close to your perception. Acknowledge briefly, don't explain."
+    },
+    {
+      "id": "the_eye_opens",
+      "locationFilters": ["collapsed-tunnel", "iron-mine-depths", "whispering-marrow"],
+      "narrationFlavor": "There is a single eye where there was no eye before. Describe it for one beat. Don't explain it."
+    },
+    {
+      "id": "draft_that_was_not_there",
+      "narrationFlavor": "A draft passes through that was not there before. The stone remembers it, briefly."
+    },
+    {
+      "id": "moon_wrong_color",
+      "narrationFlavor": "If a roof or sky is visible, the moon is the wrong color tonight. Note it once."
+    },
+    {
+      "id": "scroll_fallen",
+      "formFilters": ["cursed-book", "healer", "dragon-egg", "dungeon-core"],
+      "narrationFlavor": "A folded scroll falls from nowhere, landing within reach.",
+      "optionalToolEffect": {
+        "name": "add_inventory",
+        "itemId": "mystery-scroll",
+        "qty": 1
+      }
+    },
+    {
+      "id": "tally_marked",
+      "narrationFlavor": "An unseen ledger marks a tally. The room's small luck withdraws a little."
+    },
+    {
+      "id": "pulse_of_the_wyrm",
+      "narrationFlavor": "Something deep beneath you breathes once. Don't name it. Don't explain it."
+    },
+    {
+      "id": "memory_not_yours",
+      "narrationFlavor": "A memory that does not belong to you crosses your awareness — a child's hand, a smell of bread. It passes."
+    },
+    {
+      "id": "shadow_extra",
+      "narrationFlavor": "Your shadow grows another shadow for one heartbeat, then resettles."
+    },
+    {
+      "id": "small_creature_returns",
+      "narrationFlavor": "A small creature you have not seen before is suddenly familiar — as if you had always known its face."
+    },
+    {
+      "id": "humming_stops",
+      "narrationFlavor": "Some hum you didn't know was there has stopped. Now you notice the silence."
+    },
+    {
+      "id": "name_almost_remembered",
+      "narrationFlavor": "A name almost arrives — close enough to taste — and then doesn't."
+    },
+    {
+      "id": "letter_in_dust",
+      "narrationFlavor": "A letter you didn't write is briefly visible in the dust. Single character. Then gone."
+    },
+    {
+      "id": "rust_hand_passes",
+      "narrationFlavor": "Far away, the rust-hand passes over the world for a heartbeat. You do not see it. You feel it."
+    },
+    {
+      "id": "the_witness_glimpse",
+      "narrationFlavor": "Someone is watching. Briefly. The angle is wrong for any room."
+    },
+    {
+      "id": "weight_of_something_old",
+      "narrationFlavor": "Something old weighs on the air. The kind of old that pre-dates the cycle."
+    },
+    {
+      "id": "candle_relit",
+      "locationFilters": ["collapsed-tunnel", "whispering-marrow", "iron-mine-depths"],
+      "narrationFlavor": "A candle that wasn't lit is now lit. It does not warm the air."
+    },
+    {
+      "id": "footstep_in_advance",
+      "narrationFlavor": "A footstep arrives just before its foot. The order is wrong by a beat."
+    },
+    {
+      "id": "river_remembers",
+      "narrationFlavor": "Something that was once a river briefly remembers being a river."
+    },
+    {
+      "id": "the_choristers_passing",
+      "narrationFlavor": "Far above, in some other room of the world, the Choristers are singing. The sound does not reach you, but its absence does."
+    },
+    {
+      "id": "old_bones_voice",
+      "narrationFlavor": "Old Bone's voice — the prophet's last breath — moves through the walls. Words: not for you."
+    },
+    {
+      "id": "twin_almost_speaks",
+      "narrationFlavor": "Cipher or Cinder — one of the Twins — almost speaks. The mouth opens and the moment passes."
+    },
+    {
+      "id": "salt_taste",
+      "narrationFlavor": "There is a taste of salt in the air for no good reason."
+    },
+    {
+      "id": "dawn_a_breath_late",
+      "narrationFlavor": "Dawn arrives a breath late. The light has the wrong cast."
+    },
+    {
+      "id": "pebble_unmoves",
+      "narrationFlavor": "A pebble in your line of sight rolls one inch backward of its own accord."
+    },
+    {
+      "id": "world_sighs",
+      "narrationFlavor": "The world sighs, audibly, once. Don't dwell on it."
+    },
+    {
+      "id": "page_turns_alone",
+      "formFilters": ["cursed-book"],
+      "narrationFlavor": "One of your pages turns of its own accord. You did not turn it."
+    },
+    {
+      "id": "core_pulses_unbidden",
+      "formFilters": ["dungeon-core"],
+      "narrationFlavor": "Your core pulses without your prompting. A summon was almost made — by something else."
+    },
+    {
+      "id": "egg_warmth_briefly",
+      "formFilters": ["dragon-egg"],
+      "narrationFlavor": "Something warmer than you presses against your shell for one beat."
+    },
+    {
+      "id": "slime_flickers",
+      "formFilters": ["lesser-slime"],
+      "narrationFlavor": "Your surface flickers — for a moment you saw a thing you have no eyes for."
+    }
+  ]
+}
