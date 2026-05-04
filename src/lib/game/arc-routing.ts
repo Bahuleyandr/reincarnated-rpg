@@ -24,6 +24,14 @@ interface ArcRoute {
   locationId: string | null;
   /** Display tagline shown in the run-start UI. */
   tagline: string;
+  /** Form-specific starting-room override. When set, the player
+   *  wakes in this room instead of the location's entryRoomId.
+   *  Used when the beat narrative requires a specific opening
+   *  setting (e.g. cursed-book wakes in the spire-archive on a
+   *  warm candle, not on the mid-landing). The room id MUST exist
+   *  in the location; the projection initializer falls back to
+   *  the location's default if the override is invalid. */
+  startingRoomId?: string;
 }
 
 const ROUTES: ArcRoute[] = [
@@ -40,6 +48,9 @@ const ROUTES: ArcRoute[] = [
     locationId: "sunless-spire",
     tagline:
       "Someone left you open. The candle is still warm. Identify them before the thing at the top of the spire descends.",
+    // The book wakes mid-page on a warm-candled table — the
+    // archive room. The mid-landing is for the climber forms.
+    startingRoomId: "spire-archive",
   },
   {
     arcId: "keep-the-warmth",
@@ -115,4 +126,24 @@ export function arcTagline(arcId: string | null | undefined): string | null {
 /** Used by tests + admin tooling. */
 export function listArcs(): ArcRoute[] {
   return [...ROUTES];
+}
+
+/**
+ * Per-(form, location) starting-room override. Returns the
+ * configured override room id, or null when no override applies.
+ * The session bootstrap consults this to seed the projection's
+ * starting room when a form has narrative-specific requirements
+ * about where it wakes (cursed-book wakes in the archive, not
+ * mid-landing).
+ *
+ * Callers should fall back to location.entryRoomId on null.
+ */
+export function pickStartingRoom(
+  formId: string,
+  locationId: string,
+): string | null {
+  const exact = ROUTES.find(
+    (r) => r.formId === formId && r.locationId === locationId,
+  );
+  return exact?.startingRoomId ?? null;
 }

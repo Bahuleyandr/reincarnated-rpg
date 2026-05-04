@@ -440,12 +440,32 @@ export default function GodPage() {
           <h1 className="text-xl text-stone-100">
             god-mod console <span className="text-xs text-stone-500">({data.admin.username})</span>
           </h1>
-          <Link
-            href="/"
-            className="text-xs text-stone-500 underline underline-offset-2 hover:text-stone-300"
-          >
-            ← home
-          </Link>
+          <div className="flex items-center gap-3 text-xs">
+            <Link
+              href="/god/forms"
+              className="text-stone-500 underline underline-offset-2 hover:text-stone-300"
+            >
+              forms queue
+            </Link>
+            <Link
+              href="/god/economy"
+              className="text-stone-500 underline underline-offset-2 hover:text-stone-300"
+            >
+              economy
+            </Link>
+            <Link
+              href="/god/story"
+              className="text-stone-500 underline underline-offset-2 hover:text-stone-300"
+            >
+              story
+            </Link>
+            <Link
+              href="/"
+              className="text-stone-500 underline underline-offset-2 hover:text-stone-300"
+            >
+              ← home
+            </Link>
+          </div>
         </header>
 
         <section className="grid grid-cols-4 gap-3 border border-stone-800 bg-stone-900/40 p-4 text-xs">

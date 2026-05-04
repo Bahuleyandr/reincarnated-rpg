@@ -20,6 +20,7 @@ import { type Narrator } from "../narrator";
 import { createMemory, retrieveMemories } from "../memory/episodic";
 import { persistRunToWorld, recallWorld, shouldRecallWorld } from "../memory/world";
 
+import { pickStartingRoom } from "./arc-routing";
 import { matchBeats, type BeatPack } from "./beats";
 import { classifyHaiku } from "./classify-haiku";
 import { appendEvents, readLog, rowToEvent } from "./events";
@@ -140,8 +141,14 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   let narratorFallbackReason: string | undefined;
 
   const t0 = Date.now();
+  // Form-specific starting-room override. Only takes effect on
+  // first load (no snapshot yet); replays/resumes pull the
+  // existing projection unchanged.
+  const startingRoomId =
+    pickStartingRoom(form.id, location.id) ?? undefined;
   let projection = await loadProjection(db, sessionId, form, location, {
     starterFormState,
+    startingRoomId,
   });
   if (projection.status !== "active") {
     return { ok: false, error: `session is ${projection.status}`, projection };

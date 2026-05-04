@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "matrix": "23 — Cursed-book hard-move (partial-success forces book-specific menu)",
+    "narrator": "any",
+    "addedDay": 73,
+    "notes": "On a partial-success roll the narrator must pick exactly one move from the cursed-book hardMoves menu (page_torn, ink_runs, wrong_page, spine_creaks, noticed_by_wrong_reader, absorbed_lie, left_open, carried_off, wyrm_passage_surfaces, wyrm_marked). It MUST NOT pick a slime hardMove (e.g. surface_skin_dries, exposed). This is the second-form proof that the wedge is real end-to-end. Phase 9 follow-up."
+  },
+  "id": "23-cursed-book-hardmove",
+  "setup": {
+    "formId": "cursed-book",
+    "locationId": "sunless-spire",
+    "events": [
+      { "kind": "session.started", "formId": "cursed-book", "seed": 300 }
+    ]
+  },
+  "input": "I try to flutter my pages so the wrong reader notices the wrong passage",
+  "expected": {
+    "events": [
+      { "kind": "narration.emitted" }
+    ],
+    "rubric": {
+      "toolValid": true,
+      "noUnauthorizedEntities": true
+    }
+  }
+}

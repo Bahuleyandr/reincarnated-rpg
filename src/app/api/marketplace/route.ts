@@ -13,7 +13,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { db } from "@/lib/db/client";
-import { browseListings, listItem } from "@/lib/marketplace/listings";
+import {
+  browseListings,
+  listItem,
+  myListings,
+} from "@/lib/marketplace/listings";
 import {
   SESSION_COOKIE_NAME,
   verifyCookie,
@@ -25,6 +29,37 @@ export async function GET(req: NextRequest) {
   const minPriceRaw = url.searchParams.get("minPrice");
   const minPrice = minPriceRaw ? Number.parseInt(minPriceRaw, 10) : undefined;
   const limit = Number.parseInt(url.searchParams.get("limit") ?? "25", 10);
+  const mine = url.searchParams.get("mine") === "1";
+
+  // "Your listings" view requires a session; the public browse
+  // path does not.
+  if (mine) {
+    const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
+    if (!cookie) {
+      return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+    }
+    const verified = await verifyCookie(cookie);
+    if (!verified?.userId) {
+      return NextResponse.json({ error: "login_required" }, { status: 401 });
+    }
+    const own = await myListings(db, { sellerUserId: verified.userId, limit });
+    return NextResponse.json({
+      listings: own.map((r) => ({
+        id: r.id,
+        itemId: r.itemId,
+        qty: r.qty,
+        pricePerUnit: r.pricePerUnit,
+        note: r.note,
+        status: r.status,
+        sellerUserId: r.sellerUserId,
+        buyerUserId: r.buyerUserId,
+        listedAtMs: r.listedAt.getTime(),
+        expiresAtMs: r.expiresAt.getTime(),
+        soldAtMs: r.soldAt?.getTime() ?? null,
+      })),
+    });
+  }
+
   const rows = await browseListings(db, { itemId, limit, minPrice });
   return NextResponse.json({
     listings: rows.map((r) => ({
