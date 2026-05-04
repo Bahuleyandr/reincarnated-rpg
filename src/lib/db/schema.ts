@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigserial,
   customType,
   index,
   integer,
@@ -699,5 +700,38 @@ export type MetaArc = typeof metaArcs.$inferSelect;
 export type NewMetaArc = typeof metaArcs.$inferInsert;
 export type MetaContribution = typeof metaContributions.$inferSelect;
 export type NewMetaContribution = typeof metaContributions.$inferInsert;
+
+/**
+ * Audit trail for the per-session turn-lock primitive (see
+ * `src/lib/game/turn-lock.ts`). Append-only — every acquire,
+ * release, expiry-claim, and admin force-release writes a row.
+ *
+ * Letting this be a real table (vs. just JSON-line logs) means
+ * forensic queries are SQL-trivial: which sessions hit the most
+ * lock conflicts, how long does the average turn hold the lock,
+ * which lock got force-released and why. Cheap; bounded by turn
+ * volume × ~2 (acquire + release per turn).
+ */
+export const turnLockEvents = pgTable(
+  "turn_lock_events",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    /** 'acquired' | 'released' | 'claimed_expired' | 'force_released' | 'release_no_op' */
+    eventKind: text("event_kind").notNull(),
+    token: text("token"),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+    metadata: jsonb("metadata").notNull().default({}),
+  },
+  (t) => [
+    index("turn_lock_events_session_idx").on(t.sessionId, t.at),
+    index("turn_lock_events_kind_idx").on(t.eventKind, t.at),
+  ],
+);
+
+export type TurnLockEvent = typeof turnLockEvents.$inferSelect;
+export type NewTurnLockEvent = typeof turnLockEvents.$inferInsert;
 
 export const _sql = sql; // re-export for migration writers if needed
