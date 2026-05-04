@@ -47,8 +47,23 @@ export function InventoryPanel({ projection }: Props) {
         ) : (
           <ul className="space-y-0.5">
             {items.map((i) => (
-              <li key={i.itemId} className="flex justify-between" data-testid={`item-${i.itemId}`}>
-                <span className="text-stone-300">{i.itemId}</span>
+              <li
+                key={i.itemId}
+                className="flex justify-between items-baseline gap-2"
+                data-testid={`item-${i.itemId}`}
+              >
+                <span className="text-stone-300 truncate" title={i.itemId}>
+                  {i.customName ? (
+                    <>
+                      <span className="text-amber-300">{i.customName}</span>
+                      <span className="text-stone-700 text-[10px] ml-1">
+                        ({i.itemId})
+                      </span>
+                    </>
+                  ) : (
+                    i.itemId
+                  )}
+                </span>
                 <span className="text-stone-500">×{i.qty}</span>
               </li>
             ))}

@@ -306,6 +306,19 @@ const TOOL_DEFINITIONS: ProviderTool[] = [
     },
   },
   {
+    name: "rename_inventory",
+    description:
+      "Rename an item in the player's inventory. The custom name persists on the slot and is shown in `inventory` going forward. Use when the player explicitly names a possession ('I'll call this dagger Marrow'). 1-32 chars; no energy cost.",
+    input_schema: {
+      type: "object",
+      properties: {
+        itemId: { type: "string" },
+        customName: { type: "string", minLength: 1, maxLength: 32 },
+      },
+      required: ["itemId", "customName"],
+    },
+  },
+  {
     name: "narrate_only",
     description:
       "Emit no mechanical change this turn. Use this when nothing in projection state changes.",
@@ -570,7 +583,15 @@ stats: ${formatRecord(input.projection.form.stats)}
 form_state: ${formatRecord(input.projection.form.state)}
 location: ${input.projection.location.id} / room=${input.projection.location.roomId}
 room_exits: ${exits}
-inventory: ${input.projection.inventory.map((i) => `${i.itemId}x${i.qty}`).join(", ") || "(empty)"}
+inventory: ${
+    input.projection.inventory
+      .map((i) =>
+        i.customName
+          ? `${i.itemId}x${i.qty}[${i.customName}]`
+          : `${i.itemId}x${i.qty}`,
+      )
+      .join(", ") || "(empty)"
+  }
 npcs: ${
     Object.entries(input.projection.npcs)
       .map(([id, n]) => `${id}=${n.name}(${n.relationship})`)
