@@ -106,31 +106,56 @@ See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
 28. **Named antagonist (Rhozell)** (Day 34-35) — recurring villain with cross-run grudge memory.
 29. **First-10-minutes tutorial** (Day 36-37) — scripted slime intro for brand-new players.
 
-**Days 38-52 — Phase 7: 365-day campaign machinery (story bible)**
-30. **Calendar engine** (Day 38) — `world_calendar` + chapter advancement cron.
+**Days 38-62 — Phase 7: 365-day campaign + reliability**
+30. **Calendar engine + per-user cost ceilings** (Day 38) — `world_calendar` + chapter cron + tiered AI-spend caps.
 31. **Chapter prompt-fragment** (Day 39) — narrator picks up active chapter tone.
-32. **Faction state** (Day 40-41) — 4 factions, `pledge_faction`, contribution rollups.
-33. **Branch decision tracking** (Day 42) — 10 major branches resolve into persistent canon.
-34. **Recurring NPC engine** (Day 43-44) — chapter-gated rotation, cross-run history weighting.
-35. **Wyrm raid → Branch V wiring** (Day 45-46) — aggregate damage drives mid-year arc compression.
-36. **Three Votes** (Day 47) — Books XI-XII vote tallies + resolution.
-37. **Endings machinery** (Day 48) — 6 endings + Year 2 seed.
-38. **First-to-Sit + Edicts** (Day 49) — Hollow Throne quest + player-note → law promotion.
-39. **Scheduled world events** (Day 50) — synchronized injections like the Wyrm Voice.
-40. **Story authoring tooling** (Day 51) — CLI scaffolder + validator + eval scenario 22.
-41. **Story admin dashboard** (Day 52) — `/god/story` for live ops.
-42. **Catch-Up Codex** (Day 53) — per-chapter auto-summaries + mid-year onboarding flow for new players.
-43. **Year Archive** (Day 54) — end-of-year snapshot + permanent `/world/year/[n]` pages + Year 2 seed loader.
+32. **Provider redundancy** (Day 40-41) — multi-provider failover (Anthropic → Bedrock → Vertex → Template).
+33. **Faction state** (Day 42-43) — 4 factions, `pledge_faction`, contribution rollups.
+34. **Branch decision tracking** (Day 44) — 10 major branches resolve into persistent canon.
+35. **Recurring NPC engine** (Day 45-46) — chapter-gated rotation, cross-run history weighting.
+36. **Wyrm raid → Branch V wiring** (Day 47-48) — aggregate damage drives mid-year arc compression.
+37. **Three Votes** (Day 49) — Books XI-XII vote tallies + resolution.
+38. **Endings machinery** (Day 50) — 6 endings + Year 2 seed.
+39. **First-to-Sit + Edicts** (Day 51) — Hollow Throne quest + player-note → law promotion.
+40. **Scheduled world events** (Day 52) — synchronized injections like the Wyrm Voice.
+41. **Story authoring tooling** (Day 53) — CLI scaffolder + validator + eval scenario 22.
+42. **Sandbox preview env** (Day 54-56) — staging app with `STORY_TIME_FACTOR<1` for chapter QA.
+43. **Story admin dashboard** (Day 57) — `/god/story` for live ops.
+44. **Catch-Up Codex** (Day 58) — per-chapter auto-summaries + mid-year onboarding flow.
+45. **Lapsed/returning player flows** (Day 59-61) — re-engagement emails + welcome-back surface + streak grace.
+46. **Year Archive** (Day 62) — end-of-year snapshot + permanent `/world/year/[n]` pages + Year 2 seed loader.
 
-**Days 55+ — Bigger swings**
-44. **NPC dialogue system** (Day 55+) — multi-turn conversations with personality continuity (3-5d).
-45. **Player-authored forms** (Day 60+) — submission queue + admin approval (5-7d).
-46. **Player-driven marketplace** (Day 67+) — Phase 6a: P2P listings, gated by Phase 5 telemetry (~7d).
-47. **Ascension** (Day 67+, parallel) — Phase 6b: endgame meta-forms unlocked after ~50 runs (~7-10d).
+**Days 63-72 — Phase 8: launch-ready operations**
+47. **Analytics & metrics dashboard** (Day 63) — DAU, retention, run completion, faction balance, $/DAU.
+48. **Backup + replay-from-zero CI** (Day 64) — nightly backup + CI replay validation.
+49. **Load testing** (Day 65-66) — k6 scripts + pgvector IVF index tuning.
+50. **Mobile UX pass** (Day 67) — responsive audit + touch targets.
+51. **Email infrastructure** (Day 68) — Resend + templates + unsubscribe.
+52. **Payment integration** (Day 69-71) — Stripe Checkout + tier upgrades + dunning.
+53. **GDPR + Sentry + a11y** (Day 72) — data export/delete + error tracking + accessibility audit.
 
-**Ongoing after Day 54** — weekly chapter authoring (~2-4h/week, 4-chapter buffer ahead of "now").
+**Days 73+ — Bigger swings**
+54. **NPC dialogue system** (Day 73+) — multi-turn conversations with personality continuity (3-5d).
+55. **Player-authored forms** (Day 78+) — submission queue + admin approval (5-7d).
+56. **Player-driven marketplace** (Day 85+) — Phase 6a: P2P listings, gated by Phase 5 telemetry (~7d).
+57. **Ascension** (Day 85+, parallel) — Phase 6b: endgame meta-forms unlocked after ~50 runs (~7-10d).
 
-**World clock**: locked at 1:1 real time (ADR-019). 1 chapter = 7 real days UTC. 1 Year = 365 real days. The 17-day Phase 7 build powers a 365-day story.
+**Month 3+ — Phase 9: post-launch deepening (~20d, sequenced by need)**
+58. **Localization scaffolding** (~3d) — `messages/en.json` + first second-locale (Spanish).
+59. **Voice TTS for NPC moments** (~3d) — ElevenLabs for Wyrm Voice, antagonists, Counsel.
+60. **PvP duels** (~5d) — opt-in cross-faction encounters via 2d6 system.
+61. **Guilds / parties** (~5d) — sub-faction groups with own chat + objectives.
+62. **Form-specific dice variants** (~2d) — 2d6 / 3d4-keep-highest / re-roll mechanics per form.
+63. **Player-as-NPC retirement** (~2d) — ascended/permadied veterans become recurring NPCs.
+
+**Ongoing**
+- Weekly chapter authoring (~2-4h/week, 4-chapter buffer).
+- Year 2+ shape sketch (~Day 150 of live play).
+- Sub-faction politics (8-12 pieces during Books V-VIII).
+- Recurring-NPC tier-2 cast (1-2/week, target +20).
+- Form polish pass (1 form/week).
+
+**World clock**: locked at 1:1 real time (ADR-019). 1 chapter = 7 real days UTC. 1 Year = 365 real days. Phases 7+8 combined are ~35 dev days; they power a 365-real-day story.
 
 See `docs/STORY_BIBLE.md` for the full 48-chapter outline, faction details, branch decisions, and endings.
 
