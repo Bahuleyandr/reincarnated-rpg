@@ -133,6 +133,24 @@ export async function browseListings(
     .limit(limit);
 }
 
+/**
+ * The seller's own listings (any status). Used by the
+ * /marketplace UI to show "your listings" + a Cancel button on
+ * active rows.
+ */
+export async function myListings(
+  db: Db,
+  args: { sellerUserId: string; limit?: number },
+): Promise<MarketplaceListing[]> {
+  const limit = Math.max(1, Math.min(100, args.limit ?? 25));
+  return db
+    .select()
+    .from(marketplaceListings)
+    .where(eq(marketplaceListings.sellerUserId, args.sellerUserId))
+    .orderBy(asc(marketplaceListings.expiresAt))
+    .limit(limit);
+}
+
 export type PurchaseResult =
   | {
       ok: true;

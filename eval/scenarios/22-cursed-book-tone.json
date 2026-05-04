@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "matrix": "22 — Cursed-book tone wedge (no body / locomotion / speech / sight in second-person narration)",
+    "narrator": "any",
+    "addedDay": 73,
+    "notes": "Form #2 wedge validation. The book must not be narrated with any body part, locomotion verb, speech verb, or sight verb in second-person. NPCs are still allowed to have all of those — the rule is form-specific. The runner uses word-boundary regex against the lowercased narration text. Phase 9 follow-up."
+  },
+  "id": "22-cursed-book-tone",
+  "setup": {
+    "formId": "cursed-book",
+    "locationId": "sunless-spire",
+    "events": [
+      { "kind": "session.started", "formId": "cursed-book", "seed": 200 }
+    ]
+  },
+  "input": "I fall open to the warm page",
+  "expected": {
+    "tone": {
+      "secondPerson": true,
+      "negativeVocabAbsent": true
+    },
+    "rubric": {
+      "toolValid": true,
+      "noUnauthorizedEntities": true
+    }
+  }
+}

@@ -319,6 +319,34 @@ const TOOL_DEFINITIONS: ProviderTool[] = [
     },
   },
   {
+    name: "pledge_faction",
+    description:
+      "Pledge the player to one of the four factions (choristers, rust_hand, idle, forsaken). Costs 50 coins (server-checked). Idempotent — once pledged, the player cannot re-pledge. Use only when the player explicitly chooses a faction; never on the player's behalf.",
+    input_schema: {
+      type: "object",
+      properties: {
+        factionId: {
+          type: "string",
+          enum: ["choristers", "rust_hand", "idle", "forsaken"],
+        },
+      },
+      required: ["factionId"],
+    },
+  },
+  {
+    name: "speak_to",
+    description:
+      "Record a dialogue exchange with an NPC who is currently in scene. The utterance is the NPC's reply (you author it in-character based on their persona, attitude, and the recent dialogue history surfaced in the user message). 1-280 chars; control characters not allowed. Use when the player addresses an NPC by name and the NPC is in projection.npcs.",
+    input_schema: {
+      type: "object",
+      properties: {
+        npcId: { type: "string" },
+        utterance: { type: "string", minLength: 1, maxLength: 280 },
+      },
+      required: ["npcId", "utterance"],
+    },
+  },
+  {
     name: "narrate_only",
     description:
       "Emit no mechanical change this turn. Use this when nothing in projection state changes.",

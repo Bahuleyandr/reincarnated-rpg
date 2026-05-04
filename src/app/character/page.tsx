@@ -104,9 +104,23 @@ interface CharacterResp {
   };
 }
 
+interface Eligibility {
+  eligible: boolean;
+  alreadyAscended: boolean;
+  totalCampaigns: number;
+  distinctForms: number;
+  hasFaction: boolean;
+  tutorialCompleted: boolean;
+  campaignsNeeded: number;
+  varietyNeeded: number;
+}
+
 export default function CharacterPage() {
   const router = useRouter();
   const [data, setData] = useState<CharacterResp | null>(null);
+  const [eligibility, setEligibility] = useState<Eligibility | null>(null);
+  const [ascending, setAscending] = useState(false);
+  const [ascendMsg, setAscendMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   // `now` is state-driven (not Date.now() in render) to satisfy
   // React 19's react-hooks/purity rule. Refreshes once a minute —
@@ -125,12 +139,16 @@ export default function CharacterPage() {
         router.push("/login");
         return;
       }
-      const r = await fetch("/api/character");
+      const [r, asc] = await Promise.all([
+        fetch("/api/character"),
+        fetch("/api/ascension"),
+      ]);
       if (r.status === 401) {
         router.push("/login");
         return;
       }
       if (r.ok && !cancelled) setData(await r.json());
+      if (asc.ok && !cancelled) setEligibility(await asc.json());
       setLoading(false);
     }
     load();
@@ -138,6 +156,33 @@ export default function CharacterPage() {
       cancelled = true;
     };
   }, [router]);
+
+  async function handleAscend() {
+    if (ascending) return;
+    if (
+      !confirm(
+        "Ascend? This is a one-time action. Your reincarnation picker will be locked to the meta-form chosen from your faction + top skill. You will keep your coins, lore, and titles, but you will no longer roll random forms.",
+      )
+    )
+      return;
+    setAscending(true);
+    setAscendMsg(null);
+    try {
+      const r = await fetch("/api/ascension", { method: "POST" });
+      const d = (await r.json()) as
+        | { ok: true; ascensionFormId: string }
+        | { ok: false; error: string };
+      if (d.ok) {
+        setAscendMsg(`ascended → ${d.ascensionFormId}`);
+        const fresh = await fetch("/api/ascension");
+        if (fresh.ok) setEligibility(await fresh.json());
+      } else {
+        setAscendMsg(`error: ${d.error}`);
+      }
+    } finally {
+      setAscending(false);
+    }
+  }
 
   if (loading)
     return (
@@ -288,6 +333,82 @@ export default function CharacterPage() {
                 to your tier's max. Free tier resets at the rate that
                 gives ~32 turns/day; supporter ~72; patron ~144.
               </p>
+            )}
+          </section>
+        )}
+
+        {eligibility && (
+          <section
+            className={`border p-4 space-y-2 ${
+              eligibility.alreadyAscended
+                ? "border-amber-700/60 bg-amber-950/20"
+                : eligibility.eligible
+                  ? "border-amber-600 bg-amber-950/30"
+                  : "border-stone-800 bg-stone-900/40"
+            }`}
+          >
+            <h2 className="text-stone-100 text-sm flex items-baseline justify-between">
+              <span>ascension</span>
+              {eligibility.alreadyAscended && (
+                <span className="text-amber-400 text-[10px]">ascended</span>
+              )}
+            </h2>
+            {eligibility.alreadyAscended ? (
+              <p className="text-[11px] text-amber-200/80 leading-5 italic">
+                You have ascended. The cycle has handed you back something
+                different — a meta-form pinned to your story so far.
+                Reincarnation no longer rolls; the form you became is the
+                form you are.
+              </p>
+            ) : eligibility.eligible ? (
+              <>
+                <p className="text-[11px] text-amber-200/80 leading-5">
+                  You qualify. {eligibility.totalCampaigns} reincarnations,{" "}
+                  {eligibility.distinctForms} distinct forms, and a
+                  faction pledge. The next step is one-shot and final.
+                </p>
+                {ascendMsg && (
+                  <p className="text-[11px] text-stone-300 italic">
+                    {ascendMsg}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  onClick={handleAscend}
+                  disabled={ascending}
+                  className="px-4 py-1.5 border border-amber-600 text-amber-200 hover:bg-amber-900 rounded text-xs disabled:opacity-50"
+                >
+                  {ascending ? "ascending…" : "ascend"}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-[11px] text-stone-500 leading-5 italic">
+                  the cycle eventually runs out of new shapes for you. when
+                  you have lived enough lives in enough forms, you can step
+                  outside the wheel.
+                </p>
+                <ul className="text-[11px] text-stone-400 space-y-1 mt-2">
+                  <li className={eligibility.tutorialCompleted ? "text-emerald-400" : ""}>
+                    {eligibility.tutorialCompleted ? "✓" : "○"} complete the tutorial
+                  </li>
+                  <li className={eligibility.hasFaction ? "text-emerald-400" : ""}>
+                    {eligibility.hasFaction ? "✓" : "○"} pledge to a faction
+                  </li>
+                  <li className={eligibility.campaignsNeeded === 0 ? "text-emerald-400" : ""}>
+                    {eligibility.campaignsNeeded === 0 ? "✓" : "○"}{" "}
+                    {eligibility.totalCampaigns}/50 reincarnations
+                    {eligibility.campaignsNeeded > 0 &&
+                      ` (${eligibility.campaignsNeeded} to go)`}
+                  </li>
+                  <li className={eligibility.varietyNeeded === 0 ? "text-emerald-400" : ""}>
+                    {eligibility.varietyNeeded === 0 ? "✓" : "○"}{" "}
+                    {eligibility.distinctForms}/4 distinct forms
+                    {eligibility.varietyNeeded > 0 &&
+                      ` (${eligibility.varietyNeeded} more)`}
+                  </li>
+                </ul>
+              </>
             )}
           </section>
         )}

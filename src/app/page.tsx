@@ -181,6 +181,18 @@ export default function Home() {
             the long wyrm →
           </Link>
           <Link
+            href="/marketplace"
+            className="underline underline-offset-2 hover:text-stone-400"
+          >
+            marketplace →
+          </Link>
+          <Link
+            href="/forms/new"
+            className="underline underline-offset-2 hover:text-stone-400"
+          >
+            author a form →
+          </Link>
+          <Link
             href="/leaderboard"
             className="underline underline-offset-2 hover:text-stone-400"
           >

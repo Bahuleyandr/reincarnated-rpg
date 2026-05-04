@@ -90,28 +90,39 @@ const FORM_SYNONYMS: Record<string, Record<string, string[]>> = {
 
 export function classify(input: string, form: FormTemplate): ClassifierResult {
   const lowered = input.toLowerCase();
-
-  // 1. Direct verb match (with underscore → space).
-  for (const verb of form.verbs) {
-    const phrase = verb.replace(/_/g, " ");
-    if (new RegExp(`\\b${escape(phrase)}\\b`).test(lowered)) {
-      return { verb, confidence: 1.0 };
-    }
-  }
-
-  // 2. Synonym match (only for verbs the form actually has).
   const synonyms = FORM_SYNONYMS[form.id] ?? FORM_SYNONYMS["generic-creature"];
+
+  // Build (verb, phrase, confidence) candidate list spanning both
+  // direct phrase forms (1.0) and synonyms (0.7). Sort by phrase
+  // length descending so compound matches win against shorter
+  // overlaps — without this, cursed-book's "wait for a reader"
+  // and its "wait for someone" synonym both lose to the
+  // short "wait" verb on input like "wait for someone to come".
+  const candidates: Array<{
+    verb: string;
+    phrase: string;
+    confidence: number;
+  }> = [];
   for (const verb of form.verbs) {
+    candidates.push({
+      verb,
+      phrase: verb.replace(/_/g, " "),
+      confidence: 1.0,
+    });
     const syns = synonyms[verb];
     if (!syns) continue;
     for (const s of syns) {
-      if (new RegExp(`\\b${escape(s)}\\b`).test(lowered)) {
-        return { verb, confidence: 0.7 };
-      }
+      candidates.push({ verb, phrase: s, confidence: 0.7 });
+    }
+  }
+  candidates.sort((a, b) => b.phrase.length - a.phrase.length);
+  for (const c of candidates) {
+    if (new RegExp(`\\b${escape(c.phrase)}\\b`).test(lowered)) {
+      return { verb: c.verb, confidence: c.confidence };
     }
   }
 
-  // 3. Fallback.
+  // Fallback.
   const fallback = form.verbs.includes("wait") ? "wait" : form.verbs[0];
   return { verb: fallback, confidence: 0.2 };
 }

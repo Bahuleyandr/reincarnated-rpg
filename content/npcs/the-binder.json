@@ -1,0 +1,32 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "The antagonist of the find-the-binder arc — the person who left the cursed book open in the spire-archive. Walks the line between scholar, captor, and accomplice. Their attitude starts at 0 (neither friend nor foe) because the book hasn't yet decided what to show them; the relationship is forced into a verdict by the end of the arc when binder_revealed >= 1."
+  },
+  "id": "the-binder",
+  "displayName": "the binder",
+  "kind": "npc",
+  "tagline": "a careful person with a soft footstep, who has read your pages before and chosen what you are open to now.",
+  "vitals": {
+    "hp": { "max": 8, "start": 8 }
+  },
+  "stats": {
+    "awareness": 2,
+    "will": 2,
+    "patience": 1,
+    "threat": 0
+  },
+  "attitudeDefault": 0,
+  "attitudeRange": [-3, 2],
+  "tags": ["scholar", "binder", "patient", "ambiguous"],
+  "voice": {
+    "register": "quiet, formal, careful",
+    "speech_patterns": [
+      "uses 'you' to mean the book itself, not the reader",
+      "never apologizes; explains",
+      "calls the book by a name the book has not given them"
+    ]
+  }
+}
