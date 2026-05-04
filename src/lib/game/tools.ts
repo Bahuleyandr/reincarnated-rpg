@@ -16,6 +16,7 @@ import { z } from "zod";
 
 import type { Db } from "../db/client";
 import { uuidv7 } from "../util/uuidv7";
+import { rollGather, validateGather } from "../economy/gather";
 import { getVendorCatalog, validateTrade } from "../economy/vendor";
 
 import { appendEvents, type AppendedEvent } from "./events";
@@ -120,6 +121,10 @@ const toolSchemas = {
     itemId: slugSchema,
     qty: z.number().int().min(1).max(10),
   }),
+  gather_resource: z.object({
+    name: z.literal("gather_resource"),
+    resourceId: slugSchema,
+  }),
   narrate_only: z.object({
     name: z.literal("narrate_only"),
   }),
@@ -142,6 +147,7 @@ export const toolCallSchema = z.discriminatedUnion("name", [
   toolSchemas.grant_xp,
   toolSchemas.create_memory,
   toolSchemas.trade_with_npc,
+  toolSchemas.gather_resource,
   toolSchemas.narrate_only,
 ]);
 
@@ -169,6 +175,14 @@ export interface ToolValidationContext {
    *  (buy action) and to feed the validator without DB access. Pre-fetched
    *  by the orchestrator from `users.coins` / `sessions.coins`. */
   currentCoins?: number;
+  /** Per-turn seed used for server-rolled tool outcomes
+   *  (gather quantity, future skill checks). Derived from
+   *  (sessionSeed ^ turnNumber) by the orchestrator. */
+  turnSeed?: number;
+  /** Skill levels keyed by skill id. Day 23-24 fills this in;
+   *  earlier days the map is empty and skillLevel = 0 for all
+   *  skill-gated rolls. */
+  skillLevels?: Readonly<Record<string, number>>;
 }
 
 export interface ValidateToolsArgs extends ToolValidationContext {
@@ -242,6 +256,46 @@ export function validateToolsToEvents(args: ValidateToolsArgs): ValidateToolsRes
 
   const events: Event[] = [];
   for (const tool of parsedTools) {
+    if (tool.name === "gather_resource") {
+      // Multi-event tool: rolls qty server-side, emits craft.gathered
+      // + inventory.added. Inventory cap is checked here (after the
+      // qty is known) so a low-cap player gets an error instead of
+      // a partial credit. Phase 5 Day 21.
+      const seed = args.turnSeed ?? 0;
+      const skillLevels = args.skillLevels ?? {};
+      // Resource → skill mapping is intentionally simple for now:
+      // wood → woodcutting, ore → mining, herb → farming. Day 23-24
+      // fleshes this out; for now we look up by tag prefix.
+      const skillLevel = skillLevels.mining ?? 0;
+      const roll = rollGather({
+        seed,
+        resourceId: tool.resourceId,
+        skillLevel,
+      });
+      const capacity = inventoryCapacity(projection);
+      const used = inventoryUsed(projection);
+      if (used + roll.qty > capacity) {
+        return {
+          ok: false,
+          failure: {
+            tool: "gather_resource",
+            error: `gather_resource: backpack would overflow (${used}+${roll.qty}>${capacity}). drop or absorb something first.`,
+          },
+        };
+      }
+      events.push({
+        kind: "craft.gathered",
+        resourceId: tool.resourceId,
+        qty: roll.qty,
+        locationId: projection.location.id,
+      });
+      events.push({
+        kind: "inventory.added",
+        itemId: tool.resourceId,
+        qty: roll.qty,
+      });
+      continue;
+    }
     if (tool.name === "trade_with_npc") {
       // Multi-event tool: emits the audit event, the inventory
       // mutation, and the coin balance event in one batch. Re-runs
@@ -407,6 +461,17 @@ export function checkPrecondition(
       if (!npcTemplateExists(tool.templateId)) {
         return `introduce_npc: unknown npc template: ${tool.templateId}`;
       }
+      return null;
+    }
+    case "gather_resource": {
+      const result = validateGather({
+        locationId: projection.location.id,
+        resourceId: tool.resourceId,
+      });
+      if ("error" in result) return result.error;
+      // Inventory capacity is checked at emission time (the qty
+      // isn't known yet). The validator just confirms the resource
+      // is gatherable here.
       return null;
     }
     case "trade_with_npc": {
@@ -604,6 +669,7 @@ export function toolToEvent(tool: ToolCall, projection: Projection): Event | nul
         summary: tool.summary,
       };
     case "trade_with_npc":
+    case "gather_resource":
       // Handled by the inline multi-event branch in
       // validateToolsToEvents; toolToEvent returns null so this
       // function stays 1:1-or-zero and predicate audits don't get

@@ -120,6 +120,16 @@ export type Event =
       qty: number;
       coinsDelta: number;
     }
+  | {
+      /** Phase 5 Day 21. Player gathered N of `resourceId` at the
+       * current location. Companion `inventory.added` is also
+       * emitted in the same batch. Skill XP (Day 23-24) hooks off
+       * this event kind. */
+      kind: "craft.gathered";
+      resourceId: string;
+      qty: number;
+      locationId: string;
+    }
   | { kind: "session.ended"; reason: "death" | "win" | "cap" };
 
 export type EventKind = Event["kind"];
@@ -169,6 +179,14 @@ export type ToolCall =
       action: "buy" | "sell";
       itemId: string;
       qty: number;
+    }
+  | {
+      /** Phase 5 Day 21. Gather a resource available at the player's
+       *  current location. Quantity is server-rolled 1-3 from a
+       *  per-turn seed so replay-from-zero is deterministic. The
+       *  narrator passes only resourceId; consumes 1 craft credit. */
+      name: "gather_resource";
+      resourceId: string;
     }
   | { name: "narrate_only" };
 
