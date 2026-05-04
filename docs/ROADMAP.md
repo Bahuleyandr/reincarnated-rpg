@@ -140,13 +140,15 @@ See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
 56. **Player-driven marketplace** (Day 85+) — Phase 6a: P2P listings, gated by Phase 5 telemetry (~7d).
 57. **Ascension** (Day 85+, parallel) — Phase 6b: endgame meta-forms unlocked after ~50 runs (~7-10d).
 
-**Month 3+ — Phase 9: post-launch deepening (~20d, sequenced by need)**
+**Month 3+ — Phase 9: post-launch deepening (~30d total, sequenced by need)**
 58. **Localization scaffolding** (~3d) — `messages/en.json` + first second-locale (Spanish).
 59. **Voice TTS for NPC moments** (~3d) — ElevenLabs for Wyrm Voice, antagonists, Counsel.
 60. **PvP duels** (~5d) — opt-in cross-faction encounters via 2d6 system.
 61. **Guilds / parties** (~5d) — sub-faction groups with own chat + objectives.
 62. **Form-specific dice variants** (~2d) — 2d6 / 3d4-keep-highest / re-roll mechanics per form.
 63. **Player-as-NPC retirement** (~2d) — ascended/permadied veterans become recurring NPCs.
+64. **In-run companions** (~3-4d) — bonded NPCs actively join the current run; can level + die.
+65. **Party play (2-3 players)** (~7-10d) — round-robin lockstep co-play; tier-gated (patron hosts).
 
 **Ongoing**
 - Weekly chapter authoring (~2-4h/week, 4-chapter buffer).
