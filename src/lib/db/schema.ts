@@ -154,6 +154,12 @@ export const users = pgTable("users", {
   ascendedAt: timestamp("ascended_at", { withTimezone: true }),
   ascensionFormId: text("ascension_form_id"),
   ascensionSeed: jsonb("ascension_seed"),
+  /** Phase 9 atlas. Player's declared race (human / elven /
+   *  dwarven / halfling / orcish / null). Used by the picker to
+   *  surface homeland-themed catalog entries more often, by the
+   *  narrator for race-aware regional voice, and by future
+   *  race-specific mechanics (T3.2). Null = no declared race. */
+  race: text("race"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
