@@ -393,6 +393,13 @@
       "when": 1778270000000,
       "tag": "0055_marketplace",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1778280000000,
+      "tag": "0056_daily_runs",
+      "breakpoints": true
     }
   ]
 }

@@ -1579,4 +1579,42 @@ export const coinFlowDaily = pgTable(
 export type CoinFlowDaily = typeof coinFlowDaily.$inferSelect;
 export type NewCoinFlowDaily = typeof coinFlowDaily.$inferInsert;
 
+/**
+ * Phase 9 daily shared-seed loop. One row per (utc_date, user)
+ * so each user can play today's challenge exactly once. The
+ * row is the source of truth for "user X played date D" — the
+ * actual game state lives on `sessions` referenced via
+ * session_id.
+ */
+export const dailyRuns = pgTable(
+  "daily_runs",
+  {
+    utcDate: text("utc_date").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    formId: text("form_id").notNull(),
+    locationId: text("location_id").notNull(),
+    seed: bigint("seed", { mode: "number" }).notNull(),
+    status: text("status").notNull().default("active"),
+    turnCount: integer("turn_count").notNull().default(0),
+    score: integer("score").notNull().default(0),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("daily_runs_pk").on(t.utcDate, t.userId),
+    index("daily_runs_leaderboard_idx").on(t.utcDate, t.score),
+    index("daily_runs_user_idx").on(t.userId, t.utcDate),
+  ],
+);
+
+export type DailyRun = typeof dailyRuns.$inferSelect;
+export type NewDailyRun = typeof dailyRuns.$inferInsert;
+
 export const _sql = sql; // re-export for migration writers if needed
