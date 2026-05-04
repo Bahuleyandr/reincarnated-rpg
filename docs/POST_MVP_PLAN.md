@@ -53,8 +53,22 @@ The wedge — *"a text RPG where every life is a different game, and the world r
 | **32-33** | **player notes in locations** | `location_notes` table + `leave_note` tool + read/upvote/decay |
 | **34-35** | **named antagonist (Rhozell, the Wyrm's hand)** | personality card + cross-run memory + appearance hook |
 | **36-37** | **first-10-minutes tutorial** | scripted slime intro + graduation flow + new-user routing |
+| **38** | **calendar engine** | `world_calendar` table + chapter advancement cron |
+| **39** | **chapter prompt-fragment injection** | narrator system prompt picks up active chapter tone |
+| **40-41** | **faction state** | `factions` table + `pledge_faction` tool + per-chapter contributions |
+| **42** | **branch decision tracking** | branch resolution + persistent canon |
+| **43-44** | **recurring NPC engine** | chapter-gated NPC rotation + cross-run history weighting |
+| **45-46** | **Wyrm raid → Branch V wiring** | aggregate damage drives mid-year arc compression |
+| **47** | **Three Votes machinery** | Books XI-XII vote tallies + resolution |
+| **48** | **endings machinery** | year-end ending resolver + Year 2 seed |
+| **49** | **First-to-Sit + Edicts** | Hollow Throne quest + player-note → law promotion |
+| **50** | **scheduled world events** | Wyrm Voice + other synchronized injections |
+| **51** | **story authoring tooling** | CLI scaffolder + validator + eval scenario 22 |
+| **52** | **story admin dashboard** | `/god/story` for live ops |
 
-Days 38+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days), ascension (7-10 days), player-driven marketplace (7+ days). Treat them as independent milestones after Day 37 lands.
+Days 53+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days), ascension (7-10 days), player-driven marketplace (7+ days). Treat them as independent milestones after Day 52 lands.
+
+Story bible source-of-truth: `docs/STORY_BIBLE.md`. Read it before authoring chapter content or wiring story machinery.
 
 ---
 
@@ -833,6 +847,259 @@ ALTER TABLE sessions ADD COLUMN is_tutorial boolean NOT NULL DEFAULT false;
 
 ---
 
+---
+
+## Phase 7 — 365-day campaign calendar (Day 38-52)
+
+**Source of truth**: `docs/STORY_BIBLE.md`. Read it before touching any of these files.
+
+The story bible defines 12 monthly Books × 4 weekly Chapters = 48 chapters, 10 major branch decisions, 4 factions, ~15 recurring NPCs, and 6 endings. This phase wires the calendar engine, faction state, branch tracking, and content loaders so the bible drives the world. **Most of the *content* is then authored ongoing** — at ~1 chapter/week the year fills itself as it runs.
+
+### Day 38: Calendar engine
+
+**Schema migration `0042_world_calendar.sql`**
+```sql
+CREATE TABLE world_calendar (
+  id integer PRIMARY KEY DEFAULT 1,    -- single-row table
+  current_book integer NOT NULL DEFAULT 1,        -- 1..12
+  current_chapter integer NOT NULL DEFAULT 1,     -- 1..48 (global)
+  chapter_started_at timestamptz NOT NULL DEFAULT now(),
+  year integer NOT NULL DEFAULT 1,
+  CHECK (id = 1)
+);
+INSERT INTO world_calendar DEFAULT VALUES;
+```
+
+**New files**
+- `content/story/chapters/<n>.json` — one per chapter. `{ chapterId, book, chapterInBook, weekStart, weekEnd, theme, worldEvent, branchDecisionId?, narratorPromptFragment, factionAlignmentBonuses, locationsAffected }`. Authoring plan: 4-8 chapters at a time, ahead of the active week.
+- `src/lib/story/calendar.ts` — pure: `currentChapter(now, calendarRow) → ChapterContent`. Handles roll-over via timer (~7 days per chapter; configurable for accelerated test/preview).
+- `src/lib/story/advance.ts` — cron-able job: every hour, check if it's time to roll the chapter. On roll: emit `chapter.advanced` event into a separate `world_events` table, evaluate any pending branch decisions, write a `world_lore` entry summarizing the new chapter's theme.
+- `src/app/api/world/calendar/route.ts` — GET returns the current calendar state for the homepage.
+- `src/components/CalendarBanner.tsx` — homepage banner showing current Book/Chapter + chapter title.
+- `tests/unit/calendar.test.ts` — chapter math.
+- `tests/integration/calendar-advance.test.ts` — chapter roll-over fires events.
+
+**Acceptance**: Day 1 of deploy → calendar shows Book I Ch 1 "Strange Omens". Seven days later → calendar advances to Ch 2 with the corresponding world event firing.
+
+### Day 39: Chapter prompt-fragment injection into narrator
+
+**No schema change.**
+
+**Files modified**
+- `src/lib/narrator/remote.ts` — system prompt builder loads the current chapter's `narratorPromptFragment` and prepends it: tonal alignment + world-event awareness. Cached separately from per-form/per-location fragments so it has its own breakpoint and invalidates only on chapter change.
+- `src/lib/narrator/template.ts` — TemplateNarrator gains a chapter-aware phrase bank (cheap deterministic version of the prompt fragment). Falls back to neutral when no chapter content authored.
+
+**Acceptance**: Active chapter's flavor reaches the narrator's output. Slime in Book I Ch 1 narration mentions or alludes to the Red Moon (deterministic check via eval scenario).
+
+### Day 40-41: Faction state
+
+**Schema migration `0043_factions.sql`**
+```sql
+CREATE TABLE factions (
+  id text PRIMARY KEY,                           -- 'choristers' | 'rust_hand' | 'idle' | 'forsaken'
+  label text NOT NULL,
+  member_count integer NOT NULL DEFAULT 0,
+  cumulative_contribution integer NOT NULL DEFAULT 0,  -- abstract pool driving branch outcomes
+  active boolean NOT NULL DEFAULT true,           -- forsaken inactive until Branch IV=A
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+INSERT INTO factions (id, label, active) VALUES
+  ('choristers', 'The Choristers', true),
+  ('rust_hand', 'The Rust Hand', true),
+  ('idle', 'The Idle', true),
+  ('forsaken', 'The Forsaken', false);
+
+ALTER TABLE users ADD COLUMN faction_id text REFERENCES factions(id);
+ALTER TABLE users ADD COLUMN faction_pledged_at timestamptz;
+
+CREATE TABLE faction_contributions (
+  id uuid PRIMARY KEY,
+  user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  faction_id text NOT NULL REFERENCES factions(id),
+  chapter_id integer NOT NULL,
+  amount integer NOT NULL,
+  source text NOT NULL,             -- 'ritual' | 'gather' | 'craft' | 'kill_npc' | 'edict' | ...
+  at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX faction_contrib_chapter_idx ON faction_contributions (chapter_id, faction_id);
+```
+
+**New files**
+- New tool: `pledge_faction(factionId)`. Costs 50 coins. Validates: faction is active, player isn't already pledged. Writes the `faction.pledged` event.
+- `src/lib/story/factions.ts` — pure helpers + atomic DB ops for pledge/contribute/leave. Faction perks (XP bonuses) read from this on craft/gather paths.
+- `src/lib/story/contribute.ts` — `recordContribution(userId, factionId, source, amount)` — appends row, increments cumulative.
+- `src/app/api/factions/route.ts` — GET (list, public), POST `/pledge`, POST `/leave`.
+- `src/components/FactionPanel.tsx` — character page section showing player's faction + a public faction-comparison panel showing aggregate.
+- `tests/integration/factions.test.ts` — pledge, contribute, totals roll up correctly per chapter.
+
+**Acceptance**: Player pledges Choristers via tool → user record updated, `faction.pledged` event logged, Choristers `member_count` increments, faction-aligned crafting (alchemy/smelting/smithing) gets +10% XP.
+
+### Day 42: Branch decision tracking
+
+**Schema migration `0044_branch_decisions.sql`**
+```sql
+CREATE TABLE branch_decisions (
+  id integer PRIMARY KEY,           -- 1..10 (Branches I..X)
+  chapter_id integer NOT NULL,
+  question text NOT NULL,
+  paths jsonb NOT NULL,             -- [{ id, label, threshold_metric }, ...]
+  resolved_path text,                -- null until chapter ends
+  resolved_at timestamptz,
+  resolution_data jsonb              -- snapshot of the metrics at resolution
+);
+```
+
+**New files**
+- `content/story/branches/<n>.json` — one per branch. `{ id, chapterId, question, paths, defaultPath, metric }`.
+- `src/lib/story/resolve-branch.ts` — pure: given branch definition + faction contributions + other state, compute the winning path. Writes `branch.resolved` event + persists outcome to `branch_decisions.resolved_path`.
+- Hook in calendar advance: when a chapter with a branch ends, resolve immediately (synchronously, in the advance job).
+- `src/lib/narrator/branch-context.ts` — exposes resolved branch outcomes to subsequent chapter's narrator prompt fragment.
+- `src/app/world/branches/page.tsx` — public read of resolved branches as world history.
+- `tests/integration/branch-resolution.test.ts` — synthesize contributions, advance chapter, verify correct path resolves.
+
+**Acceptance**: Branch I (Ch 4) resolves at chapter advance. The chosen path becomes part of the world's persistent state. Subsequent chapters' narrator prompts reference it.
+
+### Day 43-44: Recurring NPC engine + appearance probability
+
+**Schema migration `0045_recurring_npc_appearances.sql`** (extends Phase 5.5 Day 34-35):
+```sql
+CREATE TABLE npc_appearances (
+  id uuid PRIMARY KEY,
+  npc_id text NOT NULL,
+  user_id uuid REFERENCES users(id) ON DELETE CASCADE,
+  session_id uuid,
+  chapter_id integer,
+  outcome text,                    -- 'killed' | 'aided' | 'fled' | 'spared' | 'unresolved'
+  at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX npc_app_user_npc_idx ON npc_appearances (user_id, npc_id);
+```
+
+**New files**
+- `content/npcs/recurring/` — Aelnea Vren, Mhirosh Rust-Tongue, the Witness, Cipher, Cinder, the Salt-Tongue, etc. Each: full personality card + chapter-gated appearance rules.
+- `src/lib/story/recurring-npcs.ts` — pure: `pickAppearance(userId, sessionContext, chapter, history) → npcId | null`. Uses chapter-defined NPC rotation + per-user history weighting (more likely to see NPCs you have history with).
+- Hook in `runTurn` step 6: if appearance fires, inject NPC's history beat into `relevantMemories` + emit `npc.introduced` event.
+- `tests/unit/recurring-npc-pick.test.ts` — chapter rotation, history weighting.
+- `tests/integration/recurring-npcs.test.ts` — Aelnea appears in Ch 4; Cipher appears in Ch 2 and Ch 6.
+
+**Acceptance**: Recurring NPCs appear at the right chapters with appropriate dialogue. Cross-run grudge memory works for all of them, not just Rhozell.
+
+### Day 45-46: Wyrm raid integration with story branches
+
+**Files modified**
+- `src/lib/meta/long-wyrm.ts` (extend Day 13 work) — Branch V (Ch 20) reads Wyrm HP at chapter end. If HP > X% → "Asleep"; X-Y% → "Half-Wakes"; <Y% → "Wakes Early" (compresses Book VI).
+- `src/lib/story/branch-v.ts` — wires the raid outcome to the calendar.
+- New world_event hook: "wakes early" causes `chapter_compress` event that tells the calendar to skip Ch 21-23.
+
+**Acceptance**: Players who hit the Wyrm hard enough collapse the mid-year arc by 3 weeks. Slow raids let the world breathe.
+
+### Day 47: The Three Votes (Books XI-XII machinery)
+
+**Schema migration `0046_year_votes.sql`**
+```sql
+CREATE TABLE year_votes (
+  id integer PRIMARY KEY,           -- 1, 2, 3 (Votes 1-3)
+  chapter_id integer NOT NULL,
+  question text NOT NULL,
+  options jsonb NOT NULL,
+  tally jsonb NOT NULL DEFAULT '{}'::jsonb,
+  resolved_option text,
+  resolved_at timestamptz
+);
+```
+
+**New files**
+- `src/lib/story/votes.ts` — at the chapter where a Vote opens, freeze faction memberships + tally contributions; at chapter end, resolve.
+- `src/components/CounselVoteBanner.tsx` — homepage banner showing live vote tallies during Book XI.
+- `tests/integration/votes.test.ts` — tally accumulates; resolution snapshot matches.
+
+**Acceptance**: At Day 308, Vote 1 opens with live tally visible to all players. At Day 314, it resolves; result locks for the rest of the year.
+
+### Day 48: Endings machinery
+
+**Schema migration `0047_year_endings.sql`**
+```sql
+CREATE TABLE year_endings (
+  year integer PRIMARY KEY,
+  ending_id text NOT NULL,           -- 'renewal' | 'echo' | 'hollow' | 'mortal' | 'inversion' | 'long_sleep'
+  resolved_at timestamptz NOT NULL DEFAULT now(),
+  vote_outcomes jsonb NOT NULL,
+  faction_final_state jsonb NOT NULL,
+  notable_players jsonb NOT NULL     -- top contributors, first-to-sit, etc.
+);
+```
+
+**New files**
+- `content/story/endings/<id>.json` — one per ending. Narrative description, mechanical effects on Year 2.
+- `src/lib/story/endings.ts` — `resolveYearEnding(year, calendar, votes, factions, etc.) → endingId`. Pure synthesis of all year-state.
+- Hook in calendar advance for Ch 48: trigger the ending resolution + write a comprehensive `world_lore` entry "the year ended in *X*".
+- Year 2 seed: when the new year begins, load the previous year's ending + apply its modifiers (Renewal: rebalanced forms; Echo: permadeath default; etc.).
+- `src/app/world/year/[n]/page.tsx` — public year-summary page. Becomes the historical record.
+
+**Acceptance**: At Day 365, the year resolves into one of 6 endings. The page is a permanent monument. Year 2 begins with the right starting state.
+
+### Day 49: First-to-Sit + Edicts (Book X support)
+
+**Files modified**
+- `content/locations/hollow_throne.json` — the Throne location, gated behind a quest chain referencing the Ch 2 hand-cuff item.
+- `src/lib/story/throne.ts` — `claimThrone(userId)` — atomic; only succeeds for the first player. Awards permanent title "The First to Sit". Records in lore.
+- `src/lib/story/edicts.ts` — promote a player note to an Edict (location-bound mechanical modifier). Validates: player's faction holds territory in that location.
+- `tests/integration/throne.test.ts` — race-safety: 100 concurrent claims, exactly 1 succeeds.
+
+### Day 50: World event scheduling (the synchronized "Voice" wonder)
+
+**Schema migration `0048_world_events.sql`**
+```sql
+CREATE TABLE world_events (
+  id uuid PRIMARY KEY,
+  kind text NOT NULL,              -- 'chapter_advanced' | 'red_moon' | 'wyrm_voice' | ...
+  scheduled_at timestamptz NOT NULL,
+  fired_at timestamptz,
+  payload jsonb NOT NULL DEFAULT '{}'::jsonb
+);
+CREATE INDEX world_events_pending_idx ON world_events (scheduled_at) WHERE fired_at IS NULL;
+```
+
+**New files**
+- `src/lib/story/world-events.ts` — scheduler + dispatcher. Pre-schedules the year's major events (Ch 23 Wyrm Voice, Ch 38 First-to-Sit window opens, etc.) at deploy time.
+- Hook in cron: every minute, dispatch any due event. For Wyrm Voice: format a per-player line via Haiku 4.5, inject into next turn's narration.
+- `tests/integration/world-events.test.ts` — schedule, dispatch, payload reaches narrator.
+
+**Acceptance**: The Day 165 Wyrm Voice event fires synchronously across all active sessions. Each player receives a personalized line in their next turn's narration.
+
+### Day 51: Story content authoring tooling
+
+**No schema change.**
+
+**New files**
+- `scripts/author-chapter.ts` — CLI tool: `npx tsx scripts/author-chapter.ts new --chapter 5` scaffolds a `content/story/chapters/5.json` with the bible's prescribed shape, leaving the prose for the human author.
+- `scripts/validate-chapters.ts` — checks all 48 chapters for required fields, references valid factions/branches/locations, prompt fragments under length cap.
+- `eval/scenarios/22-chapter-tone.json` — eval that verifies the active chapter's tonal flavor reaches the narrator output. Run every chapter advance.
+- `docs/AUTHORING.md` — short guide for content authors covering bible references, voice rules, chapter file shape.
+
+**Acceptance**: Content authoring is a 2-hour workflow per chapter, not a day. Validation catches missing references before deploy.
+
+### Day 52: Story arc admin dashboard
+
+**No schema change.** (Read-only over existing tables.)
+
+**New files**
+- `src/app/god/story/page.tsx` — admin view of the calendar, faction balance, branch outcomes, scheduled world events, recurring NPC appearance counts. Lets you manually advance / retreat the calendar for testing or live ops.
+- Buttons: "advance one chapter", "rollback chapter (with caveat)", "force resolve branch", "retire NPC", "schedule custom world event".
+
+**Acceptance**: A new branch can be added live via the admin dashboard mid-year if data shows player actions don't fit the planned paths.
+
+### Phase 7 ongoing: weekly chapter authoring
+
+After Day 52, the calendar is running. Each Chapter then takes 2-4 hours of human authoring per week. Maintain a 4-chapter buffer ahead of "now" so we always have content ready. This is steady-state work, not a milestone.
+
+**Failure modes to watch for**
+- Chapter content slipping below 2-week buffer → calendar hits an empty chapter → fallback to TemplateNarrator + a generic "the world is quiet this week" theme. Not great, but doesn't break the game.
+- Branch outcome ties → defaults fire (defined per branch in `content/story/branches/<n>.json`).
+- Faction balance flatlines → admin nudges via `god/story` dashboard. Or accept that some years are quiet.
+
+---
+
 ## Phase 6 — Player-driven economy + ascension (deferred, ~Month 2)
 
 Two parallel month-2 milestones. Marketplace is gated on Phase 5 telemetry; ascension is gated on aggregate run counts (need ~50+ veteran players for it to matter).
@@ -968,10 +1235,23 @@ Day 31    custom item naming                ├── Phase 5.5: engagement deep
 Day 32-33 player notes in locations         │
 Day 34-35 named antagonist (Rhozell)        │
 Day 36-37 first-10-minutes tutorial ────────┘
-Day 38+   NPC dialogue (3-5d)
-Day 43+   player-authored forms (5-7d)
-Day 50+   Phase 6a: player-driven marketplace (~7d)
-Day 50+   Phase 6b: ascension (~7-10d, parallel to 6a)
+Day 38    calendar engine ──────────────────┐
+Day 39    chapter prompt fragment           │
+Day 40-41 faction state                     │
+Day 42    branch decision tracking          │
+Day 43-44 recurring NPC engine              ├── Phase 7: 365-day campaign (story bible)
+Day 45-46 Wyrm raid → Branch V wiring       │
+Day 47    Three Votes machinery             │
+Day 48    endings machinery                 │
+Day 49    First-to-Sit + Edicts             │
+Day 50    scheduled world events            │
+Day 51    story authoring tooling           │
+Day 52    story admin dashboard ────────────┘
+Day 53+   NPC dialogue (3-5d)
+Day 58+   player-authored forms (5-7d)
+Day 65+   Phase 6a: player-driven marketplace (~7d)
+Day 65+   Phase 6b: ascension (~7-10d, parallel to 6a)
++ ongoing: weekly chapter authoring (~2-4h/week)
 ```
 
 Each day ships a green build with unit + integration tests, lint clean, and merged to master via the standard branch + push + merge flow. No skipping local CI.
@@ -1003,5 +1283,12 @@ Each day ships a green build with unit + integration tests, lint clean, and merg
 | 21 | Tutorial: mandatory or skippable? | Skippable (skip link on turn 1) |
 | 22 | Ascension cost curve: linear (5,10,15...) or geometric (5,10,20,40)? | Geometric for v1 — keeps the carrot visible |
 | 23 | Ascendant base forms: keep 5 (slime/book/egg/core/healer) or expand to all 50+ in batch 2? | 5 for v1; expand if data shows demand |
+| 24 | Chapter duration: hard 7 days, or floats based on player engagement? | Hard 7 days for v1 — predictability is more important than reactive pacing |
+| 25 | Calendar acceleration: admin can compress for testing/preview? | Yes via `/god/story` dashboard; never compress on prod |
+| 26 | Branch tie-break rule: tie → default path, or coin flip? | Default path (deterministic; prevents griefing via deliberate ties) |
+| 27 | Faction switching: allowed or one-shot? | One-shot for Year 1; allow in Year 2 with cost |
+| 28 | Forsaken permadeath: irreversible, or "true death" only on second confirmation? | Two-step confirm; first death → admin notification, second → real |
+| 29 | Year-2 starting state: full carry-over of all individual progress, or partial reset? | Carry coins + skills + ascensions; reset bad_luck + active campaigns |
+| 30 | Failed-engagement "Long Sleep" ending threshold: 100 active players, or smaller? | 100 for v1; revisit after watching Books I-V engagement |
 
 Resolve as features come up. Update `docs/DECISIONS.md` with chosen path.

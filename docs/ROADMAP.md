@@ -106,11 +106,29 @@ See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
 28. **Named antagonist (Rhozell)** (Day 34-35) — recurring villain with cross-run grudge memory.
 29. **First-10-minutes tutorial** (Day 36-37) — scripted slime intro for brand-new players.
 
-**Days 38+ — Bigger swings**
-30. **NPC dialogue system** (Day 38+) — multi-turn conversations with personality continuity (3-5d).
-31. **Player-authored forms** (Day 43+) — submission queue + admin approval (5-7d).
-32. **Player-driven marketplace** (Day 50+) — Phase 6a: P2P listings, gated by Phase 5 telemetry (~7d).
-33. **Ascension** (Day 50+, parallel) — Phase 6b: endgame meta-forms unlocked after ~50 runs (~7-10d).
+**Days 38-52 — Phase 7: 365-day campaign machinery (story bible)**
+30. **Calendar engine** (Day 38) — `world_calendar` + chapter advancement cron.
+31. **Chapter prompt-fragment** (Day 39) — narrator picks up active chapter tone.
+32. **Faction state** (Day 40-41) — 4 factions, `pledge_faction`, contribution rollups.
+33. **Branch decision tracking** (Day 42) — 10 major branches resolve into persistent canon.
+34. **Recurring NPC engine** (Day 43-44) — chapter-gated rotation, cross-run history weighting.
+35. **Wyrm raid → Branch V wiring** (Day 45-46) — aggregate damage drives mid-year arc compression.
+36. **Three Votes** (Day 47) — Books XI-XII vote tallies + resolution.
+37. **Endings machinery** (Day 48) — 6 endings + Year 2 seed.
+38. **First-to-Sit + Edicts** (Day 49) — Hollow Throne quest + player-note → law promotion.
+39. **Scheduled world events** (Day 50) — synchronized injections like the Wyrm Voice.
+40. **Story authoring tooling** (Day 51) — CLI scaffolder + validator + eval scenario 22.
+41. **Story admin dashboard** (Day 52) — `/god/story` for live ops.
+
+**Days 53+ — Bigger swings**
+42. **NPC dialogue system** (Day 53+) — multi-turn conversations with personality continuity (3-5d).
+43. **Player-authored forms** (Day 58+) — submission queue + admin approval (5-7d).
+44. **Player-driven marketplace** (Day 65+) — Phase 6a: P2P listings, gated by Phase 5 telemetry (~7d).
+45. **Ascension** (Day 65+, parallel) — Phase 6b: endgame meta-forms unlocked after ~50 runs (~7-10d).
+
+**Ongoing after Day 52** — weekly chapter authoring (~2-4h/week, 4-chapter buffer ahead of "now").
+
+See `docs/STORY_BIBLE.md` for the full 48-chapter outline, faction details, branch decisions, and endings.
 
 ## Post-MVP growth bets (month 2+)
 
