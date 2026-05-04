@@ -1,0 +1,63 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Rhozell, the Wyrm's hand. Phase 5.5 Day 34-35 named antagonist. The Long Wyrm is a force; Rhozell is a character — vindictive, formal, eloquent. He cites the Wyrm in every third sentence and collects debts. Players who killed him in a past life see him return with a remembered grudge ('you remember the slime that ended me; this time will be different'). Rhozell can 'die' multiple times — he's an avatar of the Wyrm's intent, not a single body. Each death just resets him with one more mark in his ledger."
+  },
+
+  "id": "rhozell",
+  "displayName": "Rhozell, the Wyrm's Hand",
+  "kind": "npc",
+
+  "tagline": "tall, narrow, dressed in ash-grey scale that fits like skin. when he speaks, he speaks slowly.",
+
+  "vitals": {
+    "hp": { "max": 18, "start": 18 }
+  },
+  "stats": {
+    "speed": 1,
+    "awareness": 3,
+    "threat": 3
+  },
+
+  "attitudeDefault": -2,
+  "attitudeRange": [-3, 1],
+
+  "tags": ["antagonist", "named", "wyrm-loyal", "recurring", "humanoid"],
+
+  "behavior": {
+    "default": "stands too still, watches with too few blinks; speaks in carefully arranged sentences.",
+    "ifAttacked": "responds with measured violence; does not panic; does not raise his voice.",
+    "narrativeHooks": [
+      "Rhozell never says 'the Wyrm.' He says 'my master.' Or sometimes, just 'it.'",
+      "He is patient in the way only servants of long-lived things are.",
+      "When he leaves a room, the temperature falls noticeably."
+    ]
+  },
+
+  "interactions": {
+    "speak": "available; replies are short, formal, often citing 'my master.'",
+    "trade": "rejected — 'I do not bargain. I collect.'",
+    "absorb": "rejected — 'you would not survive what is in me.'"
+  },
+
+  "metadata": {
+    "templateId": "rhozell",
+    "recurring": true,
+    "faction": "wyrm_loyal",
+    "voice": "vindictive, formal, eloquent — cites his master in every third sentence",
+    "topicsOfInterest": [
+      "the Wyrm's slow waking",
+      "old debts",
+      "the impudence of soft forms"
+    ],
+    "appearanceProbability": {
+      "baseLow": 0.03,
+      "baseHigh": 0.15,
+      "wyrmPhaseThreshold": 0.5,
+      "perPriorEncounterBonus": 0.05,
+      "maxAppearanceProbability": 0.45
+    }
+  }
+}

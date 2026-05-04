@@ -548,6 +548,85 @@ export async function persistRunToWorld(
       });
     }
 
+    // Rhozell run-history append (Phase 5.5 Day 34-35). When the
+    // antagonist appeared in this run, classify the outcome and
+    // append to world_npcs.run_history. The next-life appearance
+    // hook reads this to compose a grudge memory.
+    try {
+      const introducedRhozell = events.some(
+        (e) =>
+          e.kind === "npc.introduced" &&
+          (e as { npcId?: unknown }).npcId === "rhozell",
+      );
+      if (introducedRhozell) {
+        const { classifyRhozellOutcome } = await import(
+          "../antagonist/rhozell"
+        );
+        const outcome = classifyRhozellOutcome(
+          events as unknown as Array<{ kind: string } & Record<string, unknown>>,
+          "rhozell",
+        );
+        const [existing] = await db
+          .select()
+          .from(worldNpcs)
+          .where(
+            and(
+              eq(worldNpcs.userId, opts.userId),
+              eq(worldNpcs.slug, "rhozell"),
+            ),
+          )
+          .limit(1);
+        const entry = {
+          sessionId: opts.sessionId,
+          outcome,
+          at: new Date().toISOString(),
+          formId: opts.formId,
+        };
+        if (existing) {
+          const cur = (Array.isArray(existing.runHistory)
+            ? existing.runHistory
+            : []) as Array<unknown>;
+          await db
+            .update(worldNpcs)
+            .set({
+              runHistory: [...cur, entry],
+              isRecurring: true,
+              updatedAt: new Date(),
+            })
+            .where(eq(worldNpcs.id, existing.id));
+        } else {
+          await db.insert(worldNpcs).values({
+            id: uuidv7(),
+            userId: opts.userId,
+            slug: "rhozell",
+            name: "Rhozell, the Wyrm's Hand",
+            relationshipScore: outcome === "aided" ? 1 : -2,
+            memorySummary: "Rhozell, the Wyrm's Hand. Met across lives.",
+            lastSeenStatus: outcome === "killed" ? "dead" : "alive",
+            timesMet: 1,
+            timesHelped: outcome === "aided" ? 1 : 0,
+            timesHarmed: outcome === "killed" ? 1 : 0,
+            firstMetCampaignId: opts.campaignId ?? null,
+            lastSeenCampaignId: opts.campaignId ?? null,
+            data: { templateId: "rhozell", faction: "wyrm_loyal" },
+            isRecurring: true,
+            runHistory: [entry],
+          });
+        }
+        log.info("rhozell.history_appended", {
+          userId: opts.userId,
+          sessionId: opts.sessionId,
+          outcome,
+        });
+      }
+    } catch (err) {
+      log.warn("rhozell.history_append_failed", {
+        userId: opts.userId,
+        sessionId: opts.sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     // Reincarnation cooldown (Phase 5.5 Day 29). On death, append
     // to the user's recent_form_deaths array (trimmed to last 7d).
     // The picker filters formIds whose most-recent diedAt is within

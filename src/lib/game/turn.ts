@@ -461,6 +461,94 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
+  // Named antagonist Rhozell (Phase 5.5 Day 34-35). On turn 1 only,
+  // probability check based on the wyrm phase + the player's prior
+  // encounter count. If hit, an npc.introduced event lands and a
+  // history-beat memory ("Rhozell remembers your last face — a
+  // slime, drowned in the cistern.") feeds the narrator.
+  if (turnNumber === 1 && world?.userId) {
+    try {
+      const { shouldRhozellAppear, composeHistoryBeat } = await import(
+        "../antagonist/rhozell"
+      );
+      // Pull arc progress + prior history.
+      let arcProgress = 0;
+      try {
+        const { getCurrentArc } = await import("../meta/long-wyrm");
+        const arc = await getCurrentArc(db);
+        if (arc && typeof arc.progress === "number") {
+          // Normalize: progress is unbounded int; treat 0..1000 as
+          // the spread for the threshold check (tunable). Default
+          // arc lives at 0..1000.
+          arcProgress = Math.min(1, arc.progress / 1000);
+        }
+      } catch {
+        /* ignore */
+      }
+      const { worldNpcs: worldNpcsTbl } = await import("../db/schema");
+      const { and: andOp, eq: eqOp } = await import("drizzle-orm");
+      const [existingRow] = await db
+        .select()
+        .from(worldNpcsTbl)
+        .where(
+          andOp(
+            eqOp(worldNpcsTbl.userId, world.userId),
+            eqOp(worldNpcsTbl.slug, "rhozell"),
+          ),
+        )
+        .limit(1);
+      const history = (Array.isArray(existingRow?.runHistory)
+        ? existingRow!.runHistory
+        : []) as Array<{
+        sessionId: string;
+        outcome: "killed" | "aided" | "fled" | "spared";
+        at: string;
+        formId?: string;
+      }>;
+      const seed = (sessionSeed ^ (turnNumber * 0x6f73650a)) >>> 0;
+      const fire = shouldRhozellAppear({
+        seed,
+        arcProgress,
+        priorEncounters: history.length,
+      });
+      if (fire) {
+        const npcId = "rhozell";
+        // Avoid re-introducing if already in projection (defensive).
+        if (!speculativeProjection.npcs[npcId]) {
+          pendingEvents.push({
+            kind: "npc.introduced",
+            npcId,
+            data: {
+              name: "Rhozell, the Wyrm's Hand",
+              relationship: -2,
+              templateId: "rhozell",
+            },
+          });
+        }
+        const beat = composeHistoryBeat(history);
+        relevantMemories = [
+          {
+            id: `rhozell:beat:${turnNumber}`,
+            summary: `RHOZELL (this turn only): ${beat}`,
+            salience: 0.9,
+            eventSeqRange: [turnNumber, turnNumber + 1],
+          },
+          ...relevantMemories,
+        ];
+        log.info("turn.rhozell.appeared", {
+          sessionId,
+          userId: world.userId,
+          priorEncounters: history.length,
+        });
+      }
+    } catch (err) {
+      log.warn("turn.rhozell.failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   const baseInput = {
     projection: speculativeProjection,
     lastEvents: [turnBegunEvent, intentEvent, rollEvent],
