@@ -106,6 +106,139 @@ for (const file of jsonFiles("forms")) {
   }
 }
 
+// Phase 7 Day 53: chapter / branch / recurring-NPC validation.
+const FACTIONS = new Set(["choristers", "rust_hand", "idle", "forsaken"]);
+
+const chaptersDir = join(CONTENT, "story", "chapters");
+if (
+  (() => {
+    try {
+      return readdirSync(chaptersDir).length >= 0;
+    } catch {
+      return false;
+    }
+  })()
+) {
+  for (const f of readdirSync(chaptersDir)) {
+    if (!f.endsWith(".json")) continue;
+    const path = join(chaptersDir, f);
+    const id = Number.parseInt(f.replace(".json", ""), 10);
+    if (!Number.isInteger(id) || id < 1 || id > 48) {
+      errors.push(`${f}: chapter id out of 1..48`);
+      continue;
+    }
+    const c = JSON.parse(readFileSync(path, "utf-8")) as JsonObject;
+    if (c.chapterId !== id) {
+      errors.push(`${f}: chapterId ${c.chapterId} != filename ${id}`);
+    }
+    const expectedBook = Math.ceil(id / 4);
+    const expectedChInBook = ((id - 1) % 4) + 1;
+    if (c.book !== expectedBook) {
+      errors.push(`${f}: book ${c.book} != expected ${expectedBook}`);
+    }
+    if (c.chapterInBook !== expectedChInBook) {
+      errors.push(
+        `${f}: chapterInBook ${c.chapterInBook} != expected ${expectedChInBook}`,
+      );
+    }
+    if (
+      typeof c.narratorPromptFragment !== "string" ||
+      (c.narratorPromptFragment as string).length === 0
+    ) {
+      errors.push(`${f}: narratorPromptFragment empty`);
+    }
+    const bonuses = c.factionAlignmentBonuses as
+      | Record<string, number>
+      | undefined;
+    if (bonuses) {
+      for (const k of Object.keys(bonuses)) {
+        if (!FACTIONS.has(k)) {
+          errors.push(`${f}: unknown faction in bonuses: ${k}`);
+        }
+      }
+    }
+  }
+}
+
+const branchesDir = join(CONTENT, "story", "branches");
+if (
+  (() => {
+    try {
+      return readdirSync(branchesDir).length >= 0;
+    } catch {
+      return false;
+    }
+  })()
+) {
+  for (const f of readdirSync(branchesDir)) {
+    if (!f.endsWith(".json")) continue;
+    const path = join(branchesDir, f);
+    const c = JSON.parse(readFileSync(path, "utf-8")) as JsonObject;
+    const id = c.id as number;
+    if (typeof id !== "number" || id < 1 || id > 10) {
+      errors.push(`branches/${f}: id out of 1..10`);
+    }
+    const chapterId = c.chapterId as number;
+    if (typeof chapterId !== "number" || chapterId < 1 || chapterId > 48) {
+      errors.push(`branches/${f}: chapterId out of 1..48`);
+    }
+    const paths = c.paths as Array<JsonObject> | undefined;
+    if (!Array.isArray(paths) || paths.length < 2) {
+      errors.push(`branches/${f}: paths must have >=2 entries`);
+    } else {
+      for (const p of paths) {
+        if (!p.id || !p.metric) {
+          errors.push(`branches/${f}: path missing id/metric`);
+        }
+      }
+    }
+    if (typeof c.defaultPath !== "string") {
+      errors.push(`branches/${f}: defaultPath required`);
+    }
+  }
+}
+
+const npcsDir = join(CONTENT, "npcs");
+if (
+  (() => {
+    try {
+      return readdirSync(npcsDir).length >= 0;
+    } catch {
+      return false;
+    }
+  })()
+) {
+  for (const f of readdirSync(npcsDir)) {
+    if (!f.endsWith(".json")) continue;
+    const path = join(npcsDir, f);
+    const c = JSON.parse(readFileSync(path, "utf-8")) as {
+      metadata?: JsonObject;
+    };
+    const meta = c.metadata;
+    if (!meta || meta.recurring !== true) continue;
+    const ap = meta.appearanceProbability as JsonObject | undefined;
+    if (!ap) {
+      errors.push(
+        `npcs/${f}: recurring NPC missing appearanceProbability`,
+      );
+      continue;
+    }
+    for (const key of [
+      "baseLow",
+      "baseHigh",
+      "wyrmPhaseThreshold",
+      "perPriorEncounterBonus",
+      "maxAppearanceProbability",
+    ]) {
+      if (typeof ap[key] !== "number") {
+        errors.push(
+          `npcs/${f}: appearanceProbability.${key} must be number`,
+        );
+      }
+    }
+  }
+}
+
 if (errors.length > 0) {
   console.error("[content] validation failed");
   for (const error of errors) console.error(`- ${error}`);
