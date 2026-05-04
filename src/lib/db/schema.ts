@@ -106,6 +106,11 @@ export const users = pgTable("users", {
    *  values blocked by CHECK constraint and lib/economy/coins.ts.
    *  Phase 5 Day 18-19. */
   coins: integer("coins").notNull().default(50),
+  /** 0..10 pool of cheap craft actions before the next energy
+   *  spend. Decrements per gather / smelt / smith action; when it
+   *  hits 0 the next action charges 1 energy and refills the pool
+   *  to 10 (net: 1 energy per 10 craft actions). Phase 5 Day 20. */
+  craftCredits: integer("craft_credits").notNull().default(10),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -220,6 +225,9 @@ export const sessions = pgTable(
      *  players earn coins through play (the user-tier 50-coin gift
      *  is meant as a registration incentive). Phase 5 Day 18-19. */
     coins: integer("coins").notNull().default(0),
+    /** Anon craft credits pool — same semantics as users.craftCredits.
+     *  Logged-in sessions IGNORE this. Phase 5 Day 20. */
+    craftCredits: integer("craft_credits").notNull().default(10),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
     turnLockToken: text("turn_lock_token"),
