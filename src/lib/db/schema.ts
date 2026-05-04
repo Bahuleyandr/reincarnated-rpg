@@ -280,9 +280,20 @@ export const memories = pgTable(
     embedding: vector("embedding", { dimensions: 512 }),
     eventSeqRange: int4range("event_seq_range").notNull(),
     salience: real("salience").notNull().default(0.5),
+    /** Phase 4.5 Day 16. NULL = ordinary memory; integer = echo
+     *  that surfaces only as `echoHint` until projection.turn
+     *  reaches this value, then becomes a normal retrievable
+     *  memory. */
+    surfaceAfterTurn: integer("surface_after_turn"),
+    /** 1-line redacted teaser shown while the echo is still
+     *  pending. */
+    echoHint: text("echo_hint"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("memories_session_idx").on(t.sessionId)],
+  (t) => [
+    index("memories_session_idx").on(t.sessionId),
+    index("memories_session_surface_idx").on(t.sessionId, t.surfaceAfterTurn),
+  ],
 );
 
 export const templatesForms = pgTable("templates_forms", {
