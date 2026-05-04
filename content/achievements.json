@@ -665,6 +665,77 @@
       },
       "relevantKinds": ["craft.gathered"],
       "scope": "lifetime"
+    },
+
+    {
+      "id": "five-spokes-walked",
+      "label": "Five Spokes Walked",
+      "description": "You have woken in all five racial homelands across your lifetimes.",
+      "predicate": { "type": "eventOfKind", "kind": "session.started" },
+      "relevantKinds": ["session.started"],
+      "scope": "lifetime",
+      "titleAwarded": "the five-walked"
+    },
+    {
+      "id": "the-act-endured",
+      "label": "The Act Endured",
+      "description": "You sat through three Branchman meetings without rolling your eyes.",
+      "predicate": {
+        "type": "count",
+        "filter": { "type": "eventOfKind", "kind": "trade.completed" },
+        "spec": ">= 3"
+      },
+      "relevantKinds": ["trade.completed"],
+      "scope": "lifetime",
+      "titleAwarded": "the act-endured"
+    },
+    {
+      "id": "above-the-cloudline",
+      "label": "Above the Cloudline",
+      "description": "You have ascended past Three Notches and slept on a porch.",
+      "predicate": { "type": "eventOfKind", "kind": "moved" },
+      "relevantKinds": ["moved"],
+      "scope": "lifetime",
+      "titleAwarded": "the cloud-walker"
+    },
+    {
+      "id": "the-silent-conversation",
+      "label": "The Silent Conversation",
+      "description": "You exchanged marginalia with a Hush-reader and the conversation was understood.",
+      "predicate": { "type": "eventOfKind", "kind": "dialogue.exchanged" },
+      "relevantKinds": ["dialogue.exchanged"],
+      "scope": "lifetime",
+      "titleAwarded": "the marginally-fluent"
+    },
+    {
+      "id": "the-name-given",
+      "label": "The Name Given",
+      "description": "On Naming Day at Threadwarden, your bolt was added to the cloth-name register.",
+      "predicate": { "type": "eventOfKind", "kind": "craft.completed" },
+      "relevantKinds": ["craft.completed"],
+      "scope": "lifetime",
+      "titleAwarded": "the named"
+    },
+    {
+      "id": "the-cycle-stepped-out",
+      "label": "Stepped Out of the Cycle",
+      "description": "You ascended. The wheel turned without you for the first time.",
+      "predicate": {
+        "type": "eventWith",
+        "match": { "kind": "session.ended" }
+      },
+      "relevantKinds": ["session.ended"],
+      "scope": "lifetime",
+      "titleAwarded": "the un-cycled"
+    },
+    {
+      "id": "the-wedge-felt",
+      "label": "The Wedge Felt",
+      "description": "You played all four typed forms — slime, book, egg, and core — and noticed they did not share a single mechanic.",
+      "predicate": { "type": "eventOfKind", "kind": "session.started" },
+      "relevantKinds": ["session.started"],
+      "scope": "lifetime",
+      "titleAwarded": "the four-formed"
     }
   ]
 }

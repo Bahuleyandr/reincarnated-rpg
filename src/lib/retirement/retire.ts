@@ -156,3 +156,35 @@ export function composeRetiredPersona(args: {
   const ww = args.lastWords ? `\nLast words: "${args.lastWords}"` : "";
   return `${args.displayName}${factionTag} — ${livedTag} (${args.distinctForms} forms, ${args.totalCampaigns} runs)${skillTag}; ${reasonTag}.${ww}`;
 }
+
+/**
+ * Wired version — looks up a retired_players row by templateId
+ * and composes the persona fragment. Returns null when the
+ * templateId isn't a retired player (file-based recurring NPCs
+ * use this and get null, falling through to their own voice
+ * field). The recurring-NPC engine should call this when an
+ * NPC is introduced; the resulting fragment slots into the
+ * narrator's user message as a single line of NPC context.
+ */
+export async function composeRetiredPersonaById(
+  db: Db,
+  templateId: string,
+): Promise<string | null> {
+  if (!templateId.startsWith("retired:")) return null;
+  const [row] = await db
+    .select()
+    .from(retiredPlayers)
+    .where(eq(retiredPlayers.templateId, templateId))
+    .limit(1);
+  if (!row) return null;
+  return composeRetiredPersona({
+    displayName: row.displayName,
+    reason: row.reason,
+    factionId: row.factionId,
+    topSkillId: row.topSkillId,
+    topSkillLevel: row.topSkillLevel,
+    totalCampaigns: row.totalCampaigns,
+    distinctForms: row.distinctForms,
+    lastWords: row.lastWords,
+  });
+}
