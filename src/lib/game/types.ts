@@ -142,6 +142,31 @@ export type Event =
       outputItemId: string;
       outputQty: number;
     }
+  | {
+      /** Phase 5 Day 23-24. Player paid a trainer NPC and learned a
+       *  new skill. Idempotent — second learn calls are no-ops on
+       *  the user_skills row. Companion `coins.spent` carries the
+       *  fee. */
+      kind: "skill.learned";
+      skillId: string;
+      fromNpcId: string;
+      fee: number;
+    }
+  | {
+      /** Phase 5 Day 23-24. XP added to a known skill. The skill
+       *  module recomputes level on this; emit
+       *  `skill.leveled_up` separately when the level changes. */
+      kind: "skill.xp_gained";
+      skillId: string;
+      amount: number;
+    }
+  | {
+      /** Phase 5 Day 23-24. Crossed a level threshold. Triggered by
+       *  awardXp side-effect in turn.ts after appendEvents. */
+      kind: "skill.leveled_up";
+      skillId: string;
+      newLevel: number;
+    }
   | { kind: "session.ended"; reason: "death" | "win" | "cap" };
 
 export type EventKind = Event["kind"];
@@ -208,6 +233,14 @@ export type ToolCall =
        *  location. Consumes 1 craft credit. */
       name: "craft_recipe";
       recipeId: string;
+    }
+  | {
+      /** Phase 5 Day 23-24. Pay an NPC trainer to learn a skill.
+       *  The validator confirms the NPC is in scene, has
+       *  metadata.teachesSkill set, and the player has the fee +
+       *  doesn't already know the skill. Skill is cross-run. */
+      name: "learn_skill_from";
+      npcId: string;
     }
   | { name: "narrate_only" };
 

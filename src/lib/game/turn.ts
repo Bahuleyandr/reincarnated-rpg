@@ -455,6 +455,26 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
+  // Pre-fetch known skills + levels for the validator. Phase 5 Day 23-24.
+  // Anon sessions don't have skills (they live on user_skills which is
+  // user-keyed) — skip the read.
+  let knownSkills: Set<string> | undefined;
+  let skillLevels: Record<string, number> | undefined;
+  if (world?.userId) {
+    try {
+      const { listUserSkills } = await import("../economy/skills");
+      const rows = await listUserSkills(db, world.userId);
+      knownSkills = new Set(rows.map((r) => r.skillId));
+      skillLevels = Object.fromEntries(rows.map((r) => [r.skillId, r.level]));
+    } catch (err) {
+      log.warn("turn.skills.read_failed", {
+        sessionId,
+        userId: world.userId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   // Per-turn seed for server-rolled tool outcomes (gather quantity,
   // future skill checks). Mixed with the resource id inside the
   // gather rng so two gathers in the same turn don't collide.
@@ -469,6 +489,8 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     rollBand: roll.band,
     currentCoins,
     turnSeed: toolTurnSeed,
+    knownSkills,
+    skillLevels,
   });
   let toolRetried = false;
   let toolFellBack = false;
@@ -506,6 +528,8 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       rollBand: roll.band,
       currentCoins,
       turnSeed: toolTurnSeed,
+      knownSkills,
+      skillLevels,
     });
     if (!toolResult.ok) {
       toolFellBack = true;
@@ -637,6 +661,84 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       sessionId,
       err: err instanceof Error ? err.message : String(err),
     });
+  }
+
+  // Skill side effects (Phase 5 Day 23-24). Apply skill.learned
+  // (insert user_skills row) and craft.completed → awardXp (bumps
+  // existing user_skills.xp + recomputes level). Both are best-
+  // effort; failures are logged. Anon sessions skip both (skills
+  // are user-level only).
+  if (world?.userId) {
+    try {
+      const { learnSkill, awardXp } = await import("../economy/skills");
+      const learnEvents = pendingEvents.filter(
+        (e): e is Event & { kind: "skill.learned" } =>
+          e.kind === "skill.learned",
+      );
+      for (const e of learnEvents) {
+        try {
+          await learnSkill(db, world.userId, e.skillId, e.fromNpcId);
+          log.info("turn.skill.learned", {
+            sessionId,
+            userId: world.userId,
+            skillId: e.skillId,
+          });
+        } catch (err) {
+          log.warn("turn.skill.learn_failed", {
+            sessionId,
+            err: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+      // XP awards. Recipe-driven xp.granted carries reason
+      // 'skill:<skillId>'. Walk the events and bump matching skills.
+      for (const e of pendingEvents) {
+        if (e.kind !== "xp.granted") continue;
+        if (!e.reason.startsWith("skill:")) continue;
+        const skillId = e.reason.slice("skill:".length);
+        try {
+          const result = await awardXp(db, world.userId, skillId, e.amount);
+          if (result?.leveledUp) {
+            log.info("turn.skill.leveled_up", {
+              sessionId,
+              userId: world.userId,
+              skillId,
+              previousLevel: result.previousLevel,
+              newLevel: result.level,
+            });
+            // Append a skill.leveled_up event AFTER the fact —
+            // the projection no-ops it, but predicates and
+            // achievements/ticker can read it on the next turn's
+            // event log scan. Best-effort; we don't fail the turn
+            // if this append errors.
+            try {
+              await appendEvents(db, sessionId, [
+                {
+                  kind: "skill.leveled_up",
+                  skillId,
+                  newLevel: result.level,
+                },
+              ]);
+            } catch (err) {
+              log.warn("turn.skill.leveled_up_append_failed", {
+                sessionId,
+                err: err instanceof Error ? err.message : String(err),
+              });
+            }
+          }
+        } catch (err) {
+          log.warn("turn.skill.xp_award_failed", {
+            sessionId,
+            err: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+    } catch (err) {
+      log.warn("turn.skills.import_failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   // Coin balance side effect (Phase 5 Day 18-19). Sum the coin delta

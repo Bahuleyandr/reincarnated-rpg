@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Alchemy trainer. Found in the herb-glade region (drowned-orchard adjacent). Knows what every leaf tastes like and what each one will do to a person."
+  },
+  "id": "mother-vael",
+  "displayName": "Mother Vael",
+  "kind": "npc",
+  "tagline": "small, wiry, hands stained green-brown to the wrists.",
+  "vitals": { "hp": { "max": 6, "start": 6 } },
+  "stats": { "speed": 0, "awareness": 2, "threat": -1 },
+  "attitudeDefault": 1,
+  "attitudeRange": [-1, 3],
+  "tags": ["human", "alchemist", "trainer", "named"],
+  "behavior": {
+    "default": "tends a row of clay jars, each labeled in handwriting only she can read",
+    "narrativeHooks": [
+      "Vael's tea always tastes faintly of something that isn't tea.",
+      "She names every plant by the kind of dream it gives."
+    ]
+  },
+  "metadata": {
+    "templateId": "mother-vael",
+    "teachesSkill": "alchemy",
+    "teachingFee": 120,
+    "teachingLines": [
+      "Bitter does not mean bad. Sweet does not mean safe.",
+      "If you don't know what it does, don't drink it. That's the first law."
+    ]
+  },
+  "interactions": {
+    "speak": "available",
+    "learn": "available — call learn_skill_from(npcId) with 120 coins"
+  }
+}

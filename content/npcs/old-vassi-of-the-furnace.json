@@ -1,0 +1,36 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Smelting trainer. Found at iron-reach (separate workshop from Halrik). Teaches the patience of coaxing metal out of stone."
+  },
+  "id": "old-vassi-of-the-furnace",
+  "displayName": "Old Vassi of the Furnace",
+  "kind": "npc",
+  "tagline": "soot-faced, narrow, eyes always slightly closed against the heat.",
+  "vitals": { "hp": { "max": 8, "start": 8 } },
+  "stats": { "speed": -1, "awareness": 1, "threat": -1 },
+  "attitudeDefault": 1,
+  "attitudeRange": [0, 2],
+  "tags": ["human", "smelter", "trainer", "named"],
+  "behavior": {
+    "default": "feeds the furnace, watches the color change in the metal",
+    "narrativeHooks": [
+      "Vassi knows when the iron is ready by the sound, not the look.",
+      "He has worked one furnace for forty years. It knows him."
+    ]
+  },
+  "metadata": {
+    "templateId": "old-vassi-of-the-furnace",
+    "teachesSkill": "smelting",
+    "teachingFee": 80,
+    "teachingLines": [
+      "The metal wants to come out. Just don't rush it."
+    ]
+  },
+  "interactions": {
+    "speak": "available",
+    "learn": "available — call learn_skill_from(npcId) with 80 coins"
+  }
+}

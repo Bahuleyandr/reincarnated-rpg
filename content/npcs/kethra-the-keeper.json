@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Cooking trainer. Found in hollow-market. Kethra runs the only working kitchen in the market and has fed more travelers than she can count. The same Kethra surfaced in the foreshadowing-memory tests as a face-echo — she's a recurring NPC."
+  },
+  "id": "kethra-the-keeper",
+  "displayName": "Kethra the Keeper",
+  "kind": "npc",
+  "tagline": "tall, calm-faced, wraps her hair in a clean cloth before any meal.",
+  "vitals": { "hp": { "max": 8, "start": 8 } },
+  "stats": { "speed": 0, "awareness": 2, "threat": 0 },
+  "attitudeDefault": 1,
+  "attitudeRange": [-1, 3],
+  "tags": ["human", "cook", "trainer", "named", "recurring"],
+  "behavior": {
+    "default": "stirs a pot of something dark with bay-leaves on top",
+    "narrativeHooks": [
+      "Kethra remembers every face that ever ate at her counter. Some come back lifetimes later.",
+      "The salt is always exact. Never measured."
+    ]
+  },
+  "metadata": {
+    "templateId": "kethra-the-keeper",
+    "teachesSkill": "cooking",
+    "teachingFee": 50,
+    "teachingLines": [
+      "Salt makes everything what it already is.",
+      "If you can keep one person alive past tonight, you have learned the whole skill."
+    ]
+  },
+  "interactions": {
+    "speak": "available",
+    "learn": "available — call learn_skill_from(npcId) with 50 coins"
+  }
+}

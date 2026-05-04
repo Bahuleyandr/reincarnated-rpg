@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Woodcutting trainer. Found in drowned-orchard. The Axe Named Thane is, in fact, an axe — it speaks. The villagers stopped questioning it years ago."
+  },
+  "id": "the-axe-named-thane",
+  "displayName": "Thane (the Axe)",
+  "kind": "npc",
+  "tagline": "a long-handled woodcutter's axe, leaned against a stump. when you approach, it speaks.",
+  "vitals": { "hp": { "max": 4, "start": 4 } },
+  "stats": { "speed": 0, "awareness": 3, "threat": 1 },
+  "attitudeDefault": 0,
+  "attitudeRange": [-2, 2],
+  "tags": ["object", "haunted", "trainer", "named"],
+  "behavior": {
+    "default": "rests blade-down, talking quietly to the stump",
+    "ifAttacked": "calls for the woodcutters; they always come",
+    "narrativeHooks": [
+      "Thane was a person once. Thane is now an axe. Thane prefers it this way.",
+      "When Thane teaches, the lesson goes through your hands without your hands asking."
+    ]
+  },
+  "metadata": {
+    "templateId": "the-axe-named-thane",
+    "teachesSkill": "woodcutting",
+    "teachingFee": 70,
+    "teachingLines": [
+      "Read the grain. Cut where it tells you to.",
+      "If the wood doesn't give, you're cutting wrong."
+    ]
+  },
+  "interactions": {
+    "speak": "available",
+    "learn": "available — call learn_skill_from(npcId) with 70 coins"
+  }
+}
