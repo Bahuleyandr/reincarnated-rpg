@@ -774,6 +774,19 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
+  // Economy telemetry (Phase 5 Day 26). Roll up this turn's coin
+  // events into coin_flow_daily so the /god/economy dashboard can
+  // show "today: minted X / spent Y / top earner Z".
+  try {
+    const { rollupCoinEvents } = await import("../economy/telemetry");
+    await rollupCoinEvents(db, pendingEvents);
+  } catch (err) {
+    log.warn("turn.economy.telemetry_failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   // Objective progress (Phase 1 Day 6). Increment any matching
   // objectives based on the events emitted this turn. Best-effort —
   // never breaks the turn pipeline.

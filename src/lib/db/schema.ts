@@ -3,6 +3,7 @@ import {
   bigserial,
   boolean,
   customType,
+  date,
   index,
   integer,
   jsonb,
@@ -992,5 +993,34 @@ export const userSkills = pgTable(
 
 export type UserSkill = typeof userSkills.$inferSelect;
 export type NewUserSkill = typeof userSkills.$inferInsert;
+
+/**
+ * Daily coin-flow rollup (Phase 5 Day 26). Upserted per turn that
+ * emits coin-affecting events. The /god/economy page groups this by
+ * date for the "today" panel and by source for the "top vendors"
+ * panel.
+ *
+ * total_amount is signed: positive = coins flowed IN to the player
+ * from this source (sale, gift); negative = coins flowed OUT (buy,
+ * trainer fee).
+ */
+export const coinFlowDaily = pgTable(
+  "coin_flow_daily",
+  {
+    date: date("date").notNull(),
+    source: text("source").notNull(),
+    totalAmount: bigint("total_amount", { mode: "number" })
+      .notNull()
+      .default(0),
+    txnCount: integer("txn_count").notNull().default(0),
+  },
+  (t) => [
+    uniqueIndex("coin_flow_daily_pk").on(t.date, t.source),
+    index("coin_flow_daily_date_idx").on(t.date),
+  ],
+);
+
+export type CoinFlowDaily = typeof coinFlowDaily.$inferSelect;
+export type NewCoinFlowDaily = typeof coinFlowDaily.$inferInsert;
 
 export const _sql = sql; // re-export for migration writers if needed
