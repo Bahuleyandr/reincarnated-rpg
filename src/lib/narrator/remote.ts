@@ -407,6 +407,18 @@ interface RemoteNarratorArgs {
     title: string;
     fragment: string;
   } | null;
+  /** Phase 9 world atlas. When the session is in one of the
+   *  region-tagged locations, this surfaces the local race +
+   *  sub-population voice + signature resources to the narrator
+   *  so prose stays coherent (e.g. don't have orcs shouting in
+   *  the Long Indices). */
+  regionFlavor?: {
+    locationId: string;
+    raceId: string | null;
+    raceVoice: string | null;
+    subPopulations: string[];
+    signatureResources: string[];
+  } | null;
 }
 
 export class RemoteNarrator implements Narrator {
@@ -426,6 +438,7 @@ export class RemoteNarrator implements Narrator {
   } | null;
   private moodPreset?: string | null;
   private chapterFragment?: RemoteNarratorArgs["chapterFragment"];
+  private regionFlavor?: RemoteNarratorArgs["regionFlavor"];
 
   constructor(args: RemoteNarratorArgs) {
     this.provider = args.provider ?? getProvider();
@@ -439,6 +452,7 @@ export class RemoteNarrator implements Narrator {
     this.metaArcFlavor = args.metaArcFlavor ?? null;
     this.moodPreset = args.moodPreset ?? null;
     this.chapterFragment = args.chapterFragment ?? null;
+    this.regionFlavor = args.regionFlavor ?? null;
 
     const formJson = JSON.parse(
       readFileSync(join(process.cwd(), "content", "forms", `${args.form.id}.json`), "utf8"),
@@ -498,6 +512,27 @@ export class RemoteNarrator implements Narrator {
       blocks.push({
         type: "text",
         text: this.chapterFragment.fragment,
+        cache_control: { type: "ephemeral" },
+      });
+    }
+    // Phase 9 world atlas: inject regional voice + sub-populations
+    // when the session is in a region-tagged location. Keeps prose
+    // coherent — orcs don't shout in the Long Indices; halflings
+    // don't mid-day-eat in the Coral Anchorage. Cache-friendly:
+    // changes only on inter-city travel.
+    if (this.regionFlavor && this.regionFlavor.raceId) {
+      const subs = this.regionFlavor.subPopulations.length
+        ? ` Sub-populations to draw from when introducing locals: ${this.regionFlavor.subPopulations.join(", ")}.`
+        : "";
+      const sigs = this.regionFlavor.signatureResources.length
+        ? ` Signature local goods: ${this.regionFlavor.signatureResources.join(", ")}.`
+        : "";
+      const voice = this.regionFlavor.raceVoice
+        ? ` Local voice: ${this.regionFlavor.raceVoice}`
+        : "";
+      blocks.push({
+        type: "text",
+        text: `REGION (${this.regionFlavor.locationId}, ${this.regionFlavor.raceId}): the player is in a region with cultural defaults that differ from genre expectations.${voice}${subs}${sigs} Match the region's voice when local NPCs speak; let signature goods appear naturally in the prose.`,
         cache_control: { type: "ephemeral" },
       });
     }
