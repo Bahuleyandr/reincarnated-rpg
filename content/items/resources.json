@@ -1,0 +1,205 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Resource items — Phase 5 Day 20. Gathered from locations (Day 21), consumed by recipes (Day 22), bought/sold by vendors. Each entry: id (kebab-case slug), name (UI), description (1-2 lines, prose), category=resource, baseValue (vendor anchor; vendor.json overrides), rarity, tags (filter), sourceLocations (hint for gathering — resolved by content/locations/<id>.availableResources). All slugs are also `add_inventory.itemId`-compatible so the existing tool path works without changes."
+  },
+  "items": [
+    {
+      "id": "iron-ore",
+      "name": "iron ore",
+      "description": "Dull, heavy, flecked with rust. The smelters know what to do with it.",
+      "category": "resource",
+      "baseValue": 6,
+      "rarity": "common",
+      "tags": ["metal", "ore"],
+      "sourceLocations": ["iron-reach", "collapsed-tunnel"]
+    },
+    {
+      "id": "copper-ore",
+      "name": "copper ore",
+      "description": "Greenish veins in cracked rock. Bends before it breaks.",
+      "category": "resource",
+      "baseValue": 5,
+      "rarity": "common",
+      "tags": ["metal", "ore"],
+      "sourceLocations": ["iron-reach", "drowned-orchard"]
+    },
+    {
+      "id": "silver-ore",
+      "name": "silver ore",
+      "description": "A cold, faintly luminous stone. Does not warm in the hand.",
+      "category": "resource",
+      "baseValue": 18,
+      "rarity": "uncommon",
+      "tags": ["metal", "ore", "lunar"],
+      "sourceLocations": ["sunless-spire", "salt-cathedral"]
+    },
+    {
+      "id": "wood-oak",
+      "name": "oak wood",
+      "description": "Heavy, slow-growing, slow to burn. Good for handles.",
+      "category": "resource",
+      "baseValue": 3,
+      "rarity": "common",
+      "tags": ["wood"],
+      "sourceLocations": ["forsaken-village", "drowned-orchard"]
+    },
+    {
+      "id": "wood-pine",
+      "name": "pine wood",
+      "description": "Soft, fragrant, drips amber. Easy to split.",
+      "category": "resource",
+      "baseValue": 2,
+      "rarity": "common",
+      "tags": ["wood"],
+      "sourceLocations": ["forsaken-village", "drowned-orchard"]
+    },
+    {
+      "id": "herb-emberleaf",
+      "name": "emberleaf",
+      "description": "Crushes warm. Smells faintly of a fire that hasn't been lit yet.",
+      "category": "resource",
+      "baseValue": 9,
+      "rarity": "uncommon",
+      "tags": ["herb", "fire"],
+      "sourceLocations": ["sunless-spire", "drowned-orchard"]
+    },
+    {
+      "id": "herb-silverroot",
+      "name": "silverroot",
+      "description": "A pale taproot. Tastes like cold iron and bitter winter.",
+      "category": "resource",
+      "baseValue": 11,
+      "rarity": "uncommon",
+      "tags": ["herb", "lunar"],
+      "sourceLocations": ["salt-cathedral", "hollow-market"]
+    },
+    {
+      "id": "pelt-wolf",
+      "name": "wolf pelt",
+      "description": "Coarse grey fur, black at the spine. Still smells of the kill.",
+      "category": "resource",
+      "baseValue": 14,
+      "rarity": "uncommon",
+      "tags": ["pelt", "animal"],
+      "sourceLocations": ["forsaken-village", "drowned-orchard"]
+    },
+    {
+      "id": "pelt-bear",
+      "name": "bear pelt",
+      "description": "Bigger than you'd think. Heavier. Warm to the touch even cured.",
+      "category": "resource",
+      "baseValue": 30,
+      "rarity": "rare",
+      "tags": ["pelt", "animal"],
+      "sourceLocations": ["forsaken-village"]
+    },
+    {
+      "id": "crystal-arc",
+      "name": "arc-crystal",
+      "description": "A finger-length splinter that hums when held. Stings if bitten.",
+      "category": "resource",
+      "baseValue": 35,
+      "rarity": "rare",
+      "tags": ["crystal", "arcane"],
+      "sourceLocations": ["sunless-spire"]
+    },
+    {
+      "id": "clay",
+      "name": "river clay",
+      "description": "Cold, grey, clings to the hand. Holds shape until fired.",
+      "category": "resource",
+      "baseValue": 2,
+      "rarity": "common",
+      "tags": ["earth"],
+      "sourceLocations": ["drowned-orchard", "forsaken-village"]
+    },
+    {
+      "id": "cloth-linen",
+      "name": "linen cloth",
+      "description": "Plain weave, no embroidery. Functional. Cool in summer.",
+      "category": "resource",
+      "baseValue": 4,
+      "rarity": "common",
+      "tags": ["cloth"],
+      "sourceLocations": ["hollow-market"]
+    },
+    {
+      "id": "salt-block",
+      "name": "salt block",
+      "description": "Heavy white slab. Heavy because it remembers being sea.",
+      "category": "resource",
+      "baseValue": 5,
+      "rarity": "common",
+      "tags": ["mineral"],
+      "sourceLocations": ["salt-cathedral"]
+    },
+    {
+      "id": "coal",
+      "name": "coal",
+      "description": "Black, brittle, warm. Smudges everything it touches.",
+      "category": "resource",
+      "baseValue": 3,
+      "rarity": "common",
+      "tags": ["fuel"],
+      "sourceLocations": ["iron-reach", "collapsed-tunnel"]
+    },
+    {
+      "id": "wax-honey",
+      "name": "honeywax",
+      "description": "Sweet golden block. Smells of summer two miles back.",
+      "category": "resource",
+      "baseValue": 7,
+      "rarity": "uncommon",
+      "tags": ["wax", "fuel"],
+      "sourceLocations": ["forsaken-village", "drowned-orchard"]
+    },
+    {
+      "id": "iron-ingot",
+      "name": "iron ingot",
+      "description": "Smelter-cast, plain bar. The smith's raw material.",
+      "category": "resource",
+      "baseValue": 16,
+      "rarity": "common",
+      "tags": ["metal", "ingot", "crafted"]
+    },
+    {
+      "id": "copper-ingot",
+      "name": "copper ingot",
+      "description": "Reddish bar, smaller than iron, easier to work.",
+      "category": "resource",
+      "baseValue": 14,
+      "rarity": "common",
+      "tags": ["metal", "ingot", "crafted"]
+    },
+    {
+      "id": "silver-ingot",
+      "name": "silver ingot",
+      "description": "Pale slab. Cold even when freshly cast.",
+      "category": "resource",
+      "baseValue": 45,
+      "rarity": "uncommon",
+      "tags": ["metal", "ingot", "crafted", "lunar"]
+    },
+    {
+      "id": "plank-oak",
+      "name": "oak planks",
+      "description": "Squared, smooth, ready for joinery.",
+      "category": "resource",
+      "baseValue": 7,
+      "rarity": "common",
+      "tags": ["wood", "crafted"]
+    },
+    {
+      "id": "plank-pine",
+      "name": "pine planks",
+      "description": "Lighter than oak, splinters easier, faster to mill.",
+      "category": "resource",
+      "baseValue": 5,
+      "rarity": "common",
+      "tags": ["wood", "crafted"]
+    }
+  ]
+}
