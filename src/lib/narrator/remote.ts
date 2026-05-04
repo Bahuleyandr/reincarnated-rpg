@@ -36,6 +36,7 @@ import { SAFETY_CAPS } from "../game/safety";
 
 import { buildFormCard } from "./prompts/form-card";
 import { SYSTEM_PROMPT } from "./prompts/system";
+import { moodPromptFragment } from "./moods";
 
 // Hand-rolled JSON schemas mirroring `toolCallSchema` (Zod) in
 // `src/lib/game/tools.ts`. Kept in sync by hand for now; if the union
@@ -286,6 +287,9 @@ interface RemoteNarratorArgs {
     label: string;
     flavor: string;
   } | null;
+  /** Resolved mood preset ("cozy" | "standard" | "brutal"). Injected
+   *  as a tone-nudge system block when not "standard". */
+  moodPreset?: string | null;
 }
 
 export class RemoteNarrator implements Narrator {
@@ -303,6 +307,7 @@ export class RemoteNarrator implements Narrator {
     label: string;
     flavor: string;
   } | null;
+  private moodPreset?: string | null;
 
   constructor(args: RemoteNarratorArgs) {
     this.provider = args.provider ?? getProvider();
@@ -314,6 +319,7 @@ export class RemoteNarrator implements Narrator {
     this.userId = args.userId ?? null;
     this.presetId = args.presetId ?? null;
     this.metaArcFlavor = args.metaArcFlavor ?? null;
+    this.moodPreset = args.moodPreset ?? null;
 
     const formJson = JSON.parse(
       readFileSync(join(process.cwd(), "content", "forms", `${args.form.id}.json`), "utf8"),
@@ -365,6 +371,15 @@ export class RemoteNarrator implements Narrator {
         type: "text",
         text: `WORLD-STATE (the Long Wyrm meta-arc): currently ${this.metaArcFlavor.label} (phase: ${this.metaArcFlavor.phase}). ${this.metaArcFlavor.flavor} Weave one or two ambient details from this into the narration when natural — a draft, a tremor, a smell, a half-heard thing — but DO NOT name the Wyrm directly unless the player attempts a wyrm-* verb (those are signature moves and the only ones that should make the meta-arc explicit).`,
       });
+    }
+    // Mood preset (Phase 2 Day 11). Cozy / brutal nudge the tone
+    // without changing mechanics. Standard is the baseline (no
+    // block emitted).
+    if (this.moodPreset && this.moodPreset !== "standard") {
+      const fragment = moodPromptFragment(this.moodPreset);
+      if (fragment) {
+        blocks.push({ type: "text", text: fragment });
+      }
     }
     return blocks;
   }

@@ -210,6 +210,39 @@ export async function POST(req: NextRequest) {
           err: err instanceof Error ? err.message : String(err),
         });
       }
+      // Resolve mood preset (Phase 2 Day 11).
+      let resolvedMood = "standard";
+      try {
+        const { resolveMood } = await import("@/lib/narrator/moods");
+        const { sessions: sessionsTbl, users: usersTbl } = await import(
+          "@/lib/db/schema"
+        );
+        const { eq: eqOp } = await import("drizzle-orm");
+        const sessionRow = (
+          await db
+            .select({ moodPreset: sessionsTbl.moodPreset })
+            .from(sessionsTbl)
+            .where(eqOp(sessionsTbl.id, sessionId))
+            .limit(1)
+        )[0];
+        let userMood: string | null = null;
+        if (verified.userId) {
+          const userRow = (
+            await db
+              .select({ moodPreset: usersTbl.moodPreset })
+              .from(usersTbl)
+              .where(eqOp(usersTbl.id, verified.userId))
+              .limit(1)
+          )[0];
+          userMood = userRow?.moodPreset ?? null;
+        }
+        resolvedMood = resolveMood(sessionRow?.moodPreset ?? null, userMood);
+      } catch (err) {
+        log.warn("turn.stream.mood.resolve_failed", {
+          sessionId,
+          err: err instanceof Error ? err.message : String(err),
+        });
+      }
       const narrator = makeNarrator({
         form,
         location,
@@ -220,6 +253,7 @@ export async function POST(req: NextRequest) {
         userId: verified.userId ?? null,
         presetId: presetForTelemetry,
         metaArcFlavor,
+        moodPreset: resolvedMood,
       });
       const fallbackNarrator = new TemplateNarrator({ form, location });
 

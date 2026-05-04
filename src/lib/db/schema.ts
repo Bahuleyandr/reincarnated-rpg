@@ -81,6 +81,10 @@ export const users = pgTable("users", {
    *  on POST /api/settings/title against the player's actual
    *  unlocks. Null = no title displayed. */
   pinnedTitle: text("pinned_title"),
+  /** Per-user narration mood preset: 'cozy' | 'standard' | 'brutal'.
+   *  sessions.mood_preset (nullable) overrides per-campaign; null
+   *  there falls back to this. Default 'standard'. */
+  moodPreset: text("mood_preset").notNull().default("standard"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -185,6 +189,10 @@ export const sessions = pgTable(
     /** Anon daily-streak count, 0..5. Same semantics as users.streak_count. */
     streakCount: integer("streak_count").notNull().default(0),
     streakLastDayUtc: text("streak_last_day_utc"),
+    /** Per-session mood override. Null = fall back to users.moodPreset
+     *  (or 'standard' for anon). Allows a logged-in user to start a
+     *  one-off "brutal" run without flipping their global setting. */
+    moodPreset: text("mood_preset"),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
     turnLockToken: text("turn_lock_token"),

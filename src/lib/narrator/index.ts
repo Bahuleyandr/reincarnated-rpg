@@ -38,6 +38,10 @@ export function makeNarrator(args: {
     label: string;
     flavor: string;
   } | null;
+  /** Resolved mood preset ('cozy' | 'standard' | 'brutal'). The
+   *  fallback chain (session > user > standard) lives in the route.
+   *  Phase 2 Day 11. */
+  moodPreset?: string | null;
 }): Narrator {
   const mode = args.mode ?? getNarratorMode();
   if (mode === "remote") {
@@ -55,6 +59,7 @@ export function makeNarrator(args: {
       userId: args.userId,
       presetId: args.presetId,
       metaArcFlavor: args.metaArcFlavor,
+      moodPreset: args.moodPreset,
     });
   }
   return new TemplateNarrator({ form: args.form, location: args.location });
