@@ -42,6 +42,13 @@ export function makeNarrator(args: {
    *  fallback chain (session > user > standard) lives in the route.
    *  Phase 2 Day 11. */
   moodPreset?: string | null;
+  /** Phase 7 Day 39. Active chapter's narrator fragment + label. */
+  chapterFragment?: {
+    book: number;
+    chapter: number;
+    title: string;
+    fragment: string;
+  } | null;
 }): Narrator {
   const mode = args.mode ?? getNarratorMode();
   if (mode === "remote") {
@@ -60,6 +67,7 @@ export function makeNarrator(args: {
       presetId: args.presetId,
       metaArcFlavor: args.metaArcFlavor,
       moodPreset: args.moodPreset,
+      chapterFragment: args.chapterFragment,
     });
   }
   return new TemplateNarrator({ form: args.form, location: args.location });

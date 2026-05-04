@@ -243,6 +243,31 @@ export async function POST(req: NextRequest) {
           err: err instanceof Error ? err.message : String(err),
         });
       }
+      // Phase 7 Day 39: pre-fetch active chapter fragment.
+      let chapterFragment: {
+        book: number;
+        chapter: number;
+        title: string;
+        fragment: string;
+      } | null = null;
+      try {
+        const { getCalendar } = await import("@/lib/story/calendar");
+        const cal = await getCalendar(db);
+        if (cal.chapter.narratorPromptFragment) {
+          chapterFragment = {
+            book: cal.row.currentBook,
+            chapter: cal.row.currentChapter,
+            title: cal.chapter.title,
+            fragment: cal.chapter.narratorPromptFragment,
+          };
+        }
+      } catch (err) {
+        log.warn("turn.stream.calendar_fetch_failed", {
+          sessionId,
+          err: err instanceof Error ? err.message : String(err),
+        });
+      }
+
       const narrator = makeNarrator({
         form,
         location,
@@ -254,6 +279,7 @@ export async function POST(req: NextRequest) {
         presetId: presetForTelemetry,
         metaArcFlavor,
         moodPreset: resolvedMood,
+        chapterFragment,
       });
       const fallbackNarrator = new TemplateNarrator({ form, location });
 

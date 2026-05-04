@@ -354,6 +354,16 @@ interface RemoteNarratorArgs {
   /** Resolved mood preset ("cozy" | "standard" | "brutal"). Injected
    *  as a tone-nudge system block when not "standard". */
   moodPreset?: string | null;
+  /** Phase 7 Day 39. Active chapter's narrator fragment + label,
+   *  pre-fetched once per turn by the API route. Injected as its
+   *  own ephemeral cache block so chapter-rolls invalidate just
+   *  this slice (form card + system prompt stay cached). */
+  chapterFragment?: {
+    book: number;
+    chapter: number;
+    title: string;
+    fragment: string;
+  } | null;
 }
 
 export class RemoteNarrator implements Narrator {
@@ -372,6 +382,7 @@ export class RemoteNarrator implements Narrator {
     flavor: string;
   } | null;
   private moodPreset?: string | null;
+  private chapterFragment?: RemoteNarratorArgs["chapterFragment"];
 
   constructor(args: RemoteNarratorArgs) {
     this.provider = args.provider ?? getProvider();
@@ -384,6 +395,7 @@ export class RemoteNarrator implements Narrator {
     this.presetId = args.presetId ?? null;
     this.metaArcFlavor = args.metaArcFlavor ?? null;
     this.moodPreset = args.moodPreset ?? null;
+    this.chapterFragment = args.chapterFragment ?? null;
 
     const formJson = JSON.parse(
       readFileSync(join(process.cwd(), "content", "forms", `${args.form.id}.json`), "utf8"),
@@ -434,6 +446,16 @@ export class RemoteNarrator implements Narrator {
       blocks.push({
         type: "text",
         text: `WORLD-STATE (the Long Wyrm meta-arc): currently ${this.metaArcFlavor.label} (phase: ${this.metaArcFlavor.phase}). ${this.metaArcFlavor.flavor} Weave one or two ambient details from this into the narration when natural — a draft, a tremor, a smell, a half-heard thing — but DO NOT name the Wyrm directly unless the player attempts a wyrm-* verb (those are signature moves and the only ones that should make the meta-arc explicit).`,
+      });
+    }
+    // Phase 7 Day 39: active world chapter. Injected as its own
+    // ephemeral cache block so chapter rolls invalidate this slice
+    // only (form card + system prompt stay cached across turns).
+    if (this.chapterFragment && this.chapterFragment.fragment) {
+      blocks.push({
+        type: "text",
+        text: this.chapterFragment.fragment,
+        cache_control: { type: "ephemeral" },
       });
     }
     // Mood preset (Phase 2 Day 11). Cozy / brutal nudge the tone
