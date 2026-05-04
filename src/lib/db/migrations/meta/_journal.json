@@ -267,6 +267,13 @@
       "when": 1778090000000,
       "tag": "0037_user_skills",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1778100000000,
+      "tag": "0038_economy_telemetry",
+      "breakpoints": true
     }
   ]
 }
