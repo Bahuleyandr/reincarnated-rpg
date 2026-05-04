@@ -136,6 +136,38 @@ Grant CAN exceed tier max temporarily — it's a one-shot gift; regen still won'
 
 Idempotent within a day: `lastDayUtc === today` short-circuits to no-op. Both `getEnergyView` AND `trySpend` claim — page load counts as "logging in", not just turn-taking. Pure module (`lib/energy/streak.ts`); persistence on `users.streak_count` + `users.streak_last_day_utc` (and same on `sessions.*` for anon).
 
+## ADR-020 — Turn-lock semantics: pessimistic per-session token + expiry
+
+**Date:** 2026-05-04. **Status:** locked (initial scope) / iterating (Phase 0b.1 hardens this).
+
+Concurrent turn requests for the same session race on the event log: two simultaneous POSTs to `/api/turn` could both append `turn.begun` for the same turn number. The cheapest, most legible defense is a per-session lock with a token + expiry, written via a guarded UPDATE. Rejected alternatives:
+- *Postgres advisory locks* — keyed on session UUID hash. Cleaner cleanup semantics, but the lock state is invisible to other queries (no admin view, no audit). The token-on-row pattern lets us inspect locks via SQL, force-release stuck ones from `/god`, and audit the history.
+- *Row-level `FOR UPDATE`* — too coarse: holds a transaction across the full turn (~5-30s including LLM call). With pgbouncer in transaction-pool mode it'd starve the pool.
+- *Optimistic concurrency on `up_to_seq`* — fights symptoms, not the cause. Two writers both see seq=N, both try to write seq=N+1, one fails. Acceptable for state but the *narration* still ran twice — wasted Anthropic spend.
+
+**Schema** (`0020_session_turn_locks.sql`): `sessions.turn_lock_token text` + `sessions.turn_lock_expires_at timestamptz`, indexed on the expiry. Lock acquisition: `UPDATE sessions SET turn_lock_token = $newToken, turn_lock_expires_at = $now + 30s WHERE id = $sessionId AND (turn_lock_token IS NULL OR turn_lock_expires_at < $now)`. Returns the new token if affected; null otherwise.
+
+**Lock duration**: 30 seconds. Long enough for the typical 5-10s narrator + tools turn; short enough that an orphaned lock self-heals quickly.
+
+**Open work (Phase 0b.1)**: try/finally cleanup on all error paths, separate audit-log table for lock events (acquired / released / expired / force_released), an admin force-release UI at `/god/locks`, and a cron cleaner that releases locks past their expiry by a 5-minute margin.
+
+## ADR-021 — Deployment target: Fly.io single VM (Bombay) for v0.x
+
+**Date:** 2026-05-04. **Status:** locked for v0.x; revisit at v1.
+
+Production runs on a single shared-cpu-1x Fly.io VM in Bombay (`bom`). Persistent process model fits us: the SSE narrator stream + the future world-event scheduler + the chapter-advance cron all benefit from a single long-running process over a serverless one. Fly.io specifically (not AWS / GCP) because:
+
+- Latency for the South Asian user base is meaningfully lower from `bom` than from `iad` / `cdg`.
+- One-command `fly deploy` keeps deploy ergonomics simple at this stage.
+- Postgres is *separate* (Neon, EU-hosted). We pay one cross-region hop for DB; in exchange the DB is branchable + free for v0.x.
+- Single-region acceptable: 99% uptime is fine for v0.x; multi-region adds infra complexity (read replicas, sticky sessions) that doesn't pay off until we have a global player base.
+
+**Health probes**: `/api/health` (liveness, cheap) for keep-alive at 30s intervals; `/api/ready` (planned in Phase 0b.2) for the deploy gate.
+
+**Auto-scaling**: `min_machines_running = 0` so we can sleep entirely between players. Soft scale at 50 concurrent requests, hard cap at 100. Cold-start adds ~2s to first request after idle — acceptable.
+
+**Revisit triggers**: latency complaints from non-IN players (would justify multi-region), sustained > 100 concurrent (justifies a bigger VM), persistent OOM (bigger VM or memory-cap profiling).
+
 ## ADR-019 — World clock runs at 1:1 real-world time
 
 **Date:** 2026-05-04. **Status:** locked.
