@@ -3,10 +3,23 @@ import { join } from "node:path";
 
 import postgres from "postgres";
 
-const url = process.env.DATABASE_URL;
+// Migrations need a DIRECT (unpooled) URL because PgBouncer in
+// transaction-pool mode breaks DDL — DDL relies on session-scoped
+// state (locks, search_path) that the pooler doesn't keep stable
+// across transactions. DATABASE_URL_DIRECT is the dedicated env
+// var for this; falls back to DATABASE_URL in dev where there's
+// no pooler.
+const url = process.env.DATABASE_URL_DIRECT ?? process.env.DATABASE_URL;
 if (!url) {
-  console.error("[migrate] DATABASE_URL is not set");
+  console.error("[migrate] DATABASE_URL (or DATABASE_URL_DIRECT) is not set");
   process.exit(1);
+}
+if (process.env.DATABASE_URL_DIRECT) {
+  console.log("[migrate] using DATABASE_URL_DIRECT (unpooled)");
+} else if (url.includes("-pooler.") || url.includes("pgbouncer")) {
+  console.warn(
+    "[migrate] WARNING: DATABASE_URL appears pooled but DATABASE_URL_DIRECT is unset. DDL may fail.",
+  );
 }
 
 const sql = postgres(url, { max: 1, onnotice: () => {} });
