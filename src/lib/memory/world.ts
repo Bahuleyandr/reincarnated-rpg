@@ -548,6 +548,40 @@ export async function persistRunToWorld(
       });
     }
 
+    // Reincarnation cooldown (Phase 5.5 Day 29). On death, append
+    // to the user's recent_form_deaths array (trimmed to last 7d).
+    // The picker filters formIds whose most-recent diedAt is within
+    // 24h. Anon sessions skip this — userId is the keying column.
+    try {
+      const ended = events.find(
+        (e): e is Event & { kind: "session.ended" } =>
+          e.kind === "session.ended",
+      );
+      if (ended?.reason === "death" && opts.formId) {
+        const { recordFormDeath } = await import("../forms/cooldown");
+        const [row] = await db
+          .select({ deaths: users.recentFormDeaths })
+          .from(users)
+          .where(eq(users.id, opts.userId))
+          .limit(1);
+        const cur = (Array.isArray(row?.deaths) ? row!.deaths : []) as Array<{
+          formId: string;
+          diedAt: string;
+        }>;
+        const next = recordFormDeath(cur, opts.formId, new Date());
+        await db
+          .update(users)
+          .set({ recentFormDeaths: next, updatedAt: new Date() })
+          .where(eq(users.id, opts.userId));
+      }
+    } catch (err) {
+      log.warn("forms.cooldown.update_failed", {
+        userId: opts.userId,
+        sessionId: opts.sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     // Adaptive difficulty (Phase 2 Day 12). Update the user's
     // consecutive-death-streak count based on this run's outcome.
     // Win or cap resets to 0; death increments by 1.

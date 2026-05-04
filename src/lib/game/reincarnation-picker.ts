@@ -124,6 +124,15 @@ export interface PickerResult {
   >;
   totalActive: number;
   byForm: Record<string, number>;
+  /** Phase 5.5 Day 29. Catalog options filtered out because the
+   *  player just died as that form. The UI shows them disabled with
+   *  an "available in Xh" hint. Empty for anon callers (no userId). */
+  coolingDown: Array<{
+    optionId: string;
+    formId: string;
+    label: string;
+    untilMs: number;
+  }>;
 }
 
 /**
@@ -145,10 +154,48 @@ export async function offerReincarnations(
     /** Per-option weight overrides (admin-side; loaded from /god).
      *  Merged on top of the active week's theme overrides. */
     weightOverrides?: Record<string, number>;
+    /** Phase 5.5 Day 29. When set, the picker reads
+     *  users.recent_form_deaths and filters formIds whose latest
+     *  death is within 24h. Cooling options are returned in
+     *  `coolingDown` for UI display. */
+    userId?: string;
+    /** Override "now" for tests — defaults to Date.now(). */
+    now?: number;
   } = {},
 ): Promise<PickerResult> {
   const n = opts.n ?? 6;
   const excluded = new Set(opts.excludeFormIds ?? []);
+  const now = opts.now ?? Date.now();
+
+  // Pull form-cooldown state when a logged-in user is asking.
+  // Anon callers get an empty cooldown set.
+  let cooldowns: Record<string, number> = {};
+  if (opts.userId) {
+    try {
+      const { coolingDown } = await import("../forms/cooldown");
+      const { users: usersTbl } = await import("../db/schema");
+      const { eq: eqOp } = await import("drizzle-orm");
+      const [row] = await db
+        .select({ deaths: usersTbl.recentFormDeaths })
+        .from(usersTbl)
+        .where(eqOp(usersTbl.id, opts.userId))
+        .limit(1);
+      const deaths = (Array.isArray(row?.deaths) ? row!.deaths : []) as Array<{
+        formId: string;
+        diedAt: string;
+      }>;
+      // Build the cooldown map keyed by formId once.
+      for (const e of deaths) {
+        const r = coolingDown(deaths, e.formId, now);
+        if (r.cooling && r.untilMs !== null) {
+          // The latest entry per formId wins; coolingDown handles that.
+          cooldowns[e.formId] = r.untilMs;
+        }
+      }
+    } catch {
+      cooldowns = {};
+    }
+  }
   const distribution = await liveDistribution(db);
   // Merge week-theme option weights with admin overrides. Admin
   // wins on collision — they're the explicit override.
@@ -160,9 +207,26 @@ export async function offerReincarnations(
     0,
   );
 
-  const catalog = loadCatalog().filter(
+  const fullCatalog = loadCatalog().filter(
     (o) => !excluded.has(o.typedFormHint),
   );
+  // Phase 5.5 Day 29: cooling forms drop out of the active offer
+  // pool but are reported separately so the UI can hint "available
+  // in 12h" instead of silently hiding them.
+  const coolingOptions: PickerResult["coolingDown"] = [];
+  const catalog = fullCatalog.filter((o) => {
+    const until = cooldowns[o.typedFormHint];
+    if (until !== undefined && until > now) {
+      coolingOptions.push({
+        optionId: o.id,
+        formId: o.typedFormHint,
+        label: o.label,
+        untilMs: until,
+      });
+      return false;
+    }
+    return true;
+  });
 
   const weighted = catalog.map((o) => {
     const tierMult = TIER_BASE[o.tier] ?? 0.5;
@@ -242,7 +306,12 @@ export async function offerReincarnations(
   const byForm: Record<string, number> = {};
   for (const [k, v] of distribution) byForm[k] = v;
 
-  return { options: sampled, totalActive, byForm };
+  return {
+    options: sampled,
+    totalActive,
+    byForm,
+    coolingDown: coolingOptions,
+  };
 }
 
 /** Lookup-only — used by /api/campaigns POST when an option id is
