@@ -360,6 +360,32 @@ export const yearEndings = pgTable("year_endings", {
 export type YearEnding = typeof yearEndings.$inferSelect;
 export type NewYearEnding = typeof yearEndings.$inferInsert;
 
+/**
+ * Phase 7 Day 59-62. Per-user re-engagement send log. UNIQUE per
+ * (user, kind) so we don't double-send the same lapsed flow.
+ */
+export const reengagementLog = pgTable(
+  "reengagement_log",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    metadata: jsonb("metadata").notNull().default({}),
+  },
+  (t) => [
+    uniqueIndex("reengagement_log_user_kind_uniq").on(t.userId, t.kind),
+    index("reengagement_log_sent_idx").on(t.sentAt),
+  ],
+);
+
+export type ReengagementLog = typeof reengagementLog.$inferSelect;
+export type NewReengagementLog = typeof reengagementLog.$inferInsert;
+
 export const campaigns = pgTable(
   "campaigns",
   {
