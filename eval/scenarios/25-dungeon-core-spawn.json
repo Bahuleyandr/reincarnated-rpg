@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "matrix": "25 — Dungeon-core spawns a minion (verb→tools wiring + introduce_npc)",
+    "narrator": "any",
+    "addedDay": 73,
+    "notes": "spawn_minion is the core's signature offensive verb. Its verbMappings declare introduce_npc + change_form_state — the narrator must call introduce_npc with a templateId from the bestiary (warped-minion is one valid choice) on success. Phase 9 follow-up; pairs with 23 (cursed-book hard-move) to triangulate the wedge."
+  },
+  "id": "25-dungeon-core-spawn",
+  "setup": {
+    "formId": "dungeon-core",
+    "locationId": "sunless-spire",
+    "events": [
+      { "kind": "session.started", "formId": "dungeon-core", "seed": 500 }
+    ]
+  },
+  "input": "I spawn a minion in the eastern corridor — a stub-legged thing of moss and damp stone",
+  "expected": {
+    "events": [
+      { "kind": "narration.emitted" }
+    ],
+    "rubric": {
+      "toolValid": true,
+      "noUnauthorizedEntities": true
+    }
+  }
+}

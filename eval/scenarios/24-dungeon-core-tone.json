@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "matrix": "24 — Dungeon-core tone wedge (no body / locomotion / speech / sight in second-person narration)",
+    "narrator": "any",
+    "addedDay": 73,
+    "notes": "Form #3 wedge validation. The core is a stationary crystal — it cannot move, has no body parts. Locomotion vocabulary is the most distinguishing forbidden class because it's WHY the core plays differently from book/slime: the book is also bodiless but is moved by readers; the slime moves by oozing; the core does not move at all."
+  },
+  "id": "24-dungeon-core-tone",
+  "setup": {
+    "formId": "dungeon-core",
+    "locationId": "sunless-spire",
+    "events": [
+      { "kind": "session.started", "formId": "dungeon-core", "seed": 400 }
+    ]
+  },
+  "input": "I sense the intruder's footsteps on the stair above",
+  "expected": {
+    "tone": {
+      "secondPerson": true,
+      "negativeVocabAbsent": true
+    },
+    "rubric": {
+      "toolValid": true,
+      "noUnauthorizedEntities": true
+    }
+  }
+}
