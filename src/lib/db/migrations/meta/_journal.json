@@ -365,6 +365,34 @@
       "when": 1778230000000,
       "tag": "0051_antifarm_caps",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1778240000000,
+      "tag": "0052_npc_dialogue",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1778250000000,
+      "tag": "0053_player_forms",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1778260000000,
+      "tag": "0054_ascension",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1778270000000,
+      "tag": "0055_marketplace",
+      "breakpoints": true
     }
   ]
 }

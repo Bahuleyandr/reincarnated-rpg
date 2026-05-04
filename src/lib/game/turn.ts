@@ -405,6 +405,48 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     }
   }
 
+  // Dialogue thread recall (post-Phase-8). For every NPC currently
+  // in scene, surface the last few prior exchanges so the narrator
+  // keeps the NPC's voice consistent across turns. Each thread
+  // becomes a dedicated memory; the narrator picks which threads
+  // to weave into the current turn's prose.
+  try {
+    const inSceneNpcIds = Object.keys(speculativeProjection.npcs);
+    if (inSceneNpcIds.length > 0) {
+      const { recentExchanges, composeThreadFragment } = await import(
+        "../dialogue/thread"
+      );
+      const threadMemories: import("./types").Memory[] = [];
+      for (const npcId of inSceneNpcIds.slice(0, 3)) {
+        const exchanges = await recentExchanges(db, {
+          sessionId,
+          npcId,
+          limit: 4,
+        });
+        if (exchanges.length === 0) continue;
+        const npcLabel =
+          (speculativeProjection.npcs[npcId] as { name?: string })?.name ??
+          npcId;
+        const fragment = composeThreadFragment(exchanges, npcLabel);
+        if (!fragment) continue;
+        threadMemories.push({
+          id: `dialogue-thread:${npcId}`,
+          summary: fragment,
+          salience: 0.65,
+          eventSeqRange: [-1, -1] as [number, number],
+        });
+      }
+      if (threadMemories.length > 0) {
+        relevantMemories = [...threadMemories, ...relevantMemories];
+      }
+    }
+  } catch (err) {
+    log.warn("turn.dialogue.recall_failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   // Wonder events (Phase 4.5 Day 17). Per-turn 1% chance to inject
   // a single unsolicited "what was that?" flavor line. Appended to
   // relevantMemories as a synthetic high-salience memory so the
@@ -970,6 +1012,59 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     await rollupCoinEvents(db, pendingEvents);
   } catch (err) {
     log.warn("turn.economy.telemetry_failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+
+  // Dialogue persistence (post-Phase-8). For each
+  // dialogue.exchanged event this turn, append a row to
+  // dialogue_turns + attempt to fill the npc_reply by
+  // extracting the first quoted span from the narration text.
+  // Best-effort; replay-from-zero reproduces the row from the
+  // event log alone (npcReply is derived, not authoritative).
+  try {
+    const { appendExchange, fillReply } = await import(
+      "../dialogue/thread"
+    );
+    const dialogueEvents = pendingEvents.filter(
+      (e): e is Event & { kind: "dialogue.exchanged" } =>
+        e.kind === "dialogue.exchanged",
+    );
+    if (dialogueEvents.length > 0) {
+      const narrationEvent = pendingEvents.find(
+        (e): e is Event & { kind: "narration.emitted" } =>
+          e.kind === "narration.emitted",
+      );
+      const narrationText = narrationEvent?.text ?? "";
+      for (const e of dialogueEvents) {
+        const npcEntry = projection.npcs[e.npcId] as
+          | (Record<string, unknown> & { templateId?: unknown })
+          | undefined;
+        const templateId =
+          npcEntry && typeof npcEntry.templateId === "string"
+            ? npcEntry.templateId
+            : e.npcId.replace(/-[0-9a-f]{8}$/, "");
+        const inserted = await appendExchange(db, {
+          sessionId,
+          npcId: e.npcId,
+          npcTemplateId: templateId,
+          utterance: e.utterance,
+          turn: turnNumber,
+        });
+        if (inserted && narrationText) {
+          const quoteMatch = narrationText.match(
+            /[“"][^”"]{1,200}[”"]/,
+          );
+          const reply = quoteMatch
+            ? quoteMatch[0].slice(1, -1)
+            : narrationText.slice(0, 200);
+          await fillReply(db, inserted.id, reply);
+        }
+      }
+    }
+  } catch (err) {
+    log.warn("turn.dialogue.persist_failed", {
       sessionId,
       err: err instanceof Error ? err.message : String(err),
     });

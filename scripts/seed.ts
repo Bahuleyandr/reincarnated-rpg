@@ -21,16 +21,40 @@ type AnyTemplate = { id: string; _meta?: { version?: number } } & Record<
 
 function readTemplateDir(absDir: string): AnyTemplate[] {
   if (!existsSync(absDir)) return [];
-  return readdirSync(absDir)
-    .filter((f) => f.endsWith(".json"))
-    .map((f) => {
-      const raw = readFileSync(join(absDir, f), "utf8");
-      const parsed = JSON.parse(raw) as AnyTemplate;
-      if (typeof parsed.id !== "string" || parsed.id.length === 0) {
-        throw new Error(`${absDir}/${f} is missing string \`id\``);
+  const out: AnyTemplate[] = [];
+  for (const f of readdirSync(absDir)) {
+    if (!f.endsWith(".json")) continue;
+    const raw = readFileSync(join(absDir, f), "utf8");
+    const parsed = JSON.parse(raw) as
+      | AnyTemplate
+      | { items?: AnyTemplate[]; npcs?: AnyTemplate[]; entries?: AnyTemplate[] };
+    // Bundle form: { _meta, items: [...] } (or npcs/entries) — flatten.
+    const bundle = parsed as {
+      items?: unknown;
+      npcs?: unknown;
+      entries?: unknown;
+    };
+    const list =
+      (Array.isArray(bundle.items) && (bundle.items as AnyTemplate[])) ||
+      (Array.isArray(bundle.npcs) && (bundle.npcs as AnyTemplate[])) ||
+      (Array.isArray(bundle.entries) && (bundle.entries as AnyTemplate[])) ||
+      null;
+    if (list) {
+      for (const t of list) {
+        if (typeof t.id !== "string" || t.id.length === 0) {
+          throw new Error(`${absDir}/${f} bundle entry is missing string \`id\``);
+        }
+        out.push(t);
       }
-      return parsed;
-    });
+      continue;
+    }
+    const single = parsed as AnyTemplate;
+    if (typeof single.id !== "string" || single.id.length === 0) {
+      throw new Error(`${absDir}/${f} is missing string \`id\``);
+    }
+    out.push(single);
+  }
+  return out;
 }
 
 async function main() {
