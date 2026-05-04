@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface InputBoxProps {
   onSubmit(value: string): void;
@@ -10,10 +10,18 @@ interface InputBoxProps {
    *  copy so the user knows the system is auto-recovering, not
    *  permanently locked out. */
   settling?: boolean;
+  /** Phase 5.5 Day 36-37. The tutorial hint can pre-fill the
+   *  draft via this prop; updates flow through to the local
+   *  state, then editing is normal. */
+  draft?: string;
 }
 
-export function InputBox({ onSubmit, disabled, settling }: InputBoxProps) {
+export function InputBox({ onSubmit, disabled, settling, draft }: InputBoxProps) {
   const [value, setValue] = useState("");
+
+  useEffect(() => {
+    if (draft && draft.length > 0) setValue(draft);
+  }, [draft]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

@@ -44,6 +44,16 @@ export async function GET(req: NextRequest) {
       .filter((e) => e.kind === "narration.emitted")
       .map((e) => (e as { kind: "narration.emitted"; text: string }).text);
 
+    // Phase 5.5 Day 36-37: surface tutorial flag so the UI can
+    // render TutorialHint without a separate fetch.
+    const { sessions: sessTbl } = await import("@/lib/db/schema");
+    const { eq: eqOp } = await import("drizzle-orm");
+    const [sessionRow] = await db
+      .select({ isTutorial: sessTbl.isTutorial })
+      .from(sessTbl)
+      .where(eqOp(sessTbl.id, sessionId))
+      .limit(1);
+    const isTutorial = !!sessionRow?.isTutorial;
     return NextResponse.json({
       sessionId,
       projection,
@@ -58,6 +68,7 @@ export async function GET(req: NextRequest) {
       locationId: ctx.locationId,
       arcId: ctx.arcId,
       arcTagline: arcTagline(ctx.arcId),
+      isTutorial,
     });
   } catch (err) {
     log.error("state.failed", {
