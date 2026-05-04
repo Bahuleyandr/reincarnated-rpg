@@ -532,6 +532,17 @@ export const worldNpcs = pgTable(
      *  history beat the narrator weaves into turn 1 of new
      *  campaigns. Generated once via a Haiku 4.5 call (cached). */
     personalityCard: jsonb("personality_card"),
+    /** Phase 5.5 Day 34-35. Marks named antagonists / recurring NPCs
+     *  (Rhozell, Kethra, etc.) so the appearance hook can read them
+     *  cheaply via a partial index. Set on insert from the NPC
+     *  template's `recurring: true` flag. */
+    isRecurring: boolean("is_recurring").notNull().default(false),
+    /** Per-user run-history audit for recurring NPCs. Each entry:
+     *  { sessionId, outcome, at }. The antagonist hook composes a
+     *  1-line "history beat" the narrator weaves in on first
+     *  appearance ("Rhozell remembers your last face — a slime,
+     *  drowned in the cistern."). Deterministic template, no LLM. */
+    runHistory: jsonb("run_history").notNull().default([]),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
