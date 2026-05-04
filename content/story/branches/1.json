@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Branch I — Whose Song Carries? Resolves at end of Book I (chapter 4). The faction with highest cumulative_contribution at that moment claims the early voice in the year."
+  },
+  "id": 1,
+  "chapterId": 4,
+  "question": "Whose song carries through the first month?",
+  "paths": [
+    {
+      "id": "choristers",
+      "label": "the long song reaches farther",
+      "metric": "faction_choristers"
+    },
+    {
+      "id": "rust_hand",
+      "label": "the iron answers first",
+      "metric": "faction_rust_hand"
+    },
+    {
+      "id": "idle",
+      "label": "the silence holds",
+      "metric": "faction_idle"
+    }
+  ],
+  "defaultPath": "idle"
+}

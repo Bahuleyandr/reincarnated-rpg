@@ -248,6 +248,30 @@ export const factionContributions = pgTable(
 export type FactionContribution = typeof factionContributions.$inferSelect;
 export type NewFactionContribution = typeof factionContributions.$inferInsert;
 
+/**
+ * Phase 7 Day 44. 10 major branch decisions across the year. Each
+ * resolves at chapter-advance time when its `chapter_id` ends —
+ * the path with the highest configured metric wins. Resolved
+ * outcomes become part of persistent world state and feed the
+ * next chapter's narrator fragment.
+ */
+export const branchDecisions = pgTable(
+  "branch_decisions",
+  {
+    id: integer("id").primaryKey(),
+    chapterId: integer("chapter_id").notNull(),
+    question: text("question").notNull(),
+    paths: jsonb("paths").notNull(),
+    resolvedPath: text("resolved_path"),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    resolutionData: jsonb("resolution_data"),
+  },
+  (t) => [index("branch_decisions_chapter_idx").on(t.chapterId)],
+);
+
+export type BranchDecision = typeof branchDecisions.$inferSelect;
+export type NewBranchDecision = typeof branchDecisions.$inferInsert;
+
 export const campaigns = pgTable(
   "campaigns",
   {
