@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Generic hostile reader for cursed-book hard moves."
+  },
+  "id": "wrong-reader",
+  "displayName": "the wrong reader",
+  "kind": "npc",
+  "tagline": "curious for the wrong reasons and too willing to turn the page.",
+  "vitals": {
+    "hp": { "max": 6, "start": 6 }
+  },
+  "stats": {
+    "awareness": 1,
+    "will": 1,
+    "threat": 1
+  },
+  "attitudeDefault": -1,
+  "attitudeRange": [-3, 1],
+  "tags": ["reader", "curious", "unsafe"]
+}

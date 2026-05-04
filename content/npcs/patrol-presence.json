@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Nearby creature or guard drawn by dragon-egg glow hard moves."
+  },
+  "id": "patrol-presence",
+  "displayName": "passing presence",
+  "kind": "npc",
+  "tagline": "a warm-blooded thing near enough to notice a pulse through the dark.",
+  "vitals": {
+    "hp": { "max": 5, "start": 5 }
+  },
+  "stats": {
+    "awareness": 2,
+    "speed": 1,
+    "threat": 1
+  },
+  "attitudeDefault": -1,
+  "attitudeRange": [-2, 1],
+  "tags": ["patrol", "warm-blooded", "curious"]
+}
