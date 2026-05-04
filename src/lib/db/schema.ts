@@ -131,6 +131,10 @@ export const users = pgTable("users", {
   })
     .notNull()
     .defaultNow(),
+  /** Faction pledge (Phase 7 Day 42-43). One-shot — set when the
+   *  player calls the pledge_faction tool. Null until pledged. */
+  factionId: text("faction_id"),
+  factionPledgedAt: timestamp("faction_pledged_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -195,6 +199,54 @@ export const providerHealth = pgTable("provider_health", {
 
 export type ProviderHealth = typeof providerHealth.$inferSelect;
 export type NewProviderHealth = typeof providerHealth.$inferInsert;
+
+/**
+ * Phase 7 Day 42-43. Four factions seed the year (choristers,
+ * rust_hand, idle, forsaken). Players pledge one via the
+ * pledge_faction tool. Aggregate cumulative_contribution drives
+ * branch outcomes (Day 44).
+ */
+export const factions = pgTable("factions", {
+  id: text("id").primaryKey(),
+  label: text("label").notNull(),
+  description: text("description"),
+  memberCount: integer("member_count").notNull().default(0),
+  cumulativeContribution: integer("cumulative_contribution")
+    .notNull()
+    .default(0),
+  active: boolean("active").notNull().default(true),
+  metadata: jsonb("metadata").notNull().default({}),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type Faction = typeof factions.$inferSelect;
+
+/** Append-only ledger of faction contributions. */
+export const factionContributions = pgTable(
+  "faction_contributions",
+  {
+    id: uuid("id").primaryKey(),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    factionId: text("faction_id")
+      .notNull()
+      .references(() => factions.id),
+    chapterId: integer("chapter_id").notNull(),
+    amount: integer("amount").notNull(),
+    source: text("source").notNull(),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("faction_contrib_chapter_idx").on(t.chapterId, t.factionId),
+    index("faction_contrib_user_idx").on(t.userId),
+  ],
+);
+
+export type FactionContribution = typeof factionContributions.$inferSelect;
+export type NewFactionContribution = typeof factionContributions.$inferInsert;
 
 export const campaigns = pgTable(
   "campaigns",

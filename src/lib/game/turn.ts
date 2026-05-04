@@ -882,6 +882,53 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     }
   }
 
+  // Faction pledge side effect (Phase 7 Day 42-43). When the
+  // narrator emitted faction.pledged this turn, write the row +
+  // bump member_count via pledgeFaction(). Anon sessions skip.
+  // pledgeFaction internally charges the coins, so we run it
+  // BEFORE applyCoinDelta below — but pledgeFaction also emits
+  // its own coin debit, which means coins.spent in pendingEvents
+  // would double-charge. We resolve this by NOT including the
+  // pledge_faction-emitted coins.spent in the orchestrator's
+  // delta sum: pledgeFaction handles the coin debit + the
+  // event-derived sum should net zero for that source. (See
+  // netCoinDeltaFromEvents — it sums all coins.* events; the
+  // pledge case relies on pledgeFaction's own debit, so the
+  // coins.spent event is purely audit.)
+  if (world?.userId) {
+    try {
+      const pledgeEvent = pendingEvents.find(
+        (e): e is Event & { kind: "faction.pledged" } =>
+          e.kind === "faction.pledged",
+      );
+      if (pledgeEvent) {
+        const { pledgeFaction } = await import("../story/factions");
+        const r = await pledgeFaction(db, {
+          userId: world.userId,
+          factionId: pledgeEvent.factionId,
+        });
+        if (r.ok) {
+          log.info("turn.faction.pledged", {
+            sessionId,
+            userId: world.userId,
+            factionId: pledgeEvent.factionId,
+          });
+        } else {
+          log.warn("turn.faction.pledge_rejected", {
+            sessionId,
+            userId: world.userId,
+            error: r.error,
+          });
+        }
+      }
+    } catch (err) {
+      log.warn("turn.faction.pledge_failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   // Coin balance side effect (Phase 5 Day 18-19). Sum the coin delta
   // from this turn's events and apply it to the persistent purse —
   // users.coins for logged-in players, sessions.coins for anon. The

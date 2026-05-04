@@ -203,6 +203,8 @@ const TOOL_TO_KINDS: Record<ToolCall["name"], readonly string[]> = {
   learn_skill_from: ["skill.learned"],
   // Phase 5.5 Day 31: rename_inventory emits inventory.renamed.
   rename_inventory: ["inventory.renamed"],
+  // Phase 7 Day 42-43: pledge_faction emits faction.pledged + coins.spent.
+  pledge_faction: ["faction.pledged"],
   narrate_only: [],
 };
 
