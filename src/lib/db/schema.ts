@@ -272,6 +272,94 @@ export const branchDecisions = pgTable(
 export type BranchDecision = typeof branchDecisions.$inferSelect;
 export type NewBranchDecision = typeof branchDecisions.$inferInsert;
 
+/**
+ * Phase 7 Day 49. The Three Votes (Books XI-XII). Players cast
+ * at most one ballot per vote (UNIQUE pk on the ballots table);
+ * winner becomes part of persistent world state.
+ */
+export const worldVotes = pgTable("world_votes", {
+  id: integer("id").primaryKey(),
+  chapterId: integer("chapter_id").notNull(),
+  question: text("question").notNull(),
+  options: jsonb("options").notNull(),
+  closesAt: timestamp("closes_at", { withTimezone: true }),
+  winningOption: text("winning_option"),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  metadata: jsonb("metadata").notNull().default({}),
+});
+
+export type WorldVote = typeof worldVotes.$inferSelect;
+export type NewWorldVote = typeof worldVotes.$inferInsert;
+
+export const worldVoteBallots = pgTable(
+  "world_vote_ballots",
+  {
+    voteId: integer("vote_id")
+      .notNull()
+      .references(() => worldVotes.id, { onDelete: "cascade" }),
+    voterUserId: uuid("voter_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    optionId: text("option_id").notNull(),
+    castAt: timestamp("cast_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("world_vote_ballots_pk").on(t.voteId, t.voterUserId),
+    index("world_vote_ballots_option_idx").on(t.voteId, t.optionId),
+  ],
+);
+
+export type WorldVoteBallot = typeof worldVoteBallots.$inferSelect;
+export type NewWorldVoteBallot = typeof worldVoteBallots.$inferInsert;
+
+/**
+ * Phase 7 Day 51. First-to-Sit edicts (Hollow Throne quest). A
+ * player-promoted note that flavors subsequent narrators while
+ * status='active'. Decay via active_until or admin redaction.
+ */
+export const edicts = pgTable(
+  "edicts",
+  {
+    id: uuid("id").primaryKey(),
+    chapterId: integer("chapter_id").notNull(),
+    proposerUserId: uuid("proposer_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    text: text("text").notNull(),
+    status: text("status").notNull().default("active"),
+    activeFrom: timestamp("active_from", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    activeUntil: timestamp("active_until", { withTimezone: true }),
+    metadata: jsonb("metadata").notNull().default({}),
+  },
+  (t) => [index("edicts_status_idx").on(t.status, t.activeFrom)],
+);
+
+export type Edict = typeof edicts.$inferSelect;
+export type NewEdict = typeof edicts.$inferInsert;
+
+/**
+ * Phase 7 Day 50. End-of-year ending resolver writes one row.
+ * The next year's bootstrap reads next_year_seed to influence
+ * starter content.
+ */
+export const yearEndings = pgTable("year_endings", {
+  year: integer("year").primaryKey(),
+  endingId: text("ending_id").notNull(),
+  endingLabel: text("ending_label").notNull(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  resolutionData: jsonb("resolution_data").notNull().default({}),
+  nextYearSeed: jsonb("next_year_seed").notNull().default({}),
+});
+
+export type YearEnding = typeof yearEndings.$inferSelect;
+export type NewYearEnding = typeof yearEndings.$inferInsert;
+
 export const campaigns = pgTable(
   "campaigns",
   {

@@ -112,6 +112,22 @@ export async function advanceCalendar(db: Db): Promise<AdvanceResult> {
     });
   }
 
+  // Phase 7 Day 50: on year rollover, resolve the year-end ending
+  // for the year that just ended. The year_endings row + Year-2
+  // seed packet land here; subsequent chapters of the new year
+  // can reference the inheritedDominantFaction etc.
+  if (next.rolledYear) {
+    try {
+      const { resolveYearEnding } = await import("./endings");
+      await resolveYearEnding(db, snap.row.year);
+    } catch (err) {
+      log.warn("calendar.year_ending_failed", {
+        year: snap.row.year,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   log.info("calendar.advanced", {
     fromChapter: snap.row.currentChapter,
     toChapter: next.chapter,
