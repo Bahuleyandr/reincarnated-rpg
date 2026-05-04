@@ -101,6 +101,11 @@ export const users = pgTable("users", {
    *  paid tiers higher. */
   sceneImagesMonthlyCount: integer("scene_images_monthly_count").notNull().default(0),
   sceneImagesMonthKey: text("scene_images_month_key"),
+  /** User-level coin balance. Survives reincarnation. Default 50
+   *  (enough for the tutorial vendor without grinding). Negative
+   *  values blocked by CHECK constraint and lib/economy/coins.ts.
+   *  Phase 5 Day 18-19. */
+  coins: integer("coins").notNull().default(50),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -209,6 +214,12 @@ export const sessions = pgTable(
      *  (or 'standard' for anon). Allows a logged-in user to start a
      *  one-off "brutal" run without flipping their global setting. */
     moodPreset: text("mood_preset"),
+    /** Anon-session coin purse. Logged-in sessions IGNORE this and
+     *  read from users.coins. On register/claim, anon coins migrate
+     *  into users.coins via maybeClaimAnonSession. Default 0 — anon
+     *  players earn coins through play (the user-tier 50-coin gift
+     *  is meant as a registration incentive). Phase 5 Day 18-19. */
+    coins: integer("coins").notNull().default(0),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
     turnLockToken: text("turn_lock_token"),

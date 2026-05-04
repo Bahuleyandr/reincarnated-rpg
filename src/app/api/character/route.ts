@@ -150,6 +150,7 @@ export async function GET(req: NextRequest) {
     .select({
       legacyTraits: users.legacyTraits,
       pinnedTitle: users.pinnedTitle,
+      coins: users.coins,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -223,6 +224,7 @@ export async function GET(req: NextRequest) {
     legacyTraits,
     availableTitles,
     pinnedTitle,
+    coins: userRow[0]?.coins ?? 0,
     companions,
     energy: energy
       ? {

@@ -1,0 +1,58 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Tutorial vendor — Phase 5 Day 18-19. The first NPC most players will meet who deals in coins. A wandering trader named Old Veft who appears in towns and marketplaces. Catalog is small and central-bank priced (sellPrice always < buyPrice) so the player can't sell-buy-sell-buy at zero cost. Tuned so a starter slime with 50 coins can buy 5-10 starter resources without grinding."
+  },
+
+  "id": "tutorial-vendor",
+  "displayName": "Old Veft, the wandering trader",
+  "kind": "npc",
+
+  "tagline": "a stooped figure under three layers of dust-cloak, beads of every color sewn at the hem.",
+
+  "vitals": {
+    "hp": { "max": 4, "start": 4 }
+  },
+  "stats": {
+    "speed": 0,
+    "awareness": 1,
+    "threat": -1
+  },
+
+  "attitudeDefault": 1,
+  "attitudeRange": [-1, 2],
+
+  "tags": ["vendor", "human", "neutral", "named"],
+
+  "behavior": {
+    "default": "shuffles between piles of small wares, mumbling prices to himself",
+    "ifAttacked": "freezes; mutters 'I have no coins. The coins are not here.'",
+    "narrativeHooks": [
+      "Old Veft's hands are always cold. Coins warm in them faster than skin.",
+      "A bead clicks against another bead at his hem. He listens before answering.",
+      "He never asks where you came from. He has been many places where the answer is 'nowhere good.'"
+    ]
+  },
+
+  "metadata": {
+    "templateId": "tutorial-vendor",
+    "catalog": [
+      { "itemId": "iron-ore", "buyPrice": 8, "sellPrice": 5, "stock": 20 },
+      { "itemId": "wood-oak", "buyPrice": 4, "sellPrice": 2 },
+      { "itemId": "herb-emberleaf", "buyPrice": 12, "sellPrice": 7, "stock": 10 },
+      { "itemId": "iron-ingot", "buyPrice": 25, "sellPrice": 18 },
+      { "itemId": "small-knife", "buyPrice": 60, "sellPrice": 35, "stock": 3 },
+      { "itemId": "torch", "buyPrice": 10, "sellPrice": 6 },
+      { "itemId": "bread-loaf", "buyPrice": 6, "sellPrice": 3, "stock": 8 }
+    ],
+    "dailyCoinCap": 200
+  },
+
+  "interactions": {
+    "trade": "available — call trade_with_npc with the vendor's npcId",
+    "speak": "available; he answers in short, useful phrases",
+    "give": "rejected — 'gifts make a debt I cannot count'"
+  }
+}

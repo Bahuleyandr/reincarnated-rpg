@@ -151,5 +151,14 @@ async function maybeClaimAnonSession(
     .set({ campaignId })
     .where(eq(sessions.id, session.id));
 
+  // Phase 5 Day 18-19: anon coin purse migrates into the user row.
+  // Best-effort — the claim itself is the important part.
+  try {
+    const { migrateAnonCoinsIntoUser } = await import("@/lib/economy/coins");
+    await migrateAnonCoinsIntoUser(db, session.id, userId);
+  } catch {
+    /* ignore — coins are nice-to-have on registration */
+  }
+
   return { sessionId: session.id, campaignId };
 }
