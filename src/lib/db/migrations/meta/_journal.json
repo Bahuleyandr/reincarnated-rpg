@@ -337,6 +337,13 @@
       "when": 1778190000000,
       "tag": "0047_branches",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1778200000000,
+      "tag": "0048_story_machinery",
+      "breakpoints": true
     }
   ]
 }
