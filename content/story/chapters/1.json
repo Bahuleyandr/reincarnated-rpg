@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Book I, Chapter 1 — Strange Omens. The first week of the year. Most player runs are tutorial-shaped; the world is only beginning to tighten."
+  },
+  "chapterId": 1,
+  "book": 1,
+  "chapterInBook": 1,
+  "weekStart": "Year 1, Week 1",
+  "weekEnd": "Year 1, Week 1",
+  "title": "Strange Omens",
+  "theme": "the cycle stirs after a long silence — small wrongnesses everywhere",
+  "worldEvent": "the moon comes up wrong-colored over Iron-Reach for one night",
+  "narratorPromptFragment": "The current world-chapter is BOOK I, CHAPTER 1: STRANGE OMENS. The cycle is stirring after a long quiet. Reference small wrongnesses if natural — a moon that came up wrong-colored over Iron-Reach last night, water tasting faintly of iron, a draft that wasn't there yesterday. Don't lecture; weave subtly. The Wyrm is not yet visible to most players.",
+  "factionAlignmentBonuses": {
+    "choristers": 1.0,
+    "rust_hand": 1.0,
+    "idle": 1.05,
+    "forsaken": 1.0
+  },
+  "locationsAffected": ["iron-reach", "collapsed-tunnel"]
+}
