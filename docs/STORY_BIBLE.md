@@ -20,6 +20,21 @@ Three paths are visible:
 
 A fourth path exists, but only the Forsaken speak of it: **slip the cycle entirely**. Those who manage it become permanent — their final form, their last words.
 
+## Time and the world clock
+
+**The world runs at 1:1 real time.** This is locked (ADR-019).
+
+- **1 chapter = 7 real days**, UTC. Rollover at Sunday 00:00 UTC.
+- **1 Book = 4 chapters = ~30 real days.**
+- **1 Year = 12 Books = 365 real days.** A whole calendar year of play.
+- **Branches** resolve at chapter-end UTC midnight; tallies frozen at that instant.
+- **Scheduled world events** fire at exact UTC moments. Miss the Wyrm Voice on Day 165 and you miss it for that year.
+- **Pauses** halt the clock cleanly (used only for incidents); chapter duration is preserved across pause-resume.
+
+A player who joins on Day 47 walks into Book II Ch 7. They don't get to play Book I — they read it via the **Catch-Up Codex** (auto-generated briefing, see Phase 7 Day 53). At end-of-year, the whole year locks into the **Year Archive** (Phase 7 Day 54) — a permanent, readable record of what happened. New players in Year 2 can read Year 1 as history; lore that decayed during Year 1 is preserved in the Archive even if it vanished from live play.
+
+The 1:1 cadence is what makes the persistence real. Players who couldn't be there for the Pyre will *hear* about it — from NPCs who lived through it, from Famous Death lore, from veterans' Edicts inscribed in their territory. That hearing-about-it is itself the experience.
+
 ## Cosmology
 
 - **The Long Wyrm**: a continental-scale entity, half-buried beneath the ground. Its scales are mountain ranges; its breath is the world's weather. It is *not a god* — it is a mechanism. But mechanisms in Yssa-Wyrm dream.

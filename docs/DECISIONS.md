@@ -136,7 +136,35 @@ Grant CAN exceed tier max temporarily — it's a one-shot gift; regen still won'
 
 Idempotent within a day: `lastDayUtc === today` short-circuits to no-op. Both `getEnergyView` AND `trySpend` claim — page load counts as "logging in", not just turn-taking. Pure module (`lib/energy/streak.ts`); persistence on `users.streak_count` + `users.streak_last_day_utc` (and same on `sessions.*` for anon).
 
-## ADR-018 — Moderation, curses, and power-creep ceilings
+## ADR-019 — World clock runs at 1:1 real-world time
+
+**Date:** 2026-05-04. **Status:** locked.
+
+The world's calendar advances at real wall-clock pace. Every existing time-based system already runs at 1:1 (energy regen, streak UTC-day, daily/weekly objectives, 24h-delayed lore, reincarnation cooldowns, blessing window, weekly themes), so this ADR makes that consistent across the *story* layer too:
+
+- **1 chapter = 7 real days** (UTC midnight Sunday → Sunday rollover).
+- **1 Book = 4 chapters = ~30 real days.**
+- **1 Year = 12 Books = 365 real days** (52 weeks; the extra day lands in Book XII as denouement padding).
+- **Branch decisions resolve at chapter-end UTC midnight.** Aggregate metrics frozen at that instant.
+- **End-of-year Votes** (Books XI-XII) tally over the full chapter window — a real week per vote.
+- **Scheduled world events** fire at fixed UTC moments (e.g. Wyrm Voice = Day 165 12:00 UTC).
+- **Admin pause** is the only way to halt the clock — used for incidents, NEVER for content slips. Time accelerated only in the staging/preview environment.
+
+**Why locked**:
+- *Persistence is the wedge.* "The world remembers what you did" is hollow if the world can be fast-forwarded. Real time is what makes the persistence real.
+- *Compounds with everything we've built.* Every other clock is already real-time; the story clock should match.
+- *Anti-burnout structurally.* A binge player can't outrun the world. Cadence is enforced at the wall, not at the player's wallet.
+- *Cheaper to operate.* No replay infrastructure for live state — every player at moment T sees the same chapter.
+- *Aligns with successful precedents.* Animal Crossing, Habitica, persistent MMORPGs — all run at 1:1 because that's what makes a "lived-in" world feel lived-in.
+
+**Costs we accept**:
+- *Mid-year entry is harder.* Mitigated by the Catch-Up Codex (auto-generated condensed lore briefing for any player joining after Book I Ch 1).
+- *Bad balance lasts a real week.* Mitigated by the Day 52 admin dashboard which can hot-patch chapter content.
+- *Failure-engagement → Long Sleep ending.* Built in as a real ending, not a degenerate state.
+- *Testing is harder.* Mitigated by `STORY_TIME_FACTOR` env var: in staging, 1 chapter = 1 hour. Production hard-codes 7 days.
+- *A "missed" event is gone for that year.* This is intentional — scarcity gives moments their weight. Year 2 archive lets people read what they missed afterward.
+
+**Pause semantics**: when admin pauses the calendar (`/god/story` toggle), `chapter_started_at` is replayed forward by the pause duration on resume so chapter length stays exactly 7 days of *active* time. Pauses are logged in `world_events` with kind `calendar.paused` / `calendar.resumed` for audit.
 
 **Date:** 2026-05-03. **Status:** locked.
 

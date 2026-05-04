@@ -119,14 +119,18 @@ See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
 39. **Scheduled world events** (Day 50) — synchronized injections like the Wyrm Voice.
 40. **Story authoring tooling** (Day 51) — CLI scaffolder + validator + eval scenario 22.
 41. **Story admin dashboard** (Day 52) — `/god/story` for live ops.
+42. **Catch-Up Codex** (Day 53) — per-chapter auto-summaries + mid-year onboarding flow for new players.
+43. **Year Archive** (Day 54) — end-of-year snapshot + permanent `/world/year/[n]` pages + Year 2 seed loader.
 
-**Days 53+ — Bigger swings**
-42. **NPC dialogue system** (Day 53+) — multi-turn conversations with personality continuity (3-5d).
-43. **Player-authored forms** (Day 58+) — submission queue + admin approval (5-7d).
-44. **Player-driven marketplace** (Day 65+) — Phase 6a: P2P listings, gated by Phase 5 telemetry (~7d).
-45. **Ascension** (Day 65+, parallel) — Phase 6b: endgame meta-forms unlocked after ~50 runs (~7-10d).
+**Days 55+ — Bigger swings**
+44. **NPC dialogue system** (Day 55+) — multi-turn conversations with personality continuity (3-5d).
+45. **Player-authored forms** (Day 60+) — submission queue + admin approval (5-7d).
+46. **Player-driven marketplace** (Day 67+) — Phase 6a: P2P listings, gated by Phase 5 telemetry (~7d).
+47. **Ascension** (Day 67+, parallel) — Phase 6b: endgame meta-forms unlocked after ~50 runs (~7-10d).
 
-**Ongoing after Day 52** — weekly chapter authoring (~2-4h/week, 4-chapter buffer ahead of "now").
+**Ongoing after Day 54** — weekly chapter authoring (~2-4h/week, 4-chapter buffer ahead of "now").
+
+**World clock**: locked at 1:1 real time (ADR-019). 1 chapter = 7 real days UTC. 1 Year = 365 real days. The 17-day Phase 7 build powers a 365-day story.
 
 See `docs/STORY_BIBLE.md` for the full 48-chapter outline, faction details, branch decisions, and endings.
 
