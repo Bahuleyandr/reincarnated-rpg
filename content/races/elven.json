@@ -1,0 +1,57 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Subverted-default race. The genre says elves are 'long-lived, ethereal, wise mystics'. Here, elves live a perfectly normal 60-70 years, are intensely commercial, and run banking + information brokerages. The 'serene mystic' mannerism is a cultivated commercial act they drop entirely once they trust you. Some of the rudest people in the world if you make it past their second account review."
+  },
+  "id": "elven",
+  "displayName": "Elven",
+  "homelandId": "saltgale",
+  "lifespanYears": { "min": 58, "max": 74, "median": 66 },
+  "physicalNotes": "Average height 5'10\". Slender. The pointed ears are real but smaller than legend has it. Most adults have ink under their fingernails from contracts.",
+  "racialFeatures": [
+    {
+      "id": "the-act",
+      "label": "The Act",
+      "description": "All elves are taught from age six to perform serene-mystic etherealness in front of strangers. The performance is a commercial advantage — it makes other races offer better terms. They drop it at home, in their counting houses, and around anyone they're tired of."
+    },
+    {
+      "id": "ledger-mind",
+      "label": "Ledger-mind",
+      "description": "Elves track favors, debts, and obligations across every social interaction with mechanical precision. They will remind you of a coffee they bought you in 2014. They are not joking."
+    },
+    {
+      "id": "salt-tongue",
+      "label": "Salt-tongue",
+      "description": "When the act drops, elven speech becomes terse, profane, and surgical. Their rudeness, when it lands, is precise enough to be admired."
+    }
+  ],
+  "subPopulations": [
+    {
+      "id": "branchmen",
+      "label": "Branchmen",
+      "summary": "The banking families. Each Branchman house has a single specialty (grain futures, marine insurance, foreign letters of credit). They will not tell you which.",
+      "city": "saltgale"
+    },
+    {
+      "id": "clearseers",
+      "label": "Clearseers",
+      "summary": "Information brokers. They sell what is going to happen, sourced from a network of paid villagers across all five spokes. The act is at its thickest with them.",
+      "city": "saltgale"
+    },
+    {
+      "id": "salt-folk",
+      "label": "Salt-folk",
+      "summary": "Wholesale traders. Bulk salt, bulk grain, bulk timber. Loud, profane, and direct — the only elves who never bother with the act.",
+      "city": "saltgale"
+    },
+    {
+      "id": "vellum",
+      "label": "Vellum",
+      "summary": "Contract scribes. They write the actual paper. Considered the most dangerous elves because nobody reads what a Vellum has written carefully enough.",
+      "city": "saltgale"
+    }
+  ],
+  "voice": "the act is breathy and rhythmic; off-act is clipped, profane, and full of numbers."
+}

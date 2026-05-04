@@ -1,0 +1,69 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "First town up the northern road from Caelum toward Highfield Ascending. Sits at the head of the only switchback pass that climbs to the cloudline. The town's entire economy is the pass — guides, mules, weather-readers, and a single inn run by a half-dwarven family. The 'three notches' are three rock cuts carved at the top of the pass; tradition says you bow once at each."
+  },
+  "id": "three-notches",
+  "displayName": "Three Notches",
+  "tagline": "The pass town. Bow at each notch on the way up.",
+  "ambientPool": [
+    "A mule team is loaded in the courtyard, cider casks marked for delivery in Caelum.",
+    "A Gust-watcher's apprentice sits on the inn porch reading the wind from below the cloudline — strange to them, exciting.",
+    "The first notch is visible from the inn's east window; a traveler bows from indoors out of habit.",
+    "Cold air slides downhill and pools in the town square at dusk."
+  ],
+  "entryRoomId": "the-pass-square",
+  "rooms": [
+    {
+      "id": "the-pass-square",
+      "displayName": "The Pass Square",
+      "summary": "Small flagged square at the foot of the switchback. Mule-stalls along one side, a single inn along the other, a stone weather-marker in the middle. Travelers wait here for clearance from a Gust-watcher above.",
+      "ambientPool": [
+        "A guide ties a leather sack to a mule's saddle and hands a clearance-token to a traveler.",
+        "Two travelers from below the cloudline practice their bows for the notches; the locals do not laugh.",
+        "Cider in clay jugs is unloaded from a cart that has just come down.",
+        "A signal kite from above appears against the cloud-mass — a Gust-watcher saying yes."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-half-inn", "narrative": "Into the inn run by the half-dwarven family." },
+        { "verb": "go", "toRoomId": "the-mule-yard", "narrative": "Across to the mule yard where the climb is staged." }
+      ]
+    },
+    {
+      "id": "the-half-inn",
+      "displayName": "The Half Inn",
+      "summary": "A two-story inn open to the north wind on its top floor (for the dwarven custom) and walled on the south (for the human custom). Run by a family who learned both. Cloudtea brewed here is the only cup in town that gets the brewing right.",
+      "ambientPool": [
+        "The innkeeper pours cloudtea with a steady hand and a slightly indulgent smile at how foreigners drink it.",
+        "Two beds in the south wing, both walled. Two beds in the north wing, no roof. Choose by your nerves.",
+        "A traveler eats their last meal before the climb and second-guesses every bite.",
+        "A Topgrove orchardist on their way down for market sleeps in the open wing without blanket."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-pass-square", "narrative": "Back to the pass square." }
+      ]
+    },
+    {
+      "id": "the-mule-yard",
+      "displayName": "The Mule Yard",
+      "summary": "Stone-paved yard where the climbing mules are loaded. The mules are bred here — a low-altitude crossbreed that handles the air change without panic. They are calmer than the people loading them.",
+      "ambientPool": [
+        "A mule sighs and accepts a heavier pack than it expected.",
+        "The yard-master inspects every cinch knot personally.",
+        "Two guides argue about the wind in opposite directions; one is going up, one is coming down.",
+        "A child of the half-dwarven family brushes a mule's flank with practiced calm."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-pass-square", "narrative": "Back to the pass square." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "switchback-quartz",
+    "mule-tail-bone",
+    "cloudtea-leaf",
+    "wood-pine"
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Elven homeland. Built on tidal mudflats east of the metropolis; every street is a pontoon and every pontoon is owned. The four sub-populations have their own quarters but the borders are flexible by hour, by tide, and by which contract has just been signed. Mudglass is the local high-end material; estuary mud fired into prismatic plates."
+  },
+  "id": "saltgale",
+  "displayName": "Saltgale",
+  "tagline": "Pontoons over mudflat. Every street is owned. Every conversation is a negotiation.",
+  "ambientPool": [
+    "A Branchman's slate is written, erased, and rewritten three times in the time it takes to walk past it.",
+    "The smell of estuary mud is strong at low tide — sharp, mineral, almost iodine.",
+    "A Salt-folk wholesaler shouts a price across the pontoon and gets the answer back at half-volume from someone walking the other way.",
+    "The act is at full performance in the public street; through any window you can hear it dropped.",
+    "A pontoon shifts under your weight by exactly the amount that says somebody important built it."
+  ],
+  "entryRoomId": "the-pontoon-mile",
+  "rooms": [
+    {
+      "id": "the-pontoon-mile",
+      "displayName": "The Pontoon Mile",
+      "summary": "The main thoroughfare. A mile of plank causeway over mudflat, lined with elven counting houses and contract-rooms. The boards have been rewritten so many times they no longer creak the same way twice.",
+      "ambientPool": [
+        "An elf in unspoiled ivory walks past, the act so practiced you can't tell it's an act.",
+        "Two Vellum nod once at each other — they have just signed the same client to opposing positions.",
+        "A child runs along the pontoon shouting a tide warning. Three counting houses immediately close their shutters.",
+        "Someone has chalked a number into a doorpost that wasn't there an hour ago."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-branch-house", "narrative": "Into the largest banking pontoon." },
+        { "verb": "go", "toRoomId": "the-clearseer-room", "narrative": "Into the information broker's offices, marked by a closed door with no sign." },
+        { "verb": "go", "toRoomId": "the-mudglass-kilns", "narrative": "Out toward the mudflats where the kilns work." }
+      ]
+    },
+    {
+      "id": "the-branch-house",
+      "displayName": "The Branchman House",
+      "summary": "An elven banking pontoon. Long counters, slate boards, cushioned chairs for clients. The act is absolute here — every gesture commercial.",
+      "ambientPool": [
+        "A Branchman pours tea with mathematical precision. The tea's temperature is a courtesy that costs you nothing yet, but soon will.",
+        "A clerk's pen makes the same mark twice in a row. Both are intentional.",
+        "Outside, the tide turns. The pontoon settles a finger's width.",
+        "An elderly Branchman looks at you for the first time in the meeting and the act drops for just a moment, then comes back."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-pontoon-mile", "narrative": "Back to the main pontoon." }
+      ]
+    },
+    {
+      "id": "the-clearseer-room",
+      "displayName": "The Clearseer Room",
+      "summary": "Information brokers' den. Heavy curtains, a desk facing the door, a second desk in the back where the actual filing happens. No price list. The air smells of ink and tea.",
+      "ambientPool": [
+        "A Clearseer raises a single hand to indicate they are listening but not yet billing you.",
+        "A pigeon arrives at a back window with a paper tied to its leg. The Clearseer doesn't move.",
+        "Three slips of paper are passed across the desk in different directions in the space of a minute.",
+        "The act is thicker here than anywhere — it is what they sell."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-pontoon-mile", "narrative": "Back to the main pontoon." }
+      ]
+    },
+    {
+      "id": "the-mudglass-kilns",
+      "displayName": "The Mudglass Kilns",
+      "summary": "Out on the mudflats themselves at low tide. Estuary mud is shoveled into kilns and fired into prismatic mudglass — the elves' high-end glazing. Hot work, dirty work, almost no act.",
+      "ambientPool": [
+        "A Salt-folk laborer wipes mud off their forearm and laughs at something a fellow shouted.",
+        "A kiln-master cracks open a kiln; the mudglass inside catches three colors of light.",
+        "The tide is coming in. The kilns will be flooded by sundown. They are timed for it.",
+        "A Branchman has come down to inspect a shipment and is being teased openly by the kiln crew."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-pontoon-mile", "narrative": "Back inland to the main pontoon." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "estuary-mud",
+    "mudglass-prism",
+    "saltgrass",
+    "vellum-saltgale",
+    "salt-block",
+    "tidewater-pearl"
+  ]
+}

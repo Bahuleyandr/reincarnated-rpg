@@ -1,0 +1,91 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Halfling homeland. Built on a coral reef miles offshore — pontoon dwellings anchored to dead coral; living coral is sacred and cutting it is a capital offense. The freelance navy operates from here. The dawn-meal is the only meal of the day; foreigners are politely tolerated but openly judged for their snacking habits."
+  },
+  "id": "the-coral-anchorage",
+  "displayName": "The Coral Anchorage",
+  "tagline": "Pontoons over reef. Six ships, four ribbons, one meal a day.",
+  "ambientPool": [
+    "The pontoons rise and fall on the reef-tide in a rhythm everyone here has internalized.",
+    "Smoke from a single cookfire rises only at dawn and is gone by mid-morning.",
+    "A Reef-cutter checks knots on a privateer vessel without looking down.",
+    "A Drowncaller eyes a distant sail and decides, silently, whether it is worth saving.",
+    "The reef itself is half-visible through the clear water — alive, slow-moving, dangerous to cut."
+  ],
+  "entryRoomId": "the-causeway-end",
+  "rooms": [
+    {
+      "id": "the-causeway-end",
+      "displayName": "The Causeway End",
+      "summary": "Where the tidal stone causeway meets the Anchorage. Uncovered twice a day by tide; underwater the rest of the time. Foreigners arrive here at low tide or not at all.",
+      "ambientPool": [
+        "The tide is going out; the causeway emerges section by section.",
+        "A halfling sentry on a low pontoon watches the causeway without moving.",
+        "A salt-keeper carries dried fish in a waxed sack across the causeway, unhurried.",
+        "Far behind, the metropolis glints. Far ahead, the open ocean."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-tidehands-yard", "narrative": "Onto the main pontoon decking, toward the navy yard." },
+        { "verb": "go", "toRoomId": "the-dawn-galley", "narrative": "Into the communal galley where dawn-meal is taken." }
+      ]
+    },
+    {
+      "id": "the-tidehands-yard",
+      "displayName": "The Tidehands Yard",
+      "summary": "The standing navy's home dock. Six small fast ships at anchor; the flagship Coral Anchor is the largest of them and would be considered small in any other navy.",
+      "ambientPool": [
+        "A Tidehands officer reviews a chart with quiet concentration.",
+        "A reef-cutter privateer ties up alongside, accepts a brief inspection, and is sent on.",
+        "Two halfling crew share a private joke without smiling.",
+        "The Coral Anchor's four ribbons hang from its mast — quietly, expensively earned."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-causeway-end", "narrative": "Back to the causeway end." },
+        { "verb": "go", "toRoomId": "the-dawn-galley", "narrative": "Across the pontoons to the galley." },
+        { "verb": "go", "toRoomId": "the-reef-edge", "narrative": "Out to the reef-edge platform — the seaward boundary." }
+      ]
+    },
+    {
+      "id": "the-dawn-galley",
+      "displayName": "The Dawn Galley",
+      "summary": "A long open-sided dining pontoon. Used only at dawn. The rest of the day it sits empty, the long tables gleaming with the previous morning's salt-cure.",
+      "ambientPool": [
+        "The galley is empty at midday. The smell of breakfast hours-old still hangs.",
+        "A salt-keeper stocks the galley for tomorrow at noon — the work is unhurried, methodical.",
+        "Foreigners who come here at the wrong time find themselves alone with their own embarrassment.",
+        "A young halfling of seven, who will eat their first dawn-meal in three weeks, walks the empty hall imagining it."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-causeway-end", "narrative": "Back to the causeway." },
+        { "verb": "go", "toRoomId": "the-tidehands-yard", "narrative": "Across to the navy yard." },
+        { "verb": "go", "toRoomId": "the-reef-edge", "narrative": "Seaward to the reef-edge platform." }
+      ]
+    },
+    {
+      "id": "the-reef-edge",
+      "displayName": "The Reef Edge",
+      "summary": "The seaward boundary of the Anchorage. A platform of dead coral columns jutting out over open water. Drowncallers stand watch here. Living coral is visible below — colors no other place sees.",
+      "ambientPool": [
+        "A Drowncaller marks a small slate; they have logged a sail at the edge of sight.",
+        "Living coral pulses slowly in the water below — yellow, sun-orange, the deep red they call 'inside-of-the-mouth'.",
+        "A salt wind carries from the open ocean; the platform planks creak in answer.",
+        "A Tidehands captain watches the same horizon, decides nothing, returns to the yard."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-tidehands-yard", "narrative": "Back to the navy yard." },
+        { "verb": "go", "toRoomId": "the-dawn-galley", "narrative": "Inland to the galley." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "coralwhite-aragonite",
+    "reef-iridium",
+    "coral-kelp",
+    "salt-cured-fish",
+    "saltcord-rope",
+    "drowncaller-flag-cloth"
+  ]
+}

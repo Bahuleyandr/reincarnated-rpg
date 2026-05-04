@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "First town east of Caelum on the way to Saltgale. Built on slightly higher mudflat — high enough to stay dry at the spring tides, low enough to feel the brine. Famous for its bioluminescent salt-flies, which lay eggs in the mud and glow blue at low tide. The flies are harvested at dawn and dusk for elven 'mudglass-prism' production (the glow becomes a marker dye in the firing)."
+  },
+  "id": "mudmoth",
+  "displayName": "Mudmoth",
+  "tagline": "Mudflats that glow blue at low tide. Don't step in them barefoot.",
+  "ambientPool": [
+    "The mud at low tide flickers with a soft blue light, scattered like stars seen from below.",
+    "A flycatcher with a lacquered net moves slowly through a pool, gathering eggs without breaking the surface.",
+    "An elven Salt-folk wholesaler arrives in a small barge to negotiate a shipment of unfired mud.",
+    "The smell is iodine and something almost sweet."
+  ],
+  "entryRoomId": "the-low-tide-walk",
+  "rooms": [
+    {
+      "id": "the-low-tide-walk",
+      "displayName": "The Low-Tide Walk",
+      "summary": "Wooden plank-walk at the edge of the mud. Walking on the mud directly is forbidden (you would crush eggs); the planks are the only way to reach the flycatchers' stations.",
+      "ambientPool": [
+        "A flycatcher signals a shift change with one raised hand.",
+        "A glow-fly takes off from a pool, traces a silent blue line across the dark mud, lands again.",
+        "The tide is coming back. The eggs will be safe in twenty minutes.",
+        "An apprentice flycatcher learns the angle of the net by watching, watching, watching."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-flycatcher-shed", "narrative": "Into the wooden shed where the eggs are weighed and stored." }
+      ]
+    },
+    {
+      "id": "the-flycatcher-shed",
+      "displayName": "The Flycatcher Shed",
+      "summary": "A long low-roofed shed at the high-water line. Eggs are weighed in tiny brass scales, stored in damp clay jars, sold by the half-handful to the Saltgale wholesalers.",
+      "ambientPool": [
+        "A flycatcher pours eggs from a leather pouch into a brass pan.",
+        "An elven Salt-folk wholesaler watches the scale and takes one slow breath.",
+        "A child of the village sleeps in a corner — they were up since before dawn.",
+        "A glow-fly that escaped a pouch lights the back wall faintly."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-low-tide-walk", "narrative": "Back to the plank-walk." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "estuary-mud",
+    "glow-fly-egg",
+    "saltgrass",
+    "tidewater-pearl"
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Dwarven homeland. Terraced highland orchards above the cloudline. Dwarves cannot tolerate enclosed spaces; every dwelling is open-air or open-roofed; many sleep on porches that face the cloud-mass. Whitebark cider is the city's signature export; cloudtea is the local breakfast drink. A Gust-watcher's clearance is required before any planting or harvest."
+  },
+  "id": "highfield-ascending",
+  "displayName": "Highfield Ascending",
+  "tagline": "Above the clouds. Wide skies, narrow paths, no roofs.",
+  "ambientPool": [
+    "Wind moves continuously across the terraces; even sheltered spots have a whisper to them.",
+    "Cloud cover is below you. Looking down is more disorienting than looking up.",
+    "A pollination kite passes overhead — a Skybeam keeping bees moving between blocks.",
+    "Two Gust-watchers stand in their separate clearings and read the wind by feel.",
+    "The air is thin enough that strangers from below breathe more often than the dwarves do."
+  ],
+  "entryRoomId": "the-windbench",
+  "rooms": [
+    {
+      "id": "the-windbench",
+      "displayName": "The Windbench",
+      "summary": "The arrival terrace. Long stone bench facing outward over the cloud-mass. New arrivals from below sit here to acclimate. Nobody hurries them.",
+      "ambientPool": [
+        "A Topgrove orchardist watches a stranger catch their breath and offers a cup of cloudtea without comment.",
+        "The wind shifts; a Gust-watcher across two terraces nods at the change.",
+        "An apple drops from a heritage tree two terraces up and is caught by a child waiting for exactly that.",
+        "A Skybeam threads a kite line through a pulley overhead, smoothly."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-orchard-terraces", "narrative": "Up the stone steps onto the orchard terraces." },
+        { "verb": "go", "toRoomId": "the-cider-cellars", "narrative": "Sideways and up, toward the open-roofed cider works (no enclosed cellars here, despite the name)." },
+        { "verb": "go", "toRoomId": "the-gust-clearing", "narrative": "Up further to the Gust-watchers' clearing — the highest open ground." }
+      ]
+    },
+    {
+      "id": "the-orchard-terraces",
+      "displayName": "The Orchard Terraces",
+      "summary": "Stepped orchards on stone steppes. Each terrace block holds one tree species. Whitestar apples on the lowest, Greybark pears in the middle, Sun-cherries at the top.",
+      "ambientPool": [
+        "A Topgrove of the Whitestar line walks slowly along the terrace edge, looking at every fourth tree.",
+        "Skybeam kites work the air between blocks; a bee-cluster releases at exactly the moment the wind asks it to.",
+        "An apprentice ties a sapling to a stake with a knot that takes longer than the speech they are giving while doing it.",
+        "Far below, a cloud parts; a halfling sail can be seen on the coast for half a second before the cloud closes."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-windbench", "narrative": "Down the stone steps to the arrival terrace." },
+        { "verb": "go", "toRoomId": "the-cider-cellars", "narrative": "Across and up to the cider works." },
+        { "verb": "go", "toRoomId": "the-gust-clearing", "narrative": "Continuing upward to the highest clearing." }
+      ]
+    },
+    {
+      "id": "the-cider-cellars",
+      "displayName": "The Cider 'Cellars'",
+      "summary": "Whitebark cider works. Misnamed — none of it is underground; the casks sit on open-roofed stone platforms. A canopy of woven branches keeps the rain off; the wind is welcome.",
+      "ambientPool": [
+        "A Whitebark master taps a birch cask and nods at the sound it makes.",
+        "Two Whitebarks taste a new batch and disagree, courteously, in dwarven wind-pace.",
+        "A Topgrove who has come to deliver Greybark pears stays for three cups of cider and a long conversation about whether the season is early.",
+        "The wind catches a cask-cover and the master adjusts it without breaking conversation."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-orchard-terraces", "narrative": "Back down to the orchard." },
+        { "verb": "go", "toRoomId": "the-gust-clearing", "narrative": "Up to the Gust-watchers' clearing." }
+      ]
+    },
+    {
+      "id": "the-gust-clearing",
+      "displayName": "The Gust Clearing",
+      "summary": "The highest open ground in the city. Bone weather instruments arranged on a stone platform; a single Gust-watcher sits cross-legged in the center.",
+      "ambientPool": [
+        "The wind is loud enough here that the Gust-watcher uses small bone instruments instead of speech.",
+        "A second Gust-watcher arrives, sits, and starts reading.",
+        "A Topgrove climbs up to ask a question and gets the answer in three gestures.",
+        "Below, the orchard terraces are barely visible through cloud."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-orchard-terraces", "narrative": "Down to the orchards." },
+        { "verb": "go", "toRoomId": "the-cider-cellars", "narrative": "Sideways to the cider works." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "cloudtin-ore",
+    "summit-amber",
+    "cloudtea-leaf",
+    "whitestar-apple",
+    "whitebark-cider",
+    "greybark-pear",
+    "skybeam-bone-tool"
+  ]
+}

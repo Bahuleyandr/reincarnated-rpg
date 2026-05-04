@@ -1,0 +1,57 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Subverted-default race. The genre says halflings are 'small, peace-loving, food-obsessed agrarian villagers'. Here, halflings are wiry naval mercenaries living on coral reefs miles offshore. They eat once a day at dawn. Their freelance navy is feared by every larger fleet on the coast. The Coral Anchorage is anchored to the reef itself; the halflings know which coral is alive and never cut into it."
+  },
+  "id": "halfling",
+  "displayName": "Halfling",
+  "homelandId": "the-coral-anchorage",
+  "lifespanYears": { "min": 55, "max": 75, "median": 64 },
+  "physicalNotes": "Average height 4'1\". Wiry, dense muscle, salt-cured skin, calloused feet (most go barefoot — easier on slick decks). Distinctive squint from sun off water.",
+  "racialFeatures": [
+    {
+      "id": "one-meal",
+      "label": "One meal at dawn",
+      "description": "Halflings eat once a day, at first light, and never again until next dawn. The meal is enormous and shared. They consider midday eating a sign of weakness; foreigners who snack in front of them are quietly judged."
+    },
+    {
+      "id": "reef-instinct",
+      "label": "Reef-instinct",
+      "description": "Adult halflings can read coral by touch and tell living from dead at a glance. They navigate the inner reef in fog without instruments. The Anchorage is built only on dead coral; cutting living coral is a capital offense."
+    },
+    {
+      "id": "freelance-navy",
+      "label": "Freelance navy doctrine",
+      "description": "The halfling navy is the only standing military among the five races and explicitly hires out — to merchant fleets, to coastal lords, to whoever pays the contract fee. They are feared less for size than for absolute discipline; halfling crews have never broken under fire."
+    }
+  ],
+  "subPopulations": [
+    {
+      "id": "tidehands",
+      "label": "Tidehands",
+      "summary": "The regular standing navy. Six ships, all small and fast. The flagship is the Coral Anchor, four ribbons.",
+      "city": "the-coral-anchorage"
+    },
+    {
+      "id": "reef-cutters",
+      "label": "Reef-cutters",
+      "summary": "Privateer crews. Three to five sailors per boat, hired short-term. Notorious for finishing a contract early and asking for the rest of the fee anyway.",
+      "city": "the-coral-anchorage"
+    },
+    {
+      "id": "salt-keepers",
+      "label": "Salt-keepers",
+      "summary": "Provisioners. Pack the dawn meal. Cure fish in coral-salt brine. The only halflings who go inland regularly — to the metropolis to trade.",
+      "city": "the-coral-anchorage"
+    },
+    {
+      "id": "drowncallers",
+      "label": "Drowncallers",
+      "summary": "Search-and-rescue when a ship goes down on the reef — and wreckers when they decide it isn't worth saving. The line between is whose flag the ship was flying.",
+      "city": "the-coral-anchorage"
+    }
+  ],
+  "voice": "clipped, salt-cured, full of nautical idiom. Smiles a lot — most of the smiles mean nothing."
+}

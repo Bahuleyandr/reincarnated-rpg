@@ -1,0 +1,55 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "First town SE of Caelum, on the way to Threadwarden. The market town for human grain — Furrowfolk farmers from across the inland basin bring their single-crop loads here for distribution. The town has three named market days: Wheat Day, Barley Day, Rye Day. The market on each day operates only in that grain. The buyers are mostly elven Salt-folk wholesalers."
+  },
+  "id": "furrowmouth",
+  "displayName": "Furrowmouth",
+  "tagline": "One grain per day. The wholesalers know which day to come.",
+  "ambientPool": [
+    "Sacks of one and only one grain are stacked in a long row across the square.",
+    "A Furrowfolk farmer leans on a stake near their load and watches the wholesalers without expression.",
+    "An elven Salt-folk in their off-act voice asks blunt questions and gets blunt answers.",
+    "The market's bell rings in a different rhythm depending on which grain day it is."
+  ],
+  "entryRoomId": "the-market-square",
+  "rooms": [
+    {
+      "id": "the-market-square",
+      "displayName": "The Market Square",
+      "summary": "Open square with the market bell at the center. Stalls along three sides. A weighing-stone in the middle. The fourth side opens onto the river loading dock.",
+      "ambientPool": [
+        "The market bell rings; the day has ended without warning to anyone who didn't already know.",
+        "A Furrowfolk family loads their unsold grain back onto a wagon — they will return next month.",
+        "A wholesaler counts out coins with one hand while marking a contract with the other.",
+        "An apprentice from the Pageborn quarter copies sale records onto orcish paper."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-river-dock", "narrative": "To the river loading dock where the barges wait." }
+      ]
+    },
+    {
+      "id": "the-river-dock",
+      "displayName": "The River Dock",
+      "summary": "Flat barges tied to the dock, ready for the day's purchases. The Furrow runs slow here. Everything moves at barge-pace.",
+      "ambientPool": [
+        "A barge-master ties off a heavy load and steps back to watch it settle.",
+        "An elven wholesaler signs a bill of lading without reading it — they have read the same one nineteen times this month.",
+        "A river-bird perches on a coil of rope and is left undisturbed.",
+        "The afternoon light catches the dust still rising from the morning's threshing."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-market-square", "narrative": "Back to the market square." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "furrow-grain",
+    "wheat-flour",
+    "barley-malt",
+    "rye-meal",
+    "river-reed"
+  ]
+}

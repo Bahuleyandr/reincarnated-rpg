@@ -1,0 +1,102 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Orcish homeland. High desert plateau city built as nested library quadrangles — a stack of square colonnades, each smaller and quieter than the one outside it, until the innermost is the silent reading-room of the Hush-readers. Paper-clay deposits in the surrounding plateau supply most of the world's quality writing surface. Conversations indoors are conducted largely in writing."
+  },
+  "id": "the-long-indices",
+  "displayName": "The Long Indices",
+  "tagline": "Nested quadrangles, descending into silence.",
+  "ambientPool": [
+    "The wind across the high plateau is steady, dry, and goes around the city without entering it.",
+    "Three orcs sit reading on a colonnade bench. None of them have looked up in twenty minutes.",
+    "A Cataloguer crosses the courtyard with a careful stack of slips, each holding a single word.",
+    "A Marginal hands a bound folio to a Shelver who immediately turns to the table of contents.",
+    "Even the city's stones have been chosen for their muffling acoustics."
+  ],
+  "entryRoomId": "the-outer-quadrangle",
+  "rooms": [
+    {
+      "id": "the-outer-quadrangle",
+      "displayName": "The Outer Quadrangle",
+      "summary": "The widest of the nested squares. A colonnade ringing an open courtyard. Outsiders are received here. Speech is permitted — quietly. Most negotiations happen on benches, in murmurs.",
+      "ambientPool": [
+        "An elven Vellum, in town for a paper contract, sits on a colonnade bench writing rather than speaking.",
+        "A Cataloguer accepts a bundle from a foreign messenger, weighs it, signs a receipt, and returns to their work.",
+        "A bell sounds once across the courtyard; nobody changes what they were doing.",
+        "A Marginal walks past with a folio under one arm, reading. They will reach a wall before they look up."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-cataloguers-quadrangle", "narrative": "Inward through the colonnade to the Cataloguers' quadrangle." },
+        { "verb": "go", "toRoomId": "the-paper-yards", "narrative": "Outward to the paper-clay yards beyond the city." }
+      ]
+    },
+    {
+      "id": "the-cataloguers-quadrangle",
+      "displayName": "The Cataloguers' Quadrangle",
+      "summary": "The second square, smaller and quieter. Cataloguers work at low long tables sorting slips into the orcish nested catalog system. Speech is rare; what speech happens is short.",
+      "ambientPool": [
+        "A long table of slips. A Cataloguer reads three, moves them one position, satisfied.",
+        "Two Cataloguers exchange a folio with one nod.",
+        "A junior Cataloguer of nineteen, in the year before they decide whether to take the Hush-reader vow, sits at the edge and watches.",
+        "The colonnade pillars are inscribed with the catalog system's first rule, which contradicts itself in a useful way."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-outer-quadrangle", "narrative": "Outward to the receiving quadrangle." },
+        { "verb": "go", "toRoomId": "the-marginalia-quadrangle", "narrative": "Inward to the Marginals' quadrangle." }
+      ]
+    },
+    {
+      "id": "the-marginalia-quadrangle",
+      "displayName": "The Marginalia Quadrangle",
+      "summary": "The third square. Marginals' working ground. They write commentary in the margins of books, then commentary on commentary, then sometimes a third layer. Long-running arguments are conducted here over years.",
+      "ambientPool": [
+        "A Marginal of seventy-something writes carefully into the margin of a book that has eight previous Marginals' annotations.",
+        "Two Marginals sit across a small table reading the same page, occasionally pointing.",
+        "A bound folio of pure marginalia — no original text — rests on a stand. It is its own argument.",
+        "Quill-rustle is the only sound."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-cataloguers-quadrangle", "narrative": "Outward to the Cataloguers' quadrangle." },
+        { "verb": "go", "toRoomId": "the-hush-room", "narrative": "Inward through a low arch to the silent reading-room. You will be expected to write rather than speak." }
+      ]
+    },
+    {
+      "id": "the-hush-room",
+      "displayName": "The Hush Room",
+      "summary": "The innermost square. The silent reading-room of the Hush-readers. Speech here is not so much forbidden as impossible — the silence is structural, the air itself has been arranged to absorb sound. Communication is by marginalia.",
+      "ambientPool": [
+        "A Hush-reader of forty-something turns a page with no sound.",
+        "Another Hush-reader writes a single careful word into a margin and slides the book across the table.",
+        "The first Hush-reader reads it, considers, writes a single careful word back.",
+        "The light here comes from very high windows. The air does not move."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-marginalia-quadrangle", "narrative": "Outward through the low arch back to the Marginals' quadrangle." }
+      ]
+    },
+    {
+      "id": "the-paper-yards",
+      "displayName": "The Paper Yards",
+      "summary": "Outside the city walls. Paper-clay vats, drying frames, and the orcish papermakers themselves — the only orcs who work at volume and visible speed.",
+      "ambientPool": [
+        "A papermaker pulls a sheet from a vat with one easy motion.",
+        "Drying frames stand in long rows; the wind across the plateau does the work.",
+        "A wagon arrives from Cataract Mile loaded with reeds for paper-fiber.",
+        "The papermakers speak loudly to each other — the only orcs you will hear at conversational volume."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-outer-quadrangle", "narrative": "Back into the city, through the outer quadrangle." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "pageclay",
+    "ink-onyx",
+    "inkwort",
+    "reed-paper",
+    "marginal-folio",
+    "vow-poppy"
+  ]
+}

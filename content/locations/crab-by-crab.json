@@ -1,0 +1,55 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Second town SW, between Briny Bell and the Coral Anchorage. A fishing port whose entire export is crabs — every variety of edible crab found along this coast. Locals can identify any crab by the angle of its claw alone. The town's strange name comes from the way buyers ask for them: 'a crab here, a crab there', listing each by name. Halfling Salt-keepers visit weekly to provision the dawn-meals."
+  },
+  "id": "crab-by-crab",
+  "displayName": "Crab-by-Crab",
+  "tagline": "Every species of crab on the coast. Ask by name; they'll know which.",
+  "ambientPool": [
+    "A row of stone pots simmers with three different crab broths.",
+    "A fisher of seventy looks at a crab in their hand and tells you what beach it came from.",
+    "Halfling Salt-keepers move methodically through the market, naming what they want.",
+    "The smell is sea-salt and bay-leaf and something sweet underneath."
+  ],
+  "entryRoomId": "the-crab-pier",
+  "rooms": [
+    {
+      "id": "the-crab-pier",
+      "displayName": "The Crab Pier",
+      "summary": "Long fishing pier with the day's catch sorted into named tubs along the side. Each tub holds a single species. The signs are repainted weekly so the tourists can keep up.",
+      "ambientPool": [
+        "A fisher empties a pot of small green crabs into a tub and updates the chalk count.",
+        "A halfling Salt-keeper points to three tubs in succession and a price is named for each.",
+        "An apprentice fisher tries to identify a crab by claw and is corrected affectionately.",
+        "Sea-spray on the pier; the wood is dark with it."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-broth-row", "narrative": "Up to the broth row where the boiled crabs are sold ready to eat." }
+      ]
+    },
+    {
+      "id": "the-broth-row",
+      "displayName": "The Broth Row",
+      "summary": "A line of street-side stone pots over low fires, each with a different broth. Locals know which pot is which crab. Visitors are gently steered to the friendliest broth first.",
+      "ambientPool": [
+        "A broth-master dips a ladle and tastes carefully — a strange habit; they have done it five thousand times.",
+        "A traveler is handed a wooden bowl of orange-shelled crab broth and a single bay leaf floating on top.",
+        "Two children sit on the pier-edge eating crab and ranking the broths by tiny shouts.",
+        "A halfling Salt-keeper sits down for one bowl — they break the dawn-meal rule for this only."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-crab-pier", "narrative": "Back down to the pier." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "green-claw-crab",
+    "blue-back-crab",
+    "sand-runner-crab",
+    "broth-bay-leaf",
+    "salt-block"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Second town SE, between Furrowmouth and Threadwarden. The rope-makers' town. The Furrow widens into a long shallow basin here; flax for rope-fiber grows along the banks. Knot's Landing supplies most of the rigging used by the halfling navy via long barge-trains down to Caelum and out to the Coral Anchorage. The town is named for a single iconic knot the rope-masters can tie blindfolded."
+  },
+  "id": "knots-landing",
+  "displayName": "Knot's Landing",
+  "tagline": "Where the rope is made. Watch your fingers.",
+  "ambientPool": [
+    "Long ropewalk pavilions stretch parallel to the river; the rope-makers walk backward as they work.",
+    "A halfling Drowncaller has come up from the coast to inspect a shipment in person.",
+    "Flax is laid out on the bank to ret in the slow current.",
+    "A child practices the town's namesake knot on a piece of scrap, again and again."
+  ],
+  "entryRoomId": "the-ropewalk",
+  "rooms": [
+    {
+      "id": "the-ropewalk",
+      "displayName": "The Ropewalk",
+      "summary": "A long open-sided pavilion, two hundred yards long, with rope-makers walking the length backwards as the rope twists between them. The structure is the most distinctive in the town.",
+      "ambientPool": [
+        "A rope-maker walks the full length of the walk without looking down — they have done this since they were twelve.",
+        "Two strands meet and are spliced; the splicer hums a tune that has only one repeating bar.",
+        "An apprentice ties the namesake knot for the eleventh time today and is corrected, gently.",
+        "The wind down the walk is steady; it helps the rope lay even."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-flax-bank", "narrative": "Out to the riverbank where the flax retting beds are." },
+        { "verb": "go", "toRoomId": "the-coil-yard", "narrative": "To the coil yard where finished rope is stacked for shipment." }
+      ]
+    },
+    {
+      "id": "the-flax-bank",
+      "displayName": "The Flax Bank",
+      "summary": "Riverbank where flax is laid out to ret — soaked in slow water until the fiber loosens from the stem. Smells faintly fermented; the rope-makers find it comforting.",
+      "ambientPool": [
+        "A worker checks a bed of retting flax by feel, satisfied with the give.",
+        "An older rope-maker sits on a stump watching the river — they have worked the walk for forty years; they are taking a longer break than usual.",
+        "Wading birds pick at insects along the bank.",
+        "The river moves just fast enough to do the work and no faster."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-ropewalk", "narrative": "Back to the ropewalk." }
+      ]
+    },
+    {
+      "id": "the-coil-yard",
+      "displayName": "The Coil Yard",
+      "summary": "Open yard at the river end of the ropewalk. Finished rope is coiled and stacked, awaiting barge-pickup. The halfling Drowncaller inspects every coil personally before signing the manifest.",
+      "ambientPool": [
+        "A halfling Drowncaller flexes a coil to feel the lay; they nod and move to the next.",
+        "A coiler ties off a finished length with the namesake knot — the master will check it later.",
+        "Two barge-masters wait by their boats, smoking quietly, watching the inspection without comment.",
+        "A heavy stamp comes down on a finished bill: SHIPPED."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-ropewalk", "narrative": "Back to the ropewalk." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "river-flax",
+    "saltcord-rope",
+    "wood-pine",
+    "knot-stamp-clay"
+  ]
+}

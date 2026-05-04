@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Second town up the northern road, just below Highfield itself. Apothecary town. The cloudtea bushes grow most densely here and the locals have learned to dry the leaves on bone-frame racks in the steady cold wind. Coldspoon also extracts a clear blue tincture from cloudtea ('cloud-bitters') that orcish Hush-readers buy by the case."
+  },
+  "id": "coldspoon",
+  "displayName": "Coldspoon",
+  "tagline": "An apothecary town in the cold wind. The cloudtea grows wild here.",
+  "ambientPool": [
+    "Drying racks line the south slope, bone-frames hung with cloudtea leaves.",
+    "An apothecary measures a tincture by drops with a polished bone spoon.",
+    "Two mule-guides from Three Notches deliver a fresh load of cider casks to be aged at altitude.",
+    "The wind here is cold enough that the locals all wear at least three layers; foreigners are obvious."
+  ],
+  "entryRoomId": "the-drying-slope",
+  "rooms": [
+    {
+      "id": "the-drying-slope",
+      "displayName": "The Drying Slope",
+      "summary": "South-facing slope covered in bone-frame drying racks. The wind does most of the work; the apothecaries only turn the leaves twice a day. The smell is faintly bitter, faintly sweet, and stays in your hair afterward.",
+      "ambientPool": [
+        "An apothecary's apprentice turns a frame of leaves with a wooden paddle and counts under their breath.",
+        "A flock of high-altitude songbirds passes; nobody pauses for them.",
+        "A leaf falls from a rack and is retrieved by a child who has been waiting for one.",
+        "The wind is cold even with the sun on your back."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-tincture-room", "narrative": "Into the open-fronted tincture room where the cloud-bitters are made." }
+      ]
+    },
+    {
+      "id": "the-tincture-room",
+      "displayName": "The Tincture Room",
+      "summary": "Open-fronted room — three walls and a roof, the south wall absent. Long benches of small jars catching drops from suspended cloth filters. The clear blue cloud-bitters condenses slowly; one master can produce a single full bottle in a day.",
+      "ambientPool": [
+        "A master apothecary changes a filter without spilling a drop.",
+        "A delivery from the Long Indices is logged: six bottles ordered, six bottles ready.",
+        "An apprentice tastes a fresh batch on the back of their hand and nods, satisfied.",
+        "The light through the open south wall makes the bottles glow."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-drying-slope", "narrative": "Back out to the drying slope." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "cloudtea-leaf",
+    "cloud-bitters",
+    "wild-bone-frame",
+    "summit-amber"
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "First town west of Caelum, on the road to the Long Indices. A river-mile of cataracts (the source of the river Indice) drives a row of paper-mills — the Cataract Mile mills produce nearly all of the paper-fiber the orcish papermakers use. The town's noise is constant water; the mill-workers communicate in hand-signs."
+  },
+  "id": "cataract-mile",
+  "displayName": "Cataract Mile",
+  "tagline": "A mile of waterfalls turning a row of paper-mills. Don't try to talk over it.",
+  "ambientPool": [
+    "The roar of falling water never quite recedes.",
+    "A mill-worker signs to another across the courtyard — a question, an answer, a laugh in three motions.",
+    "Pulped reed slurry drips off a freshly pressed sheet.",
+    "An orcish wagon waits at the gate; the load will go to the Long Indices by dawn."
+  ],
+  "entryRoomId": "the-mill-courtyard",
+  "rooms": [
+    {
+      "id": "the-mill-courtyard",
+      "displayName": "The Mill Courtyard",
+      "summary": "Stone courtyard at the head of the mile. The first mill's wheel turns visibly through an arch in the back wall. Carts wait for loads; signers move between them.",
+      "ambientPool": [
+        "A signer relays a count from the loading dock to the mill-master in five quick gestures.",
+        "An orcish customer reads a contract in the relative quiet of a covered alcove.",
+        "A child practices the sign for 'two hundred' over and over.",
+        "The water never lets up. You stop noticing it after an hour. Then you notice it again at sundown."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-pulp-floor", "narrative": "Through the back arch onto the pulp floor where the slurry is made." },
+        { "verb": "go", "toRoomId": "the-drying-loft", "narrative": "Up the wooden stair to the drying loft where the sheets cure." }
+      ]
+    },
+    {
+      "id": "the-pulp-floor",
+      "displayName": "The Pulp Floor",
+      "summary": "Long stone-floored hall under the mill wheels. Reed-fiber from Tallowfen and tallow-fen reed-pulp from upriver are mixed here in great vats. Wet, warm, loud.",
+      "ambientPool": [
+        "A vat is stirred with a paddle as long as a person.",
+        "Two pulpers compare a handful of slurry without speaking — one nods, the other adds water.",
+        "A mill-master taps a bench with one knuckle; everyone within sight knows what it means.",
+        "The wheel's rhythm rules the floor."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-mill-courtyard", "narrative": "Back to the courtyard." }
+      ]
+    },
+    {
+      "id": "the-drying-loft",
+      "displayName": "The Drying Loft",
+      "summary": "Wooden loft above the mill where pressed sheets dry on slatted racks. Quieter than the floor — the wheel-noise dampens through the floorboards.",
+      "ambientPool": [
+        "An apprentice turns a sheet on its rack with a careful gloved hand.",
+        "An orcish Shelver inspects a finished bundle and nods without speaking.",
+        "The light through the slats falls in stripes across the racks.",
+        "A signer pokes their head up from below to ask a question; the loft replies in sign and goes back to work."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-mill-courtyard", "narrative": "Back down to the courtyard." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "river-reed",
+    "reed-paper",
+    "mill-wood-oak",
+    "wash-river-reed"
+  ]
+}

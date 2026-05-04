@@ -200,6 +200,534 @@
       "baseValue": 5,
       "rarity": "common",
       "tags": ["wood", "crafted"]
+    },
+
+    {
+      "id": "estuary-pearl",
+      "name": "estuary pearl",
+      "description": "Small irregular pearl from the freshwater mussels at the river's mouth. Cloudy lustre; not a luxury good but a recognized currency in Caelum's pidgin markets.",
+      "category": "resource",
+      "baseValue": 22,
+      "rarity": "uncommon",
+      "tags": ["pearl", "gem", "river"],
+      "sourceLocations": ["caelum-by-the-wash"]
+    },
+    {
+      "id": "tidewater-pearl",
+      "name": "tidewater pearl",
+      "description": "Brackish-water pearl with faint blue undertone. The Saltgale wholesalers trade them by the dozen.",
+      "category": "resource",
+      "baseValue": 28,
+      "rarity": "uncommon",
+      "tags": ["pearl", "gem", "tidal"],
+      "sourceLocations": ["saltgale", "mudmoth", "briny-bell"]
+    },
+    {
+      "id": "wash-river-reed",
+      "name": "Wash river reed",
+      "description": "Long-stemmed estuary reed, mixed-water tolerant. The base fiber for Caelum's pidgin paper.",
+      "category": "resource",
+      "baseValue": 3,
+      "rarity": "common",
+      "tags": ["plant", "fiber", "river"],
+      "sourceLocations": ["caelum-by-the-wash", "cataract-mile"]
+    },
+    {
+      "id": "river-reed",
+      "name": "river reed",
+      "description": "Common fresh-water reed used for paper-fiber and basket-weaving alike.",
+      "category": "resource",
+      "baseValue": 2,
+      "rarity": "common",
+      "tags": ["plant", "fiber", "river"],
+      "sourceLocations": ["cataract-mile", "furrowmouth"]
+    },
+    {
+      "id": "metropolis-pidgin-paper",
+      "name": "pidgin paper",
+      "description": "Coarser than orcish paper, thicker, takes ink unevenly. The Caelum markets use it because nobody trusts a pristine sheet for a verbal deal.",
+      "category": "resource",
+      "baseValue": 4,
+      "rarity": "common",
+      "tags": ["paper", "crafted"],
+      "sourceLocations": ["caelum-by-the-wash"]
+    },
+
+    {
+      "id": "loom-iron",
+      "name": "loom iron",
+      "description": "A soft iron the Coldhammers cast specifically for loom-weights. Rings differently from forge iron; the Threadwardens know which is which by sound alone.",
+      "category": "resource",
+      "baseValue": 9,
+      "rarity": "uncommon",
+      "tags": ["metal", "iron", "crafted"],
+      "sourceLocations": ["threadwarden"]
+    },
+    {
+      "id": "cold-forged-blade",
+      "name": "cold-forged blade",
+      "description": "A small knife or shaving blade hammered cold in the Threadwarden humid air. Edge holds for an unfair length of time; smiths elsewhere have tried and failed to replicate.",
+      "category": "resource",
+      "baseValue": 35,
+      "rarity": "rare",
+      "tags": ["metal", "crafted", "blade"],
+      "sourceLocations": ["threadwarden"]
+    },
+    {
+      "id": "furrow-grain",
+      "name": "furrow grain",
+      "description": "Generic single-strain human grain — wheat, barley, or rye depending on the farmer. Sold by the sack at the Furrowmouth market.",
+      "category": "resource",
+      "baseValue": 3,
+      "rarity": "common",
+      "tags": ["plant", "grain", "food"],
+      "sourceLocations": ["threadwarden", "furrowmouth"]
+    },
+    {
+      "id": "wheat-flour",
+      "name": "wheat flour",
+      "description": "Milled at Furrowmouth on Wheat Day and shipped while it's still the same week. Goes stale fast; the elven wholesalers know the dates.",
+      "category": "resource",
+      "baseValue": 5,
+      "rarity": "common",
+      "tags": ["plant", "grain", "food", "milled"],
+      "sourceLocations": ["furrowmouth"]
+    },
+    {
+      "id": "barley-malt",
+      "name": "barley malt",
+      "description": "Sprouted-and-dried barley. Trade good for distillers and bakers both. Furrowmouth ships it in waxed sacks.",
+      "category": "resource",
+      "baseValue": 6,
+      "rarity": "common",
+      "tags": ["plant", "grain", "food", "malted"],
+      "sourceLocations": ["furrowmouth"]
+    },
+    {
+      "id": "rye-meal",
+      "name": "rye meal",
+      "description": "Coarse rye flour. Heavier and more sustaining than wheat. Furrowmouth's Rye Day is the noisiest of the three.",
+      "category": "resource",
+      "baseValue": 4,
+      "rarity": "common",
+      "tags": ["plant", "grain", "food"],
+      "sourceLocations": ["furrowmouth"]
+    },
+    {
+      "id": "named-cloth-late-october",
+      "name": "Late October (named cloth)",
+      "description": "A Threadwarden bolt named for the light it catches. Each named cloth is unique; the master who wove it dies, the name retires.",
+      "category": "resource",
+      "baseValue": 90,
+      "rarity": "rare",
+      "tags": ["cloth", "crafted", "named"],
+      "sourceLocations": ["threadwarden"]
+    },
+
+    {
+      "id": "estuary-mud",
+      "name": "estuary mud",
+      "description": "Iron-tasting tidal silt. Raw material for mudglass and a usable wattle clay in a pinch.",
+      "category": "resource",
+      "baseValue": 1,
+      "rarity": "common",
+      "tags": ["earth", "raw"],
+      "sourceLocations": ["saltgale", "mudmoth"]
+    },
+    {
+      "id": "mudglass-prism",
+      "name": "mudglass prism",
+      "description": "Estuary mud kiln-fired into translucent prismatic plates. The elven counting houses use it for window glazing; the light through it is famously honest.",
+      "category": "resource",
+      "baseValue": 40,
+      "rarity": "uncommon",
+      "tags": ["glass", "crafted", "elven"],
+      "sourceLocations": ["saltgale"]
+    },
+    {
+      "id": "saltgrass",
+      "name": "saltgrass",
+      "description": "Tough mudflat grass; the elven Salt-folk use it for thatching their pontoon roofs.",
+      "category": "resource",
+      "baseValue": 1,
+      "rarity": "common",
+      "tags": ["plant", "fiber", "tidal"],
+      "sourceLocations": ["saltgale", "mudmoth", "tallowfen"]
+    },
+    {
+      "id": "vellum-saltgale",
+      "name": "Saltgale vellum",
+      "description": "Smooth, unwrinkled writing surface — the elven Vellum prefer it for contracts. Holds ink without bleeding.",
+      "category": "resource",
+      "baseValue": 14,
+      "rarity": "uncommon",
+      "tags": ["paper", "crafted", "elven"],
+      "sourceLocations": ["saltgale"]
+    },
+    {
+      "id": "glow-fly-egg",
+      "name": "glow-fly egg",
+      "description": "Tiny phosphorescent egg laid in tidal mud at Mudmoth. Used as a marker dye in mudglass firing — three eggs per kiln.",
+      "category": "resource",
+      "baseValue": 12,
+      "rarity": "uncommon",
+      "tags": ["animal", "dye", "phosphorescent"],
+      "sourceLocations": ["mudmoth"]
+    },
+    {
+      "id": "tallow-reed",
+      "name": "tallow reed",
+      "description": "Wax-fibered reed grown chest-high in the Tallowfen brackish marsh. The unrendered fiber smells faintly of bay.",
+      "category": "resource",
+      "baseValue": 2,
+      "rarity": "common",
+      "tags": ["plant", "fiber", "wax"],
+      "sourceLocations": ["tallowfen"]
+    },
+    {
+      "id": "tallow-wax",
+      "name": "tallow wax",
+      "description": "Clean-burning candle wax rendered from tallow-reed fiber. Burns without smoke; the elven counting houses use nothing else.",
+      "category": "resource",
+      "baseValue": 11,
+      "rarity": "uncommon",
+      "tags": ["wax", "fuel", "crafted"],
+      "sourceLocations": ["tallowfen"]
+    },
+    {
+      "id": "fen-iron-bog",
+      "name": "fen bog-iron",
+      "description": "Iron deposits forming naturally in the Tallowfen wetland. Soft, easily worked, stains everything orange. The cold-forge smiths refuse it; the loom-weight casters love it.",
+      "category": "resource",
+      "baseValue": 5,
+      "rarity": "common",
+      "tags": ["metal", "iron", "ore"],
+      "sourceLocations": ["tallowfen"]
+    },
+
+    {
+      "id": "cloudtin-ore",
+      "name": "cloudtin ore",
+      "description": "Surface-deposit tin found above the cloudline. The dwarves disapprove of mining it on principle, but they tolerate gathering loose surface ore — the line is fine and very Highfield-ish.",
+      "category": "resource",
+      "baseValue": 14,
+      "rarity": "uncommon",
+      "tags": ["metal", "tin", "ore", "highland"],
+      "sourceLocations": ["highfield-ascending"]
+    },
+    {
+      "id": "summit-amber",
+      "name": "summit amber",
+      "description": "Pale-yellow tree-resin amber from the highest orchard terraces. Sometimes contains a perfectly preserved Skybeam pollination bee.",
+      "category": "resource",
+      "baseValue": 30,
+      "rarity": "uncommon",
+      "tags": ["gem", "amber", "highland"],
+      "sourceLocations": ["highfield-ascending", "coldspoon"]
+    },
+    {
+      "id": "cloudtea-leaf",
+      "name": "cloudtea leaf",
+      "description": "Pale grey-green leaf from the cloudtea bushes that grow only above the cloudline. Brews bitter, then sweet, then bitter again.",
+      "category": "resource",
+      "baseValue": 4,
+      "rarity": "common",
+      "tags": ["plant", "herb", "drink"],
+      "sourceLocations": ["highfield-ascending", "three-notches", "coldspoon"]
+    },
+    {
+      "id": "cloud-bitters",
+      "name": "cloud-bitters",
+      "description": "Clear blue tincture of cloudtea, painstakingly drop-distilled. The orcish Hush-readers take a single drop on the tongue at the start of each long reading session.",
+      "category": "resource",
+      "baseValue": 60,
+      "rarity": "rare",
+      "tags": ["herb", "tincture", "crafted"],
+      "sourceLocations": ["coldspoon"]
+    },
+    {
+      "id": "wild-bone-frame",
+      "name": "wild-bone drying frame",
+      "description": "A drying rack made from goat-bone and wire. The cloudtea is laid across the bones to take up subtle minerals as it dries.",
+      "category": "resource",
+      "baseValue": 8,
+      "rarity": "common",
+      "tags": ["bone", "crafted"],
+      "sourceLocations": ["coldspoon"]
+    },
+    {
+      "id": "whitestar-apple",
+      "name": "Whitestar apple",
+      "description": "A heritage apple grown by a single Topgrove lineage for nine generations. White-fleshed, low-sugar, faintly metallic. Slices into perfect five-pointed stars.",
+      "category": "resource",
+      "baseValue": 7,
+      "rarity": "uncommon",
+      "tags": ["plant", "fruit", "highland"],
+      "sourceLocations": ["highfield-ascending"]
+    },
+    {
+      "id": "greybark-pear",
+      "name": "Greybark pear",
+      "description": "Small grey-skinned pear from the middle terraces. Tougher than its appearance suggests; ages well in storage.",
+      "category": "resource",
+      "baseValue": 5,
+      "rarity": "common",
+      "tags": ["plant", "fruit", "highland"],
+      "sourceLocations": ["highfield-ascending"]
+    },
+    {
+      "id": "whitebark-cider",
+      "name": "Whitebark cider",
+      "description": "Birch-cask aged cider. The dwarven drink. Sells in Caelum at three times the local price.",
+      "category": "resource",
+      "baseValue": 18,
+      "rarity": "uncommon",
+      "tags": ["drink", "crafted", "dwarven"],
+      "sourceLocations": ["highfield-ascending"]
+    },
+    {
+      "id": "skybeam-bone-tool",
+      "name": "skybeam bone tool",
+      "description": "A long-handled bone tool used to thread pollination kites. Carved from a single piece of mountain-goat femur.",
+      "category": "resource",
+      "baseValue": 9,
+      "rarity": "common",
+      "tags": ["bone", "crafted", "highland"],
+      "sourceLocations": ["highfield-ascending"]
+    },
+    {
+      "id": "switchback-quartz",
+      "name": "switchback quartz",
+      "description": "Clear quartz fragments common in the rubble of the northern switchback pass. Travelers pick them up as good-luck tokens.",
+      "category": "resource",
+      "baseValue": 6,
+      "rarity": "common",
+      "tags": ["gem", "crystal", "highland"],
+      "sourceLocations": ["three-notches"]
+    },
+    {
+      "id": "mule-tail-bone",
+      "name": "mule-tail bone",
+      "description": "Slim vertebrae from the climbing mules of Three Notches, kept and traded as luck-charms by the guides who survived a hard climb.",
+      "category": "resource",
+      "baseValue": 4,
+      "rarity": "common",
+      "tags": ["bone", "animal", "highland"],
+      "sourceLocations": ["three-notches"]
+    },
+
+    {
+      "id": "coralwhite-aragonite",
+      "name": "coralwhite aragonite",
+      "description": "Dead-coral aragonite, harvested from the Anchorage's lower reef-shelves. Carves like ivory and is harder than it looks.",
+      "category": "resource",
+      "baseValue": 16,
+      "rarity": "uncommon",
+      "tags": ["mineral", "coral", "halfling"],
+      "sourceLocations": ["the-coral-anchorage"]
+    },
+    {
+      "id": "reef-iridium",
+      "name": "reef iridium",
+      "description": "A rare iridescent metal found in trace seams along the dead-coral reef. The halflings collect it patiently and trade it expensively.",
+      "category": "resource",
+      "baseValue": 80,
+      "rarity": "rare",
+      "tags": ["metal", "gem", "iridescent", "halfling"],
+      "sourceLocations": ["the-coral-anchorage"]
+    },
+    {
+      "id": "coral-kelp",
+      "name": "coral kelp",
+      "description": "Kelp species that grows only on living coral, harvested by halflings without cutting the host. Edible after a long boil; essential to the salt-cured fish recipe.",
+      "category": "resource",
+      "baseValue": 5,
+      "rarity": "common",
+      "tags": ["plant", "kelp", "food", "halfling"],
+      "sourceLocations": ["the-coral-anchorage"]
+    },
+    {
+      "id": "salt-cured-fish",
+      "name": "salt-cured fish",
+      "description": "The halfling provisioner staple — fish dried in coral-salt brine. Keeps for months; one fish is one halfling's dawn-meal.",
+      "category": "resource",
+      "baseValue": 8,
+      "rarity": "common",
+      "tags": ["food", "fish", "crafted", "halfling"],
+      "sourceLocations": ["the-coral-anchorage"]
+    },
+    {
+      "id": "saltcord-rope",
+      "name": "saltcord rope",
+      "description": "Knot's Landing flax-rope, salt-cured in the halfling Anchorage's brine. The standard naval rigging across the coast.",
+      "category": "resource",
+      "baseValue": 12,
+      "rarity": "common",
+      "tags": ["rope", "fiber", "crafted"],
+      "sourceLocations": ["knots-landing", "the-coral-anchorage", "briny-bell"]
+    },
+    {
+      "id": "drowncaller-flag-cloth",
+      "name": "Drowncaller flag cloth",
+      "description": "Heavy waxed canvas in the halfling colors. Made for the freelance navy's signal flags; the wax keeps it readable in any weather.",
+      "category": "resource",
+      "baseValue": 25,
+      "rarity": "uncommon",
+      "tags": ["cloth", "crafted", "halfling"],
+      "sourceLocations": ["the-coral-anchorage"]
+    },
+
+    {
+      "id": "pageclay",
+      "name": "pageclay",
+      "description": "Soft white clay from the high-desert plateau, mixed into orcish paper-pulp for clarity and weight. The Long Indices' signature paper depends on it.",
+      "category": "resource",
+      "baseValue": 6,
+      "rarity": "common",
+      "tags": ["earth", "clay", "orcish"],
+      "sourceLocations": ["the-long-indices"]
+    },
+    {
+      "id": "ink-onyx",
+      "name": "ink onyx",
+      "description": "Black onyx with veins so dark they swallow light. Ground into the orcish ink that doesn't fade in archive conditions.",
+      "category": "resource",
+      "baseValue": 45,
+      "rarity": "rare",
+      "tags": ["gem", "stone", "ink", "orcish"],
+      "sourceLocations": ["the-long-indices", "quietmile"]
+    },
+    {
+      "id": "inkwort",
+      "name": "inkwort",
+      "description": "Plateau plant with deep purple sap. Pressed into the orcish ink for the dye component. Stains hands for a week.",
+      "category": "resource",
+      "baseValue": 3,
+      "rarity": "common",
+      "tags": ["plant", "herb", "dye", "orcish"],
+      "sourceLocations": ["the-long-indices"]
+    },
+    {
+      "id": "reed-paper",
+      "name": "reed paper",
+      "description": "The orcish writing standard. Reed-fiber + pageclay + a slow press. Holds ink without bleeding for a century.",
+      "category": "resource",
+      "baseValue": 9,
+      "rarity": "common",
+      "tags": ["paper", "crafted", "orcish"],
+      "sourceLocations": ["the-long-indices", "cataract-mile"]
+    },
+    {
+      "id": "marginal-folio",
+      "name": "Marginal folio",
+      "description": "A bound folio of pure marginalia — annotation upon annotation, no original text. The orcish answer to philosophy in book form.",
+      "category": "resource",
+      "baseValue": 65,
+      "rarity": "rare",
+      "tags": ["paper", "book", "crafted", "orcish"],
+      "sourceLocations": ["the-long-indices"]
+    },
+    {
+      "id": "vow-poppy",
+      "name": "vow poppy",
+      "description": "White poppy grown in the Quietmile fields. Petals dried and shipped to the Long Indices for ink-binding; the poppy itself is mildly soporific.",
+      "category": "resource",
+      "baseValue": 5,
+      "rarity": "common",
+      "tags": ["plant", "herb", "soporific"],
+      "sourceLocations": ["quietmile"]
+    },
+    {
+      "id": "vow-petal-silk",
+      "name": "vow-petal silk",
+      "description": "A silken textile derived from layered vow-poppy petals. Used in orcish bookbinding for the very oldest restorations.",
+      "category": "resource",
+      "baseValue": 28,
+      "rarity": "uncommon",
+      "tags": ["cloth", "crafted", "silk"],
+      "sourceLocations": ["quietmile"]
+    },
+
+    {
+      "id": "river-flax",
+      "name": "river flax",
+      "description": "Flax retted in the slow Furrow waters. The Knot's Landing rope-makers won't use any other source.",
+      "category": "resource",
+      "baseValue": 3,
+      "rarity": "common",
+      "tags": ["plant", "fiber"],
+      "sourceLocations": ["knots-landing"]
+    },
+    {
+      "id": "knot-stamp-clay",
+      "name": "knot-stamp clay",
+      "description": "Riverbank clay used for the Knot's Landing rope-stamps. Picks up the namesake knot's pattern in a single press.",
+      "category": "resource",
+      "baseValue": 2,
+      "rarity": "common",
+      "tags": ["earth", "clay"],
+      "sourceLocations": ["knots-landing"]
+    },
+    {
+      "id": "bell-bronze",
+      "name": "bell bronze",
+      "description": "Briny Bell's local bronze alloy. Higher tin content than usual; the bells ring at a frequency that carries over wind and water.",
+      "category": "resource",
+      "baseValue": 22,
+      "rarity": "uncommon",
+      "tags": ["metal", "bronze", "alloy"],
+      "sourceLocations": ["briny-bell"]
+    },
+    {
+      "id": "mill-wood-oak",
+      "name": "mill-wood oak",
+      "description": "Oak cut and aged for mill-wheel construction at Cataract Mile. Specifically resistant to constant water exposure.",
+      "category": "resource",
+      "baseValue": 11,
+      "rarity": "uncommon",
+      "tags": ["wood", "oak", "crafted"],
+      "sourceLocations": ["cataract-mile"]
+    },
+
+    {
+      "id": "green-claw-crab",
+      "name": "green-claw crab",
+      "description": "Small green crab from the rocky stretches of coast near Crab-by-Crab. Sweet meat; identifiable by claw-angle alone.",
+      "category": "resource",
+      "baseValue": 4,
+      "rarity": "common",
+      "tags": ["animal", "crab", "food"],
+      "sourceLocations": ["crab-by-crab"]
+    },
+    {
+      "id": "blue-back-crab",
+      "name": "blue-back crab",
+      "description": "Mid-sized crab with a steel-blue carapace, found in deeper sand pools. Saltier than the green-claw; preferred by halfling salt-keepers.",
+      "category": "resource",
+      "baseValue": 6,
+      "rarity": "common",
+      "tags": ["animal", "crab", "food"],
+      "sourceLocations": ["crab-by-crab"]
+    },
+    {
+      "id": "sand-runner-crab",
+      "name": "sand-runner crab",
+      "description": "Long-legged sand crab, fastest on the open beach. The fishers chase them with low nets at first light.",
+      "category": "resource",
+      "baseValue": 5,
+      "rarity": "common",
+      "tags": ["animal", "crab", "food"],
+      "sourceLocations": ["crab-by-crab"]
+    },
+    {
+      "id": "broth-bay-leaf",
+      "name": "broth bay-leaf",
+      "description": "The single bay-leaf floated on every Crab-by-Crab broth bowl. Local-grown, not the Saltgale variety.",
+      "category": "resource",
+      "baseValue": 2,
+      "rarity": "common",
+      "tags": ["plant", "herb", "food"],
+      "sourceLocations": ["crab-by-crab"]
     }
   ]
 }
