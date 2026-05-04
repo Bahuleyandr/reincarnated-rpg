@@ -1,0 +1,105 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Five regional festivals — one per spoke. Date triggers fire on UTC date matches; the world calendar (lib/story/calendar) consults this file to inject festival prompts into runs that take place in the relevant region during the festival window. Phase-9 expansion."
+  },
+  "festivals": [
+    {
+      "id": "first-frost",
+      "displayName": "First Frost",
+      "region": "highfield-ascending",
+      "raceId": "dwarven",
+      "summary": "the first morning the cloudtea bushes wake with frost on their leaves. the Whitebark families bring out their last-cellar cider; the Topgroves taste-test next year's plantings.",
+      "trigger": {
+        "type": "annual-window",
+        "startMonthDay": "11-15",
+        "endMonthDay": "11-22",
+        "appliesToLocations": ["highfield-ascending", "three-notches", "coldspoon"]
+      },
+      "narratorPromptFragment": "It is First Frost in Highfield. The cloudtea is freshly bitten by overnight cold; cider is poured at every terrace. Local NPCs are kinder than usual to outsiders today. Weave the festival into ambient detail.",
+      "ambient": [
+        "A Whitebark family pours a year-old cider at the terrace edge.",
+        "The frost on a single cloudtea leaf catches the morning light.",
+        "A Gust-watcher pauses their measurement to taste."
+      ]
+    },
+    {
+      "id": "the-audit",
+      "displayName": "The Audit",
+      "region": "saltgale",
+      "raceId": "elven",
+      "summary": "one day a year all elven contracts are publicly read in the Pontoon Mile. The act drops, briefly. After sundown it goes back up, unchanged.",
+      "trigger": {
+        "type": "annual-window",
+        "startMonthDay": "06-21",
+        "endMonthDay": "06-21",
+        "appliesToLocations": ["saltgale", "mudmoth", "tallowfen"]
+      },
+      "narratorPromptFragment": "It is The Audit in Saltgale. Elven NPCs today drop the act and speak in their off-act voice — terse, profane, kind only after they decide. Contracts are read aloud in the Pontoon Mile.",
+      "ambient": [
+        "A Branchman reads a contract aloud in the open street; a competitor quietly takes notes.",
+        "A Vellum hands a sealed document to a clerk and walks away without it.",
+        "Salt-folk wholesalers laugh too loud — they are enjoying this."
+      ]
+    },
+    {
+      "id": "marginalia-day",
+      "displayName": "Marginalia Day",
+      "region": "the-long-indices",
+      "raceId": "orcish",
+      "summary": "the only day Hush-readers may speak. They don't. The other orcs honor the silence by writing more than usual.",
+      "trigger": {
+        "type": "annual-window",
+        "startMonthDay": "03-15",
+        "endMonthDay": "03-15",
+        "appliesToLocations": ["the-long-indices", "cataract-mile", "quietmile"]
+      },
+      "narratorPromptFragment": "It is Marginalia Day in the Long Indices. The Hush-readers' silence is voluntary today, which makes it heavier. Ambient prose should foreground the writing — hands pause over folios, marginalia accrue across the room.",
+      "ambient": [
+        "A Hush-reader holds a quill and does not put it to paper for a long time.",
+        "A Cataloguer's slip-pile grows by one for every hour without a word.",
+        "Three Marginals meet around a single folio and write across each other."
+      ]
+    },
+    {
+      "id": "naming-day",
+      "displayName": "Naming Day",
+      "region": "threadwarden",
+      "raceId": "human",
+      "summary": "each new master names their first solo bolt of cloth. The names are inscribed in the loom-square's cloth-name register, never to repeat.",
+      "trigger": {
+        "type": "annual-window",
+        "startMonthDay": "09-01",
+        "endMonthDay": "09-07",
+        "appliesToLocations": ["threadwarden", "furrowmouth", "knots-landing"]
+      },
+      "narratorPromptFragment": "It is Naming Day in Threadwarden. New masters are naming their first bolts; the loom-square is unusually crowded; the apprentices who will not become masters this year cry openly without being noticed.",
+      "ambient": [
+        "A new master writes 'Late October' into the cloth-name register and does not look up.",
+        "An apprentice whose name will not be added this year ties a thread very carefully.",
+        "Old masters watch from the colonnade and remember the names of their own bolts."
+      ]
+    },
+    {
+      "id": "tide-without-cause",
+      "displayName": "Tide Without Cause",
+      "region": "the-coral-anchorage",
+      "raceId": "halfling",
+      "summary": "by old halfling tradition, a tide that comes when the moon does not pull it. Drowncallers stand watch; nothing usually happens; the watch is the festival.",
+      "trigger": {
+        "type": "annual-window",
+        "startMonthDay": "08-08",
+        "endMonthDay": "08-08",
+        "appliesToLocations": ["the-coral-anchorage", "briny-bell", "crab-by-crab"]
+      },
+      "narratorPromptFragment": "It is Tide Without Cause at the Coral Anchorage. Drowncallers stand watch at the reef-edge. No fishing today; no contracts signed. The dawn-meal is doubled; afterward, only watching.",
+      "ambient": [
+        "A Drowncaller's salt-cured face is angled at the horizon and has not moved in an hour.",
+        "The dawn-meal galley is unusually full and unusually quiet.",
+        "A child of the Anchorage attends their first watch and tries not to fidget."
+      ]
+    }
+  ]
+}

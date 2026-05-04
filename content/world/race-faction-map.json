@@ -1,0 +1,88 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Race × faction interactions. The four factions (choristers / rust_hand / idle / forsaken) cross-cut the five races. This file maps which factions dominate which regions, where the tensions sit, and which sub-populations have unusual cross-cutting allegiances."
+  },
+  "regionalDominance": {
+    "highfield-ascending": {
+      "primary": "choristers",
+      "secondary": "idle",
+      "rationale": "the long song fits the dwarven sky-bound rhythm; cider tastings frame faction meetings."
+    },
+    "saltgale": {
+      "primary": "rust_hand",
+      "secondary": "choristers",
+      "rationale": "elven Branchmen finance Rust Hand iron contracts; the act is profitable on any side."
+    },
+    "the-coral-anchorage": {
+      "primary": "rust_hand",
+      "secondary": "forsaken",
+      "rationale": "the halfling navy moves Rust Hand iron up and down the coast; some captains are Forsaken in private."
+    },
+    "the-long-indices": {
+      "primary": "idle",
+      "secondary": "forsaken",
+      "rationale": "orcish reluctance to take sides reads as Idle; some Hush-readers retire into Forsaken silence."
+    },
+    "threadwarden": {
+      "primary": "choristers",
+      "secondary": "rust_hand",
+      "rationale": "Coldhammers ally with Rust Hand; weavers and Pageborn tend toward Choristers."
+    },
+    "caelum-by-the-wash": {
+      "primary": "mixed",
+      "secondary": "all",
+      "rationale": "the metropolis houses chapters of all four. faction tensions are negotiated in public houses near the Spoke Square."
+    }
+  },
+  "tensions": [
+    {
+      "id": "choristers-vs-forsaken",
+      "summary": "the Choristers sing; the Forsaken refuse to. Choristers consider this rude; the Forsaken consider it the point.",
+      "wherePalpable": ["caelum-by-the-wash", "the-long-indices"]
+    },
+    {
+      "id": "rust-hand-vs-dwarves",
+      "summary": "the Rust Hand traffics in iron; the dwarves consider mining deviant. Highfield Topgrove houses refuse to host Rust Hand emissaries.",
+      "wherePalpable": ["highfield-ascending", "three-notches"]
+    },
+    {
+      "id": "idle-vs-everyone",
+      "summary": "the Idle take no side, which everyone reads as a side. Quietmile is mostly Idle; nobody finds this restful.",
+      "wherePalpable": ["quietmile", "the-long-indices"]
+    },
+    {
+      "id": "halfling-flag-honor",
+      "summary": "the halfling navy will take Rust Hand iron contracts but refuses Chorister missionary contracts. The reasons are written in a four-ribbon ledger.",
+      "wherePalpable": ["the-coral-anchorage", "briny-bell"]
+    }
+  ],
+  "crossCuttingSubPopulations": [
+    {
+      "subPop": "vellum",
+      "race": "elven",
+      "factions": ["rust_hand", "choristers"],
+      "summary": "elven contract scribes write the paper for both — and sometimes for both sides of the same deal."
+    },
+    {
+      "subPop": "marginals",
+      "race": "orcish",
+      "factions": ["idle", "forsaken"],
+      "summary": "orcish commentators refuse formal alignment but consistently annotate Forsaken texts with Idle marginalia."
+    },
+    {
+      "subPop": "drowncallers",
+      "race": "halfling",
+      "factions": ["forsaken"],
+      "summary": "the halfling search-and-rescue caste skews Forsaken — they have seen what comes when the choir is too loud."
+    },
+    {
+      "subPop": "pageborn",
+      "race": "human",
+      "factions": ["choristers"],
+      "summary": "the only human sub-population that learns orcish; the Choristers value paper-keepers."
+    }
+  ]
+}
