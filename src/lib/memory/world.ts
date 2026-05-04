@@ -454,6 +454,38 @@ export async function persistRunToWorld(
       });
     }
 
+    // Adaptive difficulty (Phase 2 Day 12). Update the user's
+    // consecutive-death-streak count based on this run's outcome.
+    // Win or cap resets to 0; death increments by 1.
+    try {
+      const ended = events.find(
+        (e): e is Event & { kind: "session.ended" } =>
+          e.kind === "session.ended",
+      );
+      if (ended) {
+        const cur = (
+          await db
+            .select({ s: users.adaptiveDeathStreak })
+            .from(users)
+            .where(eq(users.id, opts.userId))
+            .limit(1)
+        )[0]?.s ?? 0;
+        const next = ended.reason === "death" ? cur + 1 : 0;
+        if (next !== cur) {
+          await db
+            .update(users)
+            .set({ adaptiveDeathStreak: next })
+            .where(eq(users.id, opts.userId));
+        }
+      }
+    } catch (err) {
+      log.warn("adaptive_difficulty.update_failed", {
+        userId: opts.userId,
+        sessionId: opts.sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return { npcsUpserted, memoriesWritten: 1 };
   } catch (err) {
     log.error("world.persist_failed", {

@@ -85,6 +85,11 @@ export const users = pgTable("users", {
    *  sessions.mood_preset (nullable) overrides per-campaign; null
    *  there falls back to this. Default 'standard'. */
   moodPreset: text("mood_preset").notNull().default("standard"),
+  /** Count of consecutive recent deaths since the last non-death.
+   *  Updated at run-end in persistRunToWorld. Used by the adaptive-
+   *  difficulty layer to add +1 to roll modifiers after 3+ deaths.
+   *  Phase 2 Day 12. */
+  adaptiveDeathStreak: integer("adaptive_death_streak").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

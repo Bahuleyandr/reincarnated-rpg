@@ -230,7 +230,42 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   const rollStat = form.verbMappings?.[intent.verb]?.rollStat ?? null;
   const baseMod = rollStat ? (form.stats[rollStat] ?? 0) : 0;
   const luckPenalty = badLuckRollPenalty(activeBadLuck);
-  const mod = baseMod + luckPenalty;
+  // Adaptive difficulty (Phase 2 Day 12). Logged-in players on a
+  // consecutive death-streak get +1 to subsequent rolls. The
+  // mechanic is invisible to the narrator — it just nudges `mod`.
+  let adaptiveBonus = 0;
+  if (world?.userId) {
+    try {
+      const { computeAdaptiveDifficulty } = await import(
+        "../difficulty/adaptive"
+      );
+      const { users: usersTbl } = await import("../db/schema");
+      const { eq: eqOp } = await import("drizzle-orm");
+      const u = (
+        await db
+          .select({ s: usersTbl.adaptiveDeathStreak })
+          .from(usersTbl)
+          .where(eqOp(usersTbl.id, world.userId))
+          .limit(1)
+      )[0];
+      // Synthesize the recent-campaigns shape from the streak count.
+      // Pure logic in computeAdaptiveDifficulty handles the rest.
+      const streak = u?.s ?? 0;
+      const synthetic = Array.from({ length: streak }, () => ({
+        reason: "death" as const,
+        endedAt: new Date(),
+      }));
+      const result = computeAdaptiveDifficulty(synthetic);
+      adaptiveBonus = result.modifier;
+    } catch (err) {
+      log.warn("turn.adaptive_difficulty.read_failed", {
+        sessionId,
+        userId: world.userId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+  const mod = baseMod + luckPenalty + adaptiveBonus;
   const roll = args.rollOverride
     ? {
         ...rollFromDice(args.rollOverride.d1, args.rollOverride.d2, args.rollOverride.mod ?? mod),
@@ -249,6 +284,14 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       activeBadLuck,
       baseMod,
       luckPenalty,
+      finalMod: mod,
+    });
+  }
+  if (adaptiveBonus > 0) {
+    log.info("turn.adaptive_difficulty.bonus", {
+      sessionId,
+      userId: world?.userId,
+      adaptiveBonus,
       finalMod: mod,
     });
   }
