@@ -35,8 +35,19 @@ The wedge — *"a text RPG where every life is a different game, and the world r
 | 12 | adaptive difficulty | death-streak detector + scaling |
 | 13 | world boss raids | meta-arc HP + contribution rollup + raid status panel |
 | 14 | scene images | provider integration + per-event caching + opt-in |
+| **15** | **public world lore (24h delay)** | `/lore` page + delayed-read endpoint + world-pulse ticker |
+| **16** | **foreshadowing memory plants** | `memory.echo_planted` event + delayed-surface retrieval |
+| **17** | **wonder events** | `content/wonders/` catalog + per-turn 1% trigger |
+| **18-19** | **economy: currency + NPC vendors** | `users.coins` + `trade_with_npc` tool + central-bank pricing |
+| **20** | **resource items + craft credits** | resource catalog + 0.1-energy/action via 0-9 credit counter |
+| **21** | **gathering + location resources** | `gather_resource` tool + location resource tagging |
+| **22** | **smelting + smithing + recipes** | `smelt`/`smith` tools + `content/recipes/` |
+| **23-24** | **skills + XP + NPC trainers** | `user_skills` table + level curve + `learn_skill_from(npcId)` |
+| **25** | **buy/sell loop end-to-end** | tutorial vendor in starter zone + eval scenario |
+| **26** | **economic balance + telemetry** | sell-buy markup, anti-farm caps, resource respawn, coin-flow logs |
+| **27** | **skills/recipes UI + achievements** | character page skills tab + recipe book + economy achievements |
 
-Days 15+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days). Treat them as independent milestones after Day 14 lands.
+Days 28+ are the **bigger swings** that don't fit a single-day box: NPC dialogue system (3-5 days), player-authored forms (5-7 days), player-driven economy / marketplace (7+ days). Treat them as independent milestones after Day 27 lands.
 
 ---
 
@@ -352,7 +363,290 @@ ALTER TABLE users ADD COLUMN scene_images_enabled boolean NOT NULL DEFAULT false
 
 ---
 
-## Stretch (Days 15+)
+---
+
+## Phase 4.5 — Engagement adds (Day 15-17)
+
+Three small, high-leverage features that change the *felt* texture of the game. Each is one day. They slot in after the Day 14 scene-images push because each one composes with what came before (lore page reads from world_lore which the world-boss work populates; foreshadowing rides on the existing memory retrieval; wonders can fire mid-raid for theatre).
+
+### Day 15: Public world-lore page (24h delay)
+
+**Why**: Players want to *see* their influence on the world, but seeing it instantly leaks too much (turns the lore ledger into a debug log) and removes the satisfying delay between cause and visible effect. A 24h-delayed public read gives the "I caused that" thrill *the next day*, lands during a different play session, and gives moderation a buffer to redact garbage before it goes public.
+
+**Schema migration `0030_world_lore_visibility.sql`**
+```sql
+ALTER TABLE world_lore ADD COLUMN public_at timestamptz GENERATED ALWAYS AS (created_at + interval '24 hours') STORED;
+ALTER TABLE world_lore ADD COLUMN admin_redacted boolean NOT NULL DEFAULT false;
+CREATE INDEX world_lore_public_idx ON world_lore (public_at DESC) WHERE NOT admin_redacted;
+```
+
+**New files**
+- `src/app/api/lore/public/route.ts` — paginated read where `public_at < now() AND NOT admin_redacted`. Cursor-paginated by `public_at DESC`. Cache 5 min.
+- `src/app/lore/page.tsx` — server component listing lore by category (`world_event`, `npc_legend`, `player_deed`, `famous_death`). Filter chips. Stays open to anon users — no auth required for public reading.
+- `src/components/WorldPulseTicker.tsx` — header strip showing the count of new lore in the last 24h vs the prior 24h ("the world has stirred 47 times since yesterday").
+- `src/app/god/lore/page.tsx` (extend existing) — admin redaction toggle on each row; useful for griefing cleanup before lore goes public.
+- `tests/integration/lore-public.test.ts` — entries < 24h old hidden, ≥ 24h old visible, redacted hidden regardless.
+
+**Acceptance**: A player creates a lore entry → it doesn't appear on `/lore` for the next 24h → after 24h it shows on the public page. Admin redaction hides it from public read while leaving the row intact for replay.
+
+**Gotchas**
+- The `public_at` GENERATED column is set once on insert. Don't try to "expedite" by editing it; the delay is the feature.
+- Cache invalidation: `/lore` is cached for 5min; new entries that just crossed the 24h boundary appear within 5min of becoming public. Acceptable.
+- Don't expose `admin_redacted` rows even to the entry's original author — the rule is "if it crossed the line, it's gone for everyone".
+
+### Day 16: Foreshadowing memory plants
+
+**Why**: The narrator already retrieves memories. Promote some memories to be intentionally early-planted: when something significant happens at turn N, the engine plants an *echo* memory tagged to surface 2-5 turns later. The player gets a vague flavor line ("you remember a stranger's eye") and three turns later the stranger appears. Pure narrative juice; no new content authoring needed.
+
+**Schema migration `0031_memory_echoes.sql`**
+```sql
+ALTER TABLE memories ADD COLUMN surface_after_turn integer;
+ALTER TABLE memories ADD COLUMN echo_hint text;
+-- surface_after_turn NULL = ordinary memory, surfaces immediately by similarity.
+-- non-null = echo; full memory hidden until projection.turn >= surface_after_turn.
+-- Until then, retrieval surfaces only `echo_hint` (a 1-line redacted teaser).
+```
+
+**New files**
+- `src/lib/memory/echoes.ts` — pure: `shouldPlantEcho(event, projection) → { surfaceAfterTurns, hint } | null`. Triggers on: NPC introduction (echoed as "a face you'll see again"), discovering a hidden location, partial-success rolls on key beats.
+- `src/lib/memory/episodic.ts` (modify) — `retrieveMemories` returns echoes-as-hints when `current_turn < surface_after_turn`, full memory otherwise.
+- Hook in `runTurn` post-tools: call `shouldPlantEcho` on each emitted event; if it returns non-null, write an echo memory.
+- `tests/unit/echoes.test.ts` — predicate logic.
+- `tests/integration/echoes.test.ts` — plant on turn 3, surface on turn 6, hint visible turns 4-5.
+
+**Acceptance**: A new NPC is introduced on turn 3 → an echo memory is planted with `surface_after_turn=6` and hint "a face you'll see again" → on turns 4-5, retrieval surfaces only the hint (narrator weaves it in as foreshadowing); on turn 6+, the full memory is available.
+
+**Gotchas**
+- Don't plant echoes on every event — only narratively significant ones. Cap at 1 echo per turn so the prose doesn't drown in foreshadowing.
+- The hint string should be evocative but redacted. Generation is deterministic (template per echo trigger kind), not LLM-driven, to avoid leaking context.
+
+### Day 17: Wonder events
+
+**Why**: Players want "wait, what was THAT?" moments. A 1% per-turn random injection of a flavor-only event ("a god whispers your name", "a scroll falls from nowhere") creates the texture of a living world that has its own agenda. Pure narrative; no mechanical balance to maintain.
+
+**No schema changes** — wonders are a content + system-prompt injection, not state.
+
+**New files**
+- `content/wonders/` — ~30 entries to start. Each: `{ id, formFilters: string[]|null, locationFilters: string[]|null, narrationFlavor, optionalToolEffect }`. Examples:
+  - `whisper_unknown` (any form, any location): "a name you don't know is whispered close to your perception."
+  - `scroll_fallen` (forms with hands or telekinesis, any indoor location): adds a `mystery_scroll` item to inventory.
+  - `the_eye_opens` (any form, deep-underground location): the narrator describes a single eye that wasn't there before.
+- `src/lib/wonders/select.ts` — pure: given `(form, location, recentWonders)`, return a wonder or null. 1% trigger rate; cooldown of 10 turns to prevent same wonder from re-firing.
+- `src/lib/wonders/inject.ts` — wraps the narrator system prompt with the wonder's `narrationFlavor` line + a directive ("acknowledge briefly, don't explain").
+- Hook in `runTurn` step 6 (after memory retrieval, before narrator call): roll for wonder; if hit, inject + emit `wonder.fired` event.
+- `tests/unit/wonders.test.ts` — selector cooldown, filter matching.
+- `tests/integration/wonders.test.ts` — wonder fires; event log records it; cooldown holds for 10 turns.
+
+**Acceptance**: Across 100 turns, ~1% fire rate observed (run with deterministic seed for tests). When a wonder hits, the narration acknowledges it but doesn't derail the scene. `wonder.fired` events are visible in the audit log.
+
+**Gotchas**
+- Wonders with `optionalToolEffect` (like the scroll-fallen) MUST go through `applyTools` like any other tool — no shortcut writes. The wonder's effect is a synthetic `add_inventory` call by the engine on the player's behalf.
+- 10-turn cooldown is per-wonder-id, not global — multiple different wonders can fire close together. Tune if it feels noisy.
+- Wonders DO NOT cost energy. They're unsolicited gifts/threats.
+
+---
+
+## Phase 5 — Economy + crafting (Day 18-27)
+
+The wedge so far is *every life is a different game*. Phase 5 adds *every life can also leave you something durable* — coins, resources, skills that persist across reincarnations. The economy starts as a **central bank** (NPC vendors with fixed catalog prices) so we can balance it; Phase 6 (deferred) opens player-to-player markets.
+
+**Locked design choices**
+
+- **Coins are user-level.** Stored on `users.coins`. Cross-run, like legacy traits + streak. Anon sessions get a session-scoped purse (ephemeral, lost on conversion).
+- **0.1-energy crafting via integer credits.** Energy stays integer (don't break the existing system). Each gather/craft action consumes 1 of 10 `craft_credits`; rolling over to 10 spends 1 energy and resets to 0. UI shows "5 free crafts before next energy spend." Same regen path as energy — fully covered by existing tests once we extend them.
+- **Skills are per-user, not per-form.** A slime that learns smithing keeps it. Lore-justified: the soul remembers craft just like it remembers scars.
+- **Resources are regular items** with `category: 'resource'`. No separate inventory pool — keeps tooling simple, resource items count against the existing inventory cap.
+- **NPC trainers gate access.** Skills aren't auto-discovered. The player must *meet* a trainer NPC and call `learn_skill_from(npcId)` (costs coins). This means each skill has a "first time you find Master Halrik in Iron-Reach" moment.
+
+### Day 18-19: Currency + NPC vendors (central bank)
+
+**Schema migration `0032_economy_currency.sql`**
+```sql
+ALTER TABLE users ADD COLUMN coins integer NOT NULL DEFAULT 50;
+ALTER TABLE sessions ADD COLUMN coins integer NOT NULL DEFAULT 0;
+-- Anon sessions: ephemeral purse. On register/claim, anon coins → user coins.
+```
+
+**New event kinds** (`lib/game/types.ts`):
+```ts
+| { kind: "coins.gained"; amount: number; source: string }
+| { kind: "coins.spent"; amount: number; sink: string }
+| { kind: "trade.completed"; npcId: string; action: "buy"|"sell"; itemId: string; qty: number; coinsDelta: number }
+```
+
+**New files**
+- `src/lib/economy/coins.ts` — pure helpers (read/spend/award) + atomic DB writes routed through events. Negative balance disallowed.
+- `src/lib/economy/vendor.ts` — pure: validate a trade against an NPC's catalog. Catalog lives in `content/npcs/<id>.json` under `metadata.catalog: [{ itemId, buyPrice, sellPrice, stock?: number }]`.
+- New tool in `lib/game/tools.ts`: `trade_with_npc(npcId, action, itemId, qty)`. Schema: zod validation; precondition checks: NPC exists in projection, player has the coins (for buy) or items (for sell), stock available, qty caps (1-10 per call).
+- `src/app/api/character/route.ts` (modify) — return `coins` and `recentTrades`.
+- `src/components/CoinBadge.tsx` — small global indicator next to EnergyBar showing coin count.
+- `tests/unit/coins.test.ts` — pure helpers.
+- `tests/integration/economy-trade.test.ts` — full buy + sell roundtrip; insufficient coins rejected; out-of-stock rejected.
+
+**Pricing rule**: `sellPrice > buyPrice` always (markup is the central-bank "tax" that anchors prices). Initially: vendor catalogs hand-tuned in JSON so we can iterate without code changes.
+
+**Acceptance**: Player approaches a vendor NPC → uses `trade_with_npc(npc_id, "buy", "iron_ore", 1)` → coins deducted, item added, `trade.completed` event logged. Reverse for selling. Insufficient funds returns a clean validation error.
+
+**Gotchas**
+- Anon coins on register need to migrate cleanly (extend `maybeClaimAnonSession` in `register/route.ts`).
+- Don't expose vendor catalogs through the open API — only show what the player can see in their current location's projection.
+
+### Day 20: Resource items + craft credits
+
+**Schema migration `0033_craft_credits.sql`**
+```sql
+ALTER TABLE users ADD COLUMN craft_credits integer NOT NULL DEFAULT 10;
+ALTER TABLE sessions ADD COLUMN craft_credits integer NOT NULL DEFAULT 10;
+-- Range 0-9 logically, stored as 0-9. When an action would overflow to 10,
+-- spend 1 energy and reset to 0 atomically.
+```
+
+**New files**
+- `content/items/resources/` — resource items as JSON. ~20 to start: `iron_ore`, `copper_ore`, `silver_ore`, `wood_oak`, `wood_pine`, `herb_emberleaf`, `herb_silverroot`, `pelt_wolf`, `pelt_bear`, `crystal_arc`, `clay`, `cloth_linen`, etc. Each: `{ id, name, description, category: "resource", baseValue, rarity }`.
+- `src/lib/economy/credits.ts` — `consumeCraftCredit(db, userId|sessionId)`: atomic — if `craft_credits < 9`, increment and return `{ spentEnergy: false, creditsRemaining: 10 - newValue }`; else, charge 1 energy and reset to 0. Returns `{ spentEnergy: true }`. Out of energy → reject with `out_of_energy_for_crafting`.
+- `tests/unit/craft-credits.test.ts` — counter rollover, energy-spend boundary, out-of-energy reject.
+
+**Acceptance**: 10 consecutive craft actions consume 1 energy total. The 11th waits until energy regens. UI shows the live counter.
+
+**Gotchas**
+- Don't double-charge: a single tool call is one credit, even if the tool produces multiple outputs.
+- The `craft_credits` value is preserved across sessions; do NOT reset on login.
+
+### Day 21: Gathering + location resource tagging
+
+**Schema migration `0034_location_resources.sql`** (extends content, but the resource list lives in JSON not DB. The migration is for a runtime cache only):
+```sql
+-- No schema change — location resources are content-side, in
+-- content/locations/<id>.json under `availableResources: string[]`.
+```
+
+**New files**
+- `content/locations/<id>.json` (modify) — add `availableResources: ["iron_ore", "wood_oak"]` per location.
+- New tool: `gather_resource(resourceId)` — produces 1-3 of the resource (rolled by the dice on a 2d6 + skill bonus); requires player's projection.location.id to have that resource available; consumes 1 craft credit.
+- `src/lib/game/tools.ts` (modify) — add zod schema + precondition (location supports resource, player has skill if required, has credits/energy).
+- `src/lib/economy/respawn.ts` — `availableResources` per location respawns every 100 turns of *world activity* (not per-player; tracked in a small `location_resource_state` table or on `worldNpcs`/locations metadata). For v1: assume infinite respawn; revisit if abuse becomes an issue.
+- `tests/integration/gather.test.ts` — gather in correct location works; wrong location rejected; no skill rejected (after skills land).
+
+**Acceptance**: Player in `iron_mine_depths` calls `gather_resource("iron_ore")` → 1-3 iron ore added to inventory, `craft.gathered` event logged, 1 credit consumed.
+
+### Day 22: Smelting + smithing + recipes
+
+**Schema migration**: none (recipes are content).
+
+**New files**
+- `content/recipes/` — JSON catalog. Each: `{ id, skill: "smithing"|"smelting"|"alchemy"|..., requiredLevel: number, inputs: [{ itemId, qty }], output: { itemId, qty }, xp, requiresLocation?: string }`. ~40 recipes to start covering smelting (ore → ingot), smithing (ingot → tool/weapon), woodcutting (raw → planks), alchemy (herbs → potion), cooking (ingredients → meal).
+- New tools: `smelt(recipeId)`, `smith(recipeId)`, `craft(recipeId)` (the catch-all for non-smithing crafts). Each consumes inputs, produces output, awards skill XP, consumes 1 craft credit.
+- `src/lib/economy/recipes.ts` — pure: validate (player has inputs, has skill at level, has credits, location matches if requiresLocation set).
+- `tests/integration/recipes.test.ts` — full smelt + smith chain.
+
+**Acceptance**: Player has 2 iron_ore, 1 coal → calls `smelt("iron_ingot")` → consumes inputs, adds 1 iron_ingot, awards 5 smelting XP, consumes 1 craft credit.
+
+### Day 23-24: Skills + XP + NPC trainers
+
+**Schema migration `0035_user_skills.sql`**
+```sql
+CREATE TABLE user_skills (
+  id uuid PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  skill_id text NOT NULL,
+  level integer NOT NULL DEFAULT 1,
+  xp integer NOT NULL DEFAULT 0,
+  learned_at timestamptz NOT NULL DEFAULT now(),
+  learned_from_npc_id text,
+  UNIQUE (user_id, skill_id)
+);
+CREATE INDEX user_skills_user_idx ON user_skills (user_id);
+```
+
+**New files**
+- `content/skills.json` — ~7 skills: `smithing`, `smelting`, `alchemy`, `farming`, `woodcutting`, `mining`, `cooking`. Each: `{ id, label, description, levelCurve: "standard" }`.
+- `src/lib/economy/skills.ts` — pure: `xpToLevel(xp) = floor(sqrt(xp / 50))`. `awardXp(userId, skillId, amount)` atomic increment + level-up trigger event.
+- New event kinds:
+  ```ts
+  | { kind: "skill.learned"; skillId: string; fromNpcId: string }
+  | { kind: "skill.xp_gained"; skillId: string; amount: number }
+  | { kind: "skill.leveled_up"; skillId: string; newLevel: number }
+  ```
+- New tool: `learn_skill_from(npcId)`. Validates: NPC has `metadata.teachesSkill`, player has met the NPC, player has enough coins (cost in NPC catalog), player doesn't already know the skill.
+- `content/npcs/trainers/` — Master Halrik (smithing) in iron_reach, Mother Vael (alchemy) in herb_glade, etc. ~7 trainers, one per skill.
+- `tests/unit/skills.test.ts` — XP curve, level-up trigger.
+- `tests/integration/skills.test.ts` — learn from trainer; can't learn twice; XP awards level up.
+
+**Level curve sample** (xp → level):
+| level | total xp | turns to level (avg 5xp/craft) |
+|---|---|---|
+| 1 | 0 | (start) |
+| 2 | 200 | 40 |
+| 5 | 1250 | 250 |
+| 10 | 5000 | 1000 |
+| 20 | 20000 | 4000 |
+
+Tuned so casual players hit level 5 in a long session, level 10 in a week, level 20 is a brag.
+
+### Day 25: Buy/sell loop end-to-end
+
+**No schema change.** This is integration + a tutorial seed.
+
+**New files**
+- `content/npcs/tutorial_vendor.json` — a tutorial vendor NPC in the starter zone with a hand-curated catalog (cheap iron ore buy, decent ingot sell, walks the player through the first profit cycle).
+- `eval/scenarios/21-economy-loop.json` — gather → smelt → sell cycle, asserts coin gain and skill XP.
+
+**Acceptance**: A new player can: gather 4 iron_ore → travel to town → smelt 2 iron_ingot (consumes 4 ore + coal) → sell 2 iron_ingot to vendor for net coin gain. Eval scenario green.
+
+### Day 26: Economic balance + telemetry
+
+**Schema migration `0036_economy_telemetry.sql`** (lightweight):
+```sql
+CREATE TABLE coin_flow_daily (
+  date date NOT NULL,
+  source text NOT NULL,            -- 'gather' | 'sell_to_vendor' | 'buy_from_vendor' | ...
+  total_amount bigint NOT NULL DEFAULT 0,
+  txn_count integer NOT NULL DEFAULT 0,
+  PRIMARY KEY (date, source)
+);
+```
+
+**New files**
+- `src/lib/economy/telemetry.ts` — daily-rollup updater triggered on each `coins.*` event. Cheap upsert.
+- `src/app/god/economy/page.tsx` — admin dashboard showing daily inflow vs outflow, top vendors by volume, total coins in circulation.
+- Anti-farm guards:
+  - Per-vendor daily coin-gain cap (`metadata.dailyCoinCap` per NPC).
+  - Per-resource daily gather cap (`metadata.dailyGatherCap` per resource × user).
+- `tests/integration/economy-balance.test.ts` — daily caps enforced; telemetry rollup correct.
+
+**Acceptance**: Admin sees "today: 12,400 coins minted, 9,800 spent, net +2,600 in circulation, top earner Master Halrik 800 coins/sold". Caps prevent obvious exploits.
+
+### Day 27: Skills/recipes UI + economy achievements
+
+**No schema change.** UI + content.
+
+**New files**
+- `src/app/character/page.tsx` (extend) — Skills tab showing each skill, level, XP bar, recent level-ups. Recipe Book tab listing known + locked recipes (locked show requirement).
+- `content/achievements.json` (extend) — economy entries: "First Smith", "Master Smelter (level 10)", "Hoarder (10,000 coins)", "Self-Made (earned coins from 5 different vendors)", etc.
+- `content/objectives.json` (extend) — daily: "gather 20 wood", "smith an iron tool", "earn 100 coins selling".
+- `tests/integration/economy-achievements.test.ts` — predicates fire on the right events.
+
+**Acceptance**: Character page shows live skills/recipes/coins. New achievements unlock through normal play.
+
+---
+
+## Phase 6 — Player-driven economy (deferred, ~Month 2)
+
+Once the central-bank phase has run for ~30 days and we have data on coin flow, open the player marketplace. **Do not start until Phase 5's telemetry shows stable inflow/outflow.**
+
+**Outline (~7 days)**
+- Schema: `marketplace_listings` (sellerId, itemId, qty, askPrice, postedAt, expiresAt, soldAt, buyerId).
+- New tools: `list_for_sale(itemId, qty, price)`, `buy_listing(listingId)`, `cancel_listing(listingId)`.
+- Per-listing fee (1-5%) routed to the central bank — sinks player-to-player coin flow back into NPC vendor pools, prevents pure deflation.
+- UI at `/market`: search, sort by price, filter by category. Live inventory.
+- Anti-griefing: max active listings per user, listing expiry (24-72h), auto-refund of unsold qty.
+- Vendor NPCs continue to exist as floor/ceiling anchors — they buy any common resource at base value, sell common resources at base × 1.5.
+
+**Decision pending**: marketplace fee % and the cap on active listings. Set after Phase 5 data lands.
+
+---
+
+## Stretch (Days 28+)
 
 Each is a multi-day milestone; treat them independently.
 
@@ -411,20 +705,32 @@ Currently gifts are username-targeted with no friends concept. If we want a "fri
 ## Order of operations summary
 
 ```
-Day 1-2  predicate engine ──────┐
-Day 3    legacy traits          │
-Day 4    achievements ──────────┴── shared infra
-Day 5    titles
-Day 6    daily/weekly objectives ───┘
-Day 7-8  companion NPCs
-Day 9    gifting
-Day 10   replay / share
-Day 11   mood presets
-Day 12   adaptive difficulty
-Day 13   world-boss raids
-Day 14   scene images
-Day 15+  NPC dialogue (3-5d)
-Day 20+  player-authored forms (5-7d)
+Day 1-2   predicate engine ──────┐
+Day 3     legacy traits          │
+Day 4     achievements ──────────┴── shared infra
+Day 5     titles
+Day 6     daily/weekly objectives ───┘
+Day 7-8   companion NPCs
+Day 9     gifting
+Day 10    replay / share
+Day 11    mood presets
+Day 12    adaptive difficulty
+Day 13    world-boss raids
+Day 14    scene images
+Day 15    public world lore (24h delay) ────┐
+Day 16    foreshadowing memory plants       ├── engagement adds
+Day 17    wonder events                     ┘
+Day 18-19 economy: currency + NPC vendors ──┐
+Day 20    resource items + craft credits    │
+Day 21    gathering + location tagging      │
+Day 22    smelting + smithing + recipes     ├── Phase 5: economy + crafting
+Day 23-24 skills + XP + NPC trainers        │   (central-bank stabilized)
+Day 25    buy/sell loop end-to-end          │
+Day 26    economic balance + telemetry      │
+Day 27    skills/recipes UI + achievements ─┘
+Day 28+   NPC dialogue (3-5d)
+Day 33+   player-authored forms (5-7d)
+Day 40+   Phase 6: player-driven marketplace (~7d)
 ```
 
 Each day ships a green build with unit + integration tests, lint clean, and merged to master via the standard branch + push + merge flow. No skipping local CI.
@@ -440,5 +746,12 @@ Each day ships a green build with unit + integration tests, lint clean, and merg
 | 5 | Mood preset: per-campaign or per-user? | Per-user with per-campaign override |
 | 6 | World boss raid rewards: cosmetic title only, or also unlocks a form? | Title only for v1 |
 | 7 | Run-share visibility: public-by-link vs requires-account? | Public-by-link |
+| 8 | Public lore delay: 24h fixed, or graduated by salience (high salience surfaces sooner)? | 24h fixed for v1; revisit in Phase 6 |
+| 9 | Wonder fire rate: 1% per turn, or weighted by form-rarity / streak / mood? | 1% flat for v1 |
+| 10 | Anon coin pool: claimable on register, or forfeit? | Claimable (mirror anon-session-claim flow) |
+| 11 | Skill carries across reincarnations: yes (per-user) — locked. | Yes |
+| 12 | Resource respawn: per-location turn-count, real-time, or never (infinite)? | Infinite for v1; add caps in Day 26 telemetry pass |
+| 13 | Marketplace fee %: ? | TBD after Phase 5 data |
+| 14 | Marketplace listing cap per user: ? | TBD after Phase 5 data |
 
 Resolve as features come up. Update `docs/DECISIONS.md` with chosen path.
