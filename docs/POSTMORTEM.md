@@ -145,3 +145,61 @@ PLAN's "MVP done when" checklist:
 > remembers.
 
 All three hold end-to-end on this commit. Ship it.
+
+---
+
+# Phase 9 Postmortem (2026-05-04)
+
+After v0.1.0, the project ran through Phases 1-8 (predicate engine,
+companions, raids, scene images, lore, economy, engagement,
+365-day campaign, ops readiness) and then Phase 9 (the bigger
+swings: dialogue, marketplace, forms, ascension), capped by a
+wedge-proof double: Form #2 Cursed Book and Form #3 Dungeon Core
+at depth, plus form-specific dice variants. Test count went from
+136 (v0.1.0 day 14) to **1017** as of `c5eea82`.
+
+## What shipped beyond v0.1.0
+
+| Phase | Date | Outcome |
+|---|---|---|
+| 1 — Predicate engine | 2026-05-04 | Predicate DSL + legacy traits + achievements + titles + daily/weekly objectives. Single shared infra for "did the player do X?" checks. |
+| 2 — Social fabric | 2026-05-04 | Companions, gifting, run replay/share, mood presets, adaptive difficulty. |
+| 3 — World boss | 2026-05-04 | Long Wyrm raid HP + scene images foundation. |
+| 4.5 — Engagement | 2026-05-04 | Public lore page, foreshadowing memory plants, wonder events. |
+| 5 — Economy | 2026-05-04 | Currency + vendors, resources + crafting, gathering, recipes, skills + trainers, telemetry, anti-farm caps. |
+| 5.5 — Deepening | 2026-05-04 | Famous deaths, reincarnation cooldowns, epitaphs, item naming, location notes, Rhozell antagonist, tutorial. |
+| 7 — 365-day campaign | 2026-05-04 | Calendar, factions, branches, recurring NPCs, votes, endings, edicts, voice, story tooling, codex, lapsed flows, Year Archive. |
+| 8 — Ops readiness | 2026-05-04 | Analytics, backup CI, load testing, mobile UX, email, payments, GDPR, Sentry. |
+| 9 follow-ups (server-side) | 2026-05-04 | Dialogue threads + player forms + ascension + marketplace tables/lib/API. |
+| 9 loop closure (UI) | 2026-05-04 | `/marketplace`, `/forms/new`, `/god/forms`, ascension CTA on `/character`, `speak_to`/`pledge_faction` in narrator tool list. |
+| Form #2 at depth | 2026-05-04 | `the-binder` NPC, per-form starting-room override, classifier compound-match fix, 9 cursed-book unit tests, 2 eval scenarios. |
+| Marketplace loop completion | 2026-05-04 | `list_item` tool (multi-event escrow + audit) + `list new` UI tab. |
+| Form #3 at depth | 2026-05-04 | 8 dungeon-core unit tests, 2 eval scenarios. |
+| Form-specific dice variants | 2026-05-04 | 2d6 / 3d6kh2 / 2d6r1 / 1d12 per form. |
+
+## What worked, post-v0.1
+
+1. **Per-feature commits + branches with `merge --no-ff`** kept the history navigable. Every feature has a single merge commit, and the diff between any two milestones is one line of `git log --first-parent`.
+2. **Postgres trigger for append-only events** held under all the new event kinds (faction.pledged, dialogue.exchanged, marketplace.listed, etc). Reducer no-ops are explicit; replay-from-zero still works.
+3. **`new Function("p", "return import(p)")` for opaque dynamic imports** kept resend / stripe / @sentry/nextjs out of TS resolution while still letting the orchestrator load them at runtime.
+4. **Wedge tests as a regression guard.** The cursed-book + dungeon-core unit tests pin down "this form does not share vitals/stats/verbs with slime or book". Any future refactor that conflates form with slime trips immediately.
+5. **Form-specific dice variants on top of fixed bands.** PbtA's 10+/7-9/6- thresholds didn't have to move — only the dice shape did. The wedge becomes mechanical without forcing every form's hard-move menu to be re-tuned.
+
+## What surprised us
+
+1. **The phantom container on port 5433.** A rogue containerd-managed Postgres on the WSL2 host (PID 706, dnsmasq user) intercepted DB connections before the named `reincarnated-pg` container could see them. `inet_server_addr()` returned a host that didn't match any docker network. Took ~90 minutes to diagnose; fix was changing `docker-compose.yml` from `5433:5432` to `5434:5432`.
+2. **Drizzle's `sql\`${col} > ${date}\`` strips column-type info.** postgres-js then sees a Date and can't bind it. The fix was to use Drizzle's `gt`/`gte`/`lte` helpers which preserve the type. Caught when 3 of 10 marketplace integration tests failed identically with a "Received an instance of Date" error.
+3. **Bundle-form JSON in `content/items/resources.json` broke `db:seed`.** The seeder expected each file to be a single template; resources.json was authored as `{_meta, items: [...]}`. Pre-existing bug not caught by tests because the seed step is run by hand. Fixed the seeder to handle bundle form.
+4. **The classifier short-circuited compound verbs.** Cursed-book's `wait_for_a_reader` was getting reduced to plain `wait` because the classifier's direct-verb match ran in declaration order and `wait` is shorter. Fixed by combining direct + synonym matching into a single length-descending pass.
+
+## Architecture decisions that held under load
+
+- **One Postgres event log; per-feature side-effect tables for derived state.** Every feature added (skills, factions, dialogue, marketplace, forms, ascensions) became a new side-effect table that the orchestrator updates in a `try/catch` after `appendEvents`. Replay-from-zero is preserved — the event log is canonical, side-effect tables are derivable.
+- **The reducer is a pure function over the Event union.** Adding ~12 new event kinds across Phases 1-9 didn't force any restructuring; each became another `case` returning either a new state or `state` (audit-only).
+- **Form templates are JSON, not code.** Adding `dice` and `negativeVocab` and `hardMoves` to forms is one file edit, no migrations. The seeder picks them up; the runtime reads them via `loadForm()`.
+
+## Pitch, re-validated
+
+The wedge — *"a slime and a book and a core do not share a stat block"* — is now enforced by 1017 tests across three forms. The negative-vocabulary rule, the verbs, the hard-move menus, the sample corpus, and now the dice shape itself differ per form. Any refactor that breaks the wedge fails CI before it lands.
+
+The brief said *the model writes the story, the backend owns the truth, the world remembers*. Phase 9 added: *and every form plays differently, all the way down to the dice.*
