@@ -50,6 +50,9 @@ export async function GET(req: NextRequest) {
       narrations,
       // For the recap "save this run" link — only show if anon.
       hasAccount: !!verified.userId,
+      // For the epitaph form (Phase 5.5 Day 30) — null on anon
+      // sessions that haven't claimed a campaign yet.
+      campaignId: ctx.campaignId ?? null,
       reincarnatedAs: ctx.reincarnatedAs,
       formId: ctx.formId,
       locationId: ctx.locationId,
