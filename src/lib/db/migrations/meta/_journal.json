@@ -169,6 +169,13 @@
       "when": 1777950000000,
       "tag": "0023_achievements",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1777960000000,
+      "tag": "0024_titles",
+      "breakpoints": true
     }
   ]
 }

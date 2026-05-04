@@ -15,6 +15,12 @@ interface CharacterResp {
     mechanicalEffect: string;
     count: number;
   }>;
+  availableTitles?: Array<{
+    slug: string;
+    label: string;
+    sourceAchievement: string;
+  }>;
+  pinnedTitle?: string | null;
   energy: {
     energy: number;
     max: number;
@@ -259,6 +265,35 @@ export default function CharacterPage() {
           </section>
         )}
 
+        {data.availableTitles && data.availableTitles.length > 0 && (
+          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-2">
+            <h2 className="text-stone-100 text-sm">
+              titles ({data.availableTitles.length})
+            </h2>
+            <p className="text-[11px] text-stone-500 italic leading-5">
+              earned through your runs. pin one to display it on
+              public surfaces.
+            </p>
+            <TitleChooser
+              titles={data.availableTitles}
+              pinned={data.pinnedTitle ?? null}
+              onChange={async (slug) => {
+                await fetch("/api/settings/title", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({ title: slug }),
+                });
+                // Reload the page payload to reflect the change.
+                const r = await fetch("/api/character");
+                if (r.ok) {
+                  const fresh = (await r.json()) as CharacterResp;
+                  setData(fresh);
+                }
+              }}
+            />
+          </section>
+        )}
+
         {data.legacyTraits && data.legacyTraits.length > 0 && (
           <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
             <h2 className="text-stone-100 text-sm">
@@ -493,6 +528,41 @@ function Stat({
         {label}
       </div>
       <div className={accent}>{value}</div>
+    </div>
+  );
+}
+
+function TitleChooser({
+  titles,
+  pinned,
+  onChange,
+}: {
+  titles: Array<{ slug: string; label: string; sourceAchievement: string }>;
+  pinned: string | null;
+  onChange(slug: string | null): void | Promise<void>;
+}) {
+  return (
+    <div className="space-y-1">
+      <label className="block text-[11px] text-stone-400">
+        pinned title
+      </label>
+      <select
+        value={pinned ?? ""}
+        onChange={(e) => onChange(e.target.value || null)}
+        className="w-full bg-stone-950 border border-stone-700 text-stone-100 px-2 py-1.5 text-xs"
+      >
+        <option value="">— none —</option>
+        {titles.map((t) => (
+          <option key={t.slug} value={t.slug}>
+            {t.label}
+          </option>
+        ))}
+      </select>
+      {pinned && (
+        <p className="text-[10px] text-amber-400/70 italic mt-1">
+          public surfaces will show: {pinned}
+        </p>
+      )}
     </div>
   );
 }
