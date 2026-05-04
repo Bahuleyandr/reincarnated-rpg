@@ -8,6 +8,13 @@ interface CharacterResp {
   totalCampaigns: number;
   campaignsByStatus: Record<string, number>;
   formDistribution: Array<{ formId: string; n: number }>;
+  legacyTraits?: Array<{
+    id: string;
+    label: string;
+    description: string;
+    mechanicalEffect: string;
+    count: number;
+  }>;
   energy: {
     energy: number;
     max: number;
@@ -249,6 +256,41 @@ export default function CharacterPage() {
                 gives ~32 turns/day; supporter ~72; patron ~144.
               </p>
             )}
+          </section>
+        )}
+
+        {data.legacyTraits && data.legacyTraits.length > 0 && (
+          <section className="border border-stone-800 p-4 bg-stone-900/40 space-y-3">
+            <h2 className="text-stone-100 text-sm">
+              scars and gifts ({data.legacyTraits.length})
+            </h2>
+            <p className="text-[11px] text-stone-500 italic leading-5">
+              what your last lives left you. each fresh reincarnation
+              starts with these woven into the form&rsquo;s state.
+            </p>
+            <ul className="space-y-2 text-xs">
+              {data.legacyTraits.map((t) => (
+                <li
+                  key={t.id}
+                  className="border border-stone-900 bg-stone-950/40 p-2 leading-5"
+                >
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-stone-200">{t.label}</span>
+                    {t.count > 1 && (
+                      <span className="text-stone-600 text-[10px]">
+                        × {t.count}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-stone-400 italic text-[11px]">
+                    {t.description}
+                  </div>
+                  <div className="text-amber-400/80 text-[10px] mt-1">
+                    {t.mechanicalEffect}
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

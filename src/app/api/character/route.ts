@@ -20,6 +20,7 @@ import {
   aiCalls,
   campaigns,
   metaContributions,
+  users,
   worldLore,
   worldNpcs,
 } from "@/lib/db/schema";
@@ -143,10 +144,23 @@ export async function GET(req: NextRequest) {
 
   const energy = await getEnergyView(db, { userId });
 
+  // Legacy traits — cross-run scars and gifts. The pure listEarnedTraits
+  // helper handles the catalog lookup + sort.
+  const userRow = await db
+    .select({ legacyTraits: users.legacyTraits })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  const traitCounts =
+    (userRow[0]?.legacyTraits as Record<string, number> | undefined) ?? {};
+  const { listEarnedTraits } = await import("@/lib/legacy/apply");
+  const legacyTraits = listEarnedTraits(traitCounts);
+
   return NextResponse.json({
     totalCampaigns,
     campaignsByStatus,
     formDistribution: formRows,
+    legacyTraits,
     energy: energy
       ? {
           energy: energy.energy,

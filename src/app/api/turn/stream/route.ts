@@ -223,9 +223,13 @@ export async function POST(req: NextRequest) {
       });
       const fallbackNarrator = new TemplateNarrator({ form, location });
 
-      const starterFormState = ctx.starterBonus
-        ? { [ctx.starterBonus.field]: ctx.starterBonus.value }
-        : undefined;
+      const { composeStarterFormState } = await import(
+        "@/lib/legacy/compose-starter"
+      );
+      const starterFormState = await composeStarterFormState(db, {
+        starterBonus: ctx.starterBonus,
+        userId: verified.userId ?? null,
+      });
       const result = await runTurn({
         db,
         sessionId,

@@ -1,0 +1,153 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Legacy traits — cross-run scars and gifts imprinted on death. Each death classifier (lib/legacy/imprint.ts) maps a death cause + form to one trait id; the trait's effect applies to the player's next reincarnation via lib/legacy/apply.ts."
+  },
+  "traits": [
+    {
+      "id": "fire_scarred",
+      "label": "Fire-scarred",
+      "description": "Your last form burned. The next remembers heat.",
+      "mechanicalEffect": "Starts with +1 fire_resistance.",
+      "formState": { "fire_resistance": 1 }
+    },
+    {
+      "id": "unburnt",
+      "label": "Unburnt",
+      "description": "Two deaths to fire. The flames lose interest.",
+      "mechanicalEffect": "Starts with +2 fire_resistance.",
+      "stackThreshold": 2,
+      "formState": { "fire_resistance": 2 }
+    },
+    {
+      "id": "water_affinity",
+      "label": "Water-affined",
+      "description": "Your last form drowned. The next breathes more easily under.",
+      "mechanicalEffect": "Starts with +1 water_breath.",
+      "formState": { "water_breath": 1 }
+    },
+    {
+      "id": "crushed",
+      "label": "Crushed",
+      "description": "Your last form was broken by weight. The next stands ready for it.",
+      "mechanicalEffect": "Starts with +1 stout.",
+      "formState": { "stout": 1 }
+    },
+    {
+      "id": "gravity_aware",
+      "label": "Gravity-aware",
+      "description": "You fell. You will not fall again.",
+      "mechanicalEffect": "Starts with +1 footing.",
+      "formState": { "footing": 1 }
+    },
+    {
+      "id": "venom_remembered",
+      "label": "Venom-remembered",
+      "description": "Poison ran through what you were. The next cleans it faster.",
+      "mechanicalEffect": "Starts with +1 toxin_resistance.",
+      "formState": { "toxin_resistance": 1 }
+    },
+    {
+      "id": "starved",
+      "label": "Starved",
+      "description": "Your last form ran out. The next holds what little it has.",
+      "mechanicalEffect": "Starts with +1 frugal.",
+      "formState": { "frugal": 1 }
+    },
+    {
+      "id": "betrayed",
+      "label": "Betrayed",
+      "description": "Killed by an ally's edge. Trust comes harder now.",
+      "mechanicalEffect": "Starts with +1 wary, -1 charming.",
+      "formState": { "wary": 1, "charming": -1 }
+    },
+    {
+      "id": "torn",
+      "label": "Torn",
+      "description": "Claws and teeth. The next form's hide is a little thicker.",
+      "mechanicalEffect": "Starts with +1 hide.",
+      "formState": { "hide": 1 }
+    },
+    {
+      "id": "exposed",
+      "label": "Exposed",
+      "description": "Cold ended you. The next runs warmer.",
+      "mechanicalEffect": "Starts with +1 cold_resistance.",
+      "formState": { "cold_resistance": 1 }
+    },
+    {
+      "id": "drowned",
+      "label": "Drowned",
+      "description": "Two deaths under water. Lungs are no longer the only path.",
+      "mechanicalEffect": "Starts with +2 water_breath.",
+      "stackThreshold": 2,
+      "formState": { "water_breath": 2 }
+    },
+    {
+      "id": "haunted",
+      "label": "Haunted",
+      "description": "An NPC's grudge survives the death. They remember you.",
+      "mechanicalEffect": "Starts with +1 attuned (companions appear sooner).",
+      "formState": { "attuned": 1 }
+    },
+    {
+      "id": "whimsical",
+      "label": "Whimsical",
+      "description": "You died laughing. Or close enough. The next is light.",
+      "mechanicalEffect": "Starts with +1 charming.",
+      "formState": { "charming": 1 }
+    },
+    {
+      "id": "binder_broken",
+      "label": "Binder-broken",
+      "description": "A book's spine snapped. The next form holds together longer.",
+      "mechanicalEffect": "Starts with +1 binding.",
+      "formState": { "binding": 1 }
+    },
+    {
+      "id": "core_cracked",
+      "label": "Core-cracked",
+      "description": "A dungeon core split. The next form summons more carefully.",
+      "mechanicalEffect": "Starts with +1 careful_summon.",
+      "formState": { "careful_summon": 1 }
+    },
+    {
+      "id": "wyrm_touched",
+      "label": "Wyrm-touched",
+      "description": "The Long Wyrm tasted you. Its dreams stay with you.",
+      "mechanicalEffect": "Starts with +1 wyrm_attuned.",
+      "formState": { "wyrm_attuned": 1 }
+    },
+    {
+      "id": "many_lived",
+      "label": "Many-lived",
+      "description": "You have died often. The cycle barely notices the next.",
+      "mechanicalEffect": "Starts with +1 stout.",
+      "stackThreshold": 5,
+      "formState": { "stout": 1 }
+    },
+    {
+      "id": "voiceless",
+      "label": "Voiceless",
+      "description": "Silenced before the end. The next form's first turn carries weight.",
+      "mechanicalEffect": "Starts with +1 patient.",
+      "formState": { "patient": 1 }
+    },
+    {
+      "id": "self_undone",
+      "label": "Self-undone",
+      "description": "You ended yourself by your own tool. A small humility carries.",
+      "mechanicalEffect": "Starts with +1 measured.",
+      "formState": { "measured": 1 }
+    },
+    {
+      "id": "abandoned",
+      "label": "Abandoned",
+      "description": "The session ended without verdict. The next is patient.",
+      "mechanicalEffect": "Starts with +1 patient.",
+      "formState": { "patient": 1 }
+    }
+  ]
+}

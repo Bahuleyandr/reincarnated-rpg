@@ -30,8 +30,9 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 
 import type { Db } from "../db/client";
-import { sessions, worldMemories, worldNpcs } from "../db/schema";
+import { sessions, users, worldMemories, worldNpcs } from "../db/schema";
 import type { Event, Memory, Projection } from "../game/types";
+import { applyImprint, imprintTraitFromDeath } from "../legacy/imprint";
 import { embedText } from "./episodic";
 import { rowToEvent, readLog } from "../game/events";
 import {
@@ -369,6 +370,24 @@ export async function persistRunToWorld(
       });
     }
 
+    // Legacy-trait imprint (Phase 1 Day 3). Pure classification of
+    // the death cause + a jsonb_set on users.legacy_traits. Best-
+    // effort — never breaks run-end persistence.
+    try {
+      await imprintLegacyTrait(
+        db,
+        opts.userId,
+        opts.formId ?? "lesser-slime",
+        events,
+      );
+    } catch (err) {
+      log.warn("legacy.imprint_failed", {
+        userId: opts.userId,
+        sessionId: opts.sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
     return { npcsUpserted, memoriesWritten: 1 };
   } catch (err) {
     log.error("world.persist_failed", {
@@ -529,3 +548,55 @@ export function shouldRecallWorld(projection: Projection): boolean {
 /** Suppress lint for sessions import — it isn't used directly here but
  *  the type-side schema reference keeps drizzle's introspection happy. */
 void sessions;
+
+/**
+ * Legacy-trait imprint helper (Phase 1 Day 3). Pure classification
+ * via lib/legacy/imprint then a single atomic UPDATE on
+ * users.legacy_traits.
+ *
+ * Uses jsonb_set with a default empty object so the column is safe
+ * even on rows that pre-date the migration. Increment is read-modify-
+ * write — acceptable race-window since two concurrent run-ends for
+ * the same user is extremely unlikely; worst-case we lose one
+ * +1 increment.
+ */
+async function imprintLegacyTrait(
+  db: Db,
+  userId: string,
+  formId: string,
+  events: Event[],
+): Promise<void> {
+  const ended = events.find(
+    (e): e is Event & { kind: "session.ended" } => e.kind === "session.ended",
+  );
+  if (!ended) return;
+
+  // Read existing traits.
+  const rows = await db
+    .select({ legacyTraits: users.legacyTraits })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  const existing =
+    (rows[0]?.legacyTraits as Record<string, number> | undefined) ?? {};
+
+  const result = imprintTraitFromDeath({
+    reason: ended.reason,
+    formId,
+    events,
+    existingTraits: existing,
+  });
+  if (!result.traitId) return;
+
+  const next = applyImprint(existing, result);
+  await db.update(users).set({ legacyTraits: next }).where(eq(users.id, userId));
+
+  log.info("legacy.imprint", {
+    userId,
+    formId,
+    reason: ended.reason,
+    causeFamily: result.causeFamily,
+    traitId: result.traitId,
+    newCount: next[result.traitId],
+  });
+}

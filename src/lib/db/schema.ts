@@ -69,6 +69,13 @@ export const users = pgTable("users", {
    *  a turn. Null until the first turn ever. Compared as a string
    *  in lib/energy/streak.ts. */
   streakLastDayUtc: text("streak_last_day_utc"),
+  /** Cross-run scars and gifts. Each death imprints (or stacks) a
+   *  trait keyed on the slugs in content/legacy/traits.json. The
+   *  next reincarnation reads this and applies the trait's
+   *  starter form-state effect — see src/lib/legacy/apply.ts.
+   *  Anon sessions never accumulate; only logged-in users have a
+   *  durable soul. */
+  legacyTraits: jsonb("legacy_traits").notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
