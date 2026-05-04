@@ -439,6 +439,22 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     narrate = await fallbackNarrator.narrate(baseInput);
   }
 
+  // Pre-fetch coin balance once for the validator. Used by
+  // `trade_with_npc` to gate buys; cheap one-row read. Phase 5 Day 18-19.
+  let currentCoins = 0;
+  try {
+    const { getCoins } = await import("../economy/coins");
+    currentCoins = await getCoins(db, {
+      userId: world?.userId,
+      sessionId: world?.userId ? undefined : sessionId,
+    });
+  } catch (err) {
+    log.warn("turn.coins.read_failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   let toolResult = validateToolsToEvents({
     projection: speculativeProjection,
     tools: narrate.toolCalls,
@@ -446,6 +462,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     location,
     intent: intent.verb,
     rollBand: roll.band,
+    currentCoins,
   });
   let toolRetried = false;
   let toolFellBack = false;
@@ -481,6 +498,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       location,
       intent: intent.verb,
       rollBand: roll.band,
+      currentCoins,
     });
     if (!toolResult.ok) {
       toolFellBack = true;
@@ -581,6 +599,39 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   await appendEvents(db, sessionId, pendingEvents);
   projection = await loadProjection(db, sessionId, form, location);
   await writeSnapshot(db, projection);
+
+  // Coin balance side effect (Phase 5 Day 18-19). Sum the coin delta
+  // from this turn's events and apply it to the persistent purse —
+  // users.coins for logged-in players, sessions.coins for anon. The
+  // events themselves are the canonical source (replay-from-zero
+  // reproduces the same delta); this update is just a cache so the
+  // UI / next-turn validator can read O(1) without re-summing.
+  try {
+    const { applyCoinDelta, netCoinDeltaFromEvents } = await import(
+      "../economy/coins"
+    );
+    const coinDelta = netCoinDeltaFromEvents(pendingEvents);
+    if (coinDelta !== 0) {
+      await applyCoinDelta(
+        db,
+        {
+          userId: world?.userId,
+          sessionId: world?.userId ? undefined : sessionId,
+        },
+        coinDelta,
+      );
+      log.info("turn.coins.delta_applied", {
+        sessionId,
+        userId: world?.userId,
+        coinDelta,
+      });
+    }
+  } catch (err) {
+    log.warn("turn.coins.apply_failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
 
   // Objective progress (Phase 1 Day 6). Increment any matching
   // objectives based on the events emitted this turn. Best-effort —

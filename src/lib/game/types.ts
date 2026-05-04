@@ -91,6 +91,35 @@ export type Event =
   | { kind: "narration.emitted"; text: string; toolCallsApplied: number }
   | { kind: "tool_validation_failed"; tool: string; error: string }
   | { kind: "wonder.fired"; wonderId: string; flavor: string }
+  | {
+      /** Phase 5 Day 18-19. Coin balance increased — by trade, gather
+       * sale, gift, etc. The `source` is a free-text tag for telemetry
+       * (e.g. "vendor:halrik", "gather", "gift:from:user-x"). */
+      kind: "coins.gained";
+      amount: number;
+      source: string;
+    }
+  | {
+      /** Phase 5 Day 18-19. Coin balance decreased. `sink` is the dual
+       * of `source` for inflow events. */
+      kind: "coins.spent";
+      amount: number;
+      sink: string;
+    }
+  | {
+      /** Phase 5 Day 18-19. Atomic buy/sell roundtrip with an NPC. The
+       * NPC is identified by its in-projection slug; `coinsDelta` is the
+       * net change in the player's coin balance (negative for buy,
+       * positive for sell). The companion `coins.gained`/`coins.spent`
+       * is also emitted in the same batch — this event exists for
+       * audit/UI ("Halrik sold you 1 iron ingot for 12 coins"). */
+      kind: "trade.completed";
+      npcId: string;
+      action: "buy" | "sell";
+      itemId: string;
+      qty: number;
+      coinsDelta: number;
+    }
   | { kind: "session.ended"; reason: "death" | "win" | "cap" };
 
 export type EventKind = Event["kind"];
@@ -131,6 +160,16 @@ export type ToolCall =
     }
   | { name: "grant_xp"; amount: number; reason: string }
   | { name: "create_memory"; summary: string; salience?: number }
+  | {
+      /** Phase 5 Day 18-19. Buy or sell with an NPC vendor. Validated
+       * against the NPC's catalog (content/npcs/<id>.json under
+       * metadata.catalog) and the player's coin balance + inventory. */
+      name: "trade_with_npc";
+      npcId: string;
+      action: "buy" | "sell";
+      itemId: string;
+      qty: number;
+    }
   | { name: "narrate_only" };
 
 /**

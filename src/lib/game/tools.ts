@@ -16,6 +16,7 @@ import { z } from "zod";
 
 import type { Db } from "../db/client";
 import { uuidv7 } from "../util/uuidv7";
+import { getVendorCatalog, validateTrade } from "../economy/vendor";
 
 import { appendEvents, type AppendedEvent } from "./events";
 import { inventoryCapacity, inventoryUsed, SAFETY_CAPS } from "./safety";
@@ -112,6 +113,13 @@ const toolSchemas = {
     summary: nonEmptyString,
     salience: z.number().min(0).max(1).optional(),
   }),
+  trade_with_npc: z.object({
+    name: z.literal("trade_with_npc"),
+    npcId: nonEmptyString,
+    action: z.enum(["buy", "sell"]),
+    itemId: slugSchema,
+    qty: z.number().int().min(1).max(10),
+  }),
   narrate_only: z.object({
     name: z.literal("narrate_only"),
   }),
@@ -133,6 +141,7 @@ export const toolCallSchema = z.discriminatedUnion("name", [
   toolSchemas.update_quest_objective,
   toolSchemas.grant_xp,
   toolSchemas.create_memory,
+  toolSchemas.trade_with_npc,
   toolSchemas.narrate_only,
 ]);
 
@@ -156,6 +165,10 @@ export interface ToolValidationContext {
   rollBand?: RollBand;
   /** The repo has no canonical item catalog yet; pass this once one exists. */
   knownItemIds?: ReadonlySet<string>;
+  /** Player's current coin balance — required to validate `trade_with_npc`
+   *  (buy action) and to feed the validator without DB access. Pre-fetched
+   *  by the orchestrator from `users.coins` / `sessions.coins`. */
+  currentCoins?: number;
 }
 
 export interface ValidateToolsArgs extends ToolValidationContext {
@@ -229,6 +242,77 @@ export function validateToolsToEvents(args: ValidateToolsArgs): ValidateToolsRes
 
   const events: Event[] = [];
   for (const tool of parsedTools) {
+    if (tool.name === "trade_with_npc") {
+      // Multi-event tool: emits the audit event, the inventory
+      // mutation, and the coin balance event in one batch. Re-runs
+      // validateTrade to recover the resolved coinsDelta — the
+      // precondition was already checked, so this can't fail unless
+      // someone races the catalog cache.
+      const npc = projection.npcs[tool.npcId] as
+        | (Record<string, unknown> & { templateId?: unknown })
+        | undefined;
+      const templateId =
+        npc && typeof npc.templateId === "string"
+          ? npc.templateId
+          : tool.npcId.replace(/-[0-9a-f]{8}$/, "");
+      const catalog = getVendorCatalog(templateId);
+      if (!catalog) {
+        return {
+          ok: false,
+          failure: {
+            tool: "trade_with_npc",
+            error: `vendor catalog disappeared mid-turn for ${tool.npcId}`,
+          },
+        };
+      }
+      const held = projection.inventory.find((i) => i.itemId === tool.itemId);
+      const result = validateTrade({
+        catalog,
+        action: tool.action,
+        itemId: tool.itemId,
+        qty: tool.qty,
+        currentCoins: args.currentCoins ?? 0,
+        currentInventoryQty: held?.qty ?? 0,
+      });
+      if ("error" in result) {
+        return {
+          ok: false,
+          failure: { tool: "trade_with_npc", error: result.error },
+        };
+      }
+      events.push({
+        kind: "trade.completed",
+        npcId: tool.npcId,
+        action: tool.action,
+        itemId: tool.itemId,
+        qty: tool.qty,
+        coinsDelta: result.coinsDelta,
+      });
+      if (tool.action === "buy") {
+        events.push({
+          kind: "inventory.added",
+          itemId: tool.itemId,
+          qty: tool.qty,
+        });
+        events.push({
+          kind: "coins.spent",
+          amount: result.totalPrice,
+          sink: `vendor:${templateId}`,
+        });
+      } else {
+        events.push({
+          kind: "inventory.removed",
+          itemId: tool.itemId,
+          qty: tool.qty,
+        });
+        events.push({
+          kind: "coins.gained",
+          amount: result.totalPrice,
+          source: `vendor:${templateId}`,
+        });
+      }
+      continue;
+    }
     const evt = toolToEvent(tool, projection);
     if (evt) events.push(evt);
   }
@@ -322,6 +406,37 @@ export function checkPrecondition(
     case "introduce_npc": {
       if (!npcTemplateExists(tool.templateId)) {
         return `introduce_npc: unknown npc template: ${tool.templateId}`;
+      }
+      return null;
+    }
+    case "trade_with_npc": {
+      const npc = projection.npcs[tool.npcId] as
+        | (Record<string, unknown> & { templateId?: unknown })
+        | undefined;
+      if (!npc) return `trade_with_npc: unknown npc: ${tool.npcId}`;
+      const templateId =
+        typeof npc.templateId === "string"
+          ? npc.templateId
+          : tool.npcId.replace(/-[0-9a-f]{8}$/, "");
+      const catalog = getVendorCatalog(templateId);
+      if (!catalog) return `trade_with_npc: ${tool.npcId} is not a vendor`;
+      const held = projection.inventory.find((i) => i.itemId === tool.itemId);
+      const result = validateTrade({
+        catalog,
+        action: tool.action,
+        itemId: tool.itemId,
+        qty: tool.qty,
+        currentCoins: context.currentCoins ?? 0,
+        currentInventoryQty: held?.qty ?? 0,
+      });
+      if ("error" in result) return result.error;
+      // Buying: ensure inventory capacity will not overflow.
+      if (tool.action === "buy") {
+        const capacity = inventoryCapacity(projection);
+        const used = inventoryUsed(projection);
+        if (used + tool.qty > capacity) {
+          return `trade_with_npc: backpack full (${used}/${capacity}); drop or absorb something first.`;
+        }
       }
       return null;
     }
@@ -488,6 +603,12 @@ export function toolToEvent(tool: ToolCall, projection: Projection): Event | nul
         memoryId: uuidv7(),
         summary: tool.summary,
       };
+    case "trade_with_npc":
+      // Handled by the inline multi-event branch in
+      // validateToolsToEvents; toolToEvent returns null so this
+      // function stays 1:1-or-zero and predicate audits don't get
+      // confused.
+      return null;
     case "narrate_only":
       return null;
   }

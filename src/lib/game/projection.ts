@@ -100,6 +100,14 @@ export function reduce(state: Projection, event: Event): Projection {
     case "narration.emitted":
     case "tool_validation_failed":
     case "wonder.fired":
+    // Coin balance lives on users.coins / sessions.coins, NOT on the
+    // projection. Events are still emitted for audit + replay-from-zero
+    // (the orchestrator scans them after each turn to apply the delta
+    // to the persistent purse). Reducer no-op here keeps projection
+    // determinism intact even though the side effect is external.
+    case "coins.gained":
+    case "coins.spent":
+    case "trade.completed":
       return state;
 
     case "turn.begun":

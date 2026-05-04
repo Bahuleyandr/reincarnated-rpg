@@ -184,6 +184,15 @@ const TOOL_TO_KINDS: Record<ToolCall["name"], readonly string[]> = {
   update_quest_objective: ["quest.objectiveUpdated"],
   grant_xp: ["xp.granted"],
   create_memory: ["memory.created"],
+  // Phase 5 Day 18-19: trade_with_npc emits 3 events in a batch
+  // (trade.completed + inventory.added/removed + coins.spent/gained).
+  // Listing all of them lets `havingTool('trade_with_npc')` match
+  // either the audit event or the side-effect events.
+  trade_with_npc: [
+    "trade.completed",
+    "coins.gained",
+    "coins.spent",
+  ],
   narrate_only: [],
 };
 

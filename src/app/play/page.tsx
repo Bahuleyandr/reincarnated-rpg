@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { ChatPanel } from "@/components/ChatPanel";
+import { CoinBadge } from "@/components/CoinBadge";
 import { EnergyBar } from "@/components/EnergyBar";
 import { ObjectiveRibbon } from "@/components/ObjectiveRibbon";
 import { InputBox } from "@/components/InputBox";
@@ -339,6 +340,9 @@ export default function Play() {
     <main className="min-h-screen bg-stone-950 text-stone-200 font-mono grid md:grid-cols-[260px_1fr_260px] grid-rows-[1fr]">
       <aside className="border-r border-stone-800 flex flex-col overflow-y-auto">
         <EnergyBar />
+        <div className="px-4 py-1 border-b border-stone-800 bg-stone-900/40">
+          <CoinBadge />
+        </div>
         <ObjectiveRibbon />
         <StatusSidebar projection={projection} />
       </aside>
