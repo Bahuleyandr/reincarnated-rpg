@@ -330,6 +330,13 @@
       "when": 1778180000000,
       "tag": "0046_factions",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1778190000000,
+      "tag": "0047_branches",
+      "breakpoints": true
     }
   ]
 }

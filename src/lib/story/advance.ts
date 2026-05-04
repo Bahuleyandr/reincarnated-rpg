@@ -97,6 +97,21 @@ export async function advanceCalendar(db: Db): Promise<AdvanceResult> {
     invalidatePrefix("lore:");
   }
 
+  // Phase 7 Day 44: resolve any pending branches whose chapter
+  // just ended. Best-effort — branch resolution is independent of
+  // the calendar mutation and shouldn't block the advance.
+  try {
+    const { ensureBranchesSeeded, resolveBranchesForChapter } = await import(
+      "./branches"
+    );
+    await ensureBranchesSeeded(db);
+    await resolveBranchesForChapter(db, snap.row.currentChapter);
+  } catch (err) {
+    log.warn("calendar.branch_resolve_failed", {
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   log.info("calendar.advanced", {
     fromChapter: snap.row.currentChapter,
     toChapter: next.chapter,
