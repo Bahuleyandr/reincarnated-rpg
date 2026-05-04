@@ -225,6 +225,13 @@
       "when": 1778030000000,
       "tag": "0031_wyrm_hp",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1778040000000,
+      "tag": "0032_scene_images",
+      "breakpoints": true
     }
   ]
 }
