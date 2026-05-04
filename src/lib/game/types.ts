@@ -130,6 +130,18 @@ export type Event =
       qty: number;
       locationId: string;
     }
+  | {
+      /** Phase 5 Day 22. Player crafted `recipeId` — consumed inputs,
+       * produced output. Companion inventory.removed (per input) +
+       * inventory.added (output) are emitted in the same batch. The
+       * skill XP award flows through xp.granted with reason
+       * `skill:<skill>`. */
+      kind: "craft.completed";
+      recipeId: string;
+      skill: string;
+      outputItemId: string;
+      outputQty: number;
+    }
   | { kind: "session.ended"; reason: "death" | "win" | "cap" };
 
 export type EventKind = Event["kind"];
@@ -187,6 +199,15 @@ export type ToolCall =
        *  narrator passes only resourceId; consumes 1 craft credit. */
       name: "gather_resource";
       resourceId: string;
+    }
+  | {
+      /** Phase 5 Day 22. Craft a recipe by id (smelt, smith, mill,
+       *  alchemy, cook, etc.). The recipe carries skill +
+       *  requiredLevel + inputs + output. Validator checks player
+       *  has inputs, the right skill, and (if set) the right
+       *  location. Consumes 1 craft credit. */
+      name: "craft_recipe";
+      recipeId: string;
     }
   | { name: "narrate_only" };
 

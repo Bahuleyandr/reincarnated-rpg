@@ -111,6 +111,10 @@ export function reduce(state: Projection, event: Event): Projection {
     // Phase 5 Day 21: craft.gathered is an audit event; the
     // companion inventory.added carries the projection mutation.
     case "craft.gathered":
+    // Phase 5 Day 22: craft.completed is the audit event; the
+    // companion inventory.removed/added pair carries the
+    // projection mutations and xp.granted carries the XP delta.
+    case "craft.completed":
       return state;
 
     case "turn.begun":

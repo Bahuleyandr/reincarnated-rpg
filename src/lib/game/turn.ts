@@ -620,7 +620,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       sessionId: world?.userId ? undefined : sessionId,
     };
     const craftEvents = pendingEvents.filter(
-      (e) => e.kind === "craft.gathered",
+      (e) => e.kind === "craft.gathered" || e.kind === "craft.completed",
     );
     for (let i = 0; i < craftEvents.length; i++) {
       try {

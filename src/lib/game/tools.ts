@@ -17,6 +17,7 @@ import { z } from "zod";
 import type { Db } from "../db/client";
 import { uuidv7 } from "../util/uuidv7";
 import { rollGather, validateGather } from "../economy/gather";
+import { validateRecipe } from "../economy/recipes";
 import { getVendorCatalog, validateTrade } from "../economy/vendor";
 
 import { appendEvents, type AppendedEvent } from "./events";
@@ -125,6 +126,10 @@ const toolSchemas = {
     name: z.literal("gather_resource"),
     resourceId: slugSchema,
   }),
+  craft_recipe: z.object({
+    name: z.literal("craft_recipe"),
+    recipeId: slugSchema,
+  }),
   narrate_only: z.object({
     name: z.literal("narrate_only"),
   }),
@@ -148,6 +153,7 @@ export const toolCallSchema = z.discriminatedUnion("name", [
   toolSchemas.create_memory,
   toolSchemas.trade_with_npc,
   toolSchemas.gather_resource,
+  toolSchemas.craft_recipe,
   toolSchemas.narrate_only,
 ]);
 
@@ -256,6 +262,69 @@ export function validateToolsToEvents(args: ValidateToolsArgs): ValidateToolsRes
 
   const events: Event[] = [];
   for (const tool of parsedTools) {
+    if (tool.name === "craft_recipe") {
+      // Multi-event tool: removes inputs, adds output, emits the
+      // craft.completed audit + xp.granted (Day 23-24 hooks the
+      // skill XP off this). Inventory capacity for the output is
+      // re-checked here — net inventory delta may overflow even
+      // when individual inputs sum to more than the output.
+      const result = validateRecipe({
+        recipeId: tool.recipeId,
+        inventory: projection.inventory,
+        locationId: projection.location.id,
+        skillLevels: args.skillLevels,
+      });
+      if ("error" in result) {
+        return {
+          ok: false,
+          failure: { tool: "craft_recipe", error: result.error },
+        };
+      }
+      const recipe = result.recipe;
+      // Compute net inventory delta to gauge capacity.
+      const inputTotal = recipe.inputs.reduce((s, i) => s + i.qty, 0);
+      const netDelta = recipe.output.qty - inputTotal;
+      if (netDelta > 0) {
+        const capacity = inventoryCapacity(projection);
+        const used = inventoryUsed(projection);
+        if (used + netDelta > capacity) {
+          return {
+            ok: false,
+            failure: {
+              tool: "craft_recipe",
+              error: `craft_recipe: backpack would overflow (net +${netDelta}, ${used}/${capacity}). drop something first.`,
+            },
+          };
+        }
+      }
+      for (const input of recipe.inputs) {
+        events.push({
+          kind: "inventory.removed",
+          itemId: input.itemId,
+          qty: input.qty,
+        });
+      }
+      events.push({
+        kind: "inventory.added",
+        itemId: recipe.output.itemId,
+        qty: recipe.output.qty,
+      });
+      events.push({
+        kind: "craft.completed",
+        recipeId: recipe.id,
+        skill: recipe.skill,
+        outputItemId: recipe.output.itemId,
+        outputQty: recipe.output.qty,
+      });
+      if (recipe.xp > 0) {
+        events.push({
+          kind: "xp.granted",
+          amount: recipe.xp,
+          reason: `skill:${recipe.skill}`,
+        });
+      }
+      continue;
+    }
     if (tool.name === "gather_resource") {
       // Multi-event tool: rolls qty server-side, emits craft.gathered
       // + inventory.added. Inventory cap is checked here (after the
@@ -474,6 +543,19 @@ export function checkPrecondition(
       // is gatherable here.
       return null;
     }
+    case "craft_recipe": {
+      const result = validateRecipe({
+        recipeId: tool.recipeId,
+        inventory: projection.inventory,
+        locationId: projection.location.id,
+        skillLevels: context.skillLevels,
+      });
+      if ("error" in result) return result.error;
+      // Inventory capacity for the output is checked at emission
+      // time after we know we'll consume inputs first; the net
+      // delta might still overflow if output > total inputs (rare).
+      return null;
+    }
     case "trade_with_npc": {
       const npc = projection.npcs[tool.npcId] as
         | (Record<string, unknown> & { templateId?: unknown })
@@ -670,6 +752,7 @@ export function toolToEvent(tool: ToolCall, projection: Projection): Event | nul
       };
     case "trade_with_npc":
     case "gather_resource":
+    case "craft_recipe":
       // Handled by the inline multi-event branch in
       // validateToolsToEvents; toolToEvent returns null so this
       // function stays 1:1-or-zero and predicate audits don't get
