@@ -23,6 +23,7 @@
     "test:db": "tsx scripts/check-test-db.ts",
     "content:validate": "tsx scripts/validate-content.ts",
     "db:reset": "tsx scripts/reset-db.ts",
+    "wedge:clip": "tsx scripts/wedge-clip.ts",
     "test": "npm run test:unit && npm run test:integration",
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathPatterns=tests/unit",
