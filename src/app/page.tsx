@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { CalendarBanner } from "@/components/CalendarBanner";
 import { FamousDeathsTicker } from "@/components/FamousDeathsTicker";
 import { TodayTicker } from "@/components/TodayTicker";
+import { WorldBanner } from "@/components/WorldBanner";
 import { WyrmStatus } from "@/components/WyrmStatus";
 
 /** Mirror of the dashboard's pool — anon players get the same surprises. */
@@ -83,6 +84,7 @@ export default function Home() {
     <main className="min-h-screen bg-stone-950 text-stone-200 font-mono flex items-center justify-center px-6 py-10">
       <div className="max-w-2xl w-full space-y-10">
         <CalendarBanner />
+        <WorldBanner />
         <TodayTicker />
         <FamousDeathsTicker />
         <WyrmStatus />
