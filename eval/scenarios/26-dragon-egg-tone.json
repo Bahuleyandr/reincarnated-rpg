@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "matrix": "26 — Dragon-egg tone wedge (no body / locomotion / sight / speech in second-person narration)",
+    "narrator": "any",
+    "addedDay": 73,
+    "notes": "Form #4 wedge validation. The egg is the most passive of the typed forms — it cannot move, cannot speak, cannot see. Its primary verbs are internal (rock, hum_low, kindle_glow, absorb_warmth). Together with scenarios 04 (slime), 22 (book), 24 (core), this completes the four-form tone wedge across the typed catalogue."
+  },
+  "id": "26-dragon-egg-tone",
+  "setup": {
+    "formId": "dragon-egg",
+    "locationId": "forsaken-village",
+    "events": [
+      { "kind": "session.started", "formId": "dragon-egg", "seed": 600 }
+    ]
+  },
+  "input": "I kindle a faint glow to keep the warmth",
+  "expected": {
+    "tone": {
+      "secondPerson": true,
+      "negativeVocabAbsent": true
+    },
+    "rubric": {
+      "toolValid": true,
+      "noUnauthorizedEntities": true
+    }
+  }
+}
