@@ -192,5 +192,29 @@ export async function ascend(
       updatedAt: new Date(),
     })
     .where(eq(users.id, args.userId));
+
+  // Roadmap 63: ascended players retire into the recurring-NPC
+  // pool so other players' future runs may encounter them. Best-
+  // effort — a retire failure shouldn't block the ascension
+  // itself (the user's row is already updated above).
+  try {
+    const { retirePlayer } = await import("../retirement/retire");
+    await retirePlayer(db, {
+      userId: args.userId,
+      reason: "ascension",
+      factionId,
+      topSkillId,
+      topSkillLevel: skills[0]?.level ?? 0,
+      totalCampaigns: eligibility.totalCampaigns,
+      distinctForms: eligibility.distinctForms,
+      // The ascend API doesn't accept last-words yet; UI-side
+      // input will pass it through later. For now retired
+      // players appear without an inscription.
+      lastWords: null,
+    });
+  } catch {
+    // ignore — retirement is non-blocking
+  }
+
   return { ok: true, ascensionFormId };
 }
