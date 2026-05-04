@@ -1,0 +1,49 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Chorister × alchemy ascended form. The player who pledged to the Choristers and topped out in alchemy now distills the song into tinctures the choir drinks before the long verses. Voice is steadier; harmony lasts longer; consequences accumulate in glass."
+  },
+  "id": "cantor-of-the-long-song",
+  "displayName": "Cantor of the Long Song",
+  "tagline": "You distill the song into a single drop and a hundred singers drink it.",
+  "vitals": {
+    "voice": { "max": 26, "start": 26, "death": 0 },
+    "tincture": { "max": 26, "start": 26, "death": null }
+  },
+  "stats": {
+    "will": 3,
+    "awareness": 3,
+    "kindling": 3,
+    "patience": 4
+  },
+  "verbs": ["distill", "lead", "blend", "rest", "wyrm-tincture"],
+  "verbMappings": {
+    "distill": { "tools": ["change_form_state", "absorb"], "rollStat": "patience" },
+    "lead": { "tools": ["update_relationship"], "rollStat": "will" },
+    "blend": { "tools": ["change_form_state"], "rollStat": "kindling" },
+    "rest": { "tools": ["heal"], "rollStat": null },
+    "wyrm-tincture": { "tools": ["sense", "change_form_state"], "rollStat": "awareness" }
+  },
+  "negativeVocab": {
+    "rule": "Cantors are precise. Vocabulary of approximation does not fit.",
+    "words": ["roughly", "kinda", "sort-of", "approximately", "guesstimate"]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick one. The Cantor's costs land in glassware or in dosages.",
+    "moves": [
+      { "id": "tincture-spoiled", "narrative": "A batch did not finish properly. The choir will not drink it tonight.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "tincture", "source": "spoilage" }] },
+      { "id": "dose-misjudged", "narrative": "A singer received slightly more than they could carry. They sing strange tomorrow.", "tools": [{ "name": "change_form_state", "field": "misdosed_singers", "delta": 1 }] },
+      { "id": "vessel-cracks", "narrative": "A glass vessel cracks. You catch most of what was inside; some did not survive.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "tincture", "source": "broken vessel" }] },
+      { "id": "voice-tincture-fade", "narrative": "Your own voice, after carrying so many drops, has thinned. You will not be able to lead the verse tomorrow.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 2, "vital": "voice", "source": "long tincture" }] },
+      { "id": "wyrm-flavor", "narrative": "A tincture you finished today carries a faint mineral note that did not belong. The Long Wyrm has tasted of your work.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "Cantor prose is measured, precise, with the rhythm of a careful pour.",
+    "passages": [
+      { "id": "01-the-pour", "scenario": "The Cantor finishes a tincture for the night verse", "wordCount": 140, "text": "Twelve drops into the small glass.\n\nYou count them aloud — for yourself, not for the choir. Each drop catches the light differently. The tincture has been on the still since before dawn; it has been listened to as much as watched. You taste a single drop on the back of your hand and adjust.\n\nThe last drop falls. You stopper the bottle. The choir is gathering in the next room, and one of them will come for the bottle without asking. They will trust you. The trust is the harder thing to distill, and you have done it for nineteen years." }
+    ]
+  }
+}

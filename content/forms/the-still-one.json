@@ -1,0 +1,59 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Ascended meta-form. The 'idle' faction default — the player who pledged to no faction's deeper agenda and ascended on the strength of their accumulated quiet. The Still One is permanent — they do not reincarnate again. They are visited rather than encountered."
+  },
+  "id": "the-still-one",
+  "displayName": "The Still One",
+  "tagline": "You stepped outside the wheel and you did not turn back.",
+  "vitals": {
+    "presence": { "max": 30, "start": 30, "death": null },
+    "remembrance": { "max": 30, "start": 30, "death": 0 }
+  },
+  "stats": {
+    "patience": 4,
+    "weight": 3,
+    "awareness": 3,
+    "will": 3
+  },
+  "verbs": [
+    "abide",
+    "regard",
+    "permit",
+    "withhold",
+    "remember"
+  ],
+  "verbMappings": {
+    "abide": { "tools": ["pass_time"], "rollStat": null },
+    "regard": { "tools": ["sense"], "rollStat": "awareness" },
+    "permit": { "tools": ["update_relationship"], "rollStat": "will" },
+    "withhold": { "tools": ["change_form_state"], "rollStat": "will" },
+    "remember": { "tools": ["create_memory"], "rollStat": "patience" }
+  },
+  "negativeVocab": {
+    "rule": "The Still One does not move and does not pursue. Locomotion verbs about them are wrong. They are visited, not encountered.",
+    "words": [
+      "walk", "walking", "run", "running", "leap", "jump", "dash",
+      "step", "stride", "chase", "pursue", "lunge"
+    ]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick exactly one. The Still One's costs are subtle — usually a name they will not say, or a memory they decline to recall.",
+    "moves": [
+      { "id": "name-withheld", "narrative": "A name comes to you, and you decline to give it. The visitor will leave without what they came for.", "tools": [{ "name": "change_form_state", "field": "names_withheld", "delta": 1 }] },
+      { "id": "remembrance-dims", "narrative": "Some memory you held in trust slips. You do not panic. You do not chase it.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "remembrance", "source": "stillness" }] },
+      { "id": "permission-given", "narrative": "You permit something to happen that you could have prevented. Whether this is mercy or weakness is for the visitor to decide.", "tools": [{ "name": "update_relationship", "npcId": "$VISITOR", "delta": 1, "reason": "permitted" }] },
+      { "id": "long-look", "narrative": "You regard the visitor for longer than they expected. They flinch first.", "tools": [{ "name": "sense", "modality": "presence", "detail": "the visitor's hesitation" }] },
+      { "id": "wyrm-noticed", "narrative": "Something deep below the world stirs in answer to your stillness. The Long Wyrm has noticed you, again.", "tools": [{ "name": "change_form_state", "field": "wyrm_marked", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "The Still One is described in slow declarative sentences. Visitors come to them, never the reverse. Their interior life is foregrounded; their exterior is almost still.",
+    "passages": [
+      { "id": "01-a-visitor", "scenario": "A visitor approaches the place where the Still One sits", "wordCount": 180, "text": "A visitor reaches the threshold. They do not knock. There is no door for them to knock on; you have not arranged one. They stand in the open, and you regard them without standing.\n\nYou have been here for a long time. Your stillness is older than the moss that has begun to suggest itself along your western edge. The visitor has come for a name, perhaps, or for permission. Most of them want one of those two things.\n\nYou will choose. They will not know on what basis you have chosen. This is right; the choosing is yours, and the unknowing is theirs. You permit them to stand and feel that you are taking them seriously. After a sufficient time, you decide what to give. After a further sufficient time, you give it." },
+      { "id": "02-the-long-noticing", "scenario": "Something old below the world responds to the Still One's stillness", "wordCount": 160, "text": "Far beneath the floor of the world, something old turns over once.\n\nYou feel it the way you feel everything — without reaching for it. The Long Wyrm has noticed you, again. It noticed you when you ascended. It notices you now. There will be other times. You do not, in the precise sense, react. You simply incorporate the noticing into your stillness, and the stillness adjusts.\n\nThe visitor at your threshold does not feel the Wyrm. They feel only that you have, very briefly, looked through them. They will go home and tell someone about it." }
+    ]
+  }
+}

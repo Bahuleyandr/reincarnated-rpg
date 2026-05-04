@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "The Coral Anchorage's signature recurring halfling. Captain of the four-ribbon flagship. Has not lost a contract in nine years. Smiles like she means it; doesn't."
+  },
+  "id": "captain-mira-of-the-anchor",
+  "displayName": "Captain Mira",
+  "kind": "npc",
+  "tagline": "barefoot, salt-cured, smaller than you expect, dangerous in a way the size makes worse.",
+  "vitals": { "hp": { "max": 9, "start": 9 } },
+  "stats": { "awareness": 3, "agility": 4, "will": 3, "threat": 2 },
+  "attitudeDefault": 0,
+  "attitudeRange": [-2, 2],
+  "tags": ["halfling", "the-coral-anchorage", "tidehands", "recurring"],
+  "behavior": {
+    "default": "stands at the rail and watches the horizon; does not turn for greetings.",
+    "narrativeHooks": [
+      "Eats only at dawn. Will not negotiate at any other hour.",
+      "Refuses contracts that target halfling shipping. Everyone else is on the table.",
+      "Has not raised her voice on deck in nine years."
+    ]
+  },
+  "metadata": {
+    "templateId": "captain-mira-of-the-anchor",
+    "recurring": true,
+    "faction": "halfling",
+    "voice": "clipped, salt-cured, full of nautical idiom; smiles a lot — most mean nothing",
+    "topicsOfInterest": ["dawn-meal", "the four ribbons", "contracts not yet offered"],
+    "appearanceProbability": {
+      "baseLow": 0.03,
+      "baseHigh": 0.08,
+      "wyrmPhaseThreshold": 500,
+      "perPriorEncounterBonus": 0.03,
+      "maxAppearanceProbability": 0.25
+    }
+  }
+}

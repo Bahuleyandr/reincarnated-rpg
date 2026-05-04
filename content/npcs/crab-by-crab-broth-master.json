@@ -1,0 +1,19 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-05", "notes": "Broth-master at Crab-by-Crab. Knows every species' broth by smell. Steers tourists to the friendliest first." },
+  "id": "crab-by-crab-broth-master",
+  "displayName": "Maester Tov",
+  "kind": "npc",
+  "tagline": "stout, perpetually amused, ladle in hand; tastes the steam to be polite.",
+  "vitals": { "hp": { "max": 6, "start": 6 } },
+  "stats": { "awareness": 3, "patience": 2, "will": 2 },
+  "attitudeDefault": 2,
+  "attitudeRange": [0, 3],
+  "tags": ["crab-by-crab", "broth-master", "recurring"],
+  "metadata": {
+    "templateId": "crab-by-crab-broth-master",
+    "recurring": true,
+    "voice": "boisterous, warm, free with banter, free with bay leaves",
+    "topicsOfInterest": ["which broth is which crab", "the halfling Salt-keepers' order", "today's catch"],
+    "appearanceProbability": { "baseLow": 0.05, "baseHigh": 0.08, "wyrmPhaseThreshold": 500, "perPriorEncounterBonus": 0.02, "maxAppearanceProbability": 0.20 }
+  }
+}

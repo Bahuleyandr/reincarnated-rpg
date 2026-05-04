@@ -1,0 +1,44 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Rust Hand × mining ascended form. The Deep Mark has gone so far underground that they can hear the world's plates drift. They surface only to confirm they still know what daylight looks like."
+  },
+  "id": "deep-mark",
+  "displayName": "Deep Mark",
+  "tagline": "You can hear the world's plates drift. You surface only to confirm daylight is still there.",
+  "vitals": {
+    "lung": { "max": 26, "start": 26, "death": 0 },
+    "depth": { "max": 26, "start": 26, "death": null }
+  },
+  "stats": { "awareness": 4, "patience": 3, "weight": 3, "will": 2 },
+  "verbs": ["descend", "feel", "rest", "surface", "wyrm-listen"],
+  "verbMappings": {
+    "descend": { "tools": ["move_to"], "rollStat": "patience" },
+    "feel": { "tools": ["sense"], "rollStat": "awareness" },
+    "rest": { "tools": ["heal"], "rollStat": null },
+    "surface": { "tools": ["move_to"], "rollStat": "will" },
+    "wyrm-listen": { "tools": ["sense", "change_form_state"], "rollStat": "awareness" }
+  },
+  "negativeVocab": {
+    "rule": "Deep Marks have left the surface. Vocabulary of daylight does not fit about them in the deep.",
+    "words": ["sunlit", "noon", "midday", "afternoon"]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick one. The Deep Mark loses air, depth-orientation, or surface-memory.",
+    "moves": [
+      { "id": "air-thin", "narrative": "The shaft you took today went deeper than you accounted for.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 2, "vital": "lung", "source": "thin air" }] },
+      { "id": "lost-orientation", "narrative": "You took a wrong turn at a junction you used to know by heart.", "tools": [{ "name": "change_form_state", "field": "lost", "delta": 1 }] },
+      { "id": "surface-fades", "narrative": "You tried to picture daylight today and could not. You will surface tomorrow to remind yourself.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "depth", "source": "fading surface" }] },
+      { "id": "deep-pressure", "narrative": "Pressure changed faster than you adjusted. Your ears will ring tomorrow.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "lung", "source": "pressure" }] },
+      { "id": "wyrm-listen", "narrative": "You felt a movement deeper than any plate you have charted. The Long Wyrm has shifted under your shaft.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "Deep Mark prose is dim, attentive to weight and pressure, alien to surface dwellers.",
+    "passages": [
+      { "id": "01-the-shaft", "scenario": "The Deep Mark descends a familiar shaft", "wordCount": 130, "text": "Hand-over-hand on the rung-line for the first thirty meters. After that the shaft is wide enough to walk.\n\nYou know this descent by feel. Your lamp is on but you do not need it for the first turn; your hand finds the seam and the seam finds you. The pressure drops a degree, then another. You let it. Your ears equalize without being asked.\n\nThe rock down here speaks to you. Not in words. In the slow correction of your weight against the wall." }
+    ]
+  }
+}

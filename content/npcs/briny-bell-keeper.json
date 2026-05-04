@@ -1,0 +1,19 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-05", "notes": "Bell-keeper at Briny Bell. Reads tide times to the minute. Wears sandals year-round." },
+  "id": "briny-bell-keeper",
+  "displayName": "Keeper Alaida",
+  "kind": "npc",
+  "tagline": "salt-cured, sandaled, calm in a way that comes from never being late.",
+  "vitals": { "hp": { "max": 5, "start": 5 } },
+  "stats": { "awareness": 4, "patience": 3, "will": 2 },
+  "attitudeDefault": 1,
+  "attitudeRange": [0, 3],
+  "tags": ["briny-bell", "bell-keeper", "recurring"],
+  "metadata": {
+    "templateId": "briny-bell-keeper",
+    "recurring": true,
+    "voice": "measured, tide-paced; rarely smiles but is not unkind",
+    "topicsOfInterest": ["tide tables", "the causeway window", "the next bell"],
+    "appearanceProbability": { "baseLow": 0.04, "baseHigh": 0.07, "wyrmPhaseThreshold": 500, "perPriorEncounterBonus": 0.02, "maxAppearanceProbability": 0.20 }
+  }
+}

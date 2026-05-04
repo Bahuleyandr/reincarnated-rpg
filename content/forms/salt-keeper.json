@@ -1,0 +1,49 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Chorister × cooking ascended form. The player who pledged to the Choristers and topped out in cooking now keeps the salt-cures the choir eats between verses. The Salt Keeper's brines hold for years; the choir's voices hold longer because of them."
+  },
+  "id": "salt-keeper",
+  "displayName": "Salt Keeper",
+  "tagline": "Your brines outlast you. The choir eats them between verses.",
+  "vitals": {
+    "brine": { "max": 24, "start": 24, "death": 0 },
+    "stores": { "max": 24, "start": 24, "death": null }
+  },
+  "stats": {
+    "patience": 3,
+    "awareness": 3,
+    "kindling": 2,
+    "weight": 2
+  },
+  "verbs": ["cure", "stir", "taste", "stock", "wyrm-savor"],
+  "verbMappings": {
+    "cure": { "tools": ["change_form_state"], "rollStat": "patience" },
+    "stir": { "tools": ["change_form_state"], "rollStat": "kindling" },
+    "taste": { "tools": ["sense"], "rollStat": "awareness" },
+    "stock": { "tools": ["pass_time"], "rollStat": null },
+    "wyrm-savor": { "tools": ["sense", "change_form_state"], "rollStat": "awareness" }
+  },
+  "negativeVocab": {
+    "rule": "Salt Keepers do not waste. Vocabulary of carelessness does not fit.",
+    "words": ["waste", "throw-away", "discard", "dump"]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick one. The Keeper's costs are usually a brine going off or a store running thin.",
+    "moves": [
+      { "id": "brine-turned", "narrative": "A brine has turned. You will not serve it.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "brine", "source": "turned" }] },
+      { "id": "stores-thin", "narrative": "Stores are thinner than you remembered.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "stores", "source": "thin" }] },
+      { "id": "salt-uneven", "narrative": "The salt was uneven; the cure took differently across the rack.", "tools": [{ "name": "change_form_state", "field": "uneven_cure", "delta": 1 }] },
+      { "id": "wrong-jar", "narrative": "You opened a jar that wanted another month.", "tools": [{ "name": "change_form_state", "field": "early_open", "delta": 1 }] },
+      { "id": "wyrm-savor", "narrative": "Today's batch carries a flavor you have not added. The Long Wyrm has salted the air over your work.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "Salt-Keeper prose is sensory, slow, attentive to taste and time.",
+    "passages": [
+      { "id": "01-the-cure", "scenario": "The Salt Keeper checks a long-cure barrel", "wordCount": 140, "text": "The barrel has been at the back of the cool room since before the choir's last festival.\n\nYou roll it forward and ease the lid up a finger's width. You do not lean over it. You let the air come to you. The brine is right; you can tell by the way the air does not announce itself. A cure that has gone wrong always announces itself.\n\nYou close the lid again, label the barrel with another month's mark, and roll it back. The choir does not need it tonight. The choir will need it next year." }
+    ]
+  }
+}

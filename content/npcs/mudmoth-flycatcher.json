@@ -1,0 +1,19 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-05", "notes": "Lead flycatcher at Mudmoth. Up before dawn for the eggs; counts them by feel." },
+  "id": "mudmoth-flycatcher",
+  "displayName": "Auld Tam",
+  "kind": "npc",
+  "tagline": "lacquered net resting across a bony shoulder; steady-eyed.",
+  "vitals": { "hp": { "max": 5, "start": 5 } },
+  "stats": { "awareness": 4, "patience": 3, "agility": 2 },
+  "attitudeDefault": 1,
+  "attitudeRange": [-1, 2],
+  "tags": ["mudmoth", "flycatcher", "recurring"],
+  "metadata": {
+    "templateId": "mudmoth-flycatcher",
+    "recurring": true,
+    "voice": "low, slow, the calm of someone who has not raised their voice in twenty years",
+    "topicsOfInterest": ["glow-fly egg counts", "the tide", "Saltgale wholesalers"],
+    "appearanceProbability": { "baseLow": 0.04, "baseHigh": 0.07, "wyrmPhaseThreshold": 500, "perPriorEncounterBonus": 0.02, "maxAppearanceProbability": 0.20 }
+  }
+}

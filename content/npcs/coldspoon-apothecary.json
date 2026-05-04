@@ -1,0 +1,19 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-05", "notes": "Master apothecary at Coldspoon; ships cloud-bitters to the Long Indices." },
+  "id": "coldspoon-apothecary",
+  "displayName": "Ren of the Drying Slope",
+  "kind": "npc",
+  "tagline": "perpetually wind-burned, perpetually patient; counts drops in their sleep.",
+  "vitals": { "hp": { "max": 6, "start": 6 } },
+  "stats": { "awareness": 3, "patience": 4, "will": 2 },
+  "attitudeDefault": 1,
+  "attitudeRange": [0, 3],
+  "tags": ["dwarven", "coldspoon", "apothecary", "recurring"],
+  "metadata": {
+    "templateId": "coldspoon-apothecary",
+    "recurring": true,
+    "voice": "wind-paced, soft, precise; tastes everything before naming it",
+    "topicsOfInterest": ["cloudtea seasons", "the next batch", "orcish reading habits"],
+    "appearanceProbability": { "baseLow": 0.04, "baseHigh": 0.07, "wyrmPhaseThreshold": 500, "perPriorEncounterBonus": 0.02, "maxAppearanceProbability": 0.20 }
+  }
+}

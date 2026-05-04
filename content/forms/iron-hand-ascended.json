@@ -1,0 +1,44 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Rust Hand × smithing ascended form. The player who pledged to the Rust Hand and topped out in smithing is the Iron Hand — a craftsman whose work outlasts wars."
+  },
+  "id": "iron-hand-ascended",
+  "displayName": "Iron Hand Ascended",
+  "tagline": "Your work outlasts the wars it was made for.",
+  "vitals": {
+    "forge": { "max": 28, "start": 28, "death": 0 },
+    "memory": { "max": 28, "start": 28, "death": null }
+  },
+  "stats": { "will": 4, "weight": 3, "awareness": 3, "kindling": 3 },
+  "verbs": ["forge", "temper", "name", "rest", "wyrm-strike"],
+  "verbMappings": {
+    "forge": { "tools": ["change_form_state"], "rollStat": "will" },
+    "temper": { "tools": ["change_form_state"], "rollStat": "kindling" },
+    "name": { "tools": ["change_form_state"], "rollStat": "awareness" },
+    "rest": { "tools": ["heal"], "rollStat": null },
+    "wyrm-strike": { "tools": ["sense", "change_form_state"], "rollStat": "awareness" }
+  },
+  "negativeVocab": {
+    "rule": "Iron Hands do not chatter. Vocabulary of small-talk does not fit.",
+    "words": ["chatter", "gossip", "small-talk", "natter"]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick one. Iron Hands lose to over-tempering, naming-mistakes, and old metal.",
+    "moves": [
+      { "id": "over-tempered", "narrative": "You took the temper a notch too far. The metal is harder and shorter-lived.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 2, "vital": "forge", "source": "over-temper" }] },
+      { "id": "name-wrong", "narrative": "You named the piece for someone who was not yet alive when its iron was mined.", "tools": [{ "name": "change_form_state", "field": "wrong_name", "delta": 1 }] },
+      { "id": "old-metal", "narrative": "The blank you used today carries a fault you did not feel. The piece will fail at the worst time.", "tools": [{ "name": "change_form_state", "field": "future_failures", "delta": 1 }] },
+      { "id": "memory-fades", "narrative": "A piece you forged forty years ago is now in a town you cannot picture. You are forgetting your own work.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "memory", "source": "fading" }] },
+      { "id": "wyrm-strike", "narrative": "Your hammer rings on the anvil at a pitch the anvil does not produce. The Long Wyrm has matched your strike.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "Iron Hand prose is dense, technical when needed, deeply familiar with metal.",
+    "passages": [
+      { "id": "01-the-blank", "scenario": "The Iron Hand selects a blank from the long iron rack", "wordCount": 130, "text": "Forty-three blanks on the rack. You know each by hand-feel.\n\nYou pull the seventh from the left, third from the bottom — the iron from the Tallowfen smelt of two summers ago, a soft easy iron that will take a deep temper. You set it on the bench. The customer waits. They have come for a blade and they will leave with one in three days, and the blade will outlast them, and they know this." }
+    ]
+  }
+}

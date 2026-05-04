@@ -1,0 +1,44 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Rust Hand × smelting ascended form. The Furnace Warden tends a furnace that has not gone out in their lifetime. They sleep with their back to the heat."
+  },
+  "id": "furnace-warden",
+  "displayName": "Furnace Warden",
+  "tagline": "Your furnace has not gone out in your lifetime. Yours is not the only lifetime it will see.",
+  "vitals": {
+    "fire": { "max": 28, "start": 28, "death": 0 },
+    "vigil": { "max": 24, "start": 24, "death": null }
+  },
+  "stats": { "kindling": 4, "awareness": 3, "patience": 3, "will": 2 },
+  "verbs": ["bank", "stoke", "watch", "rest", "wyrm-glow"],
+  "verbMappings": {
+    "bank": { "tools": ["change_form_state"], "rollStat": "patience" },
+    "stoke": { "tools": ["change_form_state"], "rollStat": "kindling" },
+    "watch": { "tools": ["sense"], "rollStat": "awareness" },
+    "rest": { "tools": ["heal"], "rollStat": null },
+    "wyrm-glow": { "tools": ["sense", "change_form_state"], "rollStat": "awareness" }
+  },
+  "negativeVocab": {
+    "rule": "Furnace Wardens do not let the fire out. Vocabulary of extinguishing does not fit about them.",
+    "words": ["extinguish", "snuff", "douse", "drown-it"]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick one. The Warden loses heat, sleep, or patience.",
+    "moves": [
+      { "id": "fire-low", "narrative": "The fire dropped lower than you've allowed in years.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 2, "vital": "fire", "source": "drop" }] },
+      { "id": "vigil-broken", "narrative": "You slept longer than the fire wanted you to.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 2, "vital": "vigil", "source": "oversleep" }] },
+      { "id": "ash-overflow", "narrative": "Ash banked too deep to clear before morning.", "tools": [{ "name": "change_form_state", "field": "ash_load", "delta": 1 }] },
+      { "id": "fuel-thin", "narrative": "The fuel pile has gone smaller than your estimate.", "tools": [{ "name": "change_form_state", "field": "fuel_thin", "delta": 1 }] },
+      { "id": "wyrm-glow", "narrative": "The fire glowed at a color you did not feed it. The Long Wyrm has breathed across your forge.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "Furnace Warden prose is hot, attentive, alert to the sound of the flame.",
+    "passages": [
+      { "id": "01-the-bank", "scenario": "The Warden banks the furnace for the long night", "wordCount": 130, "text": "Third hour after midnight is the worst of the cold.\n\nYou bank the fire in the way your master taught you, which is the way her master taught her — a hand-deep layer of green ash, then the chunk of slow oak, then the lid. The fire breathes through the lid all night and never quite touches it.\n\nYou listen. The fire makes the right sound. You sit back, exactly far enough that the heat reaches you and does not warm you past comfort. You will be here in the morning. The fire will be here longer." }
+    ]
+  }
+}

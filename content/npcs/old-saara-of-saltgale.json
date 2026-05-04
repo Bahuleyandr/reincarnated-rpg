@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Saltgale's signature recurring elf. An old Branchman who has dropped the act for so long she has forgotten how it goes back on. Tells you the truth for a price the truth itself has set."
+  },
+  "id": "old-saara-of-saltgale",
+  "displayName": "Old Saara",
+  "kind": "npc",
+  "tagline": "thin, white-haired, ink-stained at the cuffs. her smile is honest in a way other elves find rude.",
+  "vitals": { "hp": { "max": 8, "start": 8 } },
+  "stats": { "awareness": 3, "will": 3, "patience": 2 },
+  "attitudeDefault": 0,
+  "attitudeRange": [-2, 2],
+  "tags": ["elven", "branchman", "saltgale", "recurring"],
+  "behavior": {
+    "default": "looks at you longer than other elves do; doesn't perform the act.",
+    "narrativeHooks": [
+      "Says exactly what she means and charges accordingly.",
+      "Pours tea at the wrong temperature on purpose; the wrongness is the test.",
+      "Will not negotiate after the third no."
+    ]
+  },
+  "metadata": {
+    "templateId": "old-saara-of-saltgale",
+    "recurring": true,
+    "faction": "elven",
+    "voice": "off-act elven — terse, profane, surgical, kind only after she's decided",
+    "topicsOfInterest": ["banking", "true names", "the cost of the act"],
+    "appearanceProbability": {
+      "baseLow": 0.04,
+      "baseHigh": 0.10,
+      "wyrmPhaseThreshold": 500,
+      "perPriorEncounterBonus": 0.03,
+      "maxAppearanceProbability": 0.30
+    }
+  }
+}

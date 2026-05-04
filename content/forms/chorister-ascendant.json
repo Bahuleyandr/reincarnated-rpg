@@ -1,0 +1,49 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Chorister-faction ascended form (default). The player who pledged to the Choristers and ascended without a top-skill specialty. They sing the long song now, and the song outlasts them."
+  },
+  "id": "chorister-ascendant",
+  "displayName": "Chorister Ascendant",
+  "tagline": "You sing the long song. The song outlasts you on purpose.",
+  "vitals": {
+    "voice": { "max": 24, "start": 24, "death": 0 },
+    "harmony": { "max": 24, "start": 24, "death": null }
+  },
+  "stats": {
+    "will": 3,
+    "awareness": 3,
+    "kindling": 2,
+    "patience": 3
+  },
+  "verbs": ["chant", "lead", "carry", "rest", "wyrm-line"],
+  "verbMappings": {
+    "chant": { "tools": ["change_form_state"], "rollStat": "will" },
+    "lead": { "tools": ["update_relationship"], "rollStat": "will" },
+    "carry": { "tools": ["pass_time"], "rollStat": "patience" },
+    "rest": { "tools": ["heal"], "rollStat": null },
+    "wyrm-line": { "tools": ["sense", "change_form_state"], "rollStat": "awareness" }
+  },
+  "negativeVocab": {
+    "rule": "Choristers do not shout. They do not strain. The song is sustained.",
+    "words": ["shout", "scream", "yell", "bellow", "shriek"]
+  },
+  "hardMoves": {
+    "rule": "Partial-success: pick one. The cost is usually a missed cue or a singer you trained going silent.",
+    "moves": [
+      { "id": "missed-cue", "narrative": "You came in a half-beat late. The song accommodates; the choir notices.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "harmony", "source": "missed cue" }] },
+      { "id": "singer-silent", "narrative": "Someone you taught to sing has decided to stop. You feel the absence in the line that used to be theirs.", "tools": [{ "name": "change_form_state", "field": "silent_singers", "delta": 1 }] },
+      { "id": "voice-strained", "narrative": "You held the high note longer than you should have. Your voice is rougher tomorrow.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 2, "vital": "voice", "source": "strain" }] },
+      { "id": "harmony-lost", "narrative": "The line breaks open into discord. You bring it back, but only barely.", "tools": [{ "name": "apply_damage", "target": "$SELF", "amount": 1, "vital": "harmony", "source": "discord" }] },
+      { "id": "wyrm-line", "narrative": "A passage of the long song you have sung many times reveals a new line, and the line is not yours. The Long Wyrm has hummed along and added.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
+    ]
+  },
+  "sampleCorpus": {
+    "rule": "Choristers' prose flows in long-breath sentences. The song is the structure.",
+    "passages": [
+      { "id": "01-the-long-song", "scenario": "The Chorister Ascendant leads a verse of the long song", "wordCount": 140, "text": "The line begins where the last line ended, and that is where the line should begin.\n\nYou breathe in once. The choir behind you breathes with you. You hold the breath the precise duration the song expects. You release into the line, and the choir releases after you, half a beat behind, and that delay is the harmony.\n\nThe room is candlelit. The candles, somewhere along the third verse, will gutter together and recover together, and you have learned not to take that as an omen. The song does not need omens. The song carries itself, and you carry the song." }
+    ]
+  }
+}
