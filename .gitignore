@@ -45,6 +45,9 @@ next-env.d.ts
 # eval runs (live Anthropic outputs cached locally; rate-limited; not committable)
 /eval/runs/
 
+# wedge-clip generated transcripts (deterministic but timestamp-named, not committable)
+/eval/wedge-clips/
+
 # playwright
 /playwright-report/
 /test-results/
