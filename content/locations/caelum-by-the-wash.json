@@ -1,0 +1,104 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "The metropolis. Built where the five rivers meet at the estuary; every race has a quarter that originally housed only their own people, but most are mixed now. The Wash itself moves cargo north-south; the Spoke Roads radiate outward to the five homelands."
+  },
+  "id": "caelum-by-the-wash",
+  "displayName": "Caelum-by-the-Wash",
+  "tagline": "Five rivers, five peoples, one tide.",
+  "ambientPool": [
+    "The bells of three quarters strike at slightly different intervals. The metropolis has never agreed on time.",
+    "A barge-master leans on a pole longer than themselves and corrects course with a single tap.",
+    "Salt and woodsmoke and inkdust mix in the air at the river's mouth.",
+    "Rain comes in from the east, off Saltgale, smelling of mudflat.",
+    "An orcish reader passes silently with three folios under their arm; an elven clerk steps aside without breaking conversation."
+  ],
+  "entryRoomId": "the-spoke-square",
+  "rooms": [
+    {
+      "id": "the-spoke-square",
+      "displayName": "The Spoke Square",
+      "summary": "The plaza at the city's heart. Five roads radiate outward to the five homelands. A bronze compass-rose set into the cobbles names them by direction; the inscription is in five scripts.",
+      "ambientPool": [
+        "A messenger from Threadwarden stops at the SE marker, drops a bundle, runs back the way they came.",
+        "Three dwarven Whitebark cider-jars are stacked at the N marker, waiting for a cart that has not arrived.",
+        "Two halfling salt-keepers debate a price in low fast voices at the SW marker.",
+        "An elven Vellum sits on the bronze compass-rose itself, pretending to read.",
+        "A lone Hush-reader from the W spoke turns a page in a folio, then writes one careful word in the margin."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-river-quay", "narrative": "South toward the riverside cargo quays." },
+        { "verb": "go", "toRoomId": "the-five-quarters", "narrative": "East toward the residential quarters where each race built its first streets." },
+        { "verb": "go", "toRoomId": "the-counting-arcade", "narrative": "North into the elven-built arcade of counting houses and shipping desks." },
+        { "verb": "go", "toRoomId": "the-paper-row", "narrative": "West toward the orc-built paper row." }
+      ]
+    },
+    {
+      "id": "the-river-quay",
+      "displayName": "The River Quay",
+      "summary": "Where the five rivers meet. Barges from each spoke unload here. The cargo language is a five-way pidgin nobody admits to speaking.",
+      "ambientPool": [
+        "A barge from the Furrow line arrives heavy with Furrowmouth wheat.",
+        "Reef-cured fish are unloaded in identical waxed barrels, all stamped with the same anchor.",
+        "A Topgrove orchardist haggles in the wind-paced cadence with a Saltgale Salt-folk wholesaler over a cider shipment.",
+        "The tide comes in early today; ropes are retied without comment."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-spoke-square", "narrative": "Back uphill into the heart of the city." },
+        { "verb": "go", "toRoomId": "the-five-quarters", "narrative": "East along the river to the residential quarters." }
+      ]
+    },
+    {
+      "id": "the-five-quarters",
+      "displayName": "The Five Quarters",
+      "summary": "Nominally five neighborhoods — Threadwarden, Saltgale, Highfield, Anchorage, Indices — but in practice every street has all five flags and at least one mixed family.",
+      "ambientPool": [
+        "Children of three races chase each other through a side alley, shouting in pidgin.",
+        "An orcish window has a halfling drying-line of fish strung outside it.",
+        "A coldhammer's anvil rings once, then a Topgrove flute answers from two streets over.",
+        "The smell of dawn-meal halfling stew comes from the wrong window for it to be a halfling household."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-spoke-square", "narrative": "West to the central square." },
+        { "verb": "go", "toRoomId": "the-river-quay", "narrative": "Down to the cargo quays." }
+      ]
+    },
+    {
+      "id": "the-counting-arcade",
+      "displayName": "The Counting Arcade",
+      "summary": "A long arched arcade lined with elven counting houses. Slate boards rewritten hourly with grain prices, salt prices, freight rates. The act is at full performance here.",
+      "ambientPool": [
+        "An elven Branchman in unspoiled grey raises a single eyebrow at a slate that has just changed.",
+        "A Vellum smiles in a way that means a contract has just become enforceable.",
+        "Two Clearseers meet, do not quite acknowledge each other, and turn opposite directions.",
+        "The act drops for half a second when a Salt-folk wholesaler bursts in laughing — then comes right back up."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-spoke-square", "narrative": "South back to the central square." }
+      ]
+    },
+    {
+      "id": "the-paper-row",
+      "displayName": "The Paper Row",
+      "summary": "Orcish stationers, binders, and one Hush-reader's sanctuary. The street is the quietest in the city. Conversations are conducted in writing.",
+      "ambientPool": [
+        "Three readers sit on a bench, each turning a page in a different rhythm.",
+        "A Marginal scribbles into the margin of a folio they have just bought; the bookseller waits.",
+        "A Cataloguer sorts a small stack of slips into invisible order and is satisfied.",
+        "The wind doesn't seem to make as much noise here. People notice and don't comment."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-spoke-square", "narrative": "East back to the central square." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "estuary-pearl",
+    "wash-river-reed",
+    "metropolis-pidgin-paper",
+    "iron-ore",
+    "wood-oak"
+  ]
+}

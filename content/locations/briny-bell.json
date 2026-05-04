@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "First town SW from Caelum, on the coastal road toward the Coral Anchorage. Tide-locked — the town's bell tower sits on a stone pier that floods at high tide; the bells ring on the tide rising and the tide falling, twice a day. The bell-keepers know the tide times to the minute. The town is also the last stop before the tidal causeway out to the reef."
+  },
+  "id": "briny-bell",
+  "displayName": "Briny Bell",
+  "tagline": "The bells ring on the tide. Twice a day, on time.",
+  "ambientPool": [
+    "Sea air comes through every door; everyone here is faintly salt-cured.",
+    "The bells start their slow swing as the water reaches the second step of the tower.",
+    "A halfling Salt-keeper buys salt-cured fish from the harbor and disagrees politely about the price.",
+    "Children play 'who can stay on the pier longest' and lose ankle-deep before they leave."
+  ],
+  "entryRoomId": "the-bell-pier",
+  "rooms": [
+    {
+      "id": "the-bell-pier",
+      "displayName": "The Bell Pier",
+      "summary": "A stone pier with the bell tower rising from its center. The pier floods at high tide; the bell-keepers wear sandals and don't mind. The bells are bronze, the rope is saltcord from Knot's Landing.",
+      "ambientPool": [
+        "A bell-keeper of fifty-five steadies a rope and waits for the water to reach the step.",
+        "The bells sound: three slow strokes, a pause, three slow strokes. The town adjusts.",
+        "A child of six rings a small practice-bell in the doorway of the keeper's hut.",
+        "The tide is on time. The keepers smile thinly — it's their work for the world to do that."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-causeway-head", "narrative": "Down the road to the head of the tidal causeway out to the reef." }
+      ]
+    },
+    {
+      "id": "the-causeway-head",
+      "displayName": "The Causeway Head",
+      "summary": "Where the tidal causeway begins. A stone marker shows the safe-cross hours, updated daily by the bell-keepers. Travelers wait here for low tide; impatient travelers do not last long on this road.",
+      "ambientPool": [
+        "A halfling Drowncaller stands at the marker and waits for an unfamiliar traveler to ask the right question.",
+        "The bell tolls in the distance; the marker is updated.",
+        "Two travelers from Knot's Landing accept they will not cross today and turn back to the inn.",
+        "The causeway itself is half-submerged. In an hour it will be half-emerged."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-bell-pier", "narrative": "Back along the road to the bell pier." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "tidewater-pearl",
+    "salt-block",
+    "bell-bronze",
+    "saltcord-rope"
+  ]
+}

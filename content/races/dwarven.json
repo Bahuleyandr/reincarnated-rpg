@@ -1,0 +1,57 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Subverted-default race. The genre says dwarves are 'stout, mountain-dwelling, axe-wielding cave-miners who love ale'. Here, dwarves are tall (6'2\" average), slender, agoraphobic toward enclosed spaces, and live above the cloudline tending terraced orchards. They make tools from wood and bone, refuse to enter caves or basements, and consider mining a deviant act. Their drink is cider, not ale."
+  },
+  "id": "dwarven",
+  "displayName": "Dwarven",
+  "homelandId": "highfield-ascending",
+  "lifespanYears": { "min": 80, "max": 110, "median": 92 },
+  "physicalNotes": "Average height 6'2\". Lanky. Long fingers good for orchard work. Adults have wind-burned cheeks and the loose easy posture of people who are almost never indoors.",
+  "racialFeatures": [
+    {
+      "id": "sky-bound",
+      "label": "Sky-bound",
+      "description": "Dwarves cannot tolerate enclosed spaces. A basement, a cave, a low-ceilinged inn produces immediate distress; an extended stay underground will eventually kill them. They sleep on porches above the cloudline whenever the weather permits."
+    },
+    {
+      "id": "wood-and-bone",
+      "label": "Wood-and-bone toolmaking",
+      "description": "Their tools are carved from orchard hardwoods and bird-bone, never metal. Metal is associated culturally with the smiths of the human spoke and is considered an aesthetic affront. A dwarf with a metal knife is a dwarf in trouble."
+    },
+    {
+      "id": "altitude-lung",
+      "label": "Altitude lung",
+      "description": "Adapted to thin air — dwarves perform poorly at sea level and need to breathe more often than other races at the metropolis's elevation. Halflings tease them for it."
+    }
+  ],
+  "subPopulations": [
+    {
+      "id": "topgrove",
+      "label": "Topgrove",
+      "summary": "The orchard masters. Each Topgrove house tends a single tree species across multiple terraces. The Whitestar Topgroves have grown the same heritage apple for nine generations.",
+      "city": "highfield-ascending"
+    },
+    {
+      "id": "skybeam",
+      "label": "Skybeam",
+      "summary": "Kite-builders. Their giant pollination kites carry weighted bee-clusters between terrace blocks; the kites are also how they signal across the cloud-mass.",
+      "city": "highfield-ascending"
+    },
+    {
+      "id": "whitebark",
+      "label": "Whitebark",
+      "summary": "Cider-makers. The dwarven drink. Aged in birch casks at altitude. The metropolis's Whitebark cider sells at three times the price of any other.",
+      "city": "highfield-ascending"
+    },
+    {
+      "id": "gust-watchers",
+      "label": "Gust-watchers",
+      "summary": "Weather-readers. They sit on the highest terraces with bone instruments and call the wind. The other dwarves do not plant or harvest without clearance from a Gust-watcher.",
+      "city": "highfield-ascending"
+    }
+  ],
+  "voice": "wind-paced — long pauses, generous breath, surprised when interrupted. Hates being indoors with strangers."
+}

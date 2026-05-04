@@ -1,0 +1,57 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Subverted-default race. The genre says humans are 'balanced and adaptable jacks-of-all-trades'. Here, humans are brittle specialists: each is born into a single craft, cannot meaningfully switch, and dies young (40-50). Their craft dies with them, so apprenticeships start at age 7 and last seven years; the next 16 years they are a working master; the last decade they teach. The whole society organizes around this fact."
+  },
+  "id": "human",
+  "displayName": "Human",
+  "homelandId": "threadwarden",
+  "lifespanYears": { "min": 38, "max": 52, "median": 44 },
+  "physicalNotes": "Average height 5'8\". Hands disproportionately large for their frame; childhood apprentice work shapes the bones. Calloused before puberty.",
+  "racialFeatures": [
+    {
+      "id": "single-craft",
+      "label": "Born to one craft",
+      "description": "Each human can only ever be a master of one trade. The trade is decided by birth district + family lineage and is essentially impossible to escape. Cross-training produces a competent practitioner who is a poor master of either trade."
+    },
+    {
+      "id": "early-mastery",
+      "label": "Early mastery, early end",
+      "description": "Apprenticeship starts at 7. By 14 they are journeymen; by 21 they are masters; by 35 they are teachers; by 50 most are dead. The compression makes them very, very good at their one thing for a short, intense window."
+    },
+    {
+      "id": "succession-anxiety",
+      "label": "Succession anxiety",
+      "description": "Because a craft dies with its master, every human is preoccupied with who will succeed them. This shapes their politics, their marriages, and their fights."
+    }
+  ],
+  "subPopulations": [
+    {
+      "id": "threadwardens",
+      "label": "Threadwardens",
+      "summary": "The weaving families. The city is named for them. Their looms are the largest in the world. They name their cloth.",
+      "city": "threadwarden"
+    },
+    {
+      "id": "coldhammers",
+      "label": "Coldhammers",
+      "summary": "The smiths. They forge cold whenever they can — heated metal cools wrong on Threadwarden's particular humid air, they say. The other races don't believe them. They are still the best smiths in the world.",
+      "city": "threadwarden"
+    },
+    {
+      "id": "furrowfolk",
+      "label": "Furrowfolk",
+      "summary": "Grain farmers. Single crop per family — wheat OR barley OR rye, never two. Furrowmouth is their market town.",
+      "city": "threadwarden"
+    },
+    {
+      "id": "pageborn",
+      "label": "Pageborn",
+      "summary": "Scribes. The only humans who learn another tongue (always orcish — paper comes from the orcs). Considered slightly suspect by the other sub-populations for it.",
+      "city": "threadwarden"
+    }
+  ],
+  "voice": "direct, time-pressured, generous with compliments to apprentices and stingy with them to peers."
+}

@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Second town east, between Mudmoth and Saltgale. Sits in a brackish wetland — the 'fen' — where tallow-reeds grow chest-high. The reeds yield a waxy fiber rendered into 'tallow-wax', a clean-burning candle base used in the elven counting houses (the slate boards need clear non-smoking light). Salt-folk wholesalers come here to negotiate the wax season."
+  },
+  "id": "tallowfen",
+  "displayName": "Tallowfen",
+  "tagline": "Reeds taller than you. The wax burns clean enough to write by.",
+  "ambientPool": [
+    "Reeds rustle in unbroken sound for hundreds of yards in every direction.",
+    "A reed-cutter wades to thigh depth and works one row at a time.",
+    "Wax is rendered in open-air kettles; the steam smells faintly herbal.",
+    "An elven wholesaler sits on a plank waiting for a count and is polite about it."
+  ],
+  "entryRoomId": "the-fen-edge",
+  "rooms": [
+    {
+      "id": "the-fen-edge",
+      "displayName": "The Fen Edge",
+      "summary": "Where the road from Caelum meets the reed-line. A wooden boardwalk runs out into the fen; from here you can see the reed-cutters at work in the middle distance.",
+      "ambientPool": [
+        "A reed-cutter waves from far out in the fen, holding up a bundle.",
+        "An elven wholesaler shades their eyes against the late sun.",
+        "Three crates of pressed reed-fiber wait at the boardwalk's end for pickup.",
+        "A water-bird calls; the cutter pauses, then resumes."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-rendering-yard", "narrative": "Inland to the rendering yard where the wax is made." }
+      ]
+    },
+    {
+      "id": "the-rendering-yard",
+      "displayName": "The Rendering Yard",
+      "summary": "Open yard with three iron kettles set on stone. Reed-fiber boils slowly under low fires. The yard-master tastes the steam, not the wax — they will tell you the season's quality by smell alone.",
+      "ambientPool": [
+        "A kettle is skimmed with a long-handled paddle; pure wax dribbles into a clay form.",
+        "The yard-master nods at a kettle and says one quiet word — the reed has come from the right pool.",
+        "An elven wholesaler signs a slip; six crates of wax will be on a barge by morning.",
+        "A young apprentice tends the fires with the patient attention of someone learning a single craft for life."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-fen-edge", "narrative": "Back to the fen edge." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "tallow-reed",
+    "tallow-wax",
+    "saltgrass",
+    "fen-iron-bog"
+  ]
+}

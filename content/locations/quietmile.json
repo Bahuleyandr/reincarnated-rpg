@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Second town west, between Cataract Mile and the Long Indices. The town is under a vow of silence — a self-imposed compact dating from a centuries-old plague where the only response to grief was to stop speaking. It worked, sort of, and the silence stuck. The vow-poppy fields ring the town; the petals are dried and sent to the Long Indices for ink-binding."
+  },
+  "id": "quietmile",
+  "displayName": "Quietmile",
+  "tagline": "Nobody speaks here. They haven't for a long time.",
+  "ambientPool": [
+    "The road into town has a hand-painted sign at the boundary asking visitors to honor the silence.",
+    "A poppy-cutter walks between rows; petals fall into a silk pouch without sound.",
+    "Two locals greet each other with a small bow and a nod; the weather is acknowledged in the angle of the chin.",
+    "A traveler from below the cloudline catches themselves about to speak and stops."
+  ],
+  "entryRoomId": "the-silence-gate",
+  "rooms": [
+    {
+      "id": "the-silence-gate",
+      "displayName": "The Silence Gate",
+      "summary": "A wooden post-and-lintel arch with the vow inscribed in five scripts on the lintel. Travelers pause here and most read the vow before crossing.",
+      "ambientPool": [
+        "An elven Vellum reads the vow with the act fully active and crosses the threshold without dropping it.",
+        "A Topgrove orchardist on their way through stops to read the vow for the third time in their life.",
+        "A child of the village waits at the gate to take an arriving stranger's hand and lead them in.",
+        "The wind moves quietly through the arch. Everyone here listens to it more than they would elsewhere."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-poppy-field", "narrative": "Past the gate, along a path of fitted stones, into the poppy fields." }
+      ]
+    },
+    {
+      "id": "the-poppy-field",
+      "displayName": "The Poppy Field",
+      "summary": "Rows of vow-poppies, all white, all in slow steady bloom. Cutters walk between rows with silk pouches, gathering petals. Petals are paid by weight.",
+      "ambientPool": [
+        "A cutter pauses, considers a particular bloom, and selects three petals.",
+        "A wagon waits at the field's edge to take the day's pouches to the Long Indices.",
+        "A bell-buoy somewhere in the next valley rings — the only sound from outside the silence.",
+        "The light is filtered through the poppies; everything is slightly warmer in tone."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-silence-gate", "narrative": "Back to the gate." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "vow-poppy",
+    "vow-petal-silk",
+    "ink-onyx",
+    "wood-pine"
+  ]
+}

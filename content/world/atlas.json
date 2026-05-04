@@ -1,0 +1,142 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Regional atlas — five racial homelands radiate from the central metropolis Caelum-by-the-Wash, with two small towns lining each spoke. The races invert the genre defaults: humans are brittle specialists; elves are conniving merchants; dwarves are tall sky-dwelling orchardists; halflings are naval mercenaries; orcs are quiet philosophers. The atlas is consumed by the narrator (when surfacing regional flavor), the picker (when offering form/region pairs), and any UI that wants to render the world map. The graph is acyclic from each spoke's perspective — towns appear in order of distance from Caelum."
+  },
+
+  "metropolis": {
+    "id": "caelum-by-the-wash",
+    "displayName": "Caelum-by-the-Wash",
+    "tagline": "The estuary city. The five rivers meet here, and so do the five peoples.",
+    "shortName": "Caelum"
+  },
+
+  "spokes": [
+    {
+      "direction": "N",
+      "homeland": {
+        "id": "highfield-ascending",
+        "displayName": "Highfield Ascending",
+        "race": "dwarven",
+        "biome": "above the cloudline; terraced highland orchards"
+      },
+      "towns": [
+        { "id": "three-notches", "displayName": "Three Notches", "distanceFromCaelumDays": 2 },
+        { "id": "coldspoon", "displayName": "Coldspoon", "distanceFromCaelumDays": 4 }
+      ]
+    },
+    {
+      "direction": "E",
+      "homeland": {
+        "id": "saltgale",
+        "displayName": "Saltgale",
+        "race": "elven",
+        "biome": "estuary mudflats; pontoon trading houses"
+      },
+      "towns": [
+        { "id": "mudmoth", "displayName": "Mudmoth", "distanceFromCaelumDays": 2 },
+        { "id": "tallowfen", "displayName": "Tallowfen", "distanceFromCaelumDays": 4 }
+      ]
+    },
+    {
+      "direction": "W",
+      "homeland": {
+        "id": "the-long-indices",
+        "displayName": "The Long Indices",
+        "race": "orcish",
+        "biome": "high desert plateau; nested library quadrangles"
+      },
+      "towns": [
+        { "id": "cataract-mile", "displayName": "Cataract Mile", "distanceFromCaelumDays": 2 },
+        { "id": "quietmile", "displayName": "Quietmile", "distanceFromCaelumDays": 4 }
+      ]
+    },
+    {
+      "direction": "SE",
+      "homeland": {
+        "id": "threadwarden",
+        "displayName": "Threadwarden",
+        "race": "human",
+        "biome": "inland river basin; single-craft compound districts"
+      },
+      "towns": [
+        { "id": "furrowmouth", "displayName": "Furrowmouth", "distanceFromCaelumDays": 1 },
+        { "id": "knots-landing", "displayName": "Knot's Landing", "distanceFromCaelumDays": 3 }
+      ]
+    },
+    {
+      "direction": "SW",
+      "homeland": {
+        "id": "the-coral-anchorage",
+        "displayName": "The Coral Anchorage",
+        "race": "halfling",
+        "biome": "offshore coral reef; pontoon dockings; reef-anchored navy"
+      },
+      "towns": [
+        { "id": "briny-bell", "displayName": "Briny Bell", "distanceFromCaelumDays": 2 },
+        { "id": "crab-by-crab", "displayName": "Crab-by-Crab", "distanceFromCaelumDays": 4 }
+      ]
+    }
+  ],
+
+  "asciiMap": [
+    "                                                           ",
+    "                       N — to the cloudline                ",
+    "                            │                              ",
+    "                  HIGHFIELD ASCENDING                      ",
+    "                  (dwarven orchards)                       ",
+    "                            │                              ",
+    "                       Coldspoon                           ",
+    "                            │                              ",
+    "                      Three Notches                        ",
+    "                            │                              ",
+    "                            │                              ",
+    "  W — high plateau ─────────┼─────────── E — to the sea    ",
+    "                            │                              ",
+    "  THE LONG INDICES          │           SALTGALE           ",
+    "  (orcish libraries)        │           (elven mudflats)   ",
+    "    │                       │                       │      ",
+    "  Quietmile                 │                       Tallowfen",
+    "    │                       │                       │      ",
+    "  Cataract Mile             │                     Mudmoth  ",
+    "    │                       │                       │      ",
+    "    └─── ◇ CAELUM-BY-THE-WASH ◇ ───┘                       ",
+    "         (estuary metropolis;                              ",
+    "          all five rivers meet here)                       ",
+    "                            │                              ",
+    "                            │ S — toward the coast         ",
+    "                            │                              ",
+    "       SE inland fork ──────┼────── SW coastal fork        ",
+    "                            │                              ",
+    "                       Furrowmouth                         ",
+    "                            │                              ",
+    "                      Knot's Landing                       ",
+    "                            │                              ",
+    "                      THREADWARDEN                         ",
+    "                      (human craft-compounds)              ",
+    "                                                           ",
+    "                                                           ",
+    "                       Briny Bell                          ",
+    "                            │                              ",
+    "                      Crab-by-Crab                         ",
+    "                            │                              ",
+    "                  ~~~~ tide causeway ~~~~                  ",
+    "                            │                              ",
+    "                  THE CORAL ANCHORAGE                      ",
+    "                  (halfling reef navy)                     ",
+    "                                                           "
+  ],
+
+  "rivers": [
+    {
+      "name": "the Wash",
+      "summary": "The great river the metropolis is named for. Drains the highland orchards and the inland basin into the estuary."
+    },
+    { "name": "the Indice", "summary": "Skirts the orcish plateau westward; cataracts at Cataract Mile feed paper-mills." },
+    { "name": "Saltgale Mouth", "summary": "Tidal estuary distributary; brackish for two days' walk inland." },
+    { "name": "Furrow", "summary": "Slow inland river along the human spoke; navigable by flat barge." },
+    { "name": "the Anchorage Causeway", "summary": "Not a river; a tidal stone causeway uncovered twice a day, the only land link to the halfling reef." }
+  ]
+}

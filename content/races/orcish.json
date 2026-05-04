@@ -1,0 +1,57 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Subverted-default race. The genre says orcs are 'savage warlike tribal brutes'. Here, orcs are quiet philosophers who run the only universities. They write more than they speak, argue ethics in undertones, and consider violence a category error — not a moral failing exactly, but a mistake about what kind of thing the world is. The Long Indices is a city built as nested library quadrangles. Orcs make the paper the rest of the world reads."
+  },
+  "id": "orcish",
+  "displayName": "Orcish",
+  "homelandId": "the-long-indices",
+  "lifespanYears": { "min": 70, "max": 95, "median": 82 },
+  "physicalNotes": "Average height 5'11\", broader through the shoulders than humans but not as much as the genre defaults imply. Tusks are vestigial — small enamel ridges, not the protruding fangs the books used to draw. Reading-stoop common after age 30.",
+  "racialFeatures": [
+    {
+      "id": "category-error",
+      "label": "Violence as category error",
+      "description": "Orcish ethics holds that violence is not bad-but-sometimes-justified — it is an attempt to argue with reality, which doesn't argue back. They will defend themselves if attacked, with reluctance and visible disappointment. Many young orcs from the metropolis enlist in the halfling navy specifically to test this premise; few re-enlist."
+    },
+    {
+      "id": "writing-priority",
+      "label": "Writing-priority",
+      "description": "Orcs prefer to write than to speak, even when speaking is faster. A formal orcish dinner has long stretches where everyone is jotting in notebooks. They are not being rude. They are taking the conversation seriously."
+    },
+    {
+      "id": "reading-rooms",
+      "label": "Silent reading-room caste",
+      "description": "The Hush-readers spend their lives in absolute silence, reading and annotating. They communicate via marginalia. The other sub-populations bring them food and water and respect them with a depth that reads as religious to outsiders."
+    }
+  ],
+  "subPopulations": [
+    {
+      "id": "shelvers",
+      "label": "Shelvers",
+      "summary": "Preservationists. Repair bindings, stabilize old paper, fight mold. Most paper-making lore lives with them.",
+      "city": "the-long-indices"
+    },
+    {
+      "id": "cataloguers",
+      "label": "Cataloguers",
+      "summary": "Indexers. Maintain the Long Indices' nested catalog system, which other races admire and can never quite use.",
+      "city": "the-long-indices"
+    },
+    {
+      "id": "marginals",
+      "label": "Marginals",
+      "summary": "Commentators. Write in the margins of every book they read. The Marginal annotations on a single classic argument can run longer than the original. Considered the orcish answer to philosophy.",
+      "city": "the-long-indices"
+    },
+    {
+      "id": "hush-readers",
+      "label": "Hush-readers",
+      "summary": "The silent reading-room caste. Communicate only by marginalia. Take a vow of silence at age 19.",
+      "city": "the-long-indices"
+    }
+  ],
+  "voice": "low, considered, paper-rustle quiet. Long pauses; comfortable with silence. Will write you a letter rather than continue a discussion that has gotten loud."
+}

@@ -1,0 +1,90 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Human homeland. Inland river basin city; districts are organized by craft, not by class. The four sub-population districts (weavers, smiths, farmers, scribes) each have rigid apprenticeship rules. The Furrow runs north-south through the city; its banks are public common ground that all four crafts share."
+  },
+  "id": "threadwarden",
+  "displayName": "Threadwarden",
+  "tagline": "A city of single-craft compounds. Apprentices age seven; masters age thirty-five.",
+  "ambientPool": [
+    "The looms speak louder than the people. Always have.",
+    "Cold smithing makes its own kind of music — clean, slow, no scream of red metal.",
+    "A barge of grain comes downriver from Furrowmouth.",
+    "Pageborn scribes carry stacks of clean orcish paper to and from the riverside.",
+    "Every adult here is the master of one thing and only one thing. They look almost embarrassed about it."
+  ],
+  "entryRoomId": "the-loom-square",
+  "rooms": [
+    {
+      "id": "the-loom-square",
+      "displayName": "The Loom Square",
+      "summary": "Open square ringed by the four largest weaving compounds. The clack of looms reaches the square through every doorway. Bolts of named cloth hang outside the gates — each cloth has its own name, like a person.",
+      "ambientPool": [
+        "A bolt named 'Late October' is rolled out across the square for inspection. The light catches it differently from any other.",
+        "An apprentice of nine carries a thread spool across the square at a careful pace.",
+        "A master weaver of forty-one rests on a bench. They look very tired. They are getting close.",
+        "Across the square, a Coldhammer's apprentice runs a message, dodges three weavers, makes it through."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-cold-forges", "narrative": "East to the smith district where the cold forges work." },
+        { "verb": "go", "toRoomId": "the-furrow-banks", "narrative": "South to the river commons where every craft mingles." },
+        { "verb": "go", "toRoomId": "the-page-quarter", "narrative": "North to the scribe quarter, where the orcish paper arrives." }
+      ]
+    },
+    {
+      "id": "the-cold-forges",
+      "displayName": "The Cold Forges",
+      "summary": "Coldhammer compound. The forges are cold — banked low, just warm. Smiths shape the iron at room temperature, hammering it slowly into shape. The technique is impossible everywhere else; the humid air of Threadwarden is the only place it works.",
+      "ambientPool": [
+        "An iron blank rings clear under a steady cold strike.",
+        "A master smith of forty-eight sits on a stool, watching their journeyman, saying nothing for an hour.",
+        "An apprentice of twelve makes their first true cold-strike and the master nods, just once.",
+        "From the next street the looms continue, indifferent."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-loom-square", "narrative": "West back to the loom square." },
+        { "verb": "go", "toRoomId": "the-furrow-banks", "narrative": "South to the river commons." }
+      ]
+    },
+    {
+      "id": "the-page-quarter",
+      "displayName": "The Page Quarter",
+      "summary": "Pageborn district. The only humans who learn another language; their orcish is good enough that the Long Indices respects it. Stacks of clean paper are piled in window-sills to air.",
+      "ambientPool": [
+        "A Pageborn scribe practices an orcish glyph fifty times in a row, each one slightly more correct.",
+        "Three of the older Pageborn argue in low voices about whether a translation honors the source.",
+        "A bell rings and a Pageborn child runs out to receive a paper shipment.",
+        "Through an open window: the sound of an orcish reading-rhythm, very faint."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-loom-square", "narrative": "South back to the loom square." }
+      ]
+    },
+    {
+      "id": "the-furrow-banks",
+      "displayName": "The Furrow Banks",
+      "summary": "Public riverbank common. The only ground in the city not owned by a craft. Children of every district come here. Apprentices flirt across the trades.",
+      "ambientPool": [
+        "A weaver's apprentice and a smith's apprentice share a sandwich on the bank.",
+        "A Furrowfolk farmer ties a flat barge to a post and waits. The wheat will be unloaded when somebody comes for it.",
+        "The river is not deep here. Children wade and shout.",
+        "A master who is only a few seasons from teaching looks at the water and is quiet."
+      ],
+      "exits": [
+        { "verb": "go", "toRoomId": "the-loom-square", "narrative": "North to the loom square." },
+        { "verb": "go", "toRoomId": "the-cold-forges", "narrative": "Northeast to the smith district." }
+      ]
+    }
+  ],
+  "availableResources": [
+    "iron-ore",
+    "wood-oak",
+    "cloth-linen",
+    "loom-iron",
+    "cold-forged-blade",
+    "furrow-grain",
+    "named-cloth-late-october"
+  ]
+}
