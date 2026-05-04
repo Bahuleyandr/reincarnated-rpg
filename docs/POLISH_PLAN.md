@@ -1,6 +1,39 @@
 # Polish Plan — foundation maturity before Phase 1
 
-**Status**: drafted 2026-05-04. **Pre-Phase-1 work.** Read before starting `POST_MVP_PLAN.md` Phase 1 (predicate engine).
+**Status**: 10/14 sub-phases shipped 2026-05-04 (commits `4a0d01a` through `263ef60`). **Pre-Phase-1 work.** Read before starting `POST_MVP_PLAN.md` Phase 1 (predicate engine).
+
+## Progress
+
+| Sub-phase | Status | Output |
+|---|---|---|
+| 0a — commit local WIP + ADRs | **shipped** | 4 logical commits + ADR-020 (turn-lock) + ADR-021 (Fly.io) |
+| 0b.1 — turn-lock hardening | **shipped** | audit log table, force-release, getActiveLocks, /god/locks API, Date-serialization bug fix, 9 integration tests |
+| 0b.2 — health/ready split | **shipped** | /api/health (liveness, +commit/version) and /api/ready (DB + pgvector + content + Anthropic checks); fly.toml dual probes |
+| 0b.3 — Sentry + structured metrics | *deferred* | requires SDK install + Next instrumentation + env config; queue for next session |
+| 0b.4 — E2E smoke in CI | *deferred* | requires Playwright config + new spec + GH workflow change |
+| 0b.5 — connection pooling | **shipped** | DATABASE_URL_DIRECT for migrations + pooled DATABASE_URL for app + DATABASE_POOL_MAX env (default 10) |
+| 0c.1 — dice-roll animation | **shipped** | tumble through random faces ~900ms before settling; reduced-motion respected |
+| 0c.2 — form-flavor accents | *deferred* | touches every component + content schema; fits better as a focused day after Phase 1 |
+| 0c.3 — turn-in-flight UI | **shipped** | 409 returns currentLockExpiresAtMs; InputBox shows "settling…" + auto-retries |
+| 0c.4 — empty states + recap polish | **shipped** | death/win/cap scrim, tone-aware verdict, view-character link |
+| 0c.5 — onboarding nudges | *deferred* | depends on Phase 1 predicate engine; revisit then |
+| 0d.1 — threat-NPC pin tests | **shipped** | 8 unit tests pinning the 4 threat NPCs (existence, displayName, validation pass) |
+| 0d.2 — today's-runs ticker | **shipped** | /api/world/today + auto-rotating marquee on the homepage; in-character empty state |
+| 0d.3 — session lobby + spectate | *deferred* | requires presence integration + opt-out flag + spectator API |
+| 0e — cleanup sweep | **partial** | ARCHITECTURE.md accuracy pass; scripts standardization + dead-code sweep deferred |
+
+## What this means for Phase 1
+
+The hardened foundation is in place: turn-lock with audit, ready probe, connection pooling, speculative event batching. Phase 1 (predicate engine) opens on a stable platform.
+
+The 5 deferred items below are real but not blocking. Pick them up opportunistically:
+- **0b.3 Sentry** — schedule before public launch.
+- **0b.4 E2E smoke** — add when first E2E regression embarrasses us.
+- **0c.2 form-flavor** — fits naturally after Phase 1 day 3 (legacy traits) lands form-aware UI work.
+- **0c.5 onboarding nudges** — sits on top of the Phase 1 predicate engine; do as a Phase 1 follow-up.
+- **0d.3 session lobby** — needs the spectator API spec from Phase 2 day 10 (run replay) anyway.
+
+---
 
 The repo has accumulated substantial uncommitted local work that the long-term plan doesn't account for: a turn-lock + safety layer, deployment infrastructure (Dockerfile / fly.toml / GitHub Actions / migration + smoke scripts), a `/api/health` endpoint, four threat-themed NPC templates, and a refactor of the turn loop toward speculative event batching. This is good — it's mostly the operational foundation Phase 8 was going to build anyway, just landed early. But it left rough edges.
 
