@@ -80,7 +80,14 @@ Tracked here so we can see what's accumulated above the MVP line. See `docs/POST
 | 2026-05-04 | Phase 5 Day 27 — Skills/recipes UI + economy achievements | (rolled-up branch) |
 | 2026-05-04 | Phase 5.5 Day 28-37 — Engagement deepening (famous deaths, cooldowns, epitaphs, item naming, location notes, Rhozell, tutorial) | (rolled-up branches) |
 | 2026-05-04 | Phase 7 Day 38-62 — 365-day campaign calendar (calendar, factions, branches, recurring NPCs, votes, endings, edicts, voice, story tooling, codex, lapsed flows, year archive) | (rolled-up branches) |
-| 2026-05-04 | Phase 8 Day 63-72 — Operational readiness (analytics, backup CI, load testing, mobile UX, email, payments, GDPR, Sentry) | (this commit) |
+| 2026-05-04 | Phase 8 Day 63-72 — Operational readiness (analytics, backup CI, load testing, mobile UX, email, payments, GDPR, Sentry) | `e5e76ba` |
+| 2026-05-04 | Failover wiring + anti-farm caps + Year-1 content (Books I-III) | `c77b2bb` |
+| 2026-05-04 | Phase 9 follow-ups — dialogue threads + player forms + ascension + marketplace (server-side) | `277b1ac` |
+| 2026-05-04 | Phase 9 loop closure — `/marketplace` + `/forms/new` + `/god/forms` UI + ascension CTA on `/character` + `speak_to`/`pledge_faction` in narrator tool list | `7b4df4f` |
+| 2026-05-04 | Form #2 Cursed Book at depth — `the-binder` NPC + per-form starting-room override + classifier compound-match fix + 9 unit tests + 2 eval scenarios (22, 23) | `7b4df4f` |
+| 2026-05-04 | Marketplace loop completion — `list_item` tool (escrow + audit, multi-event) + `list new` UI tab + `mine=1` query | `33b6d1c` |
+| 2026-05-04 | Form #3 Dungeon Core at depth — 8 unit tests + 2 eval scenarios (24, 25) | `20af440` |
+| 2026-05-04 | Form-specific dice variants (roadmap 62) — 2d6 / 3d6kh2 / 2d6r1 / 1d12; cursed-book → 3d6kh2, dragon-egg → 2d6r1, dungeon-core → 1d12 | `a983ce9` |
 
 ## Pre-Phase-1 polish (~14 dev days)
 
@@ -163,18 +170,23 @@ See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
 52. **Payment integration** (Day 69-71) — Stripe Checkout + tier upgrades + dunning.
 53. **GDPR + Sentry + a11y** (Day 72) — data export/delete + error tracking + accessibility audit.
 
-**Days 73+ — Bigger swings**
-54. **NPC dialogue system** (Day 73+) — multi-turn conversations with personality continuity (3-5d).
-55. **Player-authored forms** (Day 78+) — submission queue + admin approval (5-7d).
-56. **Player-driven marketplace** (Day 85+) — Phase 6a: P2P listings, gated by Phase 5 telemetry (~7d).
-57. **Ascension** (Day 85+, parallel) — Phase 6b: endgame meta-forms unlocked after ~50 runs (~7-10d).
+**Days 73+ — Bigger swings** (all shipped 2026-05-04)
+54. ✅ **NPC dialogue system** — `dialogue_turns` table; `speak_to` tool wired into RemoteNarrator; per-NPC thread recall (last 8 exchanges) surfaces as memory on next turn.
+55. ✅ **Player-authored forms** — `/forms/new` submission UI; `/god/forms` admin queue; approval writes `content/forms/<slug>.json` to disk so the seeded form pool grows organically.
+56. ✅ **Player-driven marketplace** — `/marketplace` browse + your-listings + list-new tabs; `list_item` tool for in-game listing; 10% sink fee; 7-day TTL; cancel/expire return items.
+57. ✅ **Ascension** — `/character` shows requirements (tutorial + faction + 50 runs + 4 distinct forms); on eligibility shows ascend CTA; meta-form derived from faction × top skill.
+
+**Wedge proof — forms #2 and #3 at depth** (shipped 2026-05-04)
+- ✅ **Form #2 Cursed Book at depth** — content gaps closed (`the-binder` NPC, per-form starting-room override), classifier compound-match fix, 9 unit tests, 2 eval scenarios.
+- ✅ **Form #3 Dungeon Core at depth** — 8 unit tests pinning down "stationary, sense-through-stone" wedge (no overlap with slime or book), 2 eval scenarios (tone + spawn_minion).
+- ✅ **Form-specific dice variants** (roadmap 62) — slime/default 2d6, cursed-book 3d6kh2, dragon-egg 2d6r1, dungeon-core 1d12. Each form's dice shape matches its narrative feel.
 
 **Month 3+ — Phase 9: post-launch deepening (~30d total, sequenced by need)**
 58. **Localization scaffolding** (~3d) — `messages/en.json` + first second-locale (Spanish).
 59. **Voice TTS for NPC moments** (~3d) — ElevenLabs for Wyrm Voice, antagonists, Counsel.
 60. **PvP duels** (~5d) — opt-in cross-faction encounters via 2d6 system.
 61. **Guilds / parties** (~5d) — sub-faction groups with own chat + objectives.
-62. **Form-specific dice variants** (~2d) — 2d6 / 3d4-keep-highest / re-roll mechanics per form.
+62. ✅ **Form-specific dice variants** — shipped 2026-05-04. 2d6 / 3d6kh2 / 2d6r1 / 1d12 per form.
 63. **Player-as-NPC retirement** (~2d) — ascended/permadied veterans become recurring NPCs.
 64. **In-run companions** (~3-4d) — bonded NPCs actively join the current run; can level + die.
 65. **Party play (2-3 players)** (~7-10d) — round-robin lockstep co-play; tier-gated (patron hosts).
