@@ -288,6 +288,13 @@
       "when": 1778120000000,
       "tag": "0040_epitaphs",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1778130000000,
+      "tag": "0041_location_notes",
+      "breakpoints": true
     }
   ]
 }
