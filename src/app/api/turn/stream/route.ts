@@ -100,10 +100,25 @@ export async function POST(req: NextRequest) {
 
   const lock = await acquireTurnLock(db, sessionId);
   if (!lock) {
-    return new Response(JSON.stringify({ error: "turn already in progress" }), {
-      status: 409,
-      headers: { "content-type": "application/json" },
-    });
+    const { sessions } = await import("@/lib/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db
+      .select({ expiresAt: sessions.turnLockExpiresAt })
+      .from(sessions)
+      .where(eq(sessions.id, sessionId))
+      .limit(1);
+    const expiresAtMs = rows[0]?.expiresAt?.getTime() ?? null;
+    return new Response(
+      JSON.stringify({
+        error: "turn already in progress",
+        turnInFlight: true,
+        currentLockExpiresAtMs: expiresAtMs,
+      }),
+      {
+        status: 409,
+        headers: { "content-type": "application/json" },
+      },
+    );
   }
 
   // Energy gate: charge 1 energy before opening the stream. Same
