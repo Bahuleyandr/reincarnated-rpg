@@ -467,36 +467,70 @@ function Recap({
     status === "won"
       ? "the night ends. you survived."
       : status === "dead"
-        ? "the dark closes. cohesion = 0."
-        : "the cap falls. ten turns are spent.";
+        ? "the dark closes."
+        : "the night ends without verdict — ten turns are spent.";
+
+  // Match scrim color to the verdict so death feels like a moment,
+  // not a state change. Subtle radial gradient — strong enough to
+  // signal the shift in tone, soft enough not to fight the prose.
+  const scrim =
+    status === "won"
+      ? "bg-gradient-to-b from-amber-950/40 via-amber-950/10 to-transparent"
+      : status === "dead"
+        ? "bg-gradient-to-b from-red-950/40 via-red-950/10 to-transparent"
+        : "bg-gradient-to-b from-blue-950/30 via-blue-950/10 to-transparent";
+
+  // Final dice roll source — last roll.resolved isn't kept on
+  // projection, but the form's hard-move outcome is implied by the
+  // status. We surface what we have; the dice animation
+  // (Phase 0c.1) lives at the per-turn site, not here.
 
   return (
     <section
-      className="border-t border-stone-800 px-4 py-4 space-y-3"
+      className={`border-t border-stone-800 px-4 py-6 space-y-4 ${scrim}`}
       data-testid="recap"
     >
-      <div className={`${tone} text-sm tracking-wide`} data-testid="end-banner">
-        session.ended ({status})
+      <div
+        className={`${tone} text-base tracking-widest uppercase font-light`}
+        data-testid="end-banner"
+      >
+        {status === "won" ? "✦ survived" : status === "dead" ? "✦ ended" : "✦ silence"}
       </div>
-      <p className="text-stone-200 text-sm leading-6">{verdict}</p>
-      <ul className="text-xs text-stone-500 space-y-1">
-        <li>turns: {turn}</li>
-        <li>final room: {room}</li>
+      <p className={`${tone} text-base leading-7 italic`}>{verdict}</p>
+      <ul className="text-xs text-stone-500 space-y-1 grid grid-cols-2 sm:grid-cols-3 gap-x-4">
         <li>
-          vitals:{" "}
-          {Object.entries(projection.form.vitals)
-            .map(([k, v]) => `${k}=${v}/${projection.form.vitalsMax[k] ?? "?"}`)
-            .join(", ")}
+          <span className="text-stone-600">turns</span>{" "}
+          <span className="text-stone-300">{turn}</span>
         </li>
-        <li>discovered: {projection.location.discovered.join(", ")}</li>
-        <li>xp: {projection.xp}</li>
+        <li>
+          <span className="text-stone-600">final room</span>{" "}
+          <span className="text-stone-300">{room}</span>
+        </li>
+        <li>
+          <span className="text-stone-600">xp</span>{" "}
+          <span className="text-stone-300">{projection.xp}</span>
+        </li>
+        <li className="col-span-2 sm:col-span-3">
+          <span className="text-stone-600">vitals</span>{" "}
+          <span className="text-stone-300">
+            {Object.entries(projection.form.vitals)
+              .map(([k, v]) => `${k}=${v}/${projection.form.vitalsMax[k] ?? "?"}`)
+              .join(", ")}
+          </span>
+        </li>
+        <li className="col-span-2 sm:col-span-3">
+          <span className="text-stone-600">discovered</span>{" "}
+          <span className="text-stone-400">
+            {projection.location.discovered.join(", ")}
+          </span>
+        </li>
       </ul>
-      <div className="flex items-baseline gap-4 flex-wrap">
+      <div className="flex items-baseline gap-4 flex-wrap pt-1">
         <button
           type="button"
           onClick={onRestart}
           disabled={busy}
-          className="text-stone-400 hover:text-stone-100 underline underline-offset-2 text-sm disabled:opacity-50"
+          className="text-stone-300 hover:text-stone-100 underline underline-offset-4 text-sm disabled:opacity-50"
           data-testid="restart"
         >
           begin again
@@ -504,10 +538,18 @@ function Recap({
         {!hasAccount && (
           <Link
             href="/register"
-            className="text-amber-300 hover:text-amber-200 underline underline-offset-2 text-sm"
+            className="text-amber-300 hover:text-amber-200 underline underline-offset-4 text-sm"
             data-testid="claim-link"
           >
             save this run to your library →
+          </Link>
+        )}
+        {hasAccount && (
+          <Link
+            href="/character"
+            className="text-stone-500 hover:text-stone-300 underline underline-offset-4 text-sm"
+          >
+            view your character →
           </Link>
         )}
       </div>
