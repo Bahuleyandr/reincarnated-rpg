@@ -77,7 +77,10 @@ Tracked here so we can see what's accumulated above the MVP line. See `docs/POST
 | 2026-05-04 | Phase 5 Day 23-24 — 7 skills + 7 trainer NPCs + XP curve | `d2f0e13` |
 | 2026-05-04 | Phase 5 Day 25 — Buy/sell loop end-to-end + economy eval | `aff01d8` |
 | 2026-05-04 | Phase 5 Day 26 — Economy telemetry + /god/economy dashboard | `011eda8` |
-| 2026-05-04 | Phase 5 Day 27 — Skills/recipes UI + economy achievements | (this commit) |
+| 2026-05-04 | Phase 5 Day 27 — Skills/recipes UI + economy achievements | (rolled-up branch) |
+| 2026-05-04 | Phase 5.5 Day 28-37 — Engagement deepening (famous deaths, cooldowns, epitaphs, item naming, location notes, Rhozell, tutorial) | (rolled-up branches) |
+| 2026-05-04 | Phase 7 Day 38-62 — 365-day campaign calendar (calendar, factions, branches, recurring NPCs, votes, endings, edicts, voice, story tooling, codex, lapsed flows, year archive) | (rolled-up branches) |
+| 2026-05-04 | Phase 8 Day 63-72 — Operational readiness (analytics, backup CI, load testing, mobile UX, email, payments, GDPR, Sentry) | (this commit) |
 
 ## Pre-Phase-1 polish (~14 dev days)
 

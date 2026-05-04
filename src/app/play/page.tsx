@@ -344,17 +344,20 @@ export default function Play() {
   const ended = projection && projection.status !== "active";
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-200 font-mono grid md:grid-cols-[260px_1fr_260px] grid-rows-[1fr]">
-      <aside className="border-r border-stone-800 flex flex-col overflow-y-auto">
+    <main className="min-h-screen bg-stone-950 text-stone-200 font-mono grid md:grid-cols-[260px_1fr_260px] grid-rows-[1fr] md:min-h-0">
+      <aside
+        className="border-r border-stone-800 flex flex-col overflow-y-auto md:order-1 order-2"
+        data-testid="left-sidebar"
+      >
         <EnergyBar />
-        <div className="px-4 py-1 border-b border-stone-800 bg-stone-900/40">
+        <div className="px-4 py-1 border-b border-stone-800 bg-stone-900/40 flex items-center gap-2 min-h-[28px]">
           <CoinBadge />
         </div>
         <ObjectiveRibbon />
         <StatusSidebar projection={projection} />
       </aside>
 
-      <section className="flex flex-col min-h-screen md:min-h-0">
+      <section className="flex flex-col min-h-screen md:min-h-0 md:order-2 order-1">
         {metaArc && (
           <Link
             href="/meta"
@@ -442,7 +445,7 @@ export default function Play() {
         )}
       </section>
 
-      <aside className="border-l border-stone-800 bg-stone-900/40 flex flex-col overflow-y-auto">
+      <aside className="border-l border-stone-800 bg-stone-900/40 flex flex-col overflow-y-auto md:order-3 order-3">
         <QuestLog projection={projection} />
         {projection && (
           <LocationNotes
