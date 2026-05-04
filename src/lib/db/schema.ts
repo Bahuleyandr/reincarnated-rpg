@@ -146,6 +146,14 @@ export const users = pgTable("users", {
     "subscription_current_period_end",
     { withTimezone: true },
   ),
+  /** Ascension state (post-Phase-8). Set once when the player
+   *  ascends; the assigned meta-form id (e.g. 'cipher-mark')
+   *  becomes the only form they can pick going forward. The
+   *  seed jsonb captures lifetime metrics that inform the
+   *  meta-form's starter shape. */
+  ascendedAt: timestamp("ascended_at", { withTimezone: true }),
+  ascensionFormId: text("ascension_form_id"),
+  ascensionSeed: jsonb("ascension_seed"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -475,6 +483,116 @@ export const resourceDailyGather = pgTable(
 );
 
 export type ResourceDailyGather = typeof resourceDailyGather.$inferSelect;
+
+/**
+ * NPC dialogue threads (post-Phase-8). One row per
+ * speak_to(npcId, utterance) exchange — player utterance + NPC
+ * reply, scoped per (session, npc). Composer reads the last N
+ * entries to build the reply prompt; older entries roll into
+ * the memory pipeline.
+ */
+export const dialogueTurns = pgTable(
+  "dialogue_turns",
+  {
+    id: uuid("id").primaryKey(),
+    sessionId: uuid("session_id")
+      .notNull()
+      .references(() => sessions.id, { onDelete: "cascade" }),
+    npcId: text("npc_id").notNull(),
+    npcTemplateId: text("npc_template_id").notNull(),
+    playerUtterance: text("player_utterance").notNull(),
+    npcReply: text("npc_reply").notNull().default(""),
+    turn: integer("turn").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("dialogue_turns_session_npc_idx").on(
+      t.sessionId,
+      t.npcId,
+      t.createdAt,
+    ),
+    index("dialogue_turns_session_idx").on(t.sessionId),
+  ],
+);
+
+export type DialogueTurn = typeof dialogueTurns.$inferSelect;
+export type NewDialogueTurn = typeof dialogueTurns.$inferInsert;
+
+/**
+ * Player-authored forms queue (post-Phase-8). Submitted specs land
+ * here in 'pending_review'; admin approval allocates an
+ * approved_form_id slug and the approval job copies the spec into
+ * content/forms/<id>.json.
+ */
+export const playerForms = pgTable(
+  "player_forms",
+  {
+    id: uuid("id").primaryKey(),
+    authorUserId: uuid("author_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    approvedFormId: text("approved_form_id"),
+    name: text("name").notNull(),
+    theme: text("theme").notNull(),
+    spec: jsonb("spec").notNull(),
+    status: text("status").notNull().default("pending_review"),
+    reviewerUserId: uuid("reviewer_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reviewerNotes: text("reviewer_notes"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    submittedAt: timestamp("submitted_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("player_forms_status_idx").on(t.status, t.submittedAt),
+    index("player_forms_author_idx").on(t.authorUserId),
+    uniqueIndex("player_forms_approved_uniq").on(t.approvedFormId),
+  ],
+);
+
+export type PlayerForm = typeof playerForms.$inferSelect;
+export type NewPlayerForm = typeof playerForms.$inferInsert;
+
+/**
+ * Player-to-player marketplace listings (Phase 6 anchor —
+ * post-Phase-8 scaffold). Seller escrows the item at list time;
+ * buyer's coins go to the seller minus a 10% sink. Listings
+ * expire 7d after listed_at; the cleanup job returns escrowed
+ * items via the standard event-emission path.
+ */
+export const marketplaceListings = pgTable(
+  "marketplace_listings",
+  {
+    id: uuid("id").primaryKey(),
+    sellerUserId: uuid("seller_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    itemId: text("item_id").notNull(),
+    qty: integer("qty").notNull(),
+    pricePerUnit: integer("price_per_unit").notNull(),
+    note: text("note"),
+    status: text("status").notNull().default("active"),
+    buyerUserId: uuid("buyer_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    listedAt: timestamp("listed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    soldAt: timestamp("sold_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    index("marketplace_listings_seller_idx").on(t.sellerUserId),
+    index("marketplace_listings_status_idx").on(t.status, t.expiresAt),
+  ],
+);
+
+export type MarketplaceListing = typeof marketplaceListings.$inferSelect;
+export type NewMarketplaceListing = typeof marketplaceListings.$inferInsert;
 
 export const campaigns = pgTable(
   "campaigns",

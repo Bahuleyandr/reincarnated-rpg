@@ -205,6 +205,8 @@ const TOOL_TO_KINDS: Record<ToolCall["name"], readonly string[]> = {
   rename_inventory: ["inventory.renamed"],
   // Phase 7 Day 42-43: pledge_faction emits faction.pledged + coins.spent.
   pledge_faction: ["faction.pledged"],
+  // Post-Phase-8 dialogue tool.
+  speak_to: ["dialogue.exchanged"],
   narrate_only: [],
 };
 

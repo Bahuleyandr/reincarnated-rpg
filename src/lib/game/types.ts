@@ -159,6 +159,15 @@ export type Event =
       factionId: string;
     }
   | {
+      /** Post-Phase-8 NPC dialogue. Player utterance addressed to
+       *  an NPC. The narrator weaves the NPC's reply into prose;
+       *  the orchestrator persists a dialogue_turns row so the
+       *  next exchange has the recent context. No energy cost. */
+      kind: "dialogue.exchanged";
+      npcId: string;
+      utterance: string;
+    }
+  | {
       /** Phase 5 Day 23-24. Player paid a trainer NPC and learned a
        *  new skill. Idempotent — second learn calls are no-ops on
        *  the user_skills row. Companion `coins.spent` carries the
@@ -272,6 +281,16 @@ export type ToolCall =
        *  skills get +10% XP. */
       name: "pledge_faction";
       factionId: "choristers" | "rust_hand" | "idle" | "forsaken";
+    }
+  | {
+      /** Post-Phase-8 dialogue tool. The narrator emits this when
+       *  the player addresses words to a specific NPC. The
+       *  orchestrator persists the exchange so the next reply
+       *  reads recent context (last 8 turns) without re-deriving
+       *  from the event log. */
+      name: "speak_to";
+      npcId: string;
+      utterance: string;
     }
   | { name: "narrate_only" };
 

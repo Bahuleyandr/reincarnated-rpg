@@ -124,6 +124,10 @@ export function reduce(state: Projection, event: Event): Projection {
     // Phase 7 Day 42-43: faction.pledged also lives on the user
     // row, no projection mutation.
     case "faction.pledged":
+    // Post-Phase-8 dialogue: dialogue.exchanged is audit-only;
+    // the dialogue_turns table carries persistent state. Reducer
+    // no-op keeps replay deterministic.
+    case "dialogue.exchanged":
       return state;
 
     case "turn.begun":

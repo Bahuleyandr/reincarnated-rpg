@@ -144,6 +144,11 @@ const toolSchemas = {
     name: z.literal("pledge_faction"),
     factionId: z.enum(["choristers", "rust_hand", "idle", "forsaken"]),
   }),
+  speak_to: z.object({
+    name: z.literal("speak_to"),
+    npcId: nonEmptyString,
+    utterance: z.string().min(1).max(280),
+  }),
   narrate_only: z.object({
     name: z.literal("narrate_only"),
   }),
@@ -171,6 +176,7 @@ export const toolCallSchema = z.discriminatedUnion("name", [
   toolSchemas.learn_skill_from,
   toolSchemas.rename_inventory,
   toolSchemas.pledge_faction,
+  toolSchemas.speak_to,
   toolSchemas.narrate_only,
 ]);
 
@@ -713,6 +719,19 @@ export function checkPrecondition(
       // tool batches a coins.spent companion that the orchestrator
       // applies through the normal coin-event rollup.
       return null;
+    case "speak_to": {
+      // The NPC must be in scene. Utterance length already
+      // capped by the zod schema (1-280 chars).
+      if (!projection.npcs[tool.npcId]) {
+        return `speak_to: unknown npc: ${tool.npcId}`;
+      }
+      // Block obvious control characters in the utterance
+      // (newlines are OK; we allow narrators to use them).
+      if (/[\x00-\x08\x0b-\x1f]/.test(tool.utterance)) {
+        return `speak_to: control characters not allowed`;
+      }
+      return null;
+    }
     case "pass_time":
     case "sense":
     case "update_quest_objective":
@@ -891,6 +910,12 @@ export function toolToEvent(tool: ToolCall, projection: Projection): Event | nul
         kind: "inventory.renamed",
         itemId: tool.itemId,
         customName: tool.customName.trim(),
+      };
+    case "speak_to":
+      return {
+        kind: "dialogue.exchanged",
+        npcId: tool.npcId,
+        utterance: tool.utterance.trim().slice(0, 280),
       };
     case "narrate_only":
       return null;
