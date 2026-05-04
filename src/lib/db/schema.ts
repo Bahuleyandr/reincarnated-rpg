@@ -175,6 +175,27 @@ export const worldEvents = pgTable(
 export type WorldEvent = typeof worldEvents.$inferSelect;
 export type NewWorldEvent = typeof worldEvents.$inferInsert;
 
+/**
+ * Phase 7 Day 40-41. Per-provider health tracker. Three known
+ * providers seeded by the migration: anthropic, bedrock, vertex.
+ * The factory consults this before routing; 'down' providers fall
+ * to the next link in the chain (template at the tail).
+ */
+export const providerHealth = pgTable("provider_health", {
+  providerId: text("provider_id").primaryKey(),
+  status: text("status").notNull().default("healthy"),
+  lastSuccessAt: timestamp("last_success_at", { withTimezone: true }),
+  lastFailureAt: timestamp("last_failure_at", { withTimezone: true }),
+  consecutiveFailures: integer("consecutive_failures").notNull().default(0),
+  metadata: jsonb("metadata").notNull().default({}),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type ProviderHealth = typeof providerHealth.$inferSelect;
+export type NewProviderHealth = typeof providerHealth.$inferInsert;
+
 export const campaigns = pgTable(
   "campaigns",
   {

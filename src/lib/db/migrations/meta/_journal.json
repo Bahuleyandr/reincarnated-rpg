@@ -316,6 +316,13 @@
       "when": 1778160000000,
       "tag": "0044_world_calendar",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1778170000000,
+      "tag": "0045_provider_health",
+      "breakpoints": true
     }
   ]
 }
