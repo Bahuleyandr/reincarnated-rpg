@@ -140,6 +140,10 @@ const toolSchemas = {
     itemId: slugSchema,
     customName: z.string().min(1).max(32),
   }),
+  pledge_faction: z.object({
+    name: z.literal("pledge_faction"),
+    factionId: z.enum(["choristers", "rust_hand", "idle", "forsaken"]),
+  }),
   narrate_only: z.object({
     name: z.literal("narrate_only"),
   }),
@@ -166,6 +170,7 @@ export const toolCallSchema = z.discriminatedUnion("name", [
   toolSchemas.craft_recipe,
   toolSchemas.learn_skill_from,
   toolSchemas.rename_inventory,
+  toolSchemas.pledge_faction,
   toolSchemas.narrate_only,
 ]);
 
@@ -277,6 +282,34 @@ export function validateToolsToEvents(args: ValidateToolsArgs): ValidateToolsRes
 
   const events: Event[] = [];
   for (const tool of parsedTools) {
+    if (tool.name === "pledge_faction") {
+      // Multi-event: faction.pledged + coins.spent. Inventory
+      // capacity isn't relevant. Owner-pledge guard + sufficient-
+      // coins guard run server-side in turn.ts (lib/story/factions
+      // pledgeFaction handles the DB row). Here we just check the
+      // 50-coin headroom against context.currentCoins to give the
+      // narrator a clean rejection if it tries to over-pledge.
+      const PLEDGE_COST = 50;
+      if ((args.currentCoins ?? 0) < PLEDGE_COST) {
+        return {
+          ok: false,
+          failure: {
+            tool: "pledge_faction",
+            error: `pledge_faction: insufficient coins (need ${PLEDGE_COST}, have ${args.currentCoins ?? 0})`,
+          },
+        };
+      }
+      events.push({
+        kind: "faction.pledged",
+        factionId: tool.factionId,
+      });
+      events.push({
+        kind: "coins.spent",
+        amount: PLEDGE_COST,
+        sink: `faction:${tool.factionId}`,
+      });
+      continue;
+    }
     if (tool.name === "learn_skill_from") {
       // Multi-event tool: emits skill.learned + coins.spent. The
       // user_skills row insert happens as a side effect in turn.ts
@@ -674,6 +707,12 @@ export function checkPrecondition(
       }
       return null;
     }
+    case "pledge_faction":
+      // Coin gate is checked at emission time in
+      // validateToolsToEvents; here we just pass through. The
+      // tool batches a coins.spent companion that the orchestrator
+      // applies through the normal coin-event rollup.
+      return null;
     case "pass_time":
     case "sense":
     case "update_quest_objective":
@@ -841,6 +880,7 @@ export function toolToEvent(tool: ToolCall, projection: Projection): Event | nul
     case "gather_resource":
     case "craft_recipe":
     case "learn_skill_from":
+    case "pledge_faction":
       // Handled by the inline multi-event branch in
       // validateToolsToEvents; toolToEvent returns null so this
       // function stays 1:1-or-zero and predicate audits don't get

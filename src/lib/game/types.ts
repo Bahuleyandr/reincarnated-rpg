@@ -151,6 +151,14 @@ export type Event =
       outputQty: number;
     }
   | {
+      /** Phase 7 Day 42-43. Player pledged to a faction. One-shot;
+       *  the user's row carries faction_id + faction_pledged_at
+       *  (this event is audit + side-effect-trigger only).
+       *  Companion coins.spent carries the 50-coin pledge fee. */
+      kind: "faction.pledged";
+      factionId: string;
+    }
+  | {
       /** Phase 5 Day 23-24. Player paid a trainer NPC and learned a
        *  new skill. Idempotent — second learn calls are no-ops on
        *  the user_skills row. Companion `coins.spent` carries the
@@ -257,6 +265,13 @@ export type ToolCall =
       name: "rename_inventory";
       itemId: string;
       customName: string;
+    }
+  | {
+      /** Phase 7 Day 42-43. Pledge to a faction. One-shot per user;
+       *  costs 50 coins. Subsequent crafts in faction-aligned
+       *  skills get +10% XP. */
+      name: "pledge_faction";
+      factionId: "choristers" | "rust_hand" | "idle" | "forsaken";
     }
   | { name: "narrate_only" };
 
