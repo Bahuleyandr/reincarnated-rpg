@@ -975,6 +975,44 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
+  // Anti-farm counter bumps (Phase 5 Day 26 follow-up). Per-vendor
+  // sell flow + per-resource gather qty land in their respective
+  // daily-key tables so the next turn's validator can enforce
+  // caps. Anon sessions skip — caps are user-keyed.
+  if (world?.userId) {
+    try {
+      const { bumpResourceGather, bumpVendorFlow } = await import(
+        "../economy/antifarm"
+      );
+      for (const e of pendingEvents) {
+        if (e.kind === "trade.completed" && e.action === "sell") {
+          // sourceTag of the companion coins.gained looks like
+          // 'vendor:<templateId>'; the trade.completed itself
+          // carries the runtime npcId, so derive the template via
+          // the same suffix-strip rule.
+          const templateId = e.npcId.replace(/-[0-9a-f]{8}$/, "");
+          await bumpVendorFlow(db, {
+            userId: world.userId,
+            vendorTemplateId: templateId,
+            coinsEarn: e.coinsDelta,
+          });
+        }
+        if (e.kind === "craft.gathered") {
+          await bumpResourceGather(db, {
+            userId: world.userId,
+            resourceId: e.resourceId,
+            qty: e.qty,
+          });
+        }
+      }
+    } catch (err) {
+      log.warn("turn.antifarm.bump_failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   // Objective progress (Phase 1 Day 6). Increment any matching
   // objectives based on the events emitted this turn. Best-effort —
   // never breaks the turn pipeline.

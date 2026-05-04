@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Book II, Chapter 1 — The Rust Hand Walks. The Rust Hand begins making itself visible; iron starts arriving where iron wasn't ordered."
+  },
+  "chapterId": 5,
+  "book": 2,
+  "chapterInBook": 1,
+  "weekStart": "Year 1, Week 5",
+  "weekEnd": "Year 1, Week 5",
+  "title": "The Rust Hand Walks",
+  "theme": "iron arrives where iron wasn't ordered",
+  "worldEvent": "an iron coffin is found in a village square in Forsaken Village; no one will say who put it there",
+  "narratorPromptFragment": "The current world-chapter is BOOK II, CHAPTER 1: THE RUST HAND WALKS. The Rust Hand has begun making itself visible. Iron arrives in places it wasn't ordered. An iron coffin appeared in Forsaken Village's square last week; no one will say who put it there. The Wyrm is more patient than the players know; the Hand is its means of being patient. Reference iron, rust, and weight when natural.",
+  "factionAlignmentBonuses": {
+    "choristers": 0.95,
+    "rust_hand": 1.15,
+    "idle": 1.0,
+    "forsaken": 1.05
+  },
+  "locationsAffected": ["forsaken-village", "iron-reach"]
+}

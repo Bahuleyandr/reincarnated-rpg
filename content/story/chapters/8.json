@@ -1,0 +1,14 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-04", "notes": "Branch II resolves at end of Book II." },
+  "chapterId": 8,
+  "book": 2,
+  "chapterInBook": 4,
+  "weekStart": "Year 1, Week 8",
+  "weekEnd": "Year 1, Week 8",
+  "title": "What the Door Was For",
+  "theme": "the new door has someone behind it; or the new door has nothing behind it; the year decides",
+  "worldEvent": "Branch II resolves: the door's purpose becomes a fact",
+  "narratorPromptFragment": "The current world-chapter is BOOK II, CHAPTER 4: WHAT THE DOOR WAS FOR. The door from chapter 6 has someone behind it now. Or it doesn't. The year is about to decide. Reference the door if natural; otherwise reference a deciding-feeling — a coin spinning, a held breath, a held breath stopped.",
+  "factionAlignmentBonuses": { "choristers": 1.05, "rust_hand": 1.05, "idle": 1.05, "forsaken": 1.10 },
+  "locationsAffected": ["collapsed-tunnel"]
+}

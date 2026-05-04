@@ -1,0 +1,14 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-04" },
+  "chapterId": 9,
+  "book": 3,
+  "chapterInBook": 1,
+  "weekStart": "Year 1, Week 9",
+  "weekEnd": "Year 1, Week 9",
+  "title": "Hollow Market Quickens",
+  "theme": "trade picks up sharply; not all traders are who they were",
+  "worldEvent": "the Hollow Market doubles its volume in three days; some new vendors appear with goods they couldn't have brought",
+  "narratorPromptFragment": "The current world-chapter is BOOK III, CHAPTER 1: HOLLOW MARKET QUICKENS. Trade in Hollow Market has nearly doubled in three days. New vendors appear with goods they couldn't have brought down from anywhere known. The Twins are rumored to have visited but no one will say which one or both. Reference unfamiliar coins, foreign goods, and the way market-air smells different now.",
+  "factionAlignmentBonuses": { "choristers": 1.0, "rust_hand": 1.05, "idle": 1.0, "forsaken": 1.10 },
+  "locationsAffected": ["hollow-market"]
+}

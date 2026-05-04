@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Branch III — What the Stones Were Saying. Resolves at end of Book III (chapter 12). Drives whether the Forsaken faction unlocks for the rest of the year."
+  },
+  "id": 3,
+  "chapterId": 12,
+  "question": "What did the stones say?",
+  "paths": [
+    { "id": "a_warning", "label": "a warning — the cycle is wrong this turn", "metric": "faction_idle" },
+    { "id": "an_invitation", "label": "an invitation — the Forsaken are coming back", "metric": "faction_forsaken" },
+    { "id": "a_lullaby", "label": "a lullaby — be still, for now", "metric": "faction_choristers" }
+  ],
+  "defaultPath": "a_warning"
+}

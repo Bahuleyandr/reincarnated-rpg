@@ -1,0 +1,14 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-04", "notes": "End of Book III. Branch III resolves." },
+  "chapterId": 12,
+  "book": 3,
+  "chapterInBook": 4,
+  "weekStart": "Year 1, Week 12",
+  "weekEnd": "Year 1, Week 12",
+  "title": "What the Stones Were Saying",
+  "theme": "the stone-rings the Forsaken left have been arranged into a sentence; someone reads it out loud and the year changes",
+  "worldEvent": "Branch III resolves. The reading of the stones ratifies a fact about the world.",
+  "narratorPromptFragment": "The current world-chapter is BOOK III, CHAPTER 4: WHAT THE STONES WERE SAYING. Someone has read out loud what the stone-rings are saying — the reading is at the end of this chapter, and the year takes the reading as fact afterward. Until that moment, the stones still have the option to mean something else. Reference the stones often. Don't say what the sentence is.",
+  "factionAlignmentBonuses": { "choristers": 1.0, "rust_hand": 1.0, "idle": 1.10, "forsaken": 1.20 },
+  "locationsAffected": ["drowned-orchard", "salt-cathedral"]
+}

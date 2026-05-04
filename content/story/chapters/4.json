@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Book I, Chapter 4 — Whose Song Carries. Branch I resolves at the end of this chapter. The factional pressure has built; whichever has the most influence claims the early voice in the year."
+  },
+  "chapterId": 4,
+  "book": 1,
+  "chapterInBook": 4,
+  "weekStart": "Year 1, Week 4",
+  "weekEnd": "Year 1, Week 4",
+  "title": "Whose Song Carries",
+  "theme": "the question of the month is asked plainly; everyone hears their answer differently",
+  "worldEvent": "in the Salt Cathedral, the Choristers' long song reaches a verse no one has heard before; it stops mid-phrase",
+  "narratorPromptFragment": "The current world-chapter is BOOK I, CHAPTER 4: WHOSE SONG CARRIES. The Choristers' long song reached a strange verse last night and then stopped. Three different rumors say three different reasons. The Rust Hand is moving too — quieter, in iron. By the chapter's end Branch I resolves; until then, nothing is decided. Reference all three factions sometimes; favor none.",
+  "factionAlignmentBonuses": {
+    "choristers": 1.10,
+    "rust_hand": 1.10,
+    "idle": 1.05,
+    "forsaken": 1.0
+  },
+  "locationsAffected": ["salt-cathedral", "iron-reach", "hollow-market"]
+}

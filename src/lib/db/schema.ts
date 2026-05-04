@@ -425,6 +425,57 @@ export const stripeEvents = pgTable(
 export type StripeEvent = typeof stripeEvents.$inferSelect;
 export type NewStripeEvent = typeof stripeEvents.$inferInsert;
 
+/**
+ * Anti-farm caps (Phase 5 Day 26 follow-up). Per-(user,vendor)
+ * daily coin flow + per-(user,resource) daily gather count.
+ * Composite PK by date — each UTC day is its own row, no
+ * rollover bookkeeping.
+ */
+export const vendorDailyFlow = pgTable(
+  "vendor_daily_flow",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    vendorTemplateId: text("vendor_template_id").notNull(),
+    date: date("date").notNull(),
+    totalAmount: integer("total_amount").notNull().default(0),
+    txnCount: integer("txn_count").notNull().default(0),
+  },
+  (t) => [
+    uniqueIndex("vendor_daily_flow_pk").on(
+      t.userId,
+      t.vendorTemplateId,
+      t.date,
+    ),
+    index("vendor_daily_flow_date_idx").on(t.date),
+  ],
+);
+
+export type VendorDailyFlow = typeof vendorDailyFlow.$inferSelect;
+
+export const resourceDailyGather = pgTable(
+  "resource_daily_gather",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    resourceId: text("resource_id").notNull(),
+    date: date("date").notNull(),
+    qty: integer("qty").notNull().default(0),
+  },
+  (t) => [
+    uniqueIndex("resource_daily_gather_pk").on(
+      t.userId,
+      t.resourceId,
+      t.date,
+    ),
+    index("resource_daily_gather_date_idx").on(t.date),
+  ],
+);
+
+export type ResourceDailyGather = typeof resourceDailyGather.$inferSelect;
+
 export const campaigns = pgTable(
   "campaigns",
   {

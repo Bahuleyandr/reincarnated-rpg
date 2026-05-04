@@ -1,0 +1,14 @@
+{
+  "_meta": { "license": "CC BY-NC 4.0", "version": 1, "authoredOn": "2026-05-04" },
+  "chapterId": 7,
+  "book": 2,
+  "chapterInBook": 3,
+  "weekStart": "Year 1, Week 7",
+  "weekEnd": "Year 1, Week 7",
+  "title": "Old Names Surface",
+  "theme": "names of the cycle's earlier turns come back unbidden",
+  "worldEvent": "old crows roost in places no crows have ever roosted; they answer to names that have not been spoken since the previous Year",
+  "narratorPromptFragment": "The current world-chapter is BOOK II, CHAPTER 3: OLD NAMES SURFACE. Names from old turns of the cycle are coming back unbidden — small old names, not the famous ones. Some birds know them. Some doors. Reference forgotten names quietly when natural; do not invent specific ones.",
+  "factionAlignmentBonuses": { "choristers": 1.05, "rust_hand": 1.0, "idle": 1.05, "forsaken": 1.10 },
+  "locationsAffected": []
+}

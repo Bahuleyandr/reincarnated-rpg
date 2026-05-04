@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Synchronized 'Voice' event firing during Chapter 10 (Cipher's address). Surfaces in every active player's narration once during the chapter window."
+  },
+  "voices": [
+    {
+      "id": "cipher-address-1",
+      "chapterId": 10,
+      "line": "Cipher's voice — far away — finishes a sentence the player did not begin to hear. The shape of the sentence stays in the air for one beat. The taste of unfamiliar air comes with it.",
+      "durationDays": 7
+    }
+  ]
+}

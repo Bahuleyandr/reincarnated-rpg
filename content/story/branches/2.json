@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-04",
+    "notes": "Branch II — What the Door Was For. Resolves at end of Book II (chapter 8)."
+  },
+  "id": 2,
+  "chapterId": 8,
+  "question": "What was behind the door?",
+  "paths": [
+    { "id": "an_old_friend", "label": "an old friend, waiting", "metric": "faction_choristers" },
+    { "id": "an_old_enemy", "label": "an old enemy, working", "metric": "faction_rust_hand" },
+    { "id": "nothing_at_all", "label": "nothing at all — the door was the answer", "metric": "faction_idle" }
+  ],
+  "defaultPath": "nothing_at_all"
+}
