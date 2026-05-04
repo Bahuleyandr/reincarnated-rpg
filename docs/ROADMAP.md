@@ -65,11 +65,12 @@ Tracked here so we can see what's accumulated above the MVP line. See `docs/POST
 | 2026-05-03 | Daily-streak blessing (1→5 stack) | `4363b0b` |
 | 2026-05-03 | Moderation + curses + power-creep ceilings | `1922be6` |
 
-## Post-MVP — next 14 days
+## Post-MVP — next ~30 days
 
 See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
 
-1. **Predicate engine** (Day 1-2) — shared infra for achievements, daily objectives, legacy-trait imprinting.
+**Days 1-14 — Persistence + thematic core + social fabric**
+1. **Predicate engine** (Day 1-2) — shared infra for achievements, objectives, legacy-trait imprinting.
 2. **Legacy traits** (Day 3) — death cause imprints on the user; next reincarnation starts with the scar.
 3. **Achievements + titles** (Day 4-5) — ~40 catalogued, predicate-driven, leaderboard badges.
 4. **Daily/weekly objectives** (Day 6) — compounds with the streak; energy rewards.
@@ -80,8 +81,26 @@ See `docs/POST_MVP_PLAN.md` for the full plan. High-level order:
 9. **Adaptive difficulty** (Day 12) — death streak → small +mod to subsequent rolls.
 10. **World boss raids** (Day 13) — Long Wyrm gets HP; players collaboratively reduce it.
 11. **Scene images** (Day 14) — opt-in, cost-gated visual moments.
-12. **NPC dialogue system** (Day 15+) — multi-turn conversations with personality continuity.
-13. **Player-authored forms** (Day 20+) — submission queue + admin approval.
+
+**Days 15-17 — Engagement adds**
+12. **Public world lore (24h delayed)** (Day 15) — `/lore` page; players see their influence after a satisfying delay.
+13. **Foreshadowing memory plants** (Day 16) — echo memories surface 2-5 turns later as flavor hints.
+14. **Wonder events** (Day 17) — 1%/turn random injections of "what was that?" narrative juice.
+
+**Days 18-27 — Economy + crafting (central-bank phase)**
+15. **Currency + NPC vendors** (Day 18-19) — coins, fixed-price catalogs as the price floor.
+16. **Resource items + craft credits** (Day 20) — 0.1-energy/action via 0-9 credit counter.
+17. **Gathering + location resources** (Day 21) — `gather_resource` tool; resource-tagged locations.
+18. **Smelting + smithing + recipes** (Day 22) — full crafting toolset.
+19. **Skills + XP + NPC trainers** (Day 23-24) — 7 skills; learn from a trainer NPC; level curve.
+20. **Buy/sell loop end-to-end** (Day 25) — tutorial vendor + eval scenario.
+21. **Economic balance + telemetry** (Day 26) — anti-farm caps, daily coin-flow rollup, admin dashboard.
+22. **Skills/recipes UI + economy achievements** (Day 27).
+
+**Days 28+ — Bigger swings**
+23. **NPC dialogue system** (Day 28+) — multi-turn conversations with personality continuity (3-5d).
+24. **Player-authored forms** (Day 33+) — submission queue + admin approval (5-7d).
+25. **Player-driven marketplace** (Day 40+) — Phase 6: player-to-player listings (~7d, gated by Phase 5 telemetry).
 
 ## Post-MVP growth bets (month 2+)
 
