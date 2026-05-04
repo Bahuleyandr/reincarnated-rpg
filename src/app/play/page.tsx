@@ -19,6 +19,10 @@ export default function Play() {
   const [entries, setEntries] = useState<TranscriptEntry[]>([]);
   const [hasAccount, setHasAccount] = useState(false);
   const [busy, setBusy] = useState(false);
+  // When non-null, a 409 turn-lock conflict triggered an auto-retry.
+  // The InputBox uses this to show "settling..." instead of the
+  // generic disabled state, so the user knows it's recoverable.
+  const [settling, setSettling] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [llmBanner, setLlmBanner] = useState<string | null>(null);
   const [arcTagline, setArcTagline] = useState<string | null>(null);
@@ -188,6 +192,31 @@ export default function Play() {
               j.error ?? "out of energy — wait for the next refill";
           } catch {
             errorMsg = "out of energy";
+          }
+        } else if (res.status === 409) {
+          // Turn-lock conflict — a previous turn is still settling.
+          // Show "settling..." in the UI + auto-retry once the lock
+          // expires (with a small jitter so multiple competing
+          // browsers don't all retry at the same instant).
+          try {
+            const j = (await res.json()) as {
+              error?: string;
+              currentLockExpiresAtMs?: number | null;
+            };
+            const remaining = j.currentLockExpiresAtMs
+              ? Math.max(0, j.currentLockExpiresAtMs - Date.now())
+              : 5_000;
+            const jitter = Math.random() * 750;
+            setEntries((prev) => prev.filter((_, i) => i !== streamIdx));
+            setSettling(true);
+            setTimeout(() => {
+              setSettling(false);
+              setBusy(false);
+              handleInput(text); // retry once
+            }, remaining + 250 + jitter);
+            return;
+          } catch {
+            errorMsg = "previous turn is still settling — try again";
           }
         } else {
           errorMsg = `turn failed (${res.status})`;
@@ -381,7 +410,11 @@ export default function Play() {
             hasAccount={hasAccount}
           />
         ) : (
-          <InputBox onSubmit={handleInput} disabled={busy} />
+          <InputBox
+            onSubmit={handleInput}
+            disabled={busy}
+            settling={settling}
+          />
         )}
       </section>
 

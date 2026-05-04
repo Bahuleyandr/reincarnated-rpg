@@ -64,7 +64,25 @@ export async function POST(req: NextRequest) {
 
   const lock = await acquireTurnLock(db, sessionId);
   if (!lock) {
-    return NextResponse.json({ error: "turn already in progress" }, { status: 409 });
+    // Look up how long until the existing lock expires, so the UI
+    // can show "settling..." with an accurate countdown + auto-retry
+    // once it clears.
+    const { sessions } = await import("@/lib/db/schema");
+    const { eq } = await import("drizzle-orm");
+    const rows = await db
+      .select({ expiresAt: sessions.turnLockExpiresAt })
+      .from(sessions)
+      .where(eq(sessions.id, sessionId))
+      .limit(1);
+    const expiresAtMs = rows[0]?.expiresAt?.getTime() ?? null;
+    return NextResponse.json(
+      {
+        error: "turn already in progress",
+        turnInFlight: true,
+        currentLockExpiresAtMs: expiresAtMs,
+      },
+      { status: 409 },
+    );
   }
   let energySpent = false;
   let turnCommitted = false;
