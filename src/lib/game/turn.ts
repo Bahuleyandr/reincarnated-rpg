@@ -455,6 +455,11 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
+  // Per-turn seed for server-rolled tool outcomes (gather quantity,
+  // future skill checks). Mixed with the resource id inside the
+  // gather rng so two gathers in the same turn don't collide.
+  const toolTurnSeed = (sessionSeed ^ (turnNumber * 0xb7e15163)) >>> 0;
+
   let toolResult = validateToolsToEvents({
     projection: speculativeProjection,
     tools: narrate.toolCalls,
@@ -463,6 +468,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     intent: intent.verb,
     rollBand: roll.band,
     currentCoins,
+    turnSeed: toolTurnSeed,
   });
   let toolRetried = false;
   let toolFellBack = false;
@@ -499,6 +505,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       intent: intent.verb,
       rollBand: roll.band,
       currentCoins,
+      turnSeed: toolTurnSeed,
     });
     if (!toolResult.ok) {
       toolFellBack = true;
@@ -599,6 +606,38 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   await appendEvents(db, sessionId, pendingEvents);
   projection = await loadProjection(db, sessionId, form, location);
   await writeSnapshot(db, projection);
+
+  // Craft credit consumption (Phase 5 Day 21). One credit per
+  // craft.gathered event (Day 22 will add smelt/smith). When the
+  // pool is empty, consumeCraftCredit charges 1 energy and refills.
+  // If energy is also out, it throws OutOfEnergyForCraftingError —
+  // we log + swallow because the event already landed (replay needs
+  // it); the next turn's validator will catch the empty pool.
+  try {
+    const { consumeCraftCredit } = await import("../economy/credits");
+    const ref = {
+      userId: world?.userId,
+      sessionId: world?.userId ? undefined : sessionId,
+    };
+    const craftEvents = pendingEvents.filter(
+      (e) => e.kind === "craft.gathered",
+    );
+    for (let i = 0; i < craftEvents.length; i++) {
+      try {
+        await consumeCraftCredit(db, ref);
+      } catch (err) {
+        log.warn("turn.craft_credit.consume_failed", {
+          sessionId,
+          err: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+  } catch (err) {
+    log.warn("turn.craft_credit.import_failed", {
+      sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
 
   // Coin balance side effect (Phase 5 Day 18-19). Sum the coin delta
   // from this turn's events and apply it to the persistent purse —
