@@ -694,6 +694,12 @@ export const metaArcs = pgTable("meta_arcs", {
   /** Free-form metadata: phase-specific flavor strings, last
    *  significant event, etc. */
   meta: jsonb("meta"),
+  /** Raid HP. Every contribution (feed or starve) does damage equal
+   *  to the absolute themed delta. When hp hits 0, the wyrm "falls":
+   *  the arc rolls over with fresh hp + a wyrm.fallen audit row.
+   *  Phase 3 Day 13. */
+  hp: integer("hp").notNull().default(1000),
+  hpMax: integer("hp_max").notNull().default(1000),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
