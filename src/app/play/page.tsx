@@ -17,6 +17,7 @@ import { StatusSidebar } from "@/components/StatusSidebar";
 import { InRunCompanions } from "@/components/InRunCompanions";
 import { Transcript, type TranscriptEntry } from "@/components/Transcript";
 import { TutorialHint } from "@/components/TutorialHint";
+import { WhereAmI } from "@/components/WhereAmI";
 import type { Projection, RollResult } from "@/lib/game/types";
 
 export default function Play() {
@@ -416,7 +417,8 @@ export default function Play() {
           </div>
         )}
         <Transcript entries={entries} />
-        <div className="px-4 py-1">
+        <div className="px-4 py-1 space-y-2">
+          <WhereAmI />
           <InRunCompanions />
         </div>
         {error && (

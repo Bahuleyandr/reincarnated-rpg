@@ -147,6 +147,217 @@
       ],
       "output": { "itemId": "arc-blade", "qty": 1 },
       "xp": 30
+    },
+
+    {
+      "id": "smelt-cloudtin-ingot",
+      "skill": "smelting",
+      "requiredLevel": 3,
+      "inputs": [
+        { "itemId": "cloudtin-ore", "qty": 2 },
+        { "itemId": "coal", "qty": 1 }
+      ],
+      "output": { "itemId": "iron-ingot", "qty": 1 },
+      "xp": 8
+    },
+    {
+      "id": "smelt-fen-bog-iron",
+      "skill": "smelting",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "fen-iron-bog", "qty": 3 }],
+      "output": { "itemId": "iron-ingot", "qty": 1 },
+      "xp": 4
+    },
+    {
+      "id": "cast-loom-iron",
+      "skill": "smithing",
+      "requiredLevel": 2,
+      "inputs": [
+        { "itemId": "iron-ingot", "qty": 1 },
+        { "itemId": "coal", "qty": 1 }
+      ],
+      "output": { "itemId": "loom-iron", "qty": 1 },
+      "xp": 8
+    },
+    {
+      "id": "cold-forge-blade",
+      "skill": "smithing",
+      "requiredLevel": 7,
+      "inputs": [
+        { "itemId": "loom-iron", "qty": 2 },
+        { "itemId": "wood-oak", "qty": 1 }
+      ],
+      "output": { "itemId": "cold-forged-blade", "qty": 1 },
+      "xp": 30,
+      "requiresLocation": "threadwarden"
+    },
+    {
+      "id": "cast-bell-bronze",
+      "skill": "smithing",
+      "requiredLevel": 5,
+      "inputs": [
+        { "itemId": "cloudtin-ore", "qty": 2 },
+        { "itemId": "copper-ingot", "qty": 1 },
+        { "itemId": "tallow-wax", "qty": 1 }
+      ],
+      "output": { "itemId": "bell-bronze", "qty": 1 },
+      "xp": 18,
+      "requiresLocation": "briny-bell"
+    },
+    {
+      "id": "fire-mudglass-prism",
+      "skill": "smelting",
+      "requiredLevel": 4,
+      "inputs": [
+        { "itemId": "estuary-mud", "qty": 5 },
+        { "itemId": "glow-fly-egg", "qty": 3 }
+      ],
+      "output": { "itemId": "mudglass-prism", "qty": 1 },
+      "xp": 22,
+      "requiresLocation": "saltgale"
+    },
+    {
+      "id": "render-tallow-wax",
+      "skill": "alchemy",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "tallow-reed", "qty": 4 }],
+      "output": { "itemId": "tallow-wax", "qty": 1 },
+      "xp": 5,
+      "requiresLocation": "tallowfen"
+    },
+    {
+      "id": "press-saltgale-vellum",
+      "skill": "alchemy",
+      "requiredLevel": 3,
+      "inputs": [
+        { "itemId": "estuary-mud", "qty": 2 },
+        { "itemId": "saltgrass", "qty": 3 }
+      ],
+      "output": { "itemId": "vellum-saltgale", "qty": 1 },
+      "xp": 12,
+      "requiresLocation": "saltgale"
+    },
+    {
+      "id": "press-reed-paper",
+      "skill": "alchemy",
+      "requiredLevel": 2,
+      "inputs": [
+        { "itemId": "river-reed", "qty": 4 },
+        { "itemId": "pageclay", "qty": 1 }
+      ],
+      "output": { "itemId": "reed-paper", "qty": 2 },
+      "xp": 8,
+      "requiresLocation": "cataract-mile"
+    },
+    {
+      "id": "bind-marginal-folio",
+      "skill": "alchemy",
+      "requiredLevel": 8,
+      "inputs": [
+        { "itemId": "reed-paper", "qty": 6 },
+        { "itemId": "ink-onyx", "qty": 1 },
+        { "itemId": "vow-petal-silk", "qty": 1 }
+      ],
+      "output": { "itemId": "marginal-folio", "qty": 1 },
+      "xp": 40,
+      "requiresLocation": "the-long-indices"
+    },
+    {
+      "id": "distill-cloud-bitters",
+      "skill": "alchemy",
+      "requiredLevel": 6,
+      "inputs": [{ "itemId": "cloudtea-leaf", "qty": 5 }],
+      "output": { "itemId": "cloud-bitters", "qty": 1 },
+      "xp": 28,
+      "requiresLocation": "coldspoon"
+    },
+    {
+      "id": "press-vow-petal-silk",
+      "skill": "alchemy",
+      "requiredLevel": 5,
+      "inputs": [{ "itemId": "vow-poppy", "qty": 6 }],
+      "output": { "itemId": "vow-petal-silk", "qty": 1 },
+      "xp": 18,
+      "requiresLocation": "quietmile"
+    },
+    {
+      "id": "press-whitebark-cider",
+      "skill": "cooking",
+      "requiredLevel": 3,
+      "inputs": [
+        { "itemId": "whitestar-apple", "qty": 5 },
+        { "itemId": "wood-oak", "qty": 1 }
+      ],
+      "output": { "itemId": "whitebark-cider", "qty": 1 },
+      "xp": 15,
+      "requiresLocation": "highfield-ascending"
+    },
+    {
+      "id": "cure-salt-fish",
+      "skill": "cooking",
+      "requiredLevel": 2,
+      "inputs": [
+        { "itemId": "salt-block", "qty": 1 },
+        { "itemId": "coral-kelp", "qty": 1 },
+        { "itemId": "green-claw-crab", "qty": 1 }
+      ],
+      "output": { "itemId": "salt-cured-fish", "qty": 2 },
+      "xp": 10,
+      "requiresLocation": "the-coral-anchorage"
+    },
+    {
+      "id": "spin-saltcord-rope",
+      "skill": "alchemy",
+      "requiredLevel": 1,
+      "inputs": [
+        { "itemId": "river-flax", "qty": 4 },
+        { "itemId": "salt-block", "qty": 1 }
+      ],
+      "output": { "itemId": "saltcord-rope", "qty": 2 },
+      "xp": 6,
+      "requiresLocation": "knots-landing"
+    },
+    {
+      "id": "weave-named-cloth",
+      "skill": "alchemy",
+      "requiredLevel": 9,
+      "inputs": [
+        { "itemId": "river-flax", "qty": 8 },
+        { "itemId": "loom-iron", "qty": 1 }
+      ],
+      "output": { "itemId": "named-cloth-late-october", "qty": 1 },
+      "xp": 50,
+      "requiresLocation": "threadwarden"
+    },
+    {
+      "id": "mill-wheat-flour",
+      "skill": "cooking",
+      "requiredLevel": 1,
+      "inputs": [{ "itemId": "furrow-grain", "qty": 3 }],
+      "output": { "itemId": "wheat-flour", "qty": 2 },
+      "xp": 4,
+      "requiresLocation": "furrowmouth"
+    },
+    {
+      "id": "malt-barley",
+      "skill": "cooking",
+      "requiredLevel": 2,
+      "inputs": [{ "itemId": "furrow-grain", "qty": 4 }],
+      "output": { "itemId": "barley-malt", "qty": 2 },
+      "xp": 6,
+      "requiresLocation": "furrowmouth"
+    },
+    {
+      "id": "brew-crab-broth",
+      "skill": "cooking",
+      "requiredLevel": 2,
+      "inputs": [
+        { "itemId": "blue-back-crab", "qty": 2 },
+        { "itemId": "broth-bay-leaf", "qty": 1 }
+      ],
+      "output": { "itemId": "salt-cured-fish", "qty": 1 },
+      "xp": 7,
+      "requiresLocation": "crab-by-crab"
     }
   ]
 }

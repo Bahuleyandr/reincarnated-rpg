@@ -7,6 +7,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { WorldMap } from "@/components/WorldMap";
+
 interface LocationSummary {
   id: string;
   displayName: string;
@@ -91,9 +93,15 @@ export default function WorldAtlasPage() {
 
         <section className="space-y-3">
           <h2 className="text-sm text-stone-100">map</h2>
-          <pre className="text-[10px] leading-tight text-stone-400 bg-stone-900/60 border border-stone-800 p-4 overflow-x-auto">
-            {data.asciiMap.join("\n")}
-          </pre>
+          <WorldMap />
+          <details className="text-[10px] text-stone-500">
+            <summary className="cursor-pointer hover:text-stone-300">
+              show ASCII map (terminal-friendly)
+            </summary>
+            <pre className="text-[10px] leading-tight text-stone-400 bg-stone-900/60 border border-stone-800 p-4 overflow-x-auto mt-2">
+              {data.asciiMap.join("\n")}
+            </pre>
+          </details>
         </section>
 
         <section className="space-y-3">
