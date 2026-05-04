@@ -12,14 +12,7 @@
  * The session's source-of-truth seed lives on the first
  * `session.started` event; we cache it per-process with a small map.
  */
-import { eq } from "drizzle-orm";
-
-import { sessions } from "../db/schema";
-import {
-  badLuckRollPenalty,
-  BAD_LUCK_MAX,
-  type ModerationOutcome,
-} from "../moderation";
+import { badLuckRollPenalty, BAD_LUCK_MAX, type ModerationOutcome } from "../moderation";
 import { log } from "../util/log";
 import { deriveSeed } from "../util/rng";
 import { type Narrator } from "../narrator";
@@ -30,18 +23,13 @@ import { persistRunToWorld, recallWorld, shouldRecallWorld } from "../memory/wor
 import { matchBeats, type BeatPack } from "./beats";
 import { classifyHaiku } from "./classify-haiku";
 import { appendEvents, readLog, rowToEvent } from "./events";
-import { loadProjection, writeSnapshot } from "./projection";
+import { applyEvents, loadProjection, writeSnapshot } from "./projection";
 import { classify } from "./classify";
-import { roll2d6 } from "./rules";
+import { roll2d6, rollFromDice } from "./rules";
 import { sanitizePlayerInput } from "./sanitize";
 import { checkTone, checkToneFast } from "./tone";
-import { applyTools } from "./tools";
-import type {
-  Event,
-  FormTemplate,
-  LocationTemplate,
-  Projection,
-} from "./types";
+import { validateToolsToEvents } from "./tools";
+import type { Event, FormTemplate, LocationTemplate, Projection } from "./types";
 import type { Db } from "../db/client";
 
 export interface RunTurnArgs {
@@ -60,6 +48,9 @@ export interface RunTurnArgs {
   beatPack?: BeatPack;
   /** Cap turn count; if reached, fire session.ended('cap'). Default 10. */
   turnCap?: number;
+  /** Test/eval-only deterministic dice override. Production routes do
+   * not expose this; it exists so scenario fixtures can pin a band. */
+  rollOverride?: { d1: number; d2: number; mod?: number };
   /** Per-call-type LLM upgrades. When `useLlmClassifier=true`, the
    *  regex `classify()` is replaced by `classifyHaiku()` (which falls
    *  back to regex on low confidence). When `useLlmTone=true`, the
@@ -156,23 +147,17 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     return { ok: false, error: `session is ${projection.status}`, projection };
   }
 
-  // 1. Sanitize input.
   const { raw, sanitized } = sanitizePlayerInput(input);
-
-  // 2. turn.begun.
   const turnNumber = projection.turn + 1;
-  await appendEvents(db, sessionId, [
-    {
-      kind: "turn.begun",
-      turn: turnNumber,
-      input: raw,
-      inputSanitized: sanitized,
-    },
-  ]);
+  const turnBegunEvent: Event = {
+    kind: "turn.begun",
+    turn: turnNumber,
+    input: raw,
+    inputSanitized: sanitized,
+  };
+  const pendingEvents: Event[] = [turnBegunEvent];
+  let speculativeProjection = applyEvents(projection, pendingEvents);
 
-  // 2.5 Moderation: stack bad_luck on profanity, short-circuit on
-  // "severe" with a refusal narration and skip the rest of the turn.
-  // Curse decay (-1 bad_luck at end of turn) runs from step 11.
   let activeBadLuck =
     typeof projection.form.state["bad_luck"] === "number"
       ? (projection.form.state["bad_luck"] as number)
@@ -181,13 +166,11 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     const headroom = Math.max(0, BAD_LUCK_MAX - activeBadLuck);
     const delta = Math.min(moderation.badLuck, headroom);
     if (delta > 0) {
-      await appendEvents(db, sessionId, [
-        {
-          kind: "form_state.changed",
-          field: "bad_luck",
-          delta,
-        },
-      ]);
+      pendingEvents.push({
+        kind: "form_state.changed",
+        field: "bad_luck",
+        delta,
+      });
       activeBadLuck += delta;
     }
     log.info("turn.moderation.curse", {
@@ -197,20 +180,17 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       newBadLuck: activeBadLuck,
     });
   }
+  speculativeProjection = applyEvents(projection, pendingEvents);
+
   if (moderation?.verdict === "severe") {
-    // Short-circuit: emit the refusal narration, write a snapshot
-    // reflecting the bad_luck bump, and return. The energy was
-    // already spent by the route — that's the in-fiction tax.
     const refusalText =
-      moderation.playerMessage ??
-      "the gods recoil from your tongue. ill-luck clings to you.";
-    await appendEvents(db, sessionId, [
-      {
-        kind: "narration.emitted",
-        text: refusalText,
-        toolCallsApplied: 0,
-      },
-    ]);
+      moderation.playerMessage ?? "the gods recoil from your tongue. ill-luck clings to you.";
+    pendingEvents.push({
+      kind: "narration.emitted",
+      text: refusalText,
+      toolCallsApplied: 0,
+    });
+    await appendEvents(db, sessionId, pendingEvents);
     const refused = await loadProjection(db, sessionId, form, location);
     await writeSnapshot(db, refused);
     return {
@@ -222,8 +202,6 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     };
   }
 
-  // 3. Classify intent. Defaults to the free regex; opt-in LLM
-  //    classifier replaces it when llmJudges.useClassifier is set.
   const intent = llmJudges?.useClassifier
     ? await classifyHaiku(
         sanitized,
@@ -240,31 +218,31 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
         },
       )
     : classify(sanitized, form);
-  await appendEvents(db, sessionId, [
-    {
-      kind: "intent.classified",
-      verb: intent.verb,
-      confidence: intent.confidence,
-    },
-  ]);
+  const intentEvent: Event = {
+    kind: "intent.classified",
+    verb: intent.verb,
+    confidence: intent.confidence,
+  };
+  pendingEvents.push(intentEvent);
 
-  // 4. Resolve roll.
   const sessionSeed = await getSessionSeed(db, sessionId);
   const seed = deriveSeed(sessionSeed, turnNumber);
-  const verbMappings = (form as unknown as {
-    verbMappings?: Record<string, { rollStat: string | null }>;
-  }).verbMappings;
-  const rollStat = verbMappings?.[intent.verb]?.rollStat ?? null;
+  const rollStat = form.verbMappings?.[intent.verb]?.rollStat ?? null;
   const baseMod = rollStat ? (form.stats[rollStat] ?? 0) : 0;
-  // Bad-luck curse: a player with active bad_luck stacks gets a
-  // negative modifier (capped at -2 so success is still possible).
-  // Decays by 1 at the end of every turn — see step "decay" below.
   const luckPenalty = badLuckRollPenalty(activeBadLuck);
   const mod = baseMod + luckPenalty;
-  const roll = roll2d6(seed, mod);
-  await appendEvents(db, sessionId, [
-    { kind: "roll.resolved", roll, against: rollStat ?? "default" },
-  ]);
+  const roll = args.rollOverride
+    ? {
+        ...rollFromDice(args.rollOverride.d1, args.rollOverride.d2, args.rollOverride.mod ?? mod),
+        seed,
+      }
+    : roll2d6(seed, mod);
+  const rollEvent: Event = {
+    kind: "roll.resolved",
+    roll,
+    against: rollStat ?? "default",
+  };
+  pendingEvents.push(rollEvent);
   if (luckPenalty < 0) {
     log.info("turn.moderation.luck_penalty", {
       sessionId,
@@ -275,14 +253,12 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
-  // 5. Reload projection so the narrator sees turn.begun + roll context.
-  projection = await loadProjection(db, sessionId, form, location);
+  speculativeProjection = applyEvents(projection, pendingEvents);
 
-  // 6. Retrieve relevant memories. Entity bias: any NPC slug from the
-  // projection that appears in the sanitized input gets a 0.3× boost.
-  const entitySlugs = Object.keys(projection.npcs).filter((slug) =>
-    sanitized.toLowerCase().includes(slug.replace(/-/g, " ")) ||
-    sanitized.toLowerCase().includes(slug),
+  const entitySlugs = Object.keys(speculativeProjection.npcs).filter(
+    (slug) =>
+      sanitized.toLowerCase().includes(slug.replace(/-/g, " ")) ||
+      sanitized.toLowerCase().includes(slug),
   );
   let relevantMemories: import("./types").Memory[] = [];
   try {
@@ -301,7 +277,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   // world memories ride the same channel — the narrator can't tell
   // them apart at the type level, just by the "world:" prefix on
   // the summary string.
-  if (world?.userId && shouldRecallWorld(projection)) {
+  if (world?.userId && shouldRecallWorld(speculativeProjection)) {
     try {
       const worldMems = await recallWorld(db, world.userId, sanitized, {
         kMemories: 3,
@@ -316,34 +292,28 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     }
   }
 
-  // 7. Narrate (with one-shot ADR-011 retry on tool-validation failure).
   const baseInput = {
-    projection,
-    lastEvents: [],
+    projection: speculativeProjection,
+    lastEvents: [turnBegunEvent, intentEvent, rollEvent],
+    playerInputSanitized: sanitized,
     roll,
     intent: intent.verb,
     relevantMemories,
   };
-  // Provider may legitimately fail (BYO key revoked, MiniMax 503,
-  // network blip, etc.). When fallbackNarrator is supplied, we
-  // graceful-fail to it for THIS TURN ONLY so the run keeps moving.
-  // The API surfaces the fallback flag so the UI can banner.
+
+  let activeNarrator = narrator;
   let narrate: import("./types").NarrateOutput;
   try {
     if (onNarrationStreamDelta && narrator.narrateStream) {
-      narrate = await narrator.narrateStream(
-        baseInput,
-        onNarrationStreamDelta,
-      );
+      narrate = await narrator.narrateStream(baseInput, onNarrationStreamDelta);
     } else {
       narrate = await narrator.narrate(baseInput);
     }
   } catch (err) {
     if (!fallbackNarrator) throw err;
     narratorFallback = true;
-    narratorFallbackReason = (
-      err instanceof Error ? err.message : String(err)
-    ).slice(0, 200);
+    activeNarrator = fallbackNarrator;
+    narratorFallbackReason = (err instanceof Error ? err.message : String(err)).slice(0, 200);
     log.warn("turn.narrator.fallback", {
       sessionId,
       turn: turnNumber,
@@ -352,27 +322,31 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     narrate = await fallbackNarrator.narrate(baseInput);
   }
 
-  // 8. Validate + apply tools atomically.
-  let toolResult = await applyTools(
-    db,
-    sessionId,
-    projection,
-    narrate.toolCalls,
-  );
+  let toolResult = validateToolsToEvents({
+    projection: speculativeProjection,
+    tools: narrate.toolCalls,
+    form,
+    location,
+    intent: intent.verb,
+    rollBand: roll.band,
+  });
   let toolRetried = false;
   let toolFellBack = false;
+  let acceptedToolCalls = narrate.toolCalls;
   if (!toolResult.ok) {
-    // ADR-011: re-prompt with the failure, max 1 retry. If the retry
-    // fails too, fall back to narrate_only — the narration text from
-    // the second attempt is kept; no tools are applied.
     toolRetried = true;
+    pendingEvents.push({
+      kind: "tool_validation_failed",
+      tool: toolResult.failure.tool,
+      error: toolResult.failure.error,
+    });
     log.info("turn.tools.retry", {
       sessionId,
       turn: turnNumber,
       tool: toolResult.failure.tool,
       reason: toolResult.failure.error,
     });
-    const retry = await narrator.narrate({
+    const retry = await activeNarrator.narrate({
       ...baseInput,
       previousAttempt: {
         text: narrate.text,
@@ -382,9 +356,23 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       },
     });
     narrate = retry;
-    toolResult = await applyTools(db, sessionId, projection, retry.toolCalls);
+    acceptedToolCalls = retry.toolCalls;
+    toolResult = validateToolsToEvents({
+      projection: speculativeProjection,
+      tools: retry.toolCalls,
+      form,
+      location,
+      intent: intent.verb,
+      rollBand: roll.band,
+    });
     if (!toolResult.ok) {
       toolFellBack = true;
+      acceptedToolCalls = [];
+      pendingEvents.push({
+        kind: "tool_validation_failed",
+        tool: toolResult.failure.tool,
+        error: toolResult.failure.error,
+      });
       log.warn("turn.tools.fallback_to_narrate_only", {
         sessionId,
         turn: turnNumber,
@@ -392,11 +380,10 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       });
     }
   }
-  const toolEvents = toolResult.ok ? toolResult.events.length : 0;
+  const toolEventBatch = toolResult.ok ? toolResult.events : [];
+  const toolEvents = toolEventBatch.length;
+  pendingEvents.push(...toolEventBatch);
 
-  // 9. Tone drift check on the final accepted text.
-  //    Regex layer first (fast, free). When llmJudges.useTone is on,
-  //    a second-pass LLM judge runs on text the regex passed.
   let tone = checkToneFast(narrate.text, form);
   if (tone.ok && llmJudges?.useTone) {
     tone = await checkTone(
@@ -420,7 +407,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       violations: tone.violations,
       score: tone.score,
     });
-    const retry = await narrator.narrate({
+    const retry = await activeNarrator.narrate({
       ...baseInput,
       previousAttempt: {
         text: narrate.text,
@@ -443,64 +430,58 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     }
   }
 
-  // 10. narration.emitted (with the final accepted text).
-  await appendEvents(db, sessionId, [
-    {
-      kind: "narration.emitted",
-      text: narrate.text,
-      toolCallsApplied: toolEvents,
-    },
-  ]);
+  pendingEvents.push({
+    kind: "narration.emitted",
+    text: narrate.text,
+    toolCallsApplied: toolEvents,
+  });
 
-  // 9c. Persist any create_memory tool calls into the memories table
-  // with embeddings. The orchestrator already wrote memory.created
-  // events via applyTools — this adds the searchable row.
-  if (toolResult.ok) {
-    for (const tool of narrate.toolCalls) {
-      if (tool.name === "create_memory") {
-        try {
-          await createMemory(db, {
-            sessionId,
-            summary: tool.summary,
-            eventSeqRange: [turnNumber, turnNumber + 1],
-            salience: tool.salience ?? 0.5,
-          });
-        } catch (err) {
-          log.warn("turn.memory.create_failed", {
-            sessionId,
-            err: err instanceof Error ? err.message : String(err),
-          });
-        }
-      }
-    }
-  }
-
-  // 10. Match + fire beats (with dedupe across this session's prior beats).
   const beatsFired: string[] = [];
   if (beatPack) {
     const fired = await loadFiredBeats(db, sessionId, beatPack);
-    projection = await loadProjection(db, sessionId, form, location);
-    const matches = matchBeats(projection, beatPack, fired);
+    speculativeProjection = applyEvents(projection, pendingEvents);
+    const matches = matchBeats(speculativeProjection, beatPack, fired);
     for (const beat of matches) {
-      await appendEvents(db, sessionId, beat.fires);
+      pendingEvents.push(...beat.fires);
       beatsFired.push(beat.id);
     }
   }
 
-  // 11. Turn cap check.
-  projection = await loadProjection(db, sessionId, form, location);
-  if (projection.status === "active" && turnNumber >= turnCap) {
-    await appendEvents(db, sessionId, [
-      { kind: "session.ended", reason: "cap" },
-    ]);
-    projection = await loadProjection(db, sessionId, form, location);
+  speculativeProjection = applyEvents(projection, pendingEvents);
+  if (speculativeProjection.status === "active" && turnNumber >= turnCap) {
+    pendingEvents.push({ kind: "session.ended", reason: "cap" });
+    speculativeProjection = applyEvents(projection, pendingEvents);
   }
 
-  // 11b. World-memory persistence. Fires whenever this turn is the
-  // one that landed session.ended (death from damage, win from beats,
-  // or cap from above). Idempotent — persistRunToWorld bails if a
-  // memory for this campaign already exists. Anon runs (no
-  // world.userId) are skipped silently.
+  if (activeBadLuck > 0 && speculativeProjection.status === "active") {
+    pendingEvents.push({
+      kind: "form_state.changed",
+      field: "bad_luck",
+      delta: -1,
+    });
+  }
+
+  await appendEvents(db, sessionId, pendingEvents);
+  projection = await loadProjection(db, sessionId, form, location);
+  await writeSnapshot(db, projection);
+
+  for (const tool of acceptedToolCalls) {
+    if (tool.name !== "create_memory") continue;
+    try {
+      await createMemory(db, {
+        sessionId,
+        summary: tool.summary,
+        eventSeqRange: [turnNumber, turnNumber + 1],
+        salience: tool.salience ?? 0.5,
+      });
+    } catch (err) {
+      log.warn("turn.memory.create_failed", {
+        sessionId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   if (world?.userId && projection.status !== "active") {
     try {
       await persistRunToWorld(db, {
@@ -518,23 +499,6 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       });
     }
   }
-
-  // 11c. Bad-luck decay. The roll above already paid for this turn's
-  // curse; now drop bad_luck by 1 so the next turn is one step less
-  // cursed. Skipped when 0 (don't emit no-op events). Skipped also
-  // when the session ended this turn — no next turn to suffer.
-  if (
-    activeBadLuck > 0 &&
-    projection.status === "active"
-  ) {
-    await appendEvents(db, sessionId, [
-      { kind: "form_state.changed", field: "bad_luck", delta: -1 },
-    ]);
-    projection = await loadProjection(db, sessionId, form, location);
-  }
-
-  // 12. Snapshot.
-  await writeSnapshot(db, projection);
 
   log.info("turn.complete", {
     sessionId,
@@ -556,9 +520,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     projection,
     toolEvents,
     beatsFired,
-    ...(narratorFallback
-      ? { narratorFallback: true, narratorFallbackReason }
-      : {}),
+    ...(narratorFallback ? { narratorFallback: true, narratorFallbackReason } : {}),
   };
 }
 
@@ -580,11 +542,7 @@ async function getSessionSeed(db: Db, sessionId: string): Promise<number> {
   throw new Error(`no session.started event for session ${sessionId}`);
 }
 
-async function loadFiredBeats(
-  db: Db,
-  sessionId: string,
-  pack: BeatPack,
-): Promise<Set<string>> {
+async function loadFiredBeats(db: Db, sessionId: string, pack: BeatPack): Promise<Set<string>> {
   // Day-6 cheap dedupe: a beat is "fired" if its quest objective(s)
   // already exist in the projection. For oncePerSession beats whose
   // fires don't include a quest objective, we conservatively fire
@@ -600,9 +558,7 @@ async function loadFiredBeats(
   for (const beat of pack.beats) {
     for (const evt of beat.fires) {
       if (evt.kind === "quest.objectiveUpdated") {
-        if (
-          projection.quest.objectives[evt.objective] !== undefined
-        ) {
+        if (projection.quest.objectives[evt.objective] !== undefined) {
           fired.add(beat.id);
           break;
         }

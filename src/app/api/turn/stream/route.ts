@@ -23,22 +23,16 @@ import { NextRequest } from "next/server";
 import { getProviderForUser } from "@/lib/ai/factory";
 import { db } from "@/lib/db/client";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
-import {
-  loadBeatPack,
-  loadForm,
-  loadLocation,
-} from "@/lib/game/content";
+import { loadBeatPack, loadForm, loadLocation } from "@/lib/game/content";
 import { runTurn } from "@/lib/game/turn";
-import { trySpend } from "@/lib/energy/state";
+import { refundEnergy, trySpend } from "@/lib/energy/state";
+import { acquireTurnLock, releaseTurnLock } from "@/lib/game/turn-lock";
 import { getCurrentArc, phaseForProgress } from "@/lib/meta/long-wyrm";
 import { moderate } from "@/lib/moderation";
 import { activeTheme } from "@/lib/world/weekly-theme";
 import { makeNarrator } from "@/lib/narrator";
 import { TemplateNarrator } from "@/lib/narrator/template";
-import {
-  SESSION_COOKIE_NAME,
-  verifyCookie,
-} from "@/lib/session/cookie";
+import { SESSION_COOKIE_NAME, verifyCookie } from "@/lib/session/cookie";
 import { log } from "@/lib/util/log";
 
 export const runtime = "nodejs";
@@ -50,17 +44,17 @@ function sseLine(payload: unknown): string {
 export async function POST(req: NextRequest) {
   const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
   if (!cookie) {
-    return new Response(
-      sseLine({ type: "error", error: "no session" }),
-      { status: 401, headers: { "content-type": "text/event-stream" } },
-    );
+    return new Response(sseLine({ type: "error", error: "no session" }), {
+      status: 401,
+      headers: { "content-type": "text/event-stream" },
+    });
   }
   const verified = await verifyCookie(cookie);
   if (!verified || !verified.sessionId) {
-    return new Response(
-      sseLine({ type: "error", error: "no active session" }),
-      { status: 401, headers: { "content-type": "text/event-stream" } },
-    );
+    return new Response(sseLine({ type: "error", error: "no active session" }), {
+      status: 401,
+      headers: { "content-type": "text/event-stream" },
+    });
   }
   const sessionId = verified.sessionId;
 
@@ -68,20 +62,20 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return new Response(
-      sseLine({ type: "error", error: "invalid JSON" }),
-      { status: 400, headers: { "content-type": "text/event-stream" } },
-    );
+    return new Response(sseLine({ type: "error", error: "invalid JSON" }), {
+      status: 400,
+      headers: { "content-type": "text/event-stream" },
+    });
   }
   const input =
     typeof (body as { input?: unknown })?.input === "string"
       ? (body as { input: string }).input
       : "";
   if (!input) {
-    return new Response(
-      sseLine({ type: "error", error: "missing input" }),
-      { status: 400, headers: { "content-type": "text/event-stream" } },
-    );
+    return new Response(sseLine({ type: "error", error: "missing input" }), {
+      status: 400,
+      headers: { "content-type": "text/event-stream" },
+    });
   }
 
   // Moderation gate: must run BEFORE trySpend so injection attempts
@@ -104,6 +98,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const lock = await acquireTurnLock(db, sessionId);
+  if (!lock) {
+    return new Response(JSON.stringify({ error: "turn already in progress" }), {
+      status: 409,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
   // Energy gate: charge 1 energy before opening the stream. Same
   // logic as /api/turn — out-of-energy returns 429 with a normal
   // JSON response (not SSE) so the client's fetch error handler
@@ -113,25 +115,21 @@ export async function POST(req: NextRequest) {
     sessionId,
   });
   if (!spend.ok) {
-    return new Response(
-      JSON.stringify({ error: "out of energy", energy: spend.view }),
-      {
-        status: 429,
-        headers: { "content-type": "application/json" },
-      },
-    );
+    await releaseTurnLock(db, lock);
+    return new Response(JSON.stringify({ error: "out of energy", energy: spend.view }), {
+      status: 429,
+      headers: { "content-type": "application/json" },
+    });
   }
+  let energySpent = true;
+  let turnCommitted = false;
 
   // Bridge: a Web ReadableStream we manually push events into. The
   // turn runs concurrently and pushes via `enqueue`; we close the
   // stream when the turn resolves (or rejects).
   const encoder = new TextEncoder();
-  let resolveController: (
-    c: ReadableStreamDefaultController<Uint8Array>,
-  ) => void = () => undefined;
-  const controllerReady = new Promise<
-    ReadableStreamDefaultController<Uint8Array>
-  >((res) => {
+  let resolveController: (c: ReadableStreamDefaultController<Uint8Array>) => void = () => undefined;
+  const controllerReady = new Promise<ReadableStreamDefaultController<Uint8Array>>((res) => {
     resolveController = res;
   });
   const stream = new ReadableStream<Uint8Array>({
@@ -168,22 +166,16 @@ export async function POST(req: NextRequest) {
         } catch {
           beatPack = undefined;
         }
-      } else if (
-        ctx.formId === "lesser-slime" &&
-        ctx.locationId === "collapsed-tunnel"
-      ) {
+      } else if (ctx.formId === "lesser-slime" && ctx.locationId === "collapsed-tunnel") {
         beatPack = loadBeatPack("survive-the-night");
       }
       const resolved = await getProviderForUser(db, verified.userId ?? null, {
         pinnedPresetId: ctx.pinnedPresetId,
         pinnedNarrationModel: ctx.pinnedNarrationModel,
       });
-      const presetForTelemetry =
-        resolved.source === "env-default" ? null : resolved.source;
+      const presetForTelemetry = resolved.source === "env-default" ? null : resolved.source;
       // Pre-fetch meta-arc phase + active weekly theme.
-      let metaArcFlavor:
-        | { phase: string; label: string; flavor: string }
-        | null = null;
+      let metaArcFlavor: { phase: string; label: string; flavor: string } | null = null;
       let turnCapOverride: number | undefined;
       try {
         const arc = await getCurrentArc(db);
@@ -246,13 +238,8 @@ export async function POST(req: NextRequest) {
                 useTone: resolved.useLlmTone,
                 provider: resolved.provider,
                 classifierModel:
-                  resolved.classifierModelOverride ??
-                  resolved.modelOverride ??
-                  undefined,
-                toneModel:
-                  resolved.toneModelOverride ??
-                  resolved.modelOverride ??
-                  undefined,
+                  resolved.classifierModelOverride ?? resolved.modelOverride ?? undefined,
+                toneModel: resolved.toneModelOverride ?? resolved.modelOverride ?? undefined,
                 userId: verified.userId ?? null,
                 presetId: presetForTelemetry,
               }
@@ -263,6 +250,11 @@ export async function POST(req: NextRequest) {
       });
 
       if (!result.ok) {
+        await refundEnergy(db, {
+          userId: verified.userId ?? null,
+          sessionId,
+        });
+        energySpent = false;
         send({
           type: "error",
           error: result.error,
@@ -271,14 +263,12 @@ export async function POST(req: NextRequest) {
         close();
         return;
       }
+      turnCommitted = true;
 
       const { readLog, rowToEvent } = await import("@/lib/game/events");
       const events = (await readLog(db, sessionId)).map(rowToEvent);
-      const lastRoll = [...events]
-        .reverse()
-        .find((e) => e.kind === "roll.resolved");
-      const roll =
-        lastRoll && lastRoll.kind === "roll.resolved" ? lastRoll.roll : null;
+      const lastRoll = [...events].reverse().find((e) => e.kind === "roll.resolved");
+      const roll = lastRoll && lastRoll.kind === "roll.resolved" ? lastRoll.roll : null;
 
       send({
         type: "done",
@@ -296,6 +286,19 @@ export async function POST(req: NextRequest) {
       });
       close();
     } catch (err) {
+      if (energySpent && !turnCommitted) {
+        try {
+          await refundEnergy(db, {
+            userId: verified.userId ?? null,
+            sessionId,
+          });
+        } catch (refundErr) {
+          log.warn("turn.stream.energy_refund_failed", {
+            sessionId,
+            err: refundErr instanceof Error ? refundErr.message : String(refundErr),
+          });
+        }
+      }
       log.error("turn.stream.failed", {
         sessionId,
         err: err instanceof Error ? err.message : String(err),
@@ -305,6 +308,8 @@ export async function POST(req: NextRequest) {
         error: err instanceof Error ? err.message : "internal",
       });
       close();
+    } finally {
+      await releaseTurnLock(db, lock);
     }
   })();
 

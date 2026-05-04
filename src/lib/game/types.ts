@@ -142,6 +142,14 @@ export interface FormTemplate {
   vitals: Record<string, { max: number; start: number; death?: number | null }>;
   stats: Record<string, number>;
   verbs: string[];
+  verbMappings?: Record<
+    string,
+    {
+      rollStat: string | null;
+      tools?: string[];
+    }
+  >;
+  hardMoves?: unknown;
 }
 
 export interface LocationRoom {
@@ -188,10 +196,7 @@ export interface Projection {
     discovered: string[];
   };
   inventory: Array<{ itemId: string; qty: number }>;
-  npcs: Record<
-    string,
-    { name: string; relationship: number } & Record<string, unknown>
-  >;
+  npcs: Record<string, { name: string; relationship: number } & Record<string, unknown>>;
   quest: {
     id: string | null;
     objectives: Record<string, "open" | "done" | "failed">;
@@ -227,6 +232,10 @@ export interface PreviousAttempt {
 export interface NarrateInput {
   projection: Projection;
   lastEvents: Event[];
+  /** The current turn's sanitized player action. Kept explicit so
+   * remote narrators never confuse the classifier verb for what the
+   * player actually typed. */
+  playerInputSanitized: string;
   roll: RollResult;
   intent: string;
   relevantMemories: Memory[];
@@ -249,13 +258,8 @@ export function pickFormId(reincarnatedAs: string | null | undefined): string {
   // Order matters: more specific patterns FIRST. "dragon egg" must
   // route to dragon-egg, not get caught by a hypothetical "dragon"
   // pattern that lands on a generic dragon form.
-  if (/\bdragon\b.*\begg\b|\begg\b.*\bdragon\b|\bwyrmling\s+egg\b/.test(s))
-    return "dragon-egg";
-  if (
-    /\bdungeon\s+core\b|\bdungeon-core\b|\bdungeon\s+heart\b|\bdungeon\s+crystal\b/.test(
-      s,
-    )
-  )
+  if (/\bdragon\b.*\begg\b|\begg\b.*\bdragon\b|\bwyrmling\s+egg\b/.test(s)) return "dragon-egg";
+  if (/\bdungeon\s+core\b|\bdungeon-core\b|\bdungeon\s+heart\b|\bdungeon\s+crystal\b/.test(s))
     return "dungeon-core";
   if (/\b(?:cursed\s+)?book\b|\btome\b|\bgrimoire\b|\bcodex\b|\bjournal\b/.test(s))
     return "cursed-book";
@@ -288,8 +292,5 @@ export interface Narrator {
    *  promise resolves with the full NarrateOutput once the stream
    *  finishes. Tool calls are delivered in the resolution, not
    *  streamed. Callers fall back to `narrate()` when this is absent. */
-  narrateStream?(
-    input: NarrateInput,
-    onText: (delta: string) => void,
-  ): Promise<NarrateOutput>;
+  narrateStream?(input: NarrateInput, onText: (delta: string) => void): Promise<NarrateOutput>;
 }

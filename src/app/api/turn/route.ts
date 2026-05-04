@@ -2,26 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getProviderForUser } from "@/lib/ai/factory";
 import { db } from "@/lib/db/client";
-import { trySpend } from "@/lib/energy/state";
+import { refundEnergy, trySpend } from "@/lib/energy/state";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
-import {
-  loadBeatPack,
-  loadForm,
-  loadLocation,
-} from "@/lib/game/content";
+import { loadBeatPack, loadForm, loadLocation } from "@/lib/game/content";
 import { runTurn } from "@/lib/game/turn";
-import {
-  getCurrentArc,
-  phaseForProgress,
-} from "@/lib/meta/long-wyrm";
+import { acquireTurnLock, releaseTurnLock } from "@/lib/game/turn-lock";
+import { getCurrentArc, phaseForProgress } from "@/lib/meta/long-wyrm";
 import { moderate } from "@/lib/moderation";
 import { activeTheme } from "@/lib/world/weekly-theme";
 import { makeNarrator } from "@/lib/narrator";
 import { TemplateNarrator } from "@/lib/narrator/template";
-import {
-  SESSION_COOKIE_NAME,
-  verifyCookie,
-} from "@/lib/session/cookie";
+import { SESSION_COOKIE_NAME, verifyCookie } from "@/lib/session/cookie";
 import { log } from "@/lib/util/log";
 
 export async function POST(req: NextRequest) {
@@ -31,10 +22,7 @@ export async function POST(req: NextRequest) {
   }
   const verified = await verifyCookie(cookie);
   if (!verified || !verified.sessionId) {
-    return NextResponse.json(
-      { error: "no active session" },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: "no active session" }, { status: 401 });
   }
   const sessionId = verified.sessionId;
 
@@ -74,25 +62,32 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Energy gate: each turn costs 1. If the player is at 0 (after
-  // refill), 429 with the post-refill view so the UI can render
-  // "next refill in Xm". Logged-in users charge users.energy; anon
-  // sessions charge sessions.energy.
-  const spend = await trySpend(db, {
-    userId: verified.userId ?? null,
-    sessionId,
-  });
-  if (!spend.ok) {
-    return NextResponse.json(
-      {
-        error: "out of energy",
-        energy: spend.view,
-      },
-      { status: 429 },
-    );
+  const lock = await acquireTurnLock(db, sessionId);
+  if (!lock) {
+    return NextResponse.json({ error: "turn already in progress" }, { status: 409 });
   }
-
+  let energySpent = false;
+  let turnCommitted = false;
   try {
+    // Energy gate: each turn costs 1. If the player is at 0 (after
+    // refill), 429 with the post-refill view so the UI can render
+    // "next refill in Xm". Logged-in users charge users.energy; anon
+    // sessions charge sessions.energy.
+    const spend = await trySpend(db, {
+      userId: verified.userId ?? null,
+      sessionId,
+    });
+    if (!spend.ok) {
+      return NextResponse.json(
+        {
+          error: "out of energy",
+          energy: spend.view,
+        },
+        { status: 429 },
+      );
+    }
+    energySpent = true;
+
     const ctx = await resolveSessionContext(db, sessionId);
     const form = loadForm(ctx.formId);
     const location = loadLocation(ctx.locationId);
@@ -106,10 +101,7 @@ export async function POST(req: NextRequest) {
       } catch {
         beatPack = undefined;
       }
-    } else if (
-      ctx.formId === "lesser-slime" &&
-      ctx.locationId === "collapsed-tunnel"
-    ) {
+    } else if (ctx.formId === "lesser-slime" && ctx.locationId === "collapsed-tunnel") {
       beatPack = loadBeatPack("survive-the-night");
     }
     // BYO-LLM: if the player has saved /settings overrides, use their
@@ -120,15 +112,12 @@ export async function POST(req: NextRequest) {
       pinnedPresetId: ctx.pinnedPresetId,
       pinnedNarrationModel: ctx.pinnedNarrationModel,
     });
-    const presetForTelemetry =
-      resolved.source === "env-default" ? null : resolved.source;
+    const presetForTelemetry = resolved.source === "env-default" ? null : resolved.source;
     // Pre-fetch the current meta-arc phase + active weekly theme so
     // the narrator's system prompt carries both today's wyrm state
     // and this week's mood. One indexed PK lookup; theme is a
     // pure function once the arc is known.
-    let metaArcFlavor:
-      | { phase: string; label: string; flavor: string }
-      | null = null;
+    let metaArcFlavor: { phase: string; label: string; flavor: string } | null = null;
     let turnCapOverride: number | undefined;
     try {
       const arc = await getCurrentArc(db);
@@ -196,13 +185,8 @@ export async function POST(req: NextRequest) {
               useTone: resolved.useLlmTone,
               provider: resolved.provider,
               classifierModel:
-                resolved.classifierModelOverride ??
-                resolved.modelOverride ??
-                undefined,
-              toneModel:
-                resolved.toneModelOverride ??
-                resolved.modelOverride ??
-                undefined,
+                resolved.classifierModelOverride ?? resolved.modelOverride ?? undefined,
+              toneModel: resolved.toneModelOverride ?? resolved.modelOverride ?? undefined,
               userId: verified.userId ?? null,
               presetId: presetForTelemetry,
             }
@@ -210,21 +194,24 @@ export async function POST(req: NextRequest) {
     });
 
     if (!result.ok) {
+      await refundEnergy(db, {
+        userId: verified.userId ?? null,
+        sessionId,
+      });
+      energySpent = false;
       return NextResponse.json(
         { error: result.error, status: result.projection.status },
         { status: 409 },
       );
     }
+    turnCommitted = true;
 
     // Pull the just-emitted roll.resolved event so the UI can show
     // the dice. Avoids re-running the rules engine on the client.
     const { readLog, rowToEvent } = await import("@/lib/game/events");
     const events = (await readLog(db, sessionId)).map(rowToEvent);
-    const lastRoll = [...events]
-      .reverse()
-      .find((e) => e.kind === "roll.resolved");
-    const roll =
-      lastRoll && lastRoll.kind === "roll.resolved" ? lastRoll.roll : null;
+    const lastRoll = [...events].reverse().find((e) => e.kind === "roll.resolved");
+    const roll = lastRoll && lastRoll.kind === "roll.resolved" ? lastRoll.roll : null;
 
     return NextResponse.json({
       narration: result.narration,
@@ -240,10 +227,25 @@ export async function POST(req: NextRequest) {
         : {}),
     });
   } catch (err) {
+    if (energySpent && !turnCommitted) {
+      try {
+        await refundEnergy(db, {
+          userId: verified.userId ?? null,
+          sessionId,
+        });
+      } catch (refundErr) {
+        log.warn("turn.energy_refund_failed", {
+          sessionId,
+          err: refundErr instanceof Error ? refundErr.message : String(refundErr),
+        });
+      }
+    }
     log.error("turn.failed", {
       sessionId,
       err: err instanceof Error ? err.message : String(err),
     });
     return NextResponse.json({ error: "internal" }, { status: 500 });
+  } finally {
+    await releaseTurnLock(db, lock);
   }
 }

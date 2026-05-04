@@ -4,11 +4,7 @@
  * cost). Set NARRATOR=remote (and ANTHROPIC_API_KEY) to use Sonnet 4.6
  * via the Anthropic SDK with prompt caching.
  */
-import type {
-  FormTemplate,
-  LocationTemplate,
-  Narrator,
-} from "../game/types";
+import type { FormTemplate, LocationTemplate, Narrator } from "../game/types";
 
 import { TemplateNarrator } from "./template";
 
@@ -47,7 +43,7 @@ export function makeNarrator(args: {
   if (mode === "remote") {
     // Lazy require so the Anthropic SDK is only loaded when we need it
     // (keeps cold-start fast on the template path).
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { RemoteNarrator } = require("./remote") as typeof import("./remote");
     return new RemoteNarrator({
       form: args.form,

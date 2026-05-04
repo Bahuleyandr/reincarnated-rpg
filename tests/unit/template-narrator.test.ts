@@ -4,24 +4,14 @@ import { join } from "node:path";
 import { initialProjection } from "@/lib/game/projection";
 import { rollFromDice } from "@/lib/game/rules";
 import { TemplateNarrator } from "@/lib/narrator/template";
-import type {
-  FormTemplate,
-  LocationTemplate,
-  NarrateInput,
-} from "@/lib/game/types";
+import type { FormTemplate, LocationTemplate, NarrateInput } from "@/lib/game/types";
 
 const SLIME = JSON.parse(
-  readFileSync(
-    join(process.cwd(), "content", "forms", "lesser-slime.json"),
-    "utf8",
-  ),
+  readFileSync(join(process.cwd(), "content", "forms", "lesser-slime.json"), "utf8"),
 ) as FormTemplate;
 
 const LOCATION = JSON.parse(
-  readFileSync(
-    join(process.cwd(), "content", "locations", "collapsed-tunnel.json"),
-    "utf8",
-  ),
+  readFileSync(join(process.cwd(), "content", "locations", "collapsed-tunnel.json"), "utf8"),
 ) as LocationTemplate;
 
 function freshInput(verb: string, d1: number, d2: number): NarrateInput {
@@ -33,6 +23,7 @@ function freshInput(verb: string, d1: number, d2: number): NarrateInput {
   return {
     projection,
     lastEvents: [],
+    playerInputSanitized: "test input",
     roll: rollFromDice(d1, d2, 0),
     intent: verb,
     relevantMemories: [],
@@ -60,17 +51,14 @@ describe("TemplateNarrator", () => {
   });
 
   test("text never contains a slime negativeVocab word about the player", async () => {
-    const banned = (SLIME as unknown as { negativeVocab: { words: string[] } })
-      .negativeVocab.words;
+    const banned = (SLIME as unknown as { negativeVocab: { words: string[] } }).negativeVocab.words;
     for (const verb of (SLIME as unknown as { verbs: string[] }).verbs) {
       for (const dice of [
         [2, 2],
         [3, 4],
         [6, 6],
       ]) {
-        const out = await narrator.narrate(
-          freshInput(verb, dice[0], dice[1]),
-        );
+        const out = await narrator.narrate(freshInput(verb, dice[0], dice[1]));
         const text = out.text.toLowerCase();
         for (const word of banned) {
           // Word-boundary match so e.g. "the" doesn't false-trigger on "see".

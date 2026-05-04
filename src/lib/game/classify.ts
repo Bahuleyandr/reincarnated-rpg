@@ -8,8 +8,7 @@
  *
  * Strategy:
  *  1. Direct word-boundary match on the verb name (with `_` → ` `).
- *  2. Curated synonym map per verb (form-agnostic in spirit, but
- *     today only the slime's verbs are wired).
+ *  2. Curated synonym map per form + verb.
  *  3. Fallback to "wait" with low confidence so the orchestrator
  *     always has SOMETHING to advance.
  */
@@ -20,21 +19,76 @@ export interface ClassifierResult {
   confidence: number;
 }
 
-const SLIME_SYNONYMS: Record<string, string[]> = {
-  ooze: ["move", "go", "slide", "crawl", "creep", "flow", "slip", "head", "travel"],
-  sense_tremor: ["sense", "feel", "listen", "hear", "perceive", "scan", "detect"],
-  absorb: ["eat", "consume", "engulf", "ingest", "envelop", "swallow"],
-  dissolve: ["destroy", "break", "melt", "corrode", "etch"],
-  smother: ["attack", "smash", "fight", "kill", "strike", "engulf"],
-  split: ["divide", "split", "fork", "fission"],
-  mimic_shape: ["disguise", "hide", "camouflage", "shape", "mimic"],
-  wait: ["wait", "rest", "pause", "still", "remain"],
+const FORM_SYNONYMS: Record<string, Record<string, string[]>> = {
+  "lesser-slime": {
+    ooze: ["move", "go", "slide", "crawl", "creep", "flow", "slip", "head", "travel"],
+    sense_tremor: ["sense", "feel", "listen", "hear", "perceive", "scan", "detect"],
+    absorb: ["eat", "consume", "engulf", "ingest", "envelop", "swallow"],
+    dissolve: ["destroy", "break", "melt", "corrode", "etch"],
+    smother: ["attack", "smash", "fight", "kill", "strike", "engulf"],
+    split: ["divide", "split", "fork", "fission"],
+    mimic_shape: ["disguise", "hide", "camouflage", "shape", "mimic"],
+    wait: ["wait", "rest", "pause", "still", "remain"],
+  },
+  "cursed-book": {
+    fall_open: ["open", "fall open", "show page", "reveal", "display"],
+    snap_shut: ["close", "shut", "slam", "trap", "bite"],
+    flutter_pages: ["flutter", "rustle", "turn pages", "flip", "riffle"],
+    absorb_word: ["read", "consume word", "copy", "take word", "absorb"],
+    bleed_ink: ["bleed", "leak ink", "write", "smear"],
+    rewrite_self: ["rewrite", "edit", "change text", "alter myself"],
+    decode_passage: ["decode", "translate", "understand", "parse"],
+    bind_reader: ["influence", "compel", "bind", "suggest", "plant thought"],
+    spark_marginalia: ["marginalia", "note", "glow", "annotate"],
+    wyrm_inscription: ["wyrm", "inscription", "ancient text"],
+    wait_for_a_reader: ["wait for reader", "wait for someone", "remain open"],
+    wait: ["wait", "rest", "pause"],
+  },
+  "dragon-egg": {
+    rock: ["move", "rock", "roll", "wobble", "shake"],
+    hum_low: ["hum", "vibrate", "pulse sound", "call softly"],
+    kindle_glow: ["glow", "warm", "ignite", "kindle", "shine"],
+    listen: ["listen", "hear", "sense", "feel", "detect"],
+    absorb_warmth: ["absorb", "drink heat", "take warmth", "soak warmth"],
+    dream_outward: ["dream", "reach out", "project", "touch mind"],
+    hatch_partial: ["crack", "hatch", "break shell", "push out"],
+    warmth_pulse: ["pulse", "flash warmth", "signal warmth"],
+    shell_song: ["sing", "resonate", "shell song"],
+    memory_dream: ["remember", "memory", "bloodline", "ancestral"],
+    wyrm_kin_call: ["wyrm", "kin call", "ancient call"],
+    wait: ["wait", "rest", "stay still"],
+  },
+  "dungeon-core": {
+    spawn_minion: ["spawn", "summon", "create minion", "make servant"],
+    shape_room: ["shape", "reshape", "change room", "move wall", "carve"],
+    lure: ["lure", "bait", "draw", "tempt"],
+    sense_intruder: ["sense", "listen", "detect", "scan", "feel footsteps"],
+    weave_illusion: ["illusion", "hide", "veil", "fake"],
+    drain_mana: ["drain mana", "recover mana", "sip mana"],
+    bleed_integrity: ["damage self", "bleed", "sacrifice integrity"],
+    deepen_chamber: ["deepen", "expand", "dig", "extend chamber"],
+    siphon_intruder: ["siphon", "drain intruder", "leech"],
+    false_room: ["false room", "fake room", "decoy room"],
+    bind_minion: ["bind", "command minion", "control minion"],
+    wyrm_signal: ["wyrm", "signal", "deep pulse"],
+    wait: ["wait", "rest", "hold"],
+  },
+  "generic-creature": {
+    move: ["go", "walk", "crawl", "roll", "float", "shift", "travel"],
+    sense: ["sense", "feel", "listen", "look", "detect", "scan"],
+    act: ["act", "try", "do", "use"],
+    attack: ["attack", "hit", "strike", "fight", "bite", "smash"],
+    defend: ["defend", "guard", "brace", "block", "hide"],
+    examine: ["examine", "inspect", "study", "search"],
+    speak: ["speak", "talk", "call", "say", "whisper"],
+    emit: ["emit", "glow", "pulse", "signal"],
+    alter: ["alter", "change", "shape", "transform"],
+    contain: ["contain", "hold", "absorb", "swallow"],
+    wait: ["wait", "rest", "pause"],
+  },
 };
 
-export function classify(
-  input: string,
-  form: FormTemplate,
-): ClassifierResult {
+export function classify(input: string, form: FormTemplate): ClassifierResult {
   const lowered = input.toLowerCase();
 
   // 1. Direct verb match (with underscore → space).
@@ -46,8 +100,9 @@ export function classify(
   }
 
   // 2. Synonym match (only for verbs the form actually has).
+  const synonyms = FORM_SYNONYMS[form.id] ?? FORM_SYNONYMS["generic-creature"];
   for (const verb of form.verbs) {
-    const syns = SLIME_SYNONYMS[verb];
+    const syns = synonyms[verb];
     if (!syns) continue;
     for (const s of syns) {
       if (new RegExp(`\\b${escape(s)}\\b`).test(lowered)) {
