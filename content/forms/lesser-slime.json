@@ -37,6 +37,8 @@
     "wait"
   ],
 
+  "iconicVerbs": ["absorb", "ooze", "sense_tremor"],
+
   "verbMappings": {
     "absorb":             { "tools": ["absorb", "remove_inventory"],            "rollStat": "density" },
     "split":              { "tools": ["change_form_state", "introduce_npc"],    "rollStat": "essence" },

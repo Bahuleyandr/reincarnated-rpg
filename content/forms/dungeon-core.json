@@ -40,6 +40,8 @@
     "wait"
   ],
 
+  "iconicVerbs": ["shape_room", "sense_intruder", "spawn_minion"],
+
   "verbMappings": {
     "spawn_minion":     { "tools": ["introduce_npc", "change_form_state"],   "rollStat": "will" },
     "shape_room":       { "tools": ["change_form_state", "move_to"],         "rollStat": "domain_size" },

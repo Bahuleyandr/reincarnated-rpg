@@ -18,6 +18,11 @@
       "trigger": { "all": [{ "turn": "==1" }] },
       "narrative": "Awareness gathers across the spire's stone — three rooms above, the breathing thing at the top, and yourself, a small clenched crystal in the mid-landing. The spire is not yet your dungeon. It can be.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "sense_intruder", "label": "feel the spire's stone", "description": "let the dungeon's stone report back what it knows", "advancesArc": true },
+        { "verb": "shape_room", "label": "shape the mid-landing", "description": "push your domain outward by half a meter", "advancesArc": true },
+        { "verb": "deepen_chamber", "label": "deepen the chamber", "description": "more dungeon than there was a moment ago", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",
@@ -33,6 +38,11 @@
       "trigger": { "any": [{ "turn": ">=2" }] },
       "narrative": "The iron door at the spire's base opens. A single set of footsteps — careful, in good boots — begins the climb. You feel them on the second step, the fourth, the seventh.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "sense_intruder", "label": "track their footsteps", "description": "follow them through the stone, step by step", "advancesArc": true },
+        { "verb": "weave_illusion", "label": "weave a misleading shape", "description": "let them think the spire is empty", "advancesArc": true },
+        { "verb": "false_room", "label": "conjure a false antechamber", "description": "buy time by costing them theirs", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "npc.introduced",
@@ -56,6 +66,11 @@
       },
       "narrative": "The adventurer reaches the mid-landing, looks east into the archive — and pauses. They have been here before. They know what they are looking for. They begin again, upward.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "lure", "label": "lure them deeper", "description": "set a small enticement at the corridor's mouth", "advancesArc": true },
+        { "verb": "drain_mana", "label": "siphon their warmth", "description": "they will think the spire is colder than it is", "advancesArc": true },
+        { "verb": "false_room", "label": "another false room", "description": "they will lose minutes here", "advancesArc": "branch:delay" }
+      ],
       "fires": [
         {
           "kind": "sensed",
@@ -75,6 +90,11 @@
       },
       "narrative": "The thing at the top of the spire registers the adventurer's progress and shifts. It is older than your crystal. It is not a friend, but it is a useful enemy of your enemy — for now.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "wyrm_signal", "label": "signal the Wyrm", "description": "let it know there's an intruder above you", "advancesArc": true },
+        { "verb": "siphon_intruder", "label": "take a measured warmth", "description": "they will feel the spire's chill in their chest", "advancesArc": true },
+        { "verb": "bind_minion", "label": "bind a minion to the upper stair", "description": "have it act without your moment-to-moment guidance", "advancesArc": "branch:guarded" }
+      ],
       "fires": [
         {
           "kind": "sensed",

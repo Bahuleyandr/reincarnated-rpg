@@ -39,6 +39,8 @@
     "wait"
   ],
 
+  "iconicVerbs": ["fall_open", "spark_marginalia", "decode_passage"],
+
   "verbMappings": {
     "fall_open":          { "tools": ["change_form_state"],                    "rollStat": "binding" },
     "snap_shut":          { "tools": ["change_form_state", "apply_damage"],    "rollStat": "binding" },

@@ -19,6 +19,7 @@
     "kindling": 2
   },
   "verbs": ["mark", "weather", "join", "rest", "wyrm-iron"],
+  "iconicVerbs": ["mark", "weather", "join"],
   "verbMappings": {
     "mark": { "tools": ["change_form_state"], "rollStat": "will" },
     "weather": { "tools": ["pass_time"], "rollStat": "patience" },

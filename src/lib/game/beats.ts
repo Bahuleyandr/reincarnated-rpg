@@ -24,6 +24,36 @@
  */
 import type { Event, Projection } from "./types";
 
+/**
+ * Phase 11 P9 — verb-button suggestion attached to a beat.
+ *
+ * When a beat's trigger matches AND `suggestedVerbs` is populated,
+ * the play page renders these as preset buttons next to the input.
+ * The player can pick one (deterministic template path) or "say
+ * something else" (escape hatch, routes to the LLM narrator).
+ *
+ * Each suggestion is a coherent in-world action the arc author
+ * wants the player to consider. The button label is short; the
+ * description is the hover/secondary text. Choice is the
+ * mechanism; direction is the author's.
+ */
+export interface SuggestedVerb {
+  /** The verb id from the form's verbs[] / verbMappings. The
+   *  orchestrator normalises the player's input to this verb when
+   *  the preset is picked. */
+  verb: string;
+  /** Short, imperative button label ("shape a new room"). */
+  label: string;
+  /** One-line flavor under the label. */
+  description: string;
+  /** Optional: marks whether this verb advances the arc to the
+   *  next beat. The UI uses this to render a small "▸" marker.
+   *  Some verbs may branch to a sibling beat — those use the
+   *  literal `branch:<target>` form. Falsy = stays in the current
+   *  beat (a "wait one more turn" or flavor option). */
+  advancesArc?: boolean | string;
+}
+
 export interface Beat {
   id: string;
   displayName?: string;
@@ -31,6 +61,11 @@ export interface Beat {
   narrative?: string;
   oncePerSession?: boolean;
   fires: Event[];
+  /** Phase 11 P9 — three preset verbs the arc author wants the
+   *  player to choose from when this beat is active. Optional
+   *  per beat; when absent, the play page falls back to the
+   *  form's iconicVerbs. */
+  suggestedVerbs?: SuggestedVerb[];
 }
 
 export interface Trigger {

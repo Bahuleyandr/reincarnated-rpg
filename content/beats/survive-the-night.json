@@ -18,6 +18,11 @@
       "trigger": { "all": [{ "turn": "==1" }] },
       "narrative": "Awareness gathers. The dark tastes of iron.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "sense_tremor", "label": "widen your boundary", "description": "let the room write itself across your awareness", "advancesArc": true },
+        { "verb": "ooze", "label": "ooze toward the seam", "description": "let your forward edge thin and pour", "advancesArc": true },
+        { "verb": "absorb", "label": "absorb what's nearest", "description": "the chemistry of it might tell you where you are", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",
@@ -38,6 +43,11 @@
       },
       "narrative": "Claws clatter. Something panicked is fleeing toward you.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "absorb", "label": "absorb the rat", "description": "fold its panic into your essence", "advancesArc": "branch:fed" },
+        { "verb": "smother", "label": "smother it", "description": "spread across what breathes", "advancesArc": "branch:silent" },
+        { "verb": "mimic_shape", "label": "mimic the floor", "description": "let it pass; whatever drove it is the danger", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "npc.introduced",
@@ -58,6 +68,11 @@
       },
       "narrative": "Whatever sent the rat is closer than the rat.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "smother", "label": "smother the rat", "description": "do not let it carry your scent further", "advancesArc": "branch:fed" },
+        { "verb": "mimic_shape", "label": "mimic the stone", "description": "the predator passes; it is not for you tonight", "advancesArc": true },
+        { "verb": "sense_tremor", "label": "feel for the predator", "description": "know what is coming before it arrives", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",
@@ -78,6 +93,11 @@
       },
       "narrative": "The breathing in the east passage shifts. Something heavy is awake.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "mimic_shape", "label": "mimic the floor", "description": "become a part of the stone; let it pass", "advancesArc": true },
+        { "verb": "ooze", "label": "ooze toward the fissure", "description": "leave before its breathing finds you", "advancesArc": true },
+        { "verb": "sense_tremor", "label": "let the cavern report back", "description": "find the safest exit before it does", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "sensed",

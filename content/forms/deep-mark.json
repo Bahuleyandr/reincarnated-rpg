@@ -14,6 +14,7 @@
   },
   "stats": { "awareness": 4, "patience": 3, "weight": 3, "will": 2 },
   "verbs": ["descend", "feel", "rest", "surface", "wyrm-listen"],
+  "iconicVerbs": ["descend", "feel", "rest"],
   "verbMappings": {
     "descend": { "tools": ["move_to"], "rollStat": "patience" },
     "feel": { "tools": ["sense"], "rollStat": "awareness" },

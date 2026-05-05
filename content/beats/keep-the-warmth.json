@@ -18,6 +18,11 @@
       "trigger": { "all": [{ "turn": "==1" }] },
       "narrative": "The smithy is warm in patches and cold in others. The hearth is banked, just barely. Berra was here — her hammer is on the anvil, mid-stroke — but she is not here now. Whatever called the village left her in a hurry.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "absorb_warmth", "label": "absorb the hearth's warmth", "description": "the embers' last heat into your shell", "advancesArc": true },
+        { "verb": "listen", "label": "listen to the empty smithy", "description": "the world arrives as pressures and rhythms", "advancesArc": true },
+        { "verb": "hum_low", "label": "hum low", "description": "the room takes on the warmth of breath", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",
@@ -38,6 +43,11 @@
       },
       "narrative": "A draft finds the smithy through a crack in the door. It is colder than the day outside. The colder cold is the cold of a place you do not want to be from.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "warmth_pulse", "label": "pulse warmth", "description": "out from your core to your shell and back", "advancesArc": true },
+        { "verb": "kindle_glow", "label": "kindle a glow", "description": "the nest's straw warms perceptibly", "advancesArc": true },
+        { "verb": "absorb_warmth", "label": "draw the hearth deeper", "description": "take what reserve you can from the embers", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "sensed",
@@ -57,6 +67,11 @@
       },
       "narrative": "Footsteps on the village square. A single set, careful — not Berra's, but they smell of leather and an oil you almost recognize. Whoever it is paused, then turned toward the smithy.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "shell_song", "label": "ring the shell", "description": "a note older than the dam who keeps you", "advancesArc": "branch:announce" },
+        { "verb": "hum_low", "label": "hum low", "description": "let them notice you are awake", "advancesArc": true },
+        { "verb": "kindle_glow", "label": "kindle the glow brighter", "description": "warm the room enough that they enter", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "npc.introduced",
@@ -80,6 +95,11 @@
       },
       "narrative": "The finder stands over the hearth. Their breath is shallow. They have understood what you are. The next move is theirs.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "dream_outward", "label": "show them what you are", "description": "a memory not yours, of a long ridge and a thermal that did not hold", "advancesArc": true },
+        { "verb": "memory_dream", "label": "dream a memory", "description": "let them see a name you do not yet know", "advancesArc": true },
+        { "verb": "hum_low", "label": "hum, just for them", "description": "a register meant for one heart at a time", "advancesArc": "branch:trusted" }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",
