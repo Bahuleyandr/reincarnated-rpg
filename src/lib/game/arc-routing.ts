@@ -292,6 +292,17 @@ const ROUTES: ArcRoute[] = [
       "A piece of reef-iridium has fallen past the navy's rung-line. Only you can reach it. The dive is the test; the depth is the point.",
     startingRoomId: "the-reef-edge",
   },
+  // The Cantor distills eight layers of marginalia commentary
+  // into a single verse the choir can carry. The Hush-readers
+  // accept or reject the distillation by a single margin-mark.
+  {
+    arcId: "the-distilled-verse",
+    formId: "cantor-of-the-long-song",
+    locationId: "the-long-indices",
+    tagline:
+      "Eight layers of marginalia. One folio. One verse to carry it all. The Hush-readers will mark in three hours.",
+    startingRoomId: "the-outer-quadrangle",
+  },
 ];
 
 export interface PickedArc {
