@@ -280,6 +280,18 @@ const ROUTES: ArcRoute[] = [
       "The last batch of rigging rusted at sea. The Drowncaller has come up from the Anchorage. Mark the new batch before the morning barges.",
     startingRoomId: "the-ropewalk",
   },
+  // The Deep-mark dives below the Coral Anchorage's seaward
+  // platform, past the navy's rung-line, to retrieve a piece of
+  // reef-iridium fallen from the living coral. The dive itself
+  // is the work; depth is the point; either return is honored.
+  {
+    arcId: "the-deep-walk",
+    formId: "deep-mark",
+    locationId: "the-coral-anchorage",
+    tagline:
+      "A piece of reef-iridium has fallen past the navy's rung-line. Only you can reach it. The dive is the test; the depth is the point.",
+    startingRoomId: "the-reef-edge",
+  },
 ];
 
 export interface PickedArc {

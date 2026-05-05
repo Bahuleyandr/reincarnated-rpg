@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "The Reef Watcher — a halfling Drowncaller who stations at the reef-edge platform during a deep-dive. Their job is to keep the line, mark the time, and pull the diver up if the time runs out. They do not interfere with what the diver does below; they only manage the surface side. Non-recurring; bound to the-deep-walk beat-pack."
+  },
+  "id": "the-reef-watcher",
+  "displayName": "the reef watcher",
+  "kind": "npc",
+  "tagline": "halfling, reef-burned, holding the line and the slate.",
+  "vitals": {
+    "hp": { "max": 6, "start": 6 }
+  },
+  "stats": {
+    "patience": 4,
+    "will": 3,
+    "awareness": 4
+  },
+  "attitudeDefault": 1,
+  "attitudeRange": [-1, 3],
+  "tags": ["coral-anchorage", "deep-mark-arc", "drowncaller"]
+}
