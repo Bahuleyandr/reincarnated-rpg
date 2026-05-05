@@ -5,6 +5,7 @@ import { arcTagline } from "@/lib/game/arc-routing";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
 import { loadForm, loadLocation } from "@/lib/game/content";
 import { resolveFirstGoal } from "@/lib/game/goals";
+import { previewContribution } from "@/lib/meta/long-wyrm";
 import { readLog, rowToEvent } from "@/lib/game/events";
 import { loadProjection } from "@/lib/game/projection";
 import {
@@ -40,10 +41,15 @@ export async function GET(req: NextRequest) {
     });
 
     const events = await readLog(db, sessionId);
-    const narrations = events
-      .map(rowToEvent)
+    const eventList = events.map(rowToEvent);
+    const narrations = eventList
       .filter((e) => e.kind === "narration.emitted")
       .map((e) => (e as { kind: "narration.emitted"; text: string }).text);
+    // P4: per-turn wyrm tally — what the player's actions so far in
+    // this session would contribute to the Long Wyrm if the run
+    // ended right now (excluding the outcome bonus, which only
+    // fires at session.ended).
+    const wyrmRunning = previewContribution(eventList);
 
     // Phase 5.5 Day 36-37: surface tutorial flag so the UI can
     // render TutorialHint without a separate fetch.
@@ -77,6 +83,13 @@ export async function GET(req: NextRequest) {
       formOpening: form.opening ?? null,
       formDisplayName: form.displayName ?? ctx.formId,
       firstGoal: resolveFirstGoal(form, projection),
+      // Phase 10 P4: running wyrm tally for this session. Plays back
+      // through the play-page wyrm pulse so the player sees their
+      // contribution accumulate. Outcome bonus excluded.
+      wyrmRunning: {
+        delta: wyrmRunning.delta,
+        prose: wyrmRunning.prose,
+      },
     });
   } catch (err) {
     log.error("state.failed", {

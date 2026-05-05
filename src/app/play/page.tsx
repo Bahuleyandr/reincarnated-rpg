@@ -55,6 +55,10 @@ export default function Play() {
     target: number;
     completed: boolean;
   } | null>(null);
+  const [wyrmRunning, setWyrmRunning] = useState<{
+    delta: number;
+    prose: string;
+  } | null>(null);
   const [metaArc, setMetaArc] = useState<{
     phaseLabel: string;
     phase: string;
@@ -98,6 +102,7 @@ export default function Play() {
         setFormOpening(data.formOpening ?? null);
         setFormDisplayName(data.formDisplayName ?? null);
         setFirstGoal(data.firstGoal ?? null);
+        setWyrmRunning(data.wyrmRunning ?? null);
         setEntries(
           (data.narrations as string[]).map((text) => ({
             kind: "narration" as const,
@@ -196,6 +201,7 @@ export default function Play() {
           roll: RollResult | null;
           narratorFallback?: boolean;
           narratorFallbackReason?: string;
+          wyrmRunning?: { delta: number; prose: string };
         }
       | null = null;
     let errorMsg: string | null = null;
@@ -279,6 +285,7 @@ export default function Play() {
                       roll: RollResult | null;
                       narratorFallback?: boolean;
                       narratorFallbackReason?: string;
+                      wyrmRunning?: { delta: number; prose: string };
                     }
                   | { type: "error"; error: string };
                 if (ev.type === "text") {
@@ -300,6 +307,7 @@ export default function Play() {
                     roll: ev.roll ?? null,
                     narratorFallback: ev.narratorFallback,
                     narratorFallbackReason: ev.narratorFallbackReason,
+                    wyrmRunning: ev.wyrmRunning,
                   };
                 } else if (ev.type === "error") {
                   errorMsg = ev.error;
@@ -327,6 +335,7 @@ export default function Play() {
       // +1 inventory, room discovered).
       setStateDiff(diffProjection(projection, final.projection));
       setProjection(final.projection);
+      if (final.wyrmRunning) setWyrmRunning(final.wyrmRunning);
       // Replace the streamed entry with the canonical final text +
       // attach the roll. The narration text from `final` may differ
       // slightly from the streamed accumulation (e.g. trimming) so
@@ -418,6 +427,24 @@ export default function Play() {
             <span>
               the long wyrm:{" "}
               <span className="text-amber-400">{metaArc.phaseLabel}</span>
+              {wyrmRunning && wyrmRunning.delta !== 0 && (
+                <span
+                  className="ml-2"
+                  title={wyrmRunning.prose}
+                >
+                  · this run:{" "}
+                  <span
+                    className={
+                      wyrmRunning.delta > 0
+                        ? "text-red-400"
+                        : "text-emerald-400"
+                    }
+                  >
+                    {wyrmRunning.delta > 0 ? "+" : ""}
+                    {wyrmRunning.delta} {wyrmRunning.delta > 0 ? "feed" : "starve"}
+                  </span>
+                </span>
+              )}
               {theme && (
                 <>
                   <span className="text-stone-700 mx-2">·</span>
