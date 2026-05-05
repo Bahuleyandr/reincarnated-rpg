@@ -236,7 +236,28 @@ export function suggestVerbs(args: SuggestArgs): VerbSuggestion[] {
     }
   }
 
-  // Source 2 — form's iconicVerbs.
+  // Source 2a — form's iconicVerbsByCondition (state-aware).
+  // Evaluated in declaration order; first matching condition wins.
+  // Empty verbs[] is treated as "no match" so authors can use it
+  // as a placeholder.
+  if (args.form.iconicVerbsByCondition) {
+    for (const cond of args.form.iconicVerbsByCondition) {
+      if (cond.verbs.length === 0) continue;
+      if (evaluateTrigger(cond.when, args.projection)) {
+        return cond.verbs.slice(0, limit).map((verb) => {
+          const desc = describeVerb(verb);
+          return {
+            verb,
+            label: desc.label,
+            description: desc.description,
+            source: "iconic" as const,
+          };
+        });
+      }
+    }
+  }
+
+  // Source 2b — form's static iconicVerbs.
   if (args.form.iconicVerbs && args.form.iconicVerbs.length > 0) {
     return args.form.iconicVerbs.slice(0, limit).map((verb) => {
       const desc = describeVerb(verb);

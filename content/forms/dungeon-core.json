@@ -41,6 +41,18 @@
   ],
 
   "iconicVerbs": ["shape_room", "sense_intruder", "spawn_minion"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "wounded",
+      "when": { "form.vitals.integrity": "<=5" },
+      "verbs": ["bleed_integrity", "weave_illusion", "false_room"]
+    },
+    {
+      "label": "mana-flush",
+      "when": { "form.vitals.mana": ">=8" },
+      "verbs": ["spawn_minion", "deepen_chamber", "weave_illusion"]
+    }
+  ],
 
   "verbMappings": {
     "spawn_minion":     { "tools": ["introduce_npc", "change_form_state"],   "rollStat": "will" },

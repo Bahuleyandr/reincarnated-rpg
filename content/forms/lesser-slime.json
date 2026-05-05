@@ -38,6 +38,18 @@
   ],
 
   "iconicVerbs": ["absorb", "ooze", "sense_tremor"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "wounded",
+      "when": { "form.vitals.cohesion": "<=3" },
+      "verbs": ["mimic_shape", "smother", "split"]
+    },
+    {
+      "label": "flush",
+      "when": { "form.vitals.essence": ">=8" },
+      "verbs": ["split", "dissolve", "absorb"]
+    }
+  ],
 
   "verbMappings": {
     "absorb":             { "tools": ["absorb", "remove_inventory"],            "rollStat": "density" },

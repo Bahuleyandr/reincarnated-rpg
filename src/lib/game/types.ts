@@ -403,6 +403,29 @@ export interface FormTemplate {
    *  first verb is the most-canonical one. Falls back to the
    *  first three entries of `verbs[]` if absent. */
   iconicVerbs?: string[];
+  /** Phase 11+ T2 — context-sensitive iconic verbs. When a form
+   *  has state worth dispatching on (slime wet vs dry; egg cold
+   *  vs warm; book exposed vs alone; core threatened vs claimed),
+   *  list conditional sets here in priority order. The runtime
+   *  evaluates each `when` against the projection (using the same
+   *  Trigger DSL as beats.ts) and uses the first matching `verbs`
+   *  array. Falls through to `iconicVerbs` (then `verbs[]`) when
+   *  no condition matches.
+   *
+   *  Conditions don't replace beats — they fill the "between
+   *  beats" turns with state-aware buttons instead of the same
+   *  3 every turn. */
+  iconicVerbsByCondition?: Array<{
+    /** Trigger predicate over the projection. Same DSL as
+     *  Beat.trigger (beats.ts). */
+    when: import("./beats").Trigger;
+    /** Verbs to surface when `when` matches. Uses the form's
+     *  verbs[] registry (orchestrator validates). */
+    verbs: string[];
+    /** Optional: short tag for telemetry / UI affordance. The
+     *  play page may render a tiny "wet" / "cold" hint chip. */
+    label?: string;
+  }>;
   /** Display name from the JSON (e.g. "Lesser Slime"). Used by the
    *  play page's empty-state header — falls back to the form id. */
   displayName?: string;

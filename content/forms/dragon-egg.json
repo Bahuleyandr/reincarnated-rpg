@@ -40,6 +40,23 @@
   ],
 
   "iconicVerbs": ["listen", "absorb_warmth", "dream_outward"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "dying",
+      "when": { "form.vitals.heartbeat": "<=2" },
+      "verbs": ["hatch_partial", "warmth_pulse", "shell_song"]
+    },
+    {
+      "label": "cold",
+      "when": { "form.vitals.warmth": "<=3" },
+      "verbs": ["hum_low", "kindle_glow", "warmth_pulse"]
+    },
+    {
+      "label": "warm",
+      "when": { "form.vitals.warmth": ">=8" },
+      "verbs": ["rock", "dream_outward", "shell_song"]
+    }
+  ],
 
   "verbMappings": {
     "rock":           { "tools": ["change_form_state"],                       "rollStat": "kindling" },
