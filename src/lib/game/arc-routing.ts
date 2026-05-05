@@ -255,6 +255,19 @@ const ROUTES: ArcRoute[] = [
       "The third barrel has gone sour overnight. The dawn bell is three hours out. Pull it back, or offer what the year was able to give.",
     startingRoomId: "side-chapel",
   },
+  // The Chorister leads the pre-climb chant — the line of voice
+  // that carries climbers up the switchback pass. Tonight's
+  // party includes a child on their first crossing. Hold the
+  // line through three notches; the chant carries them or the
+  // wind does.
+  {
+    arcId: "the-pass-bowed",
+    formId: "chorister-ascendant",
+    locationId: "three-notches",
+    tagline:
+      "A child has joined the climbing party. Their voice is small. The line of chant must carry them up three notches before the wind takes any of you.",
+    startingRoomId: "the-pass-square",
+  },
 ];
 
 export interface PickedArc {

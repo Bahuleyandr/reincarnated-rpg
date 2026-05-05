@@ -1,0 +1,144 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Five-beat arc for chorister-ascendant in Three Notches. The chorister leads the pre-climb chant — the line of voice that carries climbers up the switchback pass. Without the chant, the high wind takes them. Tonight's party includes a child on their first climb; the chorister's job is to keep the child's line in the chant through three notches and four hours. Win: voice>=10 AND harmony>=10 at turn>=8 (the line held; the party reached the third notch and bowed). Lose: harmony<=0 (a climber's line dropped; the wind found them; the chant did not hold)."
+  },
+
+  "id": "the-pass-bowed",
+  "displayName": "The Pass Bowed",
+  "questId": "the-pass-bowed",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-opening-line",
+      "displayName": "The Opening Line",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "The pass square fills with the night's climbing party — six souls plus mules, plus you, plus the silence the cold pulls down from above the cloudline. The first notch is a switchback away. The line of voice that carries climbers up is yours to begin. The party will follow you. Whether they reach the top depends on whether the line holds.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "chant", "label": "open the line", "description": "take the first verse; the choir takes it after; the line begins", "advancesArc": true },
+        { "verb": "lead", "label": "lead the breath", "description": "set the cadence the climbers' lungs will follow up the switchback", "advancesArc": true },
+        { "verb": "carry", "label": "carry the verse low", "description": "begin in the lower register; the line will rise as the air thins", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-pass-bowed",
+          "objective": "carry-the-line",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-childs-line",
+      "displayName": "The Child's Line",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-mule-yard" }, { "turn": ">=2" }] },
+          { "turn": ">=3" }
+        ]
+      },
+      "narrative": "A child of the half-dwarven family joins the climbing party — their first crossing. They have been practicing the bows but their voice is small and untrained, and the line they hold is thin. If the chant drops, theirs drops first. The other climbers have heard you before; the child has not. They will follow your line, not the choir's.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "lead", "label": "lead for the child", "description": "drop your line into a register their breath can match; the choir adjusts", "advancesArc": true },
+        { "verb": "carry", "label": "carry the child's line", "description": "thread their thin line through yours; do not let it fall behind", "advancesArc": true },
+        { "verb": "chant", "label": "chant a children's verse", "description": "the older verse for first climbers; the choir knows it; the child has heard it before", "advancesArc": "branch:gentled" }
+      ],
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-first-climber",
+          "data": {
+            "name": "the first climber",
+            "relationship": 2,
+            "templateId": "the-first-climber"
+          }
+        },
+        {
+          "kind": "form_state.changed",
+          "field": "child_in_line",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "03-the-cloudline-test",
+      "displayName": "The Cloudline Test",
+      "trigger": {
+        "any": [
+          { "turn": ">=4" },
+          { "form.vitals.harmony": "<=12" }
+        ]
+      },
+      "narrative": "Above the second notch the wind changes. It comes off the cloud-mass like an opinion — sharp, declarative, taking what is loose. The chant must hold against it. The choir behind you tightens; the child's line wavers; the older climbers find their second breath. The next half-hour decides whether the party crosses or turns back.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "chant", "label": "chant against the wind", "description": "the line steadies in the upper register; the wind takes what it must, the rest holds", "advancesArc": true },
+        { "verb": "carry", "label": "carry through the test", "description": "the line bears down; the climbers feel it under their breath; the second notch passes", "advancesArc": true },
+        { "verb": "blend", "label": "blend two voices", "description": "the child's line into yours; the older choristers do the same below; the line thickens", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "wind",
+          "detail": "cloudline wind cutting across the chant; line tested but holds"
+        }
+      ]
+    },
+    {
+      "id": "04-the-third-notch",
+      "displayName": "The Third Notch",
+      "trigger": {
+        "any": [
+          { "turn": ">=6" },
+          { "form.vitals.voice": "<=10" }
+        ]
+      },
+      "narrative": "The third notch is the highest and the hardest. The air is thin enough that the chant changes shape — short verses, longer rests between, the older line surfacing under the new. Every climber bows at the notch as they pass. The bow is part of the breath. The breath is part of the line. The line is yours.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "carry", "label": "carry the older verse", "description": "the wyrm-line surfaces under your chant; the climbers feel it without naming it; the bow lands cleanly", "advancesArc": true },
+        { "verb": "rest", "label": "rest between verses", "description": "the high air gives back what the climber gives it; let the line breathe; the choir holds", "advancesArc": true },
+        { "verb": "wyrm-line", "label": "let the older line carry", "description": "older than your training, older than the pass; the line that knows this notch carries you all", "advancesArc": "branch:wyrm-touched" }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "third_notch_passed",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-the-summit-bowed",
+      "displayName": "The Summit Bowed",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.voice": ">=10" },
+          { "form.vitals.harmony": ">=10" }
+        ]
+      },
+      "narrative": "The third bow lands. The party stands above the cloudline. The chant breaks into its final cadence — six voices, including the child's, including yours, including the choir's. The line is complete. The mules know they have arrived. Below, the cloud-mass moves; above, Highfield Ascending opens. The chorister's work is done for this climb.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "lead", "label": "lead the final cadence", "description": "the line resolves; the climbers' breath returns to their own keeping; the chant ends cleanly", "advancesArc": true },
+        { "verb": "carry", "label": "carry the line down", "description": "the descent has its own verse; tomorrow's party will hear yours; the chant continues", "advancesArc": true },
+        { "verb": "rest", "label": "rest at the summit", "description": "the line is complete; the breath is yours again; the climb is finished", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-pass-bowed",
+          "objective": "carry-the-line",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}
