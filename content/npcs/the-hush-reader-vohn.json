@@ -22,6 +22,12 @@
       "Will not eat in front of strangers."
     ]
   },
+  "letters": {
+    "firstMeet": {
+      "subject": "[in the margins of a torn page]",
+      "body": "[The page is dense with marginalia in a hand that crosses three scripts. The visible note reads:] \n\n'You read the second-from-the-top line, not the top. Most read the top. The top is for honesty. The second is for what is true. \n\nI have written your gait into the index of strangers. The index is private. \n\n— V.'"
+    }
+  },
   "metadata": {
     "templateId": "the-hush-reader-vohn",
     "recurring": true,

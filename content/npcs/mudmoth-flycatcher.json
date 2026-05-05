@@ -9,6 +9,12 @@
   "attitudeDefault": 1,
   "attitudeRange": [-1, 2],
   "tags": ["mudmoth", "flycatcher", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "you didn't startle the eggs",
+      "body": "Most who come past the lacquer-shed in the dawn hour startle the eggs. The eggs are very particular. You walked past quietly and the count for the morning was the count I expected.\n\nThis is not a small thing. Whoever taught you to walk quiet did not waste the teaching.\n\nIf you come back, come at dawn. I will not have time to talk, but I will set out a cup.\n\n— Tam"
+    }
+  },
   "metadata": {
     "templateId": "mudmoth-flycatcher",
     "recurring": true,

@@ -22,6 +22,12 @@
       "Tells you the next storm's day before any cloud has formed."
     ]
   },
+  "letters": {
+    "firstMeet": {
+      "subject": "the wind read you correctly",
+      "body": "I sat on the bone-perch when you crossed the high meadow, and the bone instruments at my belt rang once on a frequency they only ring for travelers the wind has already met. \n\nThis is not an interpretation. The bones are honest. \n\nIf the wind sends you back this way, I will be on the perch. There is space for one more, and I have water.\n\n— Eireann"
+    }
+  },
   "metadata": {
     "templateId": "gust-watcher-eireann",
     "recurring": true,

@@ -9,6 +9,12 @@
   "attitudeDefault": 1,
   "attitudeRange": [0, 2],
   "tags": ["tallowfen", "yard-master", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "you didn't ask after the wax",
+      "body": "I show visitors the wax. The wax is the photogenic part. The work is in the steam, and most don't ask. You stood at the doorway long enough to taste the steam before you said anything, which is the right order.\n\nIf you'd like to learn how the rendering year goes — when the fires bank, when they stoke, when the bay leaf goes in — come on the third afternoon of the next week. The yard will be quiet enough.\n\n— Anselm"
+    }
+  },
   "metadata": {
     "templateId": "tallowfen-yard-master",
     "recurring": true,

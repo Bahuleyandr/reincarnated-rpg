@@ -96,8 +96,13 @@ export async function sendLetter(
 
 export interface InboxRow {
   id: string;
-  fromUserId: string;
+  /** Null when the sender is an NPC (use fromNpcTemplateId instead). */
+  fromUserId: string | null;
   fromUsername: string | null;
+  /** Phase 10 P5 — set when an NPC sent the letter (e.g. on first
+   *  meet during a run). The UI reads it to render the NPC's name
+   *  in the inbox row. */
+  fromNpcTemplateId: string | null;
   subject: string;
   bodyPreview: string;
   status: string;
@@ -116,6 +121,7 @@ export async function listInbox(
       id: letters.id,
       fromUserId: letters.fromUserId,
       fromUsername: users.username,
+      fromNpcTemplateId: letters.fromNpcTemplateId,
       subject: letters.subject,
       body: letters.body,
       status: letters.status,
@@ -132,6 +138,7 @@ export async function listInbox(
     id: r.id,
     fromUserId: r.fromUserId,
     fromUsername: r.fromUsername,
+    fromNpcTemplateId: r.fromNpcTemplateId,
     subject: r.subject,
     bodyPreview:
       r.body.length > 200 ? r.body.slice(0, 200) + "…" : r.body,
@@ -168,6 +175,7 @@ export async function listSent(
     id: r.id,
     fromUserId: r.fromUserId,
     fromUsername: r.toUsername, // misnomer here — meaning the OTHER party
+    fromNpcTemplateId: null,
     subject: r.subject,
     bodyPreview:
       r.body.length > 200 ? r.body.slice(0, 200) + "…" : r.body,

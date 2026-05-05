@@ -9,6 +9,12 @@
   "attitudeDefault": 1,
   "attitudeRange": [0, 3],
   "tags": ["cataract-mile", "signer", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "[written. all letters from me are written.]",
+      "body": "You will not have heard me. I have not spoken in seven years; the cataract eats voices anyway, and I have learned to do without. But you read my hands when I signed the third clause, which most do not, and so I have written this in case you come back. \n\nThe contract terms I gave were the public ones. There are private ones for those who can sign back. Find me at the lower stair after the noon-bell.\n\n— Aune"
+    }
+  },
   "metadata": {
     "templateId": "cataract-mile-signer",
     "recurring": true,

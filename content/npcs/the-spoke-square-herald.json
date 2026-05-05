@@ -22,6 +22,12 @@
       "Refuses to deliver news that isn't paid for."
     ]
   },
+  "letters": {
+    "firstMeet": {
+      "subject": "you stayed for the third script",
+      "body": "I switch to the third script when the dwarven listeners have left. You stayed. Most don't.\n\nThe third script is for the careful. The fourth is for the patient. The fifth is for those who are still here when the square has emptied. There is a fifth. I rarely have anyone to switch to it for.\n\nIf you come back at the noon proclamation, stay for all five. I will know what to make of you by the end.\n\n— the Herald"
+    }
+  },
   "metadata": {
     "templateId": "the-spoke-square-herald",
     "recurring": true,

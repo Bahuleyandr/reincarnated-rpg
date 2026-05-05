@@ -9,6 +9,12 @@
   "attitudeDefault": 1,
   "attitudeRange": [0, 3],
   "tags": ["briny-bell", "bell-keeper", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "you stood for the bell",
+      "body": "Most who come up to Briny Bell stand for the first ring and not the second. You stood for both. I noted it. \n\nThe bell is rung twice on the tide, and the second ring is for those who would forget that there are two tides. We are not many. \n\nYou are welcome at the keeper's hut between rings if the wind is from the west. The kettle is small and the hour is short.\n\n— Keeper Alaida"
+    }
+  },
   "metadata": {
     "templateId": "briny-bell-keeper",
     "recurring": true,

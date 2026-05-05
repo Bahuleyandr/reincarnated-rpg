@@ -32,6 +32,12 @@
     ],
     "refusalLine": "not at this hour. not for free."
   },
+  "letters": {
+    "firstMeet": {
+      "subject": "the four ribbons mean what they mean",
+      "body": "You stood on the dock long enough that one of my crew came down the gangway to ask after you. I did not need to ask after you. I had already seen how you stood. \n\nA contract is not the only kind of conversation a captain has. Sometimes a captain simply wishes a stranger to know they were noticed. You were noticed. The ribbons on the foremast are not decoration; you understand this better than most.\n\nIf you return to the Anchorage, return at dawn. We eat then.\n\n— Mira"
+    }
+  },
   "metadata": {
     "templateId": "captain-mira-of-the-anchor",
     "recurring": true,

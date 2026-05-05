@@ -9,6 +9,12 @@
   "attitudeDefault": 2,
   "attitudeRange": [0, 3],
   "tags": ["quietmile", "vow-of-silence", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "[no signature. only a pressed flower.]",
+      "body": "[The sheet contains a single dried poppy, the stem cut at exactly the angle the field's harvest is recorded by, and a faint smudge of white sap pressed into the corner where a name might be written. The smudge has the shape of a hand turned palm-up — the field's gesture for 'come back when you can.']"
+    }
+  },
   "metadata": {
     "templateId": "quietmile-poppy-cutter",
     "recurring": true,

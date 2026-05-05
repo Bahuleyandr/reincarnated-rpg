@@ -22,6 +22,12 @@
       "Smiles at apprentices and almost never at adults."
     ]
   },
+  "letters": {
+    "firstMeet": {
+      "subject": "you held your breath at the difficult pass",
+      "body": "I count my apprentices' breaths through the difficult passes. There is a pass — the one in the third indigo, where the dye and the cloth disagree for two long seconds — that requires the hand to hold steady AND the chest to hold still. \n\nYou held your chest still without being told. I noticed.\n\nThe shop is open before the seventh bell if you wish to see how indigo behaves when nobody is watching.\n\n— Juniper"
+    }
+  },
   "metadata": {
     "templateId": "master-juniper-of-threadwarden",
     "recurring": true,

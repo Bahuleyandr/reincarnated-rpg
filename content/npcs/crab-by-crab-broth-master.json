@@ -9,6 +9,12 @@
   "attitudeDefault": 2,
   "attitudeRange": [0, 3],
   "tags": ["crab-by-crab", "broth-master", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "you took the soft-shell broth",
+      "body": "Tourists take the broth I push them toward. You took the one you asked for. There is a difference, and I notice it. \n\nIf you come back, ask for the broth I am not pushing today. I will know which one you mean. \n\nThe pots are uncovered between the third and fourth bell. The tide reaches the stairs at the fifth.\n\n— Tov"
+    }
+  },
   "metadata": {
     "templateId": "crab-by-crab-broth-master",
     "recurring": true,

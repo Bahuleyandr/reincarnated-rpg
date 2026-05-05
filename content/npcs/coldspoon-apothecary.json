@@ -9,6 +9,12 @@
   "attitudeDefault": 1,
   "attitudeRange": [0, 3],
   "tags": ["dwarven", "coldspoon", "apothecary", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "the wind tasted right when you passed",
+      "body": "I count drops in my sleep. I taste the wind without thinking about it. When you walked past the drying slope this morning, the air over the racks moved differently for you than for the others, and I noticed. \n\nWhat that means depends on what you came here for. The cloud-bitters take three months from cut to bottle, and we send them to the Indices on the new moon. If you have an interest, send word.\n\n— Ren"
+    }
+  },
   "metadata": {
     "templateId": "coldspoon-apothecary",
     "recurring": true,

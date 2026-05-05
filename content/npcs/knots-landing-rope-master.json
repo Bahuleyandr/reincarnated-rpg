@@ -9,6 +9,12 @@
   "attitudeDefault": 1,
   "attitudeRange": [0, 3],
   "tags": ["human", "knots-landing", "rope-master", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "you held the rope right",
+      "body": "I let visitors handle the demonstration coil. Most hold it like a ribbon. You held it the way it wants to be held. The right hand toward the standing part, the slack at the wrist. Whoever taught you that did not waste the lesson.\n\nThe apprentices' bench is open the second hour after dawn if you'd like to see the namesake tied properly. Bring your own pair of hands.\n\n— Olen"
+    }
+  },
   "metadata": {
     "templateId": "knots-landing-rope-master",
     "recurring": true,
