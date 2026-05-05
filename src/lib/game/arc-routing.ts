@@ -303,6 +303,18 @@ const ROUTES: ArcRoute[] = [
       "Eight layers of marginalia. One folio. One verse to carry it all. The Hush-readers will mark in three hours.",
     startingRoomId: "the-outer-quadrangle",
   },
+  // The Garden-keeper handles the season's last pruning on the
+  // Highfield orchards. The Topgrove elder's eye still knows
+  // which branch goes; their hands no longer do. The Gust-
+  // watcher signals when the wind permits the highest cuts.
+  {
+    arcId: "the-last-pruning",
+    formId: "garden-keeper-of-the-spire",
+    locationId: "highfield-ascending",
+    tagline:
+      "The season is turning. The autumn cuts must close the year. The elder will walk the rows beside you; the wind will say when.",
+    startingRoomId: "the-windbench",
+  },
 ];
 
 export interface PickedArc {

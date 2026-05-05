@@ -1,0 +1,144 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "Five-beat arc for garden-keeper-of-the-spire in Highfield Ascending. The season is turning; the autumn cuts must be made on the orchard terraces before the cold settles. The Topgrove elder has asked the garden-keeper to handle this season's last pruning — the elder's hands cannot make the cuts they once did, but their eye still knows which branch goes. The Gust-watcher signals when wind permits the higher cuts. Win: soil>=10 AND season>=10 at turn>=8 (the last pruning closes the season). Lose: season<=0 (the cuts came too late or too rough; the trees will lose more than the season would have taken)."
+  },
+
+  "id": "the-last-pruning",
+  "displayName": "The Last Pruning",
+  "questId": "the-last-pruning",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-windbench",
+      "displayName": "The Windbench",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "The wind across the windbench is the morning's wind; the orchards above wait for the kind of cuts the season is owed. The Topgrove elder is already on their feet — they have not been able to make the cuts themselves for two seasons now, but their eye still knows which branch goes and which stays. The cloudtea cup beside you is for one cup; the work begins after.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "wait", "label": "wait for the wind", "description": "the morning's wind is not yet right; the trees are not yet asking; let the cup finish", "advancesArc": true },
+        { "verb": "tend", "label": "tend to the cup", "description": "the cloudtea is the morning; the work begins after; honor the smaller ritual first", "advancesArc": true },
+        { "verb": "sow", "label": "sow the season's first thought", "description": "the elder will walk with you; decide now what kind of season this last cut will close", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-last-pruning",
+          "objective": "close-the-season",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-orchard-terraces",
+      "displayName": "The Orchard Terraces",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-orchard-terraces" }, { "turn": ">=2" }] },
+          { "turn": ">=3" }
+        ]
+      },
+      "narrative": "The Whitestar block first, by tradition. The Topgrove elder walks beside you in dwarven wind-pace and points at the trees that have already given the elder's eye a yes. The cuts are clean cuts. Each one closes a part of the year that does not need to remain open. The branches come away dry; the trees do not flinch.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "prune", "label": "prune the Whitestars", "description": "the elder points; you cut; the rhythm establishes itself across the block", "advancesArc": true },
+        { "verb": "tend", "label": "tend to the wounds", "description": "each cut wants a moment; the bark settles; the season takes the cut without complaint", "advancesArc": true },
+        { "verb": "sow", "label": "sow next year's thought", "description": "where a branch comes off, the eye sees next year; mark the spot for the spring's first sow", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-topgrove-elder",
+          "data": {
+            "name": "the Topgrove elder",
+            "relationship": 2,
+            "templateId": "the-topgrove-elder"
+          }
+        },
+        {
+          "kind": "form_state.changed",
+          "field": "block_done",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "03-the-gust-clears",
+      "displayName": "The Gust Clears",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-gust-clearing" }, { "turn": ">=4" }] },
+          { "turn": ">=5" }
+        ]
+      },
+      "narrative": "The Gust-watcher above sets a small bone-pipe between two stones — the signal that the wind has fallen enough to permit the high cuts. The Sun-cherries at the top of the terraces have not been pruned in three years; the season has finally given the watcher a wind-pause long enough. The elder watches you climb. They will not climb today.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "prune", "label": "prune the high block", "description": "Sun-cherries; three years of growth; the cuts are larger than the lower terraces", "advancesArc": true },
+        { "verb": "tend", "label": "tend the high wounds", "description": "high cuts close differently; the wind takes more from them; mind the bark seal", "advancesArc": true },
+        { "verb": "wyrm-furrow", "label": "let the older furrow surface", "description": "the Sun-cherry's roots run to the old wyrm-line; the older mode of cut closes the wound faster", "advancesArc": "branch:wyrm-touched" }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "high_block_done",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "04-the-cider-bench",
+      "displayName": "The Cider Bench",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-cider-cellars" }, { "turn": ">=6" }] },
+          { "turn": ">=7" }
+        ]
+      },
+      "narrative": "The Whitebark cider master has set a cup on the open-roofed platform beside you — last year's vintage, the one the season's cuts will inform a year from now. You sit. The elder sits. The work is most of the way through; the last block remains. Cider is for the part of the day that the work has earned.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "wait", "label": "wait through the cup", "description": "the cider does its small ritual; the work resumes when the cup is empty, not before", "advancesArc": true },
+        { "verb": "tend", "label": "tend to the elder", "description": "the elder has walked the high terraces by eye; their breath is short; let them rest", "advancesArc": true },
+        { "verb": "sow", "label": "sow the last block's plan", "description": "the Greybark pears wait; one more block, in cleaner cuts than the last; decide the cadence", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "cider_taken",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-the-last-cut",
+      "displayName": "The Last Cut",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.soil": ">=10" },
+          { "form.vitals.season": ">=10" }
+        ]
+      },
+      "narrative": "The last cut closes the Greybark block, and the season with it. The elder nods — the only remark they will make about the day's work. The wind shifts to the cold direction the watcher has been waiting for; the trees feel it; the cuts seal under the new air. Tomorrow's work begins with the spring's first sow, four months from now. Today's pruning is done. Today's pruning is the last of the year.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "tend", "label": "tend to the last cut", "description": "the season-closing wound; the bark seals as you watch; the cold accepts the orchard", "advancesArc": true },
+        { "verb": "wait", "label": "wait through the cold's arrival", "description": "the wind shifts; the orchard rests; the work is yours to release", "advancesArc": true },
+        { "verb": "sow", "label": "sow the closing thought", "description": "the spring's first sow has its place now; mark the row for four months from now", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-last-pruning",
+          "objective": "close-the-season",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}
