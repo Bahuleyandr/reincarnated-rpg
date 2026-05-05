@@ -1278,6 +1278,43 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
         err: err instanceof Error ? err.message : String(err),
       });
     }
+    // Phase 10 P5 — NPC-initiated letters. After the run ends,
+    // recurring NPCs who showed up in the player's session can
+    // send a first-meet letter (idempotent — repeats of the same
+    // NPC across runs only seed once per user). Best-effort; the
+    // run-end pipeline shouldn't fail if the letter system errors.
+    try {
+      const { readLog: readLogForLetters, rowToEvent: rowToEventForLetters } =
+        await import("./events");
+      const letterEvents = (await readLogForLetters(db, sessionId)).map(
+        rowToEventForLetters,
+      );
+      const {
+        seedFirstMeetLetters,
+        npcTemplateIdsIntroducedDuring,
+      } = await import("../letters/npc-letters");
+      const npcIds = npcTemplateIdsIntroducedDuring(letterEvents);
+      if (npcIds.length > 0) {
+        const seedResult = await seedFirstMeetLetters({
+          db,
+          toUserId: world.userId,
+          npcTemplateIds: npcIds,
+        });
+        if (seedResult.sent.length > 0) {
+          log.info("turn.npc_letters.sent", {
+            sessionId,
+            userId: world.userId,
+            sent: seedResult.sent,
+          });
+        }
+      }
+    } catch (err) {
+      log.warn("turn.npc_letters.seed_failed", {
+        sessionId,
+        userId: world.userId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
     // Roadmap 64: in-run companions level up on a winning end.
     // Death + cap are no-ops — they don't earn the level. Failure
     // is non-blocking; the run-end pipeline shouldn't break if

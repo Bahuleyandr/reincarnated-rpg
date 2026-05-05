@@ -8,8 +8,10 @@ import { useCallback, useEffect, useState } from "react";
 
 interface Letter {
   id: string;
-  fromUserId: string;
+  fromUserId: string | null;
   fromUsername: string | null;
+  /** P5: set when an NPC sent the letter (e.g. on first-meet). */
+  fromNpcTemplateId: string | null;
   subject: string;
   bodyPreview: string;
   status: string;
@@ -189,8 +191,16 @@ export default function LettersPage() {
                   <span className="text-xs text-stone-200 truncate flex-1">
                     {l.subject}
                   </span>
-                  <span className="text-[10px] text-stone-500">
-                    {l.fromUsername ?? "you"}
+                  <span
+                    className={`text-[10px] ${
+                      l.fromNpcTemplateId
+                        ? "text-amber-400"
+                        : "text-stone-500"
+                    }`}
+                  >
+                    {l.fromNpcTemplateId ??
+                      l.fromUsername ??
+                      "you"}
                   </span>
                   <span
                     className={`text-[10px] uppercase tracking-wide ${

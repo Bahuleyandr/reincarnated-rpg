@@ -9,6 +9,12 @@
   "attitudeDefault": 2,
   "attitudeRange": [0, 3],
   "tags": ["half-dwarven", "three-notches", "innkeeper", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "the south wing is warmer this season",
+      "body": "I run the only inn at the foot of the pass, so I see most of the people who come up. I do not write to most of them. I am writing to you because you took the south wing and didn't ask why. The dwarven north is colder than I let on, and the south is the right answer this season. \n\nIf you come back, the south wing has a small library nobody uses. The kettle is by the second window.\n\n— Bren"
+    }
+  },
   "metadata": {
     "templateId": "three-notches-innkeeper",
     "recurring": true,

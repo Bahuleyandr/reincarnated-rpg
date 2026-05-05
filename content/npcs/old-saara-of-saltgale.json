@@ -22,6 +22,12 @@
       "Will not negotiate after the third no."
     ]
   },
+  "letters": {
+    "firstMeet": {
+      "subject": "you took the chair",
+      "body": "I leave the chair in the corner of the customs house empty for visitors who think they want to sit. Most don't. They stand. They keep moving. You sat. \n\nIt is an unfashionable thing for an elf to admire — a stranger taking the offered chair. It tells me you are not in a hurry to be approved of. I will remember the cuff of your sleeve. I notice that sort of thing.\n\nIf you come back, come on a sunny afternoon. The light is good for ink.\n\n— Saara"
+    }
+  },
   "metadata": {
     "templateId": "old-saara-of-saltgale",
     "recurring": true,

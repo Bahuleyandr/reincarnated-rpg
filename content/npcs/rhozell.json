@@ -53,6 +53,13 @@
     "refusalLine": "I do not duel softlings. there is paperwork."
   },
 
+  "letters": {
+    "firstMeet": {
+      "subject": "a small entry in the ledger",
+      "body": "You will not have noticed me reach for my book when you crossed my line of sight. I keep names. I keep the day they enter. Yours is now there, in the small hand my master taught me, between two names you would not recognise. \n\nNothing is owed yet. Nothing has been done that requires answer. You should know only that the entry exists, and that the ledger is read on quiet evenings, and that my master is patient.\n\n— Rhozell"
+    }
+  },
+
   "metadata": {
     "templateId": "rhozell",
     "recurring": true,

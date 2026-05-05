@@ -9,6 +9,12 @@
   "attitudeDefault": 2,
   "attitudeRange": [0, 3],
   "tags": ["human", "furrowmouth", "bell-keeper", "recurring"],
+  "letters": {
+    "firstMeet": {
+      "subject": "rye day, and you knew it",
+      "body": "It was rye day when you came past. I had not yet rung the bell, and you knew. Most don't. I marked you down for an apprentice's sense, even if the apprenticeship was somewhere else, and somewhen else. \n\nThe elven wholesalers come on the second-week morning. If you'd like to learn the calls before then, the bell-loft is open after the noon ring.\n\n— Lis"
+    }
+  },
   "metadata": {
     "templateId": "furrowmouth-bell-keeper",
     "recurring": true,
