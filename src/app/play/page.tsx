@@ -360,6 +360,29 @@ export default function Play() {
       </aside>
 
       <section className="flex flex-col min-h-screen md:min-h-0 md:order-2 order-1">
+        {projection && (
+          <div className="md:hidden px-4 py-2 border-b border-stone-800 bg-stone-900/60 text-[11px] text-stone-400 flex items-baseline gap-3 flex-wrap">
+            <span>
+              <span className="text-stone-600">form </span>
+              <span className="text-stone-200">{projection.form.id}</span>
+            </span>
+            {Object.entries(projection.form.vitals).map(([k, v]) => {
+              const max = projection.form.vitalsMax[k];
+              return (
+                <span key={k}>
+                  <span className="text-stone-600">{k} </span>
+                  <span className="text-stone-200">
+                    {v}
+                    {max !== undefined && max !== null ? `/${max}` : ""}
+                  </span>
+                </span>
+              );
+            })}
+            <span className="ml-auto text-stone-600">
+              ↓ inventory + presence below
+            </span>
+          </div>
+        )}
         {metaArc && (
           <Link
             href="/meta"
@@ -416,7 +439,31 @@ export default function Play() {
             </button>
           </div>
         )}
-        <Transcript entries={entries} />
+        <Transcript
+          entries={entries}
+          emptyHint={
+            projection && (
+              <div className="space-y-2 text-stone-300 leading-7">
+                <p className="text-stone-100">
+                  you wake as{" "}
+                  <span className="text-amber-300">
+                    {projection.form.id}
+                  </span>{" "}
+                  in{" "}
+                  <span className="text-amber-300">
+                    {projection.location.id}
+                  </span>
+                  .
+                </p>
+                <p className="text-stone-500 text-sm italic">
+                  describe what you do — anything from a single verb to a
+                  whole sentence. the dice will be rolled against your
+                  intent.
+                </p>
+              </div>
+            )
+          }
+        />
         <div className="px-4 py-1 space-y-2">
           <WhereAmI />
           <InRunCompanions />

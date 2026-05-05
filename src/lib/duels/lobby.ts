@@ -314,6 +314,14 @@ export async function listOutgoing(
     targetNpcTemplateId: string | null;
     status: string;
     challengedAtMs: number;
+    /** Resolution payload — populated when status is "resolved".
+     *  null fields when the duel hasn't reached a roll yet. */
+    challengerRoll: number | null;
+    targetRoll: number | null;
+    /** "challenger" if the duel went to the player, "target" if it
+     *  went to the opponent (player or NPC), "tied" if no winner,
+     *  null when the duel hasn't resolved. */
+    winnerSide: "challenger" | "target" | "tied" | null;
   }>
 > {
   const rows = await db
@@ -323,17 +331,39 @@ export async function listOutgoing(
       targetNpcTemplateId: duels.targetNpcTemplateId,
       status: duels.status,
       challengedAt: duels.challengedAt,
+      challengerRoll: duels.challengerRoll,
+      targetRoll: duels.targetRoll,
+      winnerUserId: duels.winnerUserId,
+      winnerNpcTemplateId: duels.winnerNpcTemplateId,
     })
     .from(duels)
     .leftJoin(users, eq(users.id, duels.targetUserId))
     .where(eq(duels.challengerUserId, userId))
     .orderBy(desc(duels.challengedAt))
     .limit(50);
-  return rows.map((r) => ({
-    id: r.id,
-    targetUsername: r.targetUsername,
-    targetNpcTemplateId: r.targetNpcTemplateId,
-    status: r.status,
-    challengedAtMs: r.challengedAt.getTime(),
-  }));
+  return rows.map((r) => {
+    let winnerSide: "challenger" | "target" | "tied" | null = null;
+    if (r.status === "resolved") {
+      if (r.winnerUserId === userId) {
+        winnerSide = "challenger";
+      } else if (
+        r.winnerUserId !== null ||
+        r.winnerNpcTemplateId !== null
+      ) {
+        winnerSide = "target";
+      } else {
+        winnerSide = "tied";
+      }
+    }
+    return {
+      id: r.id,
+      targetUsername: r.targetUsername,
+      targetNpcTemplateId: r.targetNpcTemplateId,
+      status: r.status,
+      challengedAtMs: r.challengedAt.getTime(),
+      challengerRoll: r.challengerRoll,
+      targetRoll: r.targetRoll,
+      winnerSide,
+    };
+  });
 }

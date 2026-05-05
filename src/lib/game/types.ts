@@ -27,6 +27,14 @@ export interface RollResult {
    *  and the narrator flavor the roll text. Optional for backward
    *  compat with replay events written before this field. */
   variant?: "2d6" | "3d6kh2" | "2d6r1" | "1d12";
+  /** Cosmetic breakdown of where `mod` came from — stat bonus, race
+   *  hook, adaptive difficulty bonus, bad-luck penalty. The UI uses
+   *  this to label the modifier in the dice display so players can
+   *  see why their roll got +N. The math is already baked into
+   *  `mod`; this field is purely for display. Optional for replay
+   *  back-compat — pre-existing events lack it and the UI falls
+   *  back to a single anonymous +N. */
+  modSources?: Array<{ source: string; delta: number }>;
 }
 
 export type SessionStatus = "active" | "dead" | "won" | "capped";

@@ -58,8 +58,11 @@ export function TodayTicker() {
   if (!data) return null;
   if (data.entries.length === 0) {
     return (
-      <div className="text-[11px] italic text-stone-600 text-center py-1.5 border-y border-stone-900">
-        the world is quiet — be the first.
+      <div
+        className="text-[11px] italic text-stone-600 text-center py-1.5 border-y border-stone-900"
+        title={`no notable events in the last ${data.horizonHours}h`}
+      >
+        no fresh news in the last {data.horizonHours}h.
       </div>
     );
   }

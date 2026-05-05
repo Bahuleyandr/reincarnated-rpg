@@ -78,7 +78,11 @@ export function WorldBanner() {
         </Link>
       )}
       <div className="text-[10px] text-stone-600">
-        {state.activeCampaigns} campaign{state.activeCampaigns === 1 ? "" : "s"} in progress
+        {state.activeCampaigns === 0
+          ? "no campaigns active right now"
+          : `${state.activeCampaigns} campaign${
+              state.activeCampaigns === 1 ? "" : "s"
+            } in progress`}
       </div>
     </section>
   );

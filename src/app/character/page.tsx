@@ -206,12 +206,14 @@ export default function CharacterPage() {
   const usd = (n: number) =>
     n < 0.01 ? "$<0.01" : `$${n.toFixed(2)}`;
 
-  const helpedRatio =
+  // null when there's no data yet — a brand-new account has 0 helped
+  // and 0 harmed, which makes "0%" misleading. Render "—" instead.
+  const helpedRatio: number | null =
     data.npcs.timesHelped + data.npcs.timesHarmed > 0
       ? (data.npcs.timesHelped /
           (data.npcs.timesHelped + data.npcs.timesHarmed)) *
         100
-      : 0;
+      : null;
 
   return (
     <main className="min-h-screen bg-stone-950 text-stone-200 font-mono px-6 py-10">
@@ -233,7 +235,7 @@ export default function CharacterPage() {
         </p>
 
         <section className="grid grid-cols-4 gap-3">
-          <Stat label="reincarnations" value={data.totalCampaigns} />
+          <Stat label="lives" value={data.totalCampaigns} />
           <Stat
             label="won"
             value={data.campaignsByStatus.completed ?? 0}
@@ -681,9 +683,15 @@ export default function CharacterPage() {
             <Stat label="harmed" value={data.npcs.timesHarmed} />
             <Stat
               label="kindness ratio"
-              value={`${helpedRatio.toFixed(0)}%`}
+              value={
+                helpedRatio === null ? "—" : `${helpedRatio.toFixed(0)}%`
+              }
               accent={
-                helpedRatio >= 50 ? "text-emerald-400" : "text-red-400"
+                helpedRatio === null
+                  ? "text-stone-500"
+                  : helpedRatio >= 50
+                    ? "text-emerald-400"
+                    : "text-red-400"
               }
             />
           </div>

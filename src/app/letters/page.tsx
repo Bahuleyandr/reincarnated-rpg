@@ -129,6 +129,15 @@ export default function LettersPage() {
           </Link>
         </header>
 
+        <p className="text-xs text-stone-500 leading-relaxed">
+          slow-mail to other players. address by username; subject and
+          body are arbitrary text. pick a voice — the world&apos;s
+          tone-checker may rewrite an angry letter into a calmer
+          version, depending on your last form&apos;s mood. there is no
+          delete: a sent letter sits in the recipient&apos;s inbox until
+          they read it.
+        </p>
+
         <nav className="flex gap-1 border-b border-stone-800">
           <button
             type="button"

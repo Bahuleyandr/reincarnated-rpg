@@ -35,6 +35,41 @@ const STATUS_COLOR: Record<string, string> = {
   left: "text-stone-500",
 };
 
+/** Module-level in-flight cache so simultaneous mounts (e.g. React
+ *  Strict Mode's dev-time double-invoke, or any parent re-render
+ *  that re-creates the component) coalesce into a single network
+ *  request. Resolves to the same payload for both callers. */
+let inFlight: Promise<{
+  companions: Companion[];
+  summonable: Summonable[];
+} | null> | null = null;
+
+async function fetchCompanions(): Promise<{
+  companions: Companion[];
+  summonable: Summonable[];
+} | null> {
+  if (inFlight) return inFlight;
+  inFlight = (async () => {
+    try {
+      const r = await fetch("/api/play/companions");
+      if (!r.ok) return null;
+      return (await r.json()) as {
+        companions: Companion[];
+        summonable: Summonable[];
+      };
+    } catch {
+      return null;
+    } finally {
+      // Drop the in-flight handle once the request settles so
+      // subsequent polls (8s later) hit the network again.
+      setTimeout(() => {
+        inFlight = null;
+      }, 0);
+    }
+  })();
+  return inFlight;
+}
+
 export function InRunCompanions() {
   const [rows, setRows] = useState<Companion[]>([]);
   const [summonable, setSummonable] = useState<Summonable[]>([]);
@@ -43,20 +78,12 @@ export function InRunCompanions() {
   const [msg, setMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    try {
-      const r = await fetch("/api/play/companions");
-      if (!r.ok) return;
-      const d = (await r.json()) as {
-        companions: Companion[];
-        summonable: Summonable[];
-      };
+    const d = await fetchCompanions();
+    if (d) {
       setRows(d.companions);
       setSummonable(d.summonable ?? []);
-    } catch {
-      /* ignore */
-    } finally {
-      setLoaded(true);
     }
+    setLoaded(true);
   }, []);
 
   useEffect(() => {

@@ -253,7 +253,7 @@ export default function MarketplacePage() {
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 placeholder="min price"
-                className="w-20 bg-stone-900 border border-stone-700 px-2 py-1 rounded text-stone-200"
+                className="w-28 bg-stone-900 border border-stone-700 px-2 py-1 rounded text-stone-200"
               />
               <select
                 value={filterCity}

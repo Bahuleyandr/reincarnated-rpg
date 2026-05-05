@@ -16,9 +16,13 @@ export interface TranscriptEntry {
 
 interface TranscriptProps {
   entries: TranscriptEntry[];
+  /** Pre-turn hint shown when the transcript is empty. Accepts any
+   *  React node so the play page can render a form + location
+   *  summary instead of the placeholder. */
+  emptyHint?: React.ReactNode;
 }
 
-export function Transcript({ entries }: TranscriptProps) {
+export function Transcript({ entries, emptyHint }: TranscriptProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,7 +38,9 @@ export function Transcript({ entries }: TranscriptProps) {
       data-testid="transcript"
     >
       {entries.length === 0 ? (
-        <p className="text-stone-600 italic">awaiting first impression…</p>
+        emptyHint ?? (
+          <p className="text-stone-600 italic">awaiting first impression…</p>
+        )
       ) : (
         entries.map((e, i) => (
           <div key={i} className="space-y-1">

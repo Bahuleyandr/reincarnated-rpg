@@ -73,35 +73,39 @@ export default function LeaderboardPage() {
           </p>
         </section>
 
-        <div className="flex items-center gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
           <label className="text-stone-400">window:</label>
-          {[7, 30, 90].map((d) => (
-            <button
-              key={d}
-              onClick={() => setDays(d)}
-              className={`px-3 py-1 border ${
-                days === d
-                  ? "border-stone-300 text-stone-100"
-                  : "border-stone-800 text-stone-500 hover:border-stone-600"
-              }`}
-            >
-              {d}d
-            </button>
-          ))}
-          <span className="ml-4 text-stone-400">call type:</span>
-          {["narrator", "classifier", "tone_judge"].map((ct) => (
-            <button
-              key={ct}
-              onClick={() => setCallType(ct)}
-              className={`px-3 py-1 border ${
-                callType === ct
-                  ? "border-stone-300 text-stone-100"
-                  : "border-stone-800 text-stone-500 hover:border-stone-600"
-              }`}
-            >
-              {ct}
-            </button>
-          ))}
+          <div className="flex gap-2 flex-wrap">
+            {[7, 30, 90].map((d) => (
+              <button
+                key={d}
+                onClick={() => setDays(d)}
+                className={`px-3 py-1 border ${
+                  days === d
+                    ? "border-stone-300 text-stone-100"
+                    : "border-stone-800 text-stone-500 hover:border-stone-600"
+                }`}
+              >
+                {d}d
+              </button>
+            ))}
+          </div>
+          <span className="text-stone-400 sm:ml-4">call type:</span>
+          <div className="flex gap-2 flex-wrap">
+            {["narrator", "classifier", "tone_judge"].map((ct) => (
+              <button
+                key={ct}
+                onClick={() => setCallType(ct)}
+                className={`px-3 py-1 border ${
+                  callType === ct
+                    ? "border-stone-300 text-stone-100"
+                    : "border-stone-800 text-stone-500 hover:border-stone-600"
+                }`}
+              >
+                {ct}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (

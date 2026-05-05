@@ -184,8 +184,9 @@ export default function DailyPage() {
             </span>
           </div>
           <p className="text-[10px] text-stone-600">
-            seed-hash {data.challenge.seedHash} (everyone gets the same
-            dice; the actual seed is hidden so prose isn&apos;t a spoiler)
+            seed-hash {data.challenge.seedHash}
+            {" — "}everyone gets the same dice; the actual seed is hidden
+            so prose isn&apos;t a spoiler.
           </p>
 
           {!hasAccount && (
