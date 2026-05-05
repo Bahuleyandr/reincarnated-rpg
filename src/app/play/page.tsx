@@ -13,6 +13,7 @@ import { InputBox } from "@/components/InputBox";
 import { InventoryPanel } from "@/components/InventoryPanel";
 import { NearbyBox } from "@/components/NearbyBox";
 import { QuestLog } from "@/components/QuestLog";
+import { NarrationVoice } from "@/components/NarrationVoice";
 import { StateDiffToast } from "@/components/StateDiffToast";
 import { StatusSidebar } from "@/components/StatusSidebar";
 import { InRunCompanions } from "@/components/InRunCompanions";
@@ -382,7 +383,13 @@ export default function Play() {
   const ended = projection && projection.status !== "active";
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-200 font-mono grid md:grid-cols-[260px_1fr_260px] grid-rows-[1fr] md:min-h-0">
+    <main
+      // P7.A — per-form theming. The form id flows through to a
+      // CSS attribute selector in globals.css so the goal ribbon,
+      // meta-arc strip, and dice display can read --form-accent.
+      data-form={projection?.form.id ?? null}
+      className="min-h-screen bg-stone-950 text-stone-200 font-mono grid md:grid-cols-[260px_1fr_260px] grid-rows-[1fr] md:min-h-0"
+    >
       <aside
         className="border-r border-stone-800 flex flex-col overflow-y-auto md:order-1 order-2"
         data-testid="left-sidebar"
@@ -466,6 +473,18 @@ export default function Play() {
             </span>
           </Link>
         )}
+        {/* P7.B — opt-in narration voice. Toggle persists in
+         *  localStorage; the component is a no-op when the browser
+         *  doesn't expose SpeechSynthesis. */}
+        <div className="px-6 py-1 border-b border-stone-800 bg-stone-900/30 flex justify-end">
+          <NarrationVoice
+            latestNarration={(() => {
+              const last = entries[entries.length - 1];
+              return last?.kind === "narration" ? last.text : null;
+            })()}
+            resetKey={projection?.upToSeq ?? 0}
+          />
+        </div>
         {arcTagline && entries.length === 0 && (
           <div className="px-6 py-3 border-b border-stone-800 bg-stone-900/40">
             <div className="text-[10px] uppercase tracking-widest text-stone-600 mb-1">
@@ -475,7 +494,16 @@ export default function Play() {
           </div>
         )}
         {firstGoal && projection && projection.status === "active" && (
-          <div className="px-6 py-2.5 border-b border-stone-800 bg-stone-900/30 text-xs flex items-baseline gap-3">
+          <div
+            className={`px-6 py-2.5 border-b border-stone-800 text-xs flex items-baseline gap-3 ${
+              firstGoal.completed ? "animate-goal-pulse" : ""
+            }`}
+            style={{
+              background: firstGoal.completed
+                ? "var(--form-accent-bg)"
+                : "rgba(28, 25, 23, 0.3)",
+            }}
+          >
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2">
                 <span className="text-[10px] uppercase tracking-widest text-stone-600">
@@ -485,7 +513,10 @@ export default function Play() {
                   {firstGoal.label}
                 </span>
                 {firstGoal.completed ? (
-                  <span className="text-emerald-400 text-[10px]">
+                  <span
+                    className="text-[10px]"
+                    style={{ color: "var(--form-accent)" }}
+                  >
                     ✓ complete
                   </span>
                 ) : (
@@ -500,12 +531,11 @@ export default function Play() {
             </div>
             <div className="w-24 h-1 bg-stone-800 rounded overflow-hidden shrink-0">
               <div
-                className={`h-full transition-all ${
-                  firstGoal.completed
-                    ? "bg-emerald-500"
-                    : "bg-amber-500/70"
-                }`}
+                className="h-full transition-all"
                 style={{
+                  background: firstGoal.completed
+                    ? "var(--form-accent)"
+                    : "var(--form-accent-soft)",
                   width: `${
                     Math.min(
                       100,
