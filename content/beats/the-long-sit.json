@@ -1,0 +1,145 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Five-beat arc for the-still-one in Quietmile. The Still One sits at the silence-gate. A visitor reaches the threshold with a name they cannot say (vow of silence). They want the Still One to remember it for them — to take the name into themselves and keep it. The arc tests whether the Still One gives the memory or withholds it; either choice has weight, neither is wrong. Win: presence>=10 AND remembrance>=10 at turn>=8 (you sat through it; the choice held). Lose: remembrance<=0 (the memory was given carelessly, or taken by force)."
+  },
+
+  "id": "the-long-sit",
+  "displayName": "The Long Sit",
+  "questId": "the-long-sit",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-threshold",
+      "displayName": "The Threshold",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "A visitor reaches the threshold of the place where you sit. They do not knock; you have not arranged for knocking. The vow of silence makes their approach a slow choreography of small gestures — a hand against the lintel, a bow that is not quite a bow, an in-breath held a beat longer than necessary. They have come a long way for whatever they are about to ask.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "abide", "label": "sit", "description": "hold your place; let the visitor reach you on their own time", "advancesArc": true },
+        { "verb": "regard", "label": "regard them", "description": "look upon them without standing; the looking is its own acknowledgement", "advancesArc": true },
+        { "verb": "withhold", "label": "be unseen for now", "description": "your presence draws inward; the visitor does not yet know you are here", "advancesArc": "branch:obscured" }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-long-sit",
+          "objective": "receive-the-asking",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-asking",
+      "displayName": "The Asking",
+      "trigger": {
+        "any": [
+          { "turn": ">=2" },
+          { "form.state.visitor_acknowledged": ">=1" }
+        ]
+      },
+      "narrative": "The visitor lifts a hand — palm up, fingers loose — and lets a single pressed flower fall into the dust between you. The flower has a name on its stem in pencil so faint you must regard it to read it. They are asking you to remember the name. They cannot say it themselves; the vow holds; but the asking is clear, and the asking is heavy.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "regard", "label": "regard the flower", "description": "let the name on its stem write itself into your sight", "advancesArc": true },
+        { "verb": "permit", "label": "permit the asking", "description": "allow the petition to take its full shape; do not yet answer", "advancesArc": true },
+        { "verb": "abide", "label": "sit with the asking", "description": "the silence between you gathers weight; let it gather", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-visitor",
+          "data": {
+            "name": "the visitor",
+            "relationship": 1,
+            "templateId": "the-visitor"
+          }
+        },
+        {
+          "kind": "form_state.changed",
+          "field": "name_offered",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "03-the-choice",
+      "displayName": "The Choice",
+      "trigger": {
+        "all": [
+          { "form.state.name_offered": ">=1" },
+          { "turn": ">=4" }
+        ]
+      },
+      "narrative": "The asking has been made; the asking will not be unmade. The choice is yours. You can take the name into yourself and hold it as long as you sit — that is what the visitor came for, and that is the cost they have already accepted to pay you. Or you can withhold; the name stays on the stem of the flower in the dust, and the visitor must carry it back the way they brought it. Neither answer is wrong. Both have weight.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "remember", "label": "remember the name", "description": "take it into your remembrance; the visitor's burden becomes yours, by your consent", "advancesArc": "branch:given" },
+        { "verb": "withhold", "label": "withhold remembrance", "description": "the name stays on the flower; the visitor carries it home; you have not betrayed them by refusing", "advancesArc": "branch:withheld" },
+        { "verb": "permit", "label": "permit them to ask again", "description": "the choice is unmade for now; the asking can settle; the answer can wait one more turn of sitting", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-long-sit",
+          "objective": "receive-the-asking",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "04-the-poppy-field",
+      "displayName": "The Field Joins",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-poppy-field" }] },
+          { "turn": ">=6" }
+        ]
+      },
+      "narrative": "The field's silence is older than yours and joins yours without comment. White poppies in slow steady bloom; a cutter passes between rows with a silk pouch, takes three petals, moves on. Whatever you have decided about the visitor's name, the field would not change your decision. It only confirms that you sat with it.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "abide", "label": "abide with the field", "description": "the silence of the rows joins yours; the sitting deepens", "advancesArc": true },
+        { "verb": "regard", "label": "regard the cutter", "description": "they will not regard you back; the gesture is enough", "advancesArc": true },
+        { "verb": "withhold", "label": "let your choice settle", "description": "whatever you decided in the previous beat firms; you do not unmake it", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "silence",
+          "detail": "the field's vow joins the still one's; both deepen"
+        }
+      ]
+    },
+    {
+      "id": "05-still-held",
+      "displayName": "Still Held",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.presence": ">=10" },
+          { "form.vitals.remembrance": ">=10" }
+        ]
+      },
+      "narrative": "The visitor stands. They bow — fully this time, with the slowness the vow allows. The pressed flower in the dust has either become part of you or has not, and the visitor knows which without needing to be told. They walk back toward the gate the way they came. Your sitting holds. The threshold is yours again, and so is the silence, and so are the day's small unhurried hours.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "abide", "label": "complete the sitting", "description": "the visitor leaves; the sitting continues; the day continues; you do", "advancesArc": true },
+        { "verb": "regard", "label": "regard their leaving", "description": "look upon their walk back to the gate without standing yourself", "advancesArc": true },
+        { "verb": "withhold", "label": "keep what was kept", "description": "whatever you decided about the name, the keeping of yourself is intact; the silence holds", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-long-sit",
+          "objective": "hold-the-sit",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}

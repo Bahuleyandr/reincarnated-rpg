@@ -229,6 +229,19 @@ const ROUTES: ArcRoute[] = [
     // tolls is reachable from there in one move.
     startingRoomId: "village-edge",
   },
+  // The Still One sits at the silence-gate of Quietmile. A
+  // visitor reaches the threshold with a name they cannot say
+  // (vow of silence). The arc is whether to take the name into
+  // remembrance or to withhold it. Both are valid. The sitting
+  // is the test, not the choice.
+  {
+    arcId: "the-long-sit",
+    formId: "the-still-one",
+    locationId: "quietmile",
+    tagline:
+      "A visitor reaches the threshold of the place where you sit. They have brought a name they cannot say. Hold the silence; choose with weight.",
+    startingRoomId: "the-silence-gate",
+  },
 ];
 
 export interface PickedArc {
