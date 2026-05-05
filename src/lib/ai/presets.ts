@@ -76,11 +76,11 @@ export const PRESETS: LlmPreset[] = [
     id: "minimax",
     label: "MiniMax",
     kind: "openai-compatible",
-    baseUrl: "https://api.minimaxi.chat/v1",
+    baseUrl: "https://api.minimax.io/v1",
     baseUrlEditable: true,
-    defaultModel: "MiniMax-Text-01",
+    defaultModel: "MiniMax-M2.7-highspeed",
     blurb:
-      "MiniMax's OpenAI-compatible endpoint. Long context, strong Chinese + English.",
+      "MiniMax M2.7 reasoning model — ~100 tps, strong prose. <think>…</think> tags are stripped automatically.",
     needsApiKey: true,
   },
   {

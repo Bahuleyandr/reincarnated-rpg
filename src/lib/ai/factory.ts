@@ -122,12 +122,21 @@ export interface ResolvedProvider {
 }
 
 function envDefault(db?: Db): ResolvedProvider {
+  // When AI_PROVIDER=openai-compatible the Anthropic-default model
+  // ("claude-sonnet-4-6" baked into RemoteNarrator) won't exist on
+  // the target endpoint (MiniMax, OpenAI, Ollama, ...). Thread
+  // OPENAI_MODEL through here so the narrator picks it up. For the
+  // anthropic path we keep modelOverride=null so RemoteNarrator's
+  // default model ID still wins.
+  const target = (process.env.AI_PROVIDER ?? "anthropic").toLowerCase();
+  const envModel =
+    target === "openai-compatible" ? process.env.OPENAI_MODEL ?? null : null;
   return {
     provider: db
       ? getProviderWithFailover({ db })
       : getProvider(),
     source: "env-default",
-    modelOverride: null,
+    modelOverride: envModel,
     classifierModelOverride: null,
     toneModelOverride: null,
     useLlmClassifier: false,
