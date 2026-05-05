@@ -19,6 +19,10 @@ import { StatusSidebar } from "@/components/StatusSidebar";
 import { InRunCompanions } from "@/components/InRunCompanions";
 import { Transcript, type TranscriptEntry } from "@/components/Transcript";
 import { TutorialHint } from "@/components/TutorialHint";
+import {
+  VerbSuggestions,
+  type VerbSuggestionData,
+} from "@/components/VerbSuggestions";
 import { WhereAmI } from "@/components/WhereAmI";
 import {
   diffProjection,
@@ -60,6 +64,11 @@ export default function Play() {
     delta: number;
     prose: string;
   } | null>(null);
+  // P10 — verb-button presets + escape hatch state.
+  const [verbSuggestions, setVerbSuggestions] = useState<VerbSuggestionData[]>(
+    [],
+  );
+  const [freeTextOpen, setFreeTextOpen] = useState(false);
   const [metaArc, setMetaArc] = useState<{
     phaseLabel: string;
     phase: string;
@@ -104,6 +113,7 @@ export default function Play() {
         setFormDisplayName(data.formDisplayName ?? null);
         setFirstGoal(data.firstGoal ?? null);
         setWyrmRunning(data.wyrmRunning ?? null);
+        setVerbSuggestions(data.verbSuggestions ?? []);
         setEntries(
           (data.narrations as string[]).map((text) => ({
             kind: "narration" as const,
@@ -181,7 +191,7 @@ export default function Play() {
     };
   }, [router]);
 
-  async function handleInput(text: string) {
+  async function handleInput(text: string, opts?: { presetVerb?: string }) {
     setBusy(true);
     setError(null);
     setEntries((prev) => [...prev, { kind: "input", text }]);
@@ -203,6 +213,7 @@ export default function Play() {
           narratorFallback?: boolean;
           narratorFallbackReason?: string;
           wyrmRunning?: { delta: number; prose: string };
+          verbSuggestions?: VerbSuggestionData[];
         }
       | null = null;
     let errorMsg: string | null = null;
@@ -214,7 +225,13 @@ export default function Play() {
           "content-type": "application/json",
           accept: "text/event-stream",
         },
-        body: JSON.stringify({ input: text }),
+        // P10: when a preset button was clicked, pass presetVerb so
+        // the orchestrator forces template narrator (cheap, on-form
+        // phrase bank). Free-text submissions omit it and follow
+        // env-default narrator (template or remote).
+        body: JSON.stringify(
+          opts?.presetVerb ? { input: text, presetVerb: opts.presetVerb } : { input: text },
+        ),
       });
       if (!res.ok || !res.body) {
         // Energy 429 carries an `energy` view we surface to the bar.
@@ -287,6 +304,7 @@ export default function Play() {
                       narratorFallback?: boolean;
                       narratorFallbackReason?: string;
                       wyrmRunning?: { delta: number; prose: string };
+                      verbSuggestions?: VerbSuggestionData[];
                     }
                   | { type: "error"; error: string };
                 if (ev.type === "text") {
@@ -309,6 +327,7 @@ export default function Play() {
                     narratorFallback: ev.narratorFallback,
                     narratorFallbackReason: ev.narratorFallbackReason,
                     wyrmRunning: ev.wyrmRunning,
+                    verbSuggestions: ev.verbSuggestions,
                   };
                 } else if (ev.type === "error") {
                   errorMsg = ev.error;
@@ -337,6 +356,7 @@ export default function Play() {
       setStateDiff(diffProjection(projection, final.projection));
       setProjection(final.projection);
       if (final.wyrmRunning) setWyrmRunning(final.wyrmRunning);
+      if (final.verbSuggestions) setVerbSuggestions(final.verbSuggestions);
       // Replace the streamed entry with the canonical final text +
       // attach the roll. The narration text from `final` may differ
       // slightly from the streamed accumulation (e.g. trimming) so
@@ -633,12 +653,33 @@ export default function Play() {
                 onSkip={() => setIsTutorial(false)}
               />
             )}
-            <InputBox
-              onSubmit={handleInput}
+            <VerbSuggestions
+              suggestions={verbSuggestions}
+              freeTextOpen={freeTextOpen}
               disabled={busy}
-              settling={settling}
-              draft={tutorialDraft}
+              onPickPreset={(verb) => {
+                // Build a human-readable input from the preset's
+                // label (so the transcript shows "> shape a new
+                // room" rather than "> shape_room"). The orchestrator
+                // uses the explicit presetVerb for routing/classification.
+                const label =
+                  verbSuggestions.find((s) => s.verb === verb)?.label ?? verb;
+                setFreeTextOpen(false);
+                void handleInput(label, { presetVerb: verb });
+              }}
+              onOpenFreeText={() => setFreeTextOpen((v) => !v)}
             />
+            {freeTextOpen && (
+              <InputBox
+                onSubmit={(text) => {
+                  setFreeTextOpen(false);
+                  void handleInput(text);
+                }}
+                disabled={busy}
+                settling={settling}
+                draft={tutorialDraft}
+              />
+            )}
           </>
         )}
       </section>

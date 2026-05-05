@@ -77,6 +77,13 @@ export async function POST(req: NextRequest) {
       headers: { "content-type": "text/event-stream" },
     });
   }
+  // P10: when a preset verb is passed, the orchestrator forces
+  // template narrator (cheap, on-form). Free-text inputs omit it
+  // and follow env-default narrator (template OR remote/MiniMax).
+  const presetVerb =
+    typeof (body as { presetVerb?: unknown })?.presetVerb === "string"
+      ? (body as { presetVerb: string }).presetVerb
+      : null;
 
   // Moderation gate: must run BEFORE trySpend so injection attempts
   // don't drain energy. See /api/turn/route.ts for the full rationale.
@@ -284,20 +291,25 @@ export async function POST(req: NextRequest) {
         /* race-agnostic */
       }
 
-      const narrator = makeNarrator({
-        form,
-        location,
-        provider: resolved.provider,
-        model: resolved.modelOverride ?? undefined,
-        db,
-        sessionId,
-        userId: verified.userId ?? null,
-        presetId: presetForTelemetry,
-        metaArcFlavor,
-        moodPreset: resolvedMood,
-        chapterFragment,
-        regionFlavor,
-      });
+      // P10 — when the player picked a preset button, force
+      // template narrator. Otherwise follow env-default + the
+      // user's preset-pinned model (if logged in).
+      const narrator = presetVerb
+        ? new TemplateNarrator({ form, location })
+        : makeNarrator({
+            form,
+            location,
+            provider: resolved.provider,
+            model: resolved.modelOverride ?? undefined,
+            db,
+            sessionId,
+            userId: verified.userId ?? null,
+            presetId: presetForTelemetry,
+            metaArcFlavor,
+            moodPreset: resolvedMood,
+            chapterFragment,
+            regionFlavor,
+          });
       const fallbackNarrator = new TemplateNarrator({ form, location });
 
       const { composeStarterFormState } = await import(
@@ -406,6 +418,25 @@ export async function POST(req: NextRequest) {
       // refresh its pulse without a separate /api/state fetch.
       const { previewContribution } = await import("@/lib/meta/long-wyrm");
       const wyrmRunning = previewContribution(events);
+      // P10: recompute verb-button suggestions for the next turn,
+      // based on the post-turn projection. The play page swaps
+      // its preset buttons whenever this lands.
+      const { suggestVerbs } = await import("@/lib/game/verb-suggestions");
+      const firedBeatIds = new Set<string>(
+        events
+          .filter((e) => e.kind === "quest.objectiveUpdated")
+          .map(
+            (e) =>
+              (e as { kind: "quest.objectiveUpdated"; objective: string })
+                .objective,
+          ),
+      );
+      const verbSuggestions = suggestVerbs({
+        form,
+        projection: result.projection,
+        beatPack: beatPack ?? null,
+        firedBeatIds,
+      });
 
       send({
         type: "done",
@@ -415,6 +446,7 @@ export async function POST(req: NextRequest) {
         toolEvents: result.toolEvents,
         beatsFired: result.beatsFired,
         wyrmRunning: { delta: wyrmRunning.delta, prose: wyrmRunning.prose },
+        verbSuggestions,
         ...(result.narratorFallback
           ? {
               narratorFallback: true,
