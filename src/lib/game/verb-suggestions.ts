@@ -21,7 +21,7 @@
  * /api/turn/stream done payload so the play page never needs a
  * separate fetch.
  */
-import type { Beat, BeatPack } from "./beats";
+import type { Beat, BeatPack, SuggestedVerb, SuggestedVerbsField } from "./beats";
 import { evaluate as evaluateTrigger } from "./beats";
 import type { FormTemplate, Projection } from "./types";
 
@@ -177,6 +177,29 @@ function pickActiveBeat(
   return null;
 }
 
+/**
+ * Resolves a beat's `suggestedVerbs` field into a flat list for the
+ * current form. Two shapes supported:
+ *
+ *   - Flat `SuggestedVerb[]` → used as-is (form-specific arc).
+ *   - Per-form record (`{ formId: [...], default?: [...] }`) →
+ *     looks up `formId`, then `default`, then null.
+ *
+ * Returns null when nothing is available for this form (caller
+ * falls through to the form's iconicVerbs).
+ */
+function pickFormSuggestions(
+  field: SuggestedVerbsField,
+  formId: string,
+): SuggestedVerb[] | null {
+  if (Array.isArray(field)) return field.length > 0 ? field : null;
+  const byForm = field[formId];
+  if (byForm && byForm.length > 0) return byForm;
+  const fallback = field.default;
+  if (fallback && fallback.length > 0) return fallback;
+  return null;
+}
+
 interface SuggestArgs {
   form: FormTemplate;
   projection: Projection;
@@ -199,18 +222,42 @@ export function suggestVerbs(args: SuggestArgs): VerbSuggestion[] {
     args.firedBeatIds ?? new Set(),
   );
 
-  // Source 1 — beat's suggestedVerbs.
-  if (beat?.suggestedVerbs && beat.suggestedVerbs.length > 0) {
-    return beat.suggestedVerbs.slice(0, limit).map((s) => ({
-      verb: s.verb,
-      label: s.label,
-      description: s.description,
-      source: "beat" as const,
-      advancesArc: s.advancesArc,
-    }));
+  // Source 1 — beat's suggestedVerbs (flat array OR per-form record).
+  if (beat?.suggestedVerbs) {
+    const list = pickFormSuggestions(beat.suggestedVerbs, args.form.id);
+    if (list) {
+      return list.slice(0, limit).map((s) => ({
+        verb: s.verb,
+        label: s.label,
+        description: s.description,
+        source: "beat" as const,
+        advancesArc: s.advancesArc,
+      }));
+    }
   }
 
-  // Source 2 — form's iconicVerbs.
+  // Source 2a — form's iconicVerbsByCondition (state-aware).
+  // Evaluated in declaration order; first matching condition wins.
+  // Empty verbs[] is treated as "no match" so authors can use it
+  // as a placeholder.
+  if (args.form.iconicVerbsByCondition) {
+    for (const cond of args.form.iconicVerbsByCondition) {
+      if (cond.verbs.length === 0) continue;
+      if (evaluateTrigger(cond.when, args.projection)) {
+        return cond.verbs.slice(0, limit).map((verb) => {
+          const desc = describeVerb(verb);
+          return {
+            verb,
+            label: desc.label,
+            description: desc.description,
+            source: "iconic" as const,
+          };
+        });
+      }
+    }
+  }
+
+  // Source 2b — form's static iconicVerbs.
   if (args.form.iconicVerbs && args.form.iconicVerbs.length > 0) {
     return args.form.iconicVerbs.slice(0, limit).map((verb) => {
       const desc = describeVerb(verb);

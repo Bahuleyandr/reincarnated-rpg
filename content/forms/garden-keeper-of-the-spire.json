@@ -20,6 +20,18 @@
   },
   "verbs": ["tend", "prune", "wait", "sow", "wyrm-furrow"],
   "iconicVerbs": ["tend", "prune", "sow"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "tired-soil",
+      "when": { "form.vitals.soil": "<=7" },
+      "verbs": ["tend", "sow", "prune"]
+    },
+    {
+      "label": "early-season",
+      "when": { "form.vitals.season": "<=7" },
+      "verbs": ["wait", "tend", "prune"]
+    }
+  ],
   "verbMappings": {
     "tend": { "tools": ["change_form_state"], "rollStat": "patience" },
     "prune": { "tools": ["change_form_state"], "rollStat": "awareness" },

@@ -40,6 +40,18 @@
   ],
 
   "iconicVerbs": ["fall_open", "spark_marginalia", "decode_passage"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "wounded",
+      "when": { "form.vitals.pages_intact": "<=4" },
+      "verbs": ["rewrite_self", "snap_shut", "flutter_pages"]
+    },
+    {
+      "label": "ink-flush",
+      "when": { "form.vitals.ink": ">=8" },
+      "verbs": ["bleed_ink", "spark_marginalia", "decode_passage"]
+    }
+  ],
 
   "verbMappings": {
     "fall_open":          { "tools": ["change_form_state"],                    "rollStat": "binding" },

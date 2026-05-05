@@ -122,6 +122,11 @@
       },
       "narrative": "The chemistry of the air turns: distant smoke, growing things, pollen. The night is ending.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "ooze", "label": "ooze toward the new chemistry", "description": "let your forward edge thin and pour into the day's air", "advancesArc": true },
+        { "verb": "absorb", "label": "absorb the morning", "description": "fold the new signals — pollen, smoke, growing things — into your essence", "advancesArc": true },
+        { "verb": "sense_tremor", "label": "widen into the day", "description": "let the surface write itself across your awareness; the night is over", "advancesArc": true }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",

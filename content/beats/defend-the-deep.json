@@ -114,6 +114,11 @@
       },
       "narrative": "The adventurer's outcome resolves — bound, fled, or worse — and the spire's stone settles around your crystal as something it is going to keep. You have a dungeon now.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "deepen_chamber", "label": "deepen the spire", "description": "let the dungeon settle outward into stone that is now yours", "advancesArc": true },
+        { "verb": "bind_minion", "label": "bind the adventurer's shape", "description": "what they were becomes part of the dungeon's lore", "advancesArc": "branch:embodied" },
+        { "verb": "wyrm_signal", "label": "signal the Wyrm", "description": "stake your claim to the older predator above", "advancesArc": "branch:claim" }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",

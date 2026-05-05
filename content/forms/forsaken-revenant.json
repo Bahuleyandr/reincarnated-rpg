@@ -26,6 +26,18 @@
     "endure"
   ],
   "iconicVerbs": ["refuse", "watch", "endure"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "weary",
+      "when": { "form.vitals.vigil": "<=7" },
+      "verbs": ["endure", "watch", "return"]
+    },
+    {
+      "label": "spent",
+      "when": { "form.vitals.refusal": "<=7" },
+      "verbs": ["refuse", "leave", "endure"]
+    }
+  ],
   "verbMappings": {
     "refuse": { "tools": ["change_form_state"], "rollStat": "will" },
     "watch": { "tools": ["sense"], "rollStat": "awareness" },

@@ -54,6 +54,28 @@ export interface SuggestedVerb {
   advancesArc?: boolean | string;
 }
 
+/**
+ * Phase 11+ — suggestedVerbs can be either:
+ *
+ *   1. A flat array — applies to whatever form is playing this
+ *      beat. Used for form-specific arcs (defend-the-deep is for
+ *      dungeon-core; survive-the-night is for slime; etc.).
+ *
+ *   2. A per-form record — keyed by `form.id`, with an optional
+ *      `default` fallback. Used for form-agnostic arcs like
+ *      `read-the-room` that work across slime/book/egg/core/
+ *      generic-creature; the buttons need to dispatch on the
+ *      player's current form because those forms have almost no
+ *      verbs in common.
+ *
+ * The runtime resolver lives in `verb-suggestions.ts` →
+ * `pickFormSuggestions()`. Authoring convention: prefer the flat
+ * array unless the beat is form-agnostic.
+ */
+export type SuggestedVerbsField =
+  | SuggestedVerb[]
+  | Record<string, SuggestedVerb[]>;
+
 export interface Beat {
   id: string;
   displayName?: string;
@@ -65,7 +87,7 @@ export interface Beat {
    *  player to choose from when this beat is active. Optional
    *  per beat; when absent, the play page falls back to the
    *  form's iconicVerbs. */
-  suggestedVerbs?: SuggestedVerb[];
+  suggestedVerbs?: SuggestedVerbsField;
 }
 
 export interface Trigger {
