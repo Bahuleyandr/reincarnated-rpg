@@ -402,6 +402,10 @@ export async function POST(req: NextRequest) {
       const events = (await readLog(db, sessionId)).map(rowToEvent);
       const lastRoll = [...events].reverse().find((e) => e.kind === "roll.resolved");
       const roll = lastRoll && lastRoll.kind === "roll.resolved" ? lastRoll.roll : null;
+      // P4: include the running wyrm tally so the play page can
+      // refresh its pulse without a separate /api/state fetch.
+      const { previewContribution } = await import("@/lib/meta/long-wyrm");
+      const wyrmRunning = previewContribution(events);
 
       send({
         type: "done",
@@ -410,6 +414,7 @@ export async function POST(req: NextRequest) {
         roll,
         toolEvents: result.toolEvents,
         beatsFired: result.beatsFired,
+        wyrmRunning: { delta: wyrmRunning.delta, prose: wyrmRunning.prose },
         ...(result.narratorFallback
           ? {
               narratorFallback: true,

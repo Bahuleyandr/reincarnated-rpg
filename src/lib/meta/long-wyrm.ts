@@ -138,6 +138,62 @@ export interface ContributionPlan {
   prose: string;
 }
 
+/**
+ * Same scoring as planContribution but for a still-running session.
+ *
+ * Returns the *projected* delta + reasons based on the events seen
+ * so far. The play page uses this to render a per-turn "you have
+ * fed/starved the Long Wyrm by N this run" pulse, so the wyrm in
+ * the world banner stops being decorative.
+ *
+ * The outcome bonus (death/cap/win) is intentionally excluded —
+ * those values only fire at session.ended and would mislead the
+ * player about their running tally. previewContribution captures
+ * just the per-action signals (absorbs, heals, wyrm-marked,
+ * wyrm-attuned).
+ */
+export function previewContribution(events: Event[]): ContributionPlan {
+  let delta = 0;
+  const reasons: string[] = [];
+  let absorbCount = 0;
+  let healCount = 0;
+  let wyrmMarkedHits = 0;
+  let wyrmAttunedHits = 0;
+  for (const e of events) {
+    if (e.kind === "absorbed") absorbCount += 1;
+    if (e.kind === "healed") healCount += 1;
+    if (e.kind === "form_state.changed" && e.field === "wyrm_marked" && e.delta > 0)
+      wyrmMarkedHits += 1;
+    if (e.kind === "form_state.changed" && e.field === "wyrm_attuned" && e.delta > 0)
+      wyrmAttunedHits += 1;
+  }
+  if (absorbCount >= 3) {
+    delta += 1;
+    reasons.push("absorb-heavy");
+  }
+  if (healCount >= 2) {
+    delta -= 1;
+    reasons.push("heal-heavy");
+  }
+  if (wyrmMarkedHits > 0) {
+    delta += wyrmMarkedHits;
+    reasons.push(`wyrm-marked:${wyrmMarkedHits}`);
+  }
+  if (wyrmAttunedHits > 0) {
+    delta -= wyrmAttunedHits;
+    reasons.push(`wyrm-attuned:${wyrmAttunedHits}`);
+  }
+  // Reasons even at delta 0 — the UI uses the empty array to render
+  // "neutral so far" copy.
+  const prose =
+    delta > 0
+      ? `feeding so far: ${reasons.join(", ")}.`
+      : delta < 0
+        ? `starving so far: ${reasons.join(", ")}.`
+        : "no contribution yet.";
+  return { delta, reason: reasons.join("|"), prose };
+}
+
 export function planContribution(events: Event[]): ContributionPlan | null {
   const ended = events.some((e) => e.kind === "session.ended");
   if (!ended) return null;
