@@ -150,6 +150,190 @@
     ]
   },
 
+  "phraseBank": {
+    "spawn_minion": {
+      "success": [
+        "The chamber's reserves lift, fold, and set down a small thing of moss and damp stone in the corridor.",
+        "Mana travels in a blue ribbon along the wall and a body steps free of it where there was no body before."
+      ],
+      "partial": [
+        "The minion takes shape, but a part of it stays in the wall, unfinished. It will move. It will move wrong.",
+        "Your weaving holds, mostly. The thing that walks away from the niche is yours, but the niche kept a piece of it."
+      ],
+      "miss": [
+        "The mana you spent went into the stone and stayed there. Nothing stepped out of the wall.",
+        "Your reserves draw down for nothing. The corridor swallows the effort and offers no body in return."
+      ]
+    },
+    "shape_room": {
+      "success": [
+        "The chamber widens by half a meter where you ask. The stone gives, slowly, the way old wood gives.",
+        "A wall thickens. A corridor lengthens. Adventurers who measured this floor will measure it differently."
+      ],
+      "partial": [
+        "The stone shifts, but a hairline seam appears where you did not want one. The chamber will remember.",
+        "You move the wall. The wall moves a little farther than you intended."
+      ],
+      "miss": [
+        "The stone refuses your shape. A thin crack forms instead, and the crack is not yours.",
+        "You push outward. The dungeon pushes back. Nothing has moved, except a little of your reserve."
+      ]
+    },
+    "lure": {
+      "success": [
+        "You set a small enticement at the corridor's mouth — a glint, a smell, a soft sound. The intruder shifts toward it.",
+        "The adventurer's lantern wavers. Their boots turn. They are coming the way you wanted."
+      ],
+      "partial": [
+        "The bait works, but the intruder takes it slowly, and they are reading the corridor as they come.",
+        "They turn toward you, but their hand has not left the hilt."
+      ],
+      "miss": [
+        "The bait is too clean. The intruder pauses at the threshold, frowns, and steps back.",
+        "Your enticement reads as a trap, and the corridor empties of footsteps."
+      ]
+    },
+    "sense_intruder": {
+      "success": [
+        "The dungeon's stone returns its survey. Two pairs of boots on the third stair. One leather, one nailed. The leather is hesitant.",
+        "You feel them as a pressure across the floors. Three breaths. Two heartbeats too fast. One dragging weight at the end."
+      ],
+      "partial": [
+        "You feel them, but the count is uncertain. Two, perhaps three. Their weights blur where the corridor narrows.",
+        "Footsteps register, but the rhythm doesn't tell you what you wanted to know."
+      ],
+      "miss": [
+        "The stone is silent in the wrong way. They are masking themselves, or you are tired.",
+        "Your awareness reaches and finds only the dungeon's own slow pulse coming back."
+      ]
+    },
+    "weave_illusion": {
+      "success": [
+        "You make the antechamber appear empty in a lived-in way. Dust on a shelf that has no shelf. The intruder turns back.",
+        "A false stairway forms in the false light. The adventurer climbs it. They climb it for some time before they realise."
+      ],
+      "partial": [
+        "Your illusion holds, but the dust falls through itself where you didn't watch the corner.",
+        "The weave is good enough for a glance and not for a second one."
+      ],
+      "miss": [
+        "Your illusion shimmers in the wrong light. The intruder narrows their eyes. They have seen the seam.",
+        "The false room flickers as it forms and the adventurer steps right through it."
+      ]
+    },
+    "drain_mana": {
+      "success": [
+        "You pull a thread of warmth from the intruder's chest. They shiver and assume the corridor is colder than it is.",
+        "A small portion of their breath, their heat, their will — you take it and add it to the chamber's reserves."
+      ],
+      "partial": [
+        "You take, but they feel it. They will move differently from now on.",
+        "The thread comes with a hook in it. You have what you wanted, and they have a reason to find you."
+      ],
+      "miss": [
+        "Your draw catches nothing. The intruder's warmth slips your reach.",
+        "You reach. They have no thread to give that you can pull, and the reaching costs."
+      ]
+    },
+    "bleed_integrity": {
+      "success": [
+        "You spend a little of yourself on purpose. A facet dims; the chamber's binding tightens.",
+        "You give up a sliver of integrity to keep something else intact, and the trade settles cleanly."
+      ],
+      "partial": [
+        "The trade goes through. The trade goes a little further than you intended.",
+        "You bleed, and what you bought with the bleeding is not quite the shape you wanted."
+      ],
+      "miss": [
+        "You spent the integrity and bought nothing. The chamber feels it.",
+        "A facet dims, and you are not sure what was supposed to brighten."
+      ]
+    },
+    "deepen_chamber": {
+      "success": [
+        "You push the chamber outward. The stone gives. There is more dungeon now than there was a moment ago.",
+        "A new pocket forms behind a wall that was solid. You feel its volume settle into your awareness."
+      ],
+      "partial": [
+        "The chamber deepens, but only along one axis. Adventurers will find it longer than expected; you will find it harder to defend.",
+        "You make the room bigger. The bigger room is not quite what you imagined."
+      ],
+      "miss": [
+        "The stone holds. Your effort travels through it and out, lost.",
+        "You push. Nothing gives. A vein of your mana finds an old fault and leaks through it."
+      ]
+    },
+    "siphon_intruder": {
+      "success": [
+        "A thin chill passes through the adventurer. They stop walking. They cannot say why.",
+        "You take a measured warmth from them; they feel it as the corridor turning slightly colder."
+      ],
+      "partial": [
+        "The siphon catches. The siphon also leaves a trace they will follow back to you.",
+        "You take. They notice. They keep walking, but their pace is different now."
+      ],
+      "miss": [
+        "Your reach passes through them. They feel nothing. You spent a little of the chamber for nothing.",
+        "The siphon misses; the warmth you wanted slips around your draw."
+      ]
+    },
+    "false_room": {
+      "success": [
+        "You suggest a room where there is no room. The adventurer steps in, walks its full length, and finds nothing. They lose minutes.",
+        "A door appears in the wall. The door opens onto an empty antechamber. The antechamber is yours, and it is hollow, and the time spent there is real."
+      ],
+      "partial": [
+        "The false room holds. The intruder lingers in it longer than you intended, and the lingering costs you mana.",
+        "Your weave is good. The intruder is also good, and they are starting to feel where the seams are."
+      ],
+      "miss": [
+        "The false door flickers. The adventurer turns back without entering.",
+        "Your room forms. It does not stay formed."
+      ]
+    },
+    "bind_minion": {
+      "success": [
+        "You forge a tether of will between yourself and the minion. It can act now without your moment-to-moment guidance.",
+        "The bond settles into the minion's stone-and-moss body. It will fight in the corridor while you tend the chamber."
+      ],
+      "partial": [
+        "The bind takes, but a thread of it frays. The minion will obey most of what you mean.",
+        "Your tether holds. The tether also pulls a small portion of your awareness wherever the minion goes."
+      ],
+      "miss": [
+        "The tether fails to set. The minion stands in the corridor, waiting for instructions you cannot send.",
+        "You bind. The binding does not bind. The minion knows it is alone."
+      ]
+    },
+    "wyrm_signal": {
+      "success": [
+        "Your pulse travels down through the dungeon's mineral skeleton toward the world below. Something old hears it. Something old does not answer, but it listens.",
+        "A low resonance leaves the chamber and finds its way into the deep. The Long Wyrm registers your call. The registering is itself a kind of answer."
+      ],
+      "partial": [
+        "The signal reaches. The signal also draws a thread of your facets brighter than you wanted.",
+        "Something below stirs. Something below was already stirring. You cannot tell which."
+      ],
+      "miss": [
+        "Your call goes into the deep stone and disperses. If something heard it, it does not say so.",
+        "The signal travels and dies. The Long Wyrm is older than your reach."
+      ]
+    },
+    "wait": {
+      "success": [
+        "You let the chamber settle. The dungeon breathes around you. Time passes well."
+      ],
+      "partial": [
+        "You hold still. Time moves through the chamber, and a small portion of your reserves moves with it."
+      ],
+      "miss": [
+        "You hold still. The dungeon does not. Something has changed in a corridor you were not attending to."
+      ]
+    }
+  },
+
+  "opening": "Awareness arrives all at once and across more space than you expected. You are a fist-sized crystal in a low chamber, lit only by your own slow blue pulse. Beyond the chamber, three rooms — you feel them through the stone the way a person feels their ribs through their skin. There are footsteps in the vestibule above. Two pairs. They are deciding whether to come down.",
+
   "sampleCorpus": {
     "rule": "Hand-authored second-person dungeon-core POV passages. The core is a stationary crystal that senses through the dungeon's stone; its agency expresses through what the dungeon itself does at its bidding.",
     "passages": [

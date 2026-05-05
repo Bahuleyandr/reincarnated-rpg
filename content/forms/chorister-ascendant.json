@@ -40,6 +40,41 @@
       { "id": "wyrm-line", "narrative": "A passage of the long song you have sung many times reveals a new line, and the line is not yours. The Long Wyrm has hummed along and added.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
     ]
   },
+  "phraseBank": {
+    "chant": {
+      "success": ["You take the line and the choir takes it after you, half a beat behind. The harmony sits.", "Your chant carries. The room's candles gutter together and recover, and the song does not notice."],
+      "partial": ["You chant. The line lands, but a singer behind you has come in late and the harmony bows.", "Your voice holds. The phrase you wanted falls one breath short."],
+      "miss": ["You take the line and lose it on the second beat. The choir improvises.", "Your chant breaks. The room hears the break."]
+    },
+    "lead": {
+      "success": ["You lift the choir into the verse and they lift with you. No one stumbles.", "Your lead is steady. The line passes from you to the choir without seam."],
+      "partial": ["You lead. The choir follows; one voice has decided to follow a half-step ahead.", "Your lead carries. It carries less far than the verse asks."],
+      "miss": ["You attempt to lead. The first note is correct and the second is not.", "Your lead misses. The choir holds; the holding is mercy."]
+    },
+    "carry": {
+      "success": ["You carry the line through the long passage. The choir's breath synchronises with yours.", "Your carry is patient. The verse, by its third minute, holds itself up."],
+      "partial": ["You carry. The carrying takes more from your voice than you expected.", "Your line holds. It holds at the cost of a small fraying you will hear tomorrow."],
+      "miss": ["You try to carry the verse and find your breath is short.", "Your carry breaks midway; a singer takes it from you cleanly."]
+    },
+    "rest": {
+      "success": ["You set down the song and rest. The choir rests with you. Tomorrow's verse will be steadier.", "Your rest is full. The candle in the rest-chamber burns evenly."],
+      "partial": ["You rest. The rest is shorter than the song needed.", "Your rest holds. A passage is humming in your sleep that you cannot let go of."],
+      "miss": ["You try to rest. The song is in your throat and refuses to leave.", "Your rest fails. You will sing tired."]
+    },
+    "wyrm-line": {
+      "success": ["A line emerges in the verse you did not write. The Long Wyrm has hummed along, and the choir, briefly, has sung something older than the song.", "Your verse takes on a passage that is not yours. You carry it through and let it pass."],
+      "partial": ["The Wyrm's line enters. The Wyrm's line displaces a passage you had spent a year teaching the choir.", "Your song draws the Wyrm. The choir hears the new line and falters."],
+      "miss": ["You reach for the Wyrm's older harmony and find only your own.", "The Wyrm is not at the song tonight. The verse is what you wrote it."]
+    },
+    "wait": {
+      "success": ["You hold the silence between verses. The silence is part of the song."],
+      "partial": ["You wait. A singer's breath in the third row has shortened; you note it for tomorrow."],
+      "miss": ["You wait. The pause has gone on a beat too long. The choir has begun without you."]
+    }
+  },
+
+  "opening": "The line begins where the last line ended, and that is where the line should begin. You breathe in once. The choir behind you breathes with you. The room is candlelit; the candles, somewhere along the third verse, will gutter together and recover. You have learned not to take that as an omen. The song does not need omens.",
+
   "sampleCorpus": {
     "rule": "Choristers' prose flows in long-breath sentences. The song is the structure.",
     "passages": [

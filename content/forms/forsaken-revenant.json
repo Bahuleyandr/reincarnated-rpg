@@ -48,6 +48,41 @@
       { "id": "wyrm-noticed", "narrative": "The Long Wyrm passes nearby and registers your refusal. It does not require your faction; it does require your attention.", "tools": [{ "name": "change_form_state", "field": "wyrm_marked", "delta": 1 }] }
     ]
   },
+  "phraseBank": {
+    "refuse": {
+      "success": ["You say no without ceremony. The asker steps back and does not ask again tonight.", "Your refusal is offered cleanly. The thing being asked of you withdraws."],
+      "partial": ["You refuse. The refusing costs more than it should — the asker has a hand in your past you'd forgotten.", "Your no is heard. The cost of saying it shows in your bones tomorrow."],
+      "miss": ["You refuse. They do not accept the refusal. They will return.", "Your no does not land. The asker has not yet finished asking."]
+    },
+    "watch": {
+      "success": ["The road empties under your gaze. Nothing arrives that you have not already accounted for.", "Your watch holds. Two hours pass and the wind reports back nothing."],
+      "partial": ["You watch. The road passes, but a moment escapes your attention; the moment held something.", "Your watch is steady. The watch is also visible to anything that knows what to look for."],
+      "miss": ["You watch. Sleep takes you anyway, briefly. When you return, something has passed.", "Your watch fails. Whatever was meant to come, came, and you missed it."]
+    },
+    "leave": {
+      "success": ["You stand. You walk out of the house you did not warm to. The road is yours again.", "You leave without a goodbye that anyone will remember."],
+      "partial": ["You leave. A piece of your refusal stays behind in the place that thought you owed it.", "Your departure is clean. The arrival in the next place will not be."],
+      "miss": ["You try to leave. The doorway resists. Something here is asking again, and you have not yet answered.", "You step out and step back. Whatever you came to refuse, you have not finished refusing."]
+    },
+    "return": {
+      "success": ["You return to a place you swore not to. The place is exactly as you left it. So are you.", "You walk back through a door you closed. The closing held. The door opens for you anyway."],
+      "partial": ["You return. The return is later than expected and the cost shows in your patience.", "You go back. Going back costs more than going forward did, but the refusal is intact."],
+      "miss": ["You set out to return. The road forgets you halfway. You stop where you stopped.", "You try to return. The place that called you has moved on without you."]
+    },
+    "endure": {
+      "success": ["You hold. The hour passes. You are still here, and still refusing.", "You endure. The endurance is its own kind of saying-no."],
+      "partial": ["You endure. The enduring takes from your vigil tonight; you will sleep poorly tomorrow.", "You hold the cost. Something else slips while you are holding."],
+      "miss": ["You try to endure and find your refusal hollow. A name you said no to slips through anyway.", "You endure poorly. The hour passes you instead of the other way round."]
+    },
+    "wait": {
+      "success": ["The third hour after midnight passes. You are awake for it. No one else is."],
+      "partial": ["You wait. The waiting is heavier than usual; your vigil bows."],
+      "miss": ["You wait. Day finds you. The wrong light catches your face."]
+    }
+  },
+
+  "opening": "It is the third hour after midnight, and the road is yours alone. You did not promise to watch it; you watch it anyway. The wind off the field is cold and you are colder. The thing you are watching for has not come tonight. It will come on a night. You will be here for that one.",
+
   "sampleCorpus": {
     "rule": "The Revenant moves at night, sleeps by day, and never settles. Prose about them is short, declarative, and does not warm.",
     "passages": [

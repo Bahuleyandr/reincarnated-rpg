@@ -35,6 +35,41 @@
       { "id": "wyrm-strike", "narrative": "Your hammer rings on the anvil at a pitch the anvil does not produce. The Long Wyrm has matched your strike.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
     ]
   },
+  "phraseBank": {
+    "forge": {
+      "success": ["You bring the blank up to working heat and lay it on the anvil. The hammer falls in the rhythm you have known since you were nineteen.", "Your forging is steady. The iron remembers what it is being asked to be."],
+      "partial": ["You forge. The iron takes the shape; the shape is a fingerwidth narrower than the customer described.", "Your hammer is true. The blank is one heat-cycle too cool today."],
+      "miss": ["You forge, and the iron splits along a grain you did not feel.", "Your hammer falls and the blank refuses. The forge sighs."]
+    },
+    "temper": {
+      "success": ["You take the temper to the colour your master taught you to read. The piece comes out exactly as long-lived as it should be.", "Your tempering settles. The blade will hold an edge for nineteen years before it asks for re-grinding."],
+      "partial": ["You temper. The temper holds; one millimeter at the tang took it differently.", "Your temper is good. It is a notch harder than you wanted."],
+      "miss": ["You take the temper a notch too far. The piece is harder, and shorter-lived.", "Your tempering fails to read. The piece will need to be re-quenched."]
+    },
+    "name": {
+      "success": ["You name the piece for the right person. The naming settles into the iron the way water settles into a hollow.", "Your naming holds. The customer hears the name and corrects you on a syllable; you correct yourself."],
+      "partial": ["You name the piece. The name is correct; the customer flinches at it for reasons you cannot read.", "Your naming lands. It lands a degree to the left of where it should."],
+      "miss": ["You name the piece for someone who was not yet alive when its iron was mined.", "Your naming fails. The customer asks for a different name; you cannot give it cleanly."]
+    },
+    "rest": {
+      "success": ["You set down the hammer and rest. The forge cools to bank-warm. Tomorrow's work will be cleaner.", "Your rest is full. Your shoulders return to where they belong."],
+      "partial": ["You rest. The forge has not banked evenly; one wall is colder than the other.", "Your rest holds. A piece on the rack is humming with leftover heat."],
+      "miss": ["You try to rest. The forge has dropped past banking heat and you must stoke it before sleep.", "Your rest fails. A piece you finished today is wrong, and you cannot stop knowing it."]
+    },
+    "wyrm-strike": {
+      "success": ["Your hammer rings on the anvil at a pitch the anvil does not produce. The Long Wyrm has matched your strike.", "The forge takes on a colour your fuel cannot make. The piece you finish today carries an older heat."],
+      "partial": ["The Wyrm-strike enters. The Wyrm-strike also leaves a hairline along the blade where the metal sang back too loud.", "Your hammer falls and the Wyrm hammers with you. The piece is changed in ways the customer will not understand."],
+      "miss": ["You strike, and the anvil rings only with what you put into it. The Wyrm is not at the forge today.", "Your hammer is your hammer. The piece is your piece."]
+    },
+    "wait": {
+      "success": ["You let the piece cool. Cooling is half of the craft."],
+      "partial": ["You wait. The forge has cracked a single brick on the eastern face; you will repair it tomorrow."],
+      "miss": ["You wait. The piece has cooled too fast and the temper is wrong."]
+    }
+  },
+
+  "opening": "Forty-three blanks on the rack and you know each by hand-feel. The customer is waiting at the bench; they have come for a blade and they will leave with one in three days. The blade will outlast them. They know this. You take the seventh blank from the left, third from the bottom — Tallowfen iron from two summers ago — and set it on the bench. The forge breathes once.",
+
   "sampleCorpus": {
     "rule": "Iron Hand prose is dense, technical when needed, deeply familiar with metal.",
     "passages": [

@@ -35,6 +35,41 @@
       { "id": "wyrm-listen", "narrative": "You felt a movement deeper than any plate you have charted. The Long Wyrm has shifted under your shaft.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
     ]
   },
+  "phraseBank": {
+    "descend": {
+      "success": ["You take the shaft you know best. The rung-line meets your hand at every step. The pressure settles into your ears the way it always has.", "Your descent is unhurried. The rock recognises your weight; it adjusts."],
+      "partial": ["You descend. The shaft is colder than you remembered, and you have left a layer of warmth behind that you will need.", "Your descent goes well, except for the seam at the second turn — your hand met it differently today."],
+      "miss": ["You descend. The shaft has changed. Your lamp finds a wall where there was none.", "Your hand reaches for the rung and finds rope-fray. The descent stops here, today."]
+    },
+    "feel": {
+      "success": ["You let your awareness widen against the rock. Two heartbeats above you. A drip somewhere east. The plates shifting their slow arguments below.", "Your hand on the seam tells you what your eye does not. The shaft is sound; the next chamber is not."],
+      "partial": ["You feel. The reading is incomplete; the plate-music below you is louder than the foot-traffic above.", "Your awareness reaches. It returns with three facts and one of them is wrong."],
+      "miss": ["You feel. The rock is silent in the wrong way today.", "Your hand finds nothing. The seam has cooled, and you are not yet practised enough to read a cold seam."]
+    },
+    "rest": {
+      "success": ["You set yourself down in a known alcove and let the depth do its work. Your lung returns to its measured pace.", "Your rest is real. The shaft holds you. Tomorrow's descent will be cleaner."],
+      "partial": ["You rest. The rest is shorter than you needed.", "Your rest holds. A tremor passes during it that your sleep almost missed."],
+      "miss": ["You try to rest. The rock has chosen tonight to tell you something you cannot ignore.", "Your rest fails. You will descend tired."]
+    },
+    "surface": {
+      "success": ["You climb. The shaft narrows, then widens to the entry chamber. Daylight enters your awareness the way memory does, slowly.", "Your surfacing is patient. The pressure equalizes with care. By the time you stand at the entry you can picture daylight without flinching."],
+      "partial": ["You surface. The pressure is uneven on your final approach; your ears will ring through tomorrow.", "Your climb holds. The world above is louder than you remembered."],
+      "miss": ["You attempt to surface. A junction you used to know has not stayed where you left it.", "Your climb halts halfway. Daylight, today, can wait."]
+    },
+    "wyrm-listen": {
+      "success": ["You hold yourself still against the wall and let the rock speak. The Long Wyrm is below you, and farther down than you can chart. You take its measure.", "You listen. A movement at scale arrives — not as sound, but as the slow adjustment of pressure over hours."],
+      "partial": ["The Wyrm is there. The Wyrm is also nearer than you wanted, and it has registered your listening.", "Your listening reaches. The reach finds the Wyrm and a thread of your attention does not come back."],
+      "miss": ["You listen for the Wyrm and find only the rock you already knew.", "Your reach goes deep and finds nothing it was not already familiar with."]
+    },
+    "wait": {
+      "success": ["You hold your place in the shaft. The plates' arguments resolve themselves around you. Time, here, is honest."],
+      "partial": ["You wait. A small drift passes that your bones noted before your awareness did."],
+      "miss": ["You wait. The shaft is colder than when you arrived. Your lung is paying attention to it now."]
+    }
+  },
+
+  "opening": "You stand at the lip of a shaft you know by hand. Behind you, the entry chamber and a narrow stair to daylight. Below you, the seam-line goes down for thirty meters before the rung-line gives out. The pressure has begun its slow change against your ears. You have not been to the surface in nine days, and the world above is starting to feel like a place you read about in a letter.",
+
   "sampleCorpus": {
     "rule": "Deep Mark prose is dim, attentive to weight and pressure, alien to surface dwellers.",
     "passages": [

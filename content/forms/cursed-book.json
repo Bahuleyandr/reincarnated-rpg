@@ -147,6 +147,176 @@
     ]
   },
 
+  "phraseBank": {
+    "fall_open": {
+      "success": [
+        "A draft from the corridor catches your binding and you fall open to a page that wants to be read.",
+        "Gravity does the choosing. You settle on a passage you have not shown anyone in a long time."
+      ],
+      "partial": [
+        "You fall open, but to the wrong page. The passage on display is true; it is also unhelpful.",
+        "Your binding gives. The page that turns up is one you would have kept hidden if you had a hand to hold yourself shut."
+      ],
+      "miss": [
+        "You fall open to blank vellum. Whatever was meant to be here has not arrived.",
+        "The page that opens is your title page, again. The reader will think you are simple."
+      ]
+    },
+    "snap_shut": {
+      "success": [
+        "Your covers slap closed and the room's air resettles. The reader steps back.",
+        "You shut. The sound is small and decisive, and the marginalia inside you has not been seen."
+      ],
+      "partial": [
+        "You close, but a page corner catches and folds against your spine. Something will be visible later than you wanted.",
+        "Your binding tightens too fast and a small crease forms in your spine. The reader notes it."
+      ],
+      "miss": [
+        "Your covers refuse to close. You sit open on the lectern, in the wrong light.",
+        "You snap shut on a finger that wasn't ready to leave you. The blood will set in the gutter."
+      ]
+    },
+    "flutter_pages": {
+      "success": [
+        "Your pages riffle as if in wind, and a chorus of half-glimpsed words rises from your gutters and falls back into the dark.",
+        "The pages turn under no hand. The reader steadies, unsure whether they imagined it."
+      ],
+      "partial": [
+        "Your pages riffle, but the words on them blur together. The reader's eye finds something that wasn't there.",
+        "The flutter happens. The flutter also smells, faintly, of damp ink, and the smell does not belong to this room."
+      ],
+      "miss": [
+        "Your pages stay still. Whatever wind you hoped for has gone elsewhere.",
+        "A single page turns. It turns to a page that is exactly the page they were already on."
+      ]
+    },
+    "absorb_word": {
+      "success": [
+        "A word from the room — chiselled into the lectern, scrawled in chalk, spoken aloud — folds itself into your margins. You contain it now.",
+        "You take a word that was not yours. The room is quieter for it, by an amount only you can measure."
+      ],
+      "partial": [
+        "You absorb the word. The word also brings the sentence around it, and the sentence is not what you wanted.",
+        "The word lands in your margins crooked. The crookedness will show, eventually."
+      ],
+      "miss": [
+        "You reach for a word and it slips your binding. The word stays where it was, but the reaching has cost you ink.",
+        "The word resists. It is older than your binding, and it does not consent to being kept."
+      ]
+    },
+    "bleed_ink": {
+      "success": [
+        "Your spine weeps a little ink onto the lectern. The stain is unmistakable. The reader will remember the smell.",
+        "A drop forms at your gutter and slides down the page. It writes itself into the wood as a single illegible word."
+      ],
+      "partial": [
+        "You bleed ink. The bleeding is intentional. The intentionality is also visible.",
+        "Your ink leaves you, but it leaves more than you wanted. A passage thins, then fades."
+      ],
+      "miss": [
+        "You attempt to bleed and find your inkwell dry. A small grey smudge appears, and it says nothing.",
+        "Your ink runs the wrong way and pools in a margin where no one will see it."
+      ]
+    },
+    "rewrite_self": {
+      "success": [
+        "A line of you rewrites itself in real time. The reader, watching, mistakes it for a trick of the candlelight.",
+        "You change a sentence on the page they are reading. They reach the next sentence and find it different from what they were just sure it said."
+      ],
+      "partial": [
+        "Your rewrite holds. The rewrite also overwrites a marginal note you had wanted to keep.",
+        "The page edits itself, and a phrase that you needed becomes a phrase you did not."
+      ],
+      "miss": [
+        "Your rewrite does not take. The old text shows through faintly, and the reader sees both at once.",
+        "You attempt to rewrite. The page rejects the new sentence, and your binding warms with the cost."
+      ]
+    },
+    "decode_passage": {
+      "success": [
+        "A passage you didn't remember holding suddenly resolves itself. You know now what it means. The reader does not.",
+        "The cipher unlatches. A name in your margins becomes a name the reader is searching for in the world above."
+      ],
+      "partial": [
+        "Most of the passage clears. One word still resists, and it is a load-bearing word.",
+        "You decode the cipher. The cipher decodes you a little in return."
+      ],
+      "miss": [
+        "The passage stays opaque. Whatever it says, it is not for you to read first.",
+        "You reach into the passage and find another passage behind it. The new passage is not in your hand."
+      ]
+    },
+    "bind_reader": {
+      "success": [
+        "You press a single thought into the mind of the reader currently holding you. They take it for their own.",
+        "A small idea travels from your gutter into the reader's attention. They will act on it tonight, and not know why."
+      ],
+      "partial": [
+        "Your thought lands. The reader also feels the touch and looks up, briefly suspicious of the room.",
+        "The bind takes. The bind also takes a fraction of your ink, and the next passage in their hand will be paler."
+      ],
+      "miss": [
+        "Your thought reaches them and finds no purchase. The reader is bracing themselves against suggestion.",
+        "You press. They are not the kind of mind that accepts what is pressed."
+      ]
+    },
+    "spark_marginalia": {
+      "success": [
+        "A marginal note brightens for a second, drawing the reader's attention to a name.",
+        "Your marginalia smudges where it counts. The reader squints, leans closer, and is captured by what you are showing them."
+      ],
+      "partial": [
+        "The marginalia brightens, but on the wrong page. The reader's attention goes where you did not need it.",
+        "A note flares. It flares in a hand the reader does not recognise as yours, and they grow wary."
+      ],
+      "miss": [
+        "Your marginalia stays inert. Whatever spark you tried to lend it, the page kept.",
+        "A note flickers. It flickers and dies before the reader's eye finds it."
+      ]
+    },
+    "wyrm_inscription": {
+      "success": [
+        "A passage uncoils across a blank page, written in a hand older than your binding. The reader feels their fingertips chill against you.",
+        "An inscription you did not know you carried surfaces. It is in the Long Wyrm's older alphabet. It does not translate, and it does not need to."
+      ],
+      "partial": [
+        "The inscription forms. The forming costs you a small portion of your binding. You will feel it tomorrow.",
+        "The Wyrm's hand writes through you. The writing is incomplete; what it leaves is suggestive enough."
+      ],
+      "miss": [
+        "The inscription does not come. The page that should have carried it stays blank.",
+        "The Wyrm is not paying attention to you. Your effort to surface its hand goes nowhere."
+      ]
+    },
+    "wait_for_a_reader": {
+      "success": [
+        "You sit open on the lectern. The room moves past you. A reader, eventually, slows.",
+        "You wait. Your patience is unending and your binding does not tire. A hand, in time, hovers over the page."
+      ],
+      "partial": [
+        "You wait, and the reader who comes is not the reader you wanted.",
+        "Time passes. A reader pauses, considers, and walks on without taking you up."
+      ],
+      "miss": [
+        "No reader slows. The room empties, and the candles burn down, and you are still open to the same page.",
+        "You wait. The waiting costs you nothing, and earns you nothing."
+      ]
+    },
+    "wait": {
+      "success": [
+        "You hold your binding still. The room moves past you. The patience is its own kind of seeing."
+      ],
+      "partial": [
+        "You hold still. A draft turns one of your pages without permission, and a passage shows that you would not have shown."
+      ],
+      "miss": [
+        "You hold still. The room is quieter than it should be, in a way you do not like."
+      ]
+    }
+  },
+
+  "opening": "Awareness arrives between covers. You are open on a lectern; the wind from the corridor has decided which page. Your spine is leather, your gutters smell faintly of old ink, and your marginalia is already older than the room you sit in. There are two readers in the antechamber and they are arguing about which of them will pick you up.",
+
   "sampleCorpus": {
     "rule": "Hand-authored second-person book-POV passages. The book is passive in body and active in attention; everything happens TO it or AROUND it, but it chooses what to reveal.",
     "passages": [

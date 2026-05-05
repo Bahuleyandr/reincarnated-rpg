@@ -40,6 +40,41 @@
       { "id": "wyrm-iron", "narrative": "An iron blank sings under your hammer in a frequency you did not strike. The Long Wyrm has hummed under your forge.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
     ]
   },
+  "phraseBank": {
+    "mark": {
+      "success": ["You lay a mark on the iron the way the rust will read it. The mark settles in cleanly; the patina, in a year, will know where to go.", "Your mark is precise. The piece will weather along the lines you asked of it."],
+      "partial": ["You mark. The mark holds; one corner will read it differently than you intended.", "Your marking lands. The angle is a degree off and the year will show it."],
+      "miss": ["You mark, and the iron rejects the line. The patina will not start where you wanted.", "Your mark fades faster than your hand has left the metal. You will redo it tomorrow."]
+    },
+    "weather": {
+      "success": ["You leave the piece to weather. Time is the third tool, after hammer and patience.", "Your weathering is correct. The piece, three months from now, will look exactly as you have predicted."],
+      "partial": ["You weather. A line of frost crossed the piece during the night that you did not anticipate.", "Your weathering holds. A patch of patina has come up brighter than the rest."],
+      "miss": ["The piece weathers wrong. Whatever the air did to it overnight, it was not what you asked.", "Your weathering fails. The rust has refused the surface; the patina will not take this season."]
+    },
+    "join": {
+      "success": ["You forge the join. The two pieces lock; the seam is where you want it; the rust, when it comes, will follow the seam true.", "Your join is sound. It will outlive the customer's grandchild."],
+      "partial": ["You join. The seam is correct. The seam will fail in seventeen years; you can already see when.", "Your join holds. A small misalignment will show under hard use."],
+      "miss": ["You join. The pieces hold for now. They will not hold for long.", "Your seam refuses to seat. You will reforge it."]
+    },
+    "rest": {
+      "success": ["You set down the rasp and rest. The forge cools; the piece on the rack continues without you.", "Your rest is full. The iron's slow work continues; you have only paused yours."],
+      "partial": ["You rest. The forge banked unevenly; you will tend it before sleep.", "Your rest holds. A piece is humming with leftover patience that you almost missed."],
+      "miss": ["You try to rest. The customer's piece is wrong, and you cannot stop knowing it.", "Your rest fails. The forge has cooled past where it ought to have."]
+    },
+    "wyrm-iron": {
+      "success": ["An iron blank sings under your hammer in a frequency you did not strike. The Long Wyrm has hummed under your forge.", "The piece you finish today carries a patina you have not put there. The Wyrm has marked the iron."],
+      "partial": ["The Wyrm-note enters. The Wyrm-note also draws something across the workshop you cannot see.", "Your iron rings older than your craft. The piece is changed; the customer will sense the change without naming it."],
+      "miss": ["You strike, and the iron rings only with your work. The Wyrm is not at the forge today.", "Your hammer is your hammer. The piece is your piece."]
+    },
+    "wait": {
+      "success": ["You hold the work. The iron remembers what you have asked of it."],
+      "partial": ["You wait. A patch of rust has chosen a corner you did not want it to."],
+      "miss": ["You wait. The forge has cooled, and the customer's piece will be late."]
+    }
+  },
+
+  "opening": "The piece has come back. The customer who took it home a year ago has brought it for the first inspection. You turn it in your hand. The mark you laid on the head has settled correctly; the rust has begun where you wanted it to begin and not where you didn't. You give the customer a single nod. They are pleased.",
+
   "sampleCorpus": {
     "rule": "Rust-Hand prose is unhurried, attentive to slow change, comfortable with imperfection.",
     "passages": [

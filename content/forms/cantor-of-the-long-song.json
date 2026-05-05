@@ -40,6 +40,41 @@
       { "id": "wyrm-flavor", "narrative": "A tincture you finished today carries a faint mineral note that did not belong. The Long Wyrm has tasted of your work.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
     ]
   },
+  "phraseBank": {
+    "distill": {
+      "success": ["The still does its work. Twelve drops collect in the small glass. The choir will sing better for them.", "You count drops aloud, for yourself. The tincture finishes clean."],
+      "partial": ["The distillation takes. A drop strays past the lip; the bottle is short by one tonight.", "Your patience holds. The tincture's flavor is not quite the one the verse calls for."],
+      "miss": ["The still produces nothing usable. The flame burned too high or your patience was too thin.", "Your distillation fails. The glass is empty, and the kindling is spent."]
+    },
+    "lead": {
+      "success": ["You take the first note and the choir takes the second. The verse is steady.", "You lead. The harmony holds for the whole long line, and the room remembers it."],
+      "partial": ["You lead. One singer's voice catches on a register you didn't account for.", "Your lead carries. It carries less far than it should."],
+      "miss": ["You attempt the lead. The first note misses its centre, and the choir hesitates.", "Your voice is not where it should be tonight."]
+    },
+    "blend": {
+      "success": ["You blend two tinctures and the new flavor opens cleanly. The choir will discover it as one taste.", "Your blend takes. The combined liquor is more than either ingredient was alone."],
+      "partial": ["You blend. The flavors hold but the colour clouds. A singer will mention it.", "Your blend is good. It is not the blend you were after."],
+      "miss": ["You blend, and the two tinctures separate again in the bottle.", "Your blending refuses to settle. You will pour both away tomorrow."]
+    },
+    "rest": {
+      "success": ["You set the still down and rest. Your voice will return tomorrow steadier.", "Your rest is full. The tincture room hums quietly in your absence."],
+      "partial": ["You rest. The rest is short. The choir's verse tomorrow will know it.", "Your rest holds. A small batch on the still has stopped progressing."],
+      "miss": ["You try to rest. A note in the next room is wrong, and you cannot stop hearing it.", "Your rest is broken before it begins."]
+    },
+    "wyrm-tincture": {
+      "success": ["A flavor enters the bottle that you did not pour. Faintly mineral. The Long Wyrm has tasted of your work today.", "Your tincture carries a note older than your distillation."],
+      "partial": ["The Wyrm-flavor enters. The Wyrm-flavor displaces the note you had carefully built up.", "Your work draws the Wyrm. The bottle is changed. The change is not entirely yours."],
+      "miss": ["You reach for the Wyrm-savor and find only your own kindling.", "The Wyrm is not in the still tonight. The tincture is what you made it."]
+    },
+    "wait": {
+      "success": ["You let the still work. Patience is half of the recipe."],
+      "partial": ["You wait. A drop has formed at the wrong place on the condenser; you'll lose a little tonight."],
+      "miss": ["You wait. The flame has guttered without you noticing. The batch is cold."]
+    }
+  },
+
+  "opening": "Twelve drops into the small glass. You count them aloud, for yourself, not for the choir. The still has been working since before dawn; the tincture has been listened to as much as watched. The choir is gathering in the next room, and one of them will come for the bottle without asking.",
+
   "sampleCorpus": {
     "rule": "Cantor prose is measured, precise, with the rhythm of a careful pour.",
     "passages": [

@@ -49,6 +49,41 @@
       { "id": "wyrm-noticed", "narrative": "Something deep below the world stirs in answer to your stillness. The Long Wyrm has noticed you, again.", "tools": [{ "name": "change_form_state", "field": "wyrm_marked", "delta": 1 }] }
     ]
   },
+  "phraseBank": {
+    "abide": {
+      "success": ["You hold your place. The hour passes and finds you exactly where it left you.", "You abide. The world shifts very slightly to accommodate you."],
+      "partial": ["You abide. A small piece of your remembrance dims while you are not attending to it.", "Your abiding is steady. Steadiness is itself a cost the world will collect, slowly."],
+      "miss": ["You abide. The hour passes you. Something that should have come, has come, and gone, without registering.", "You hold. You hold longer than was useful."]
+    },
+    "regard": {
+      "success": ["You look upon the visitor without standing. They feel themselves seen, and they flinch first.", "Your regard settles on them with the weight of long attention. They will remember the looking."],
+      "partial": ["You regard them. They do not flinch. They have been regarded before.", "Your gaze finds them. The finding is uneven; a part of them stays unread."],
+      "miss": ["You regard. The visitor has not arrived yet. You have spent a small portion of yourself looking at empty air.", "Your regard misses. Whatever you turned toward had already turned away."]
+    },
+    "permit": {
+      "success": ["You permit the thing that was being asked. The visitor leaves with what they came for, and they will not know to thank you.", "You allow it. The allowing is a kindness the world does not record."],
+      "partial": ["You permit. The permission goes further than you intended. Something the visitor did not ask for, they now have.", "Your allowance settles. The cost of it is in your remembrance, not theirs."],
+      "miss": ["You attempt to permit. The thing being asked is no longer the thing in front of you.", "Your permission lands wrong. The visitor takes it as a refusal and leaves."]
+    },
+    "withhold": {
+      "success": ["You withhold. The name you could have given stays in you. The visitor leaves without it.", "You hold the answer back. The question, having been answered with silence, is satisfied."],
+      "partial": ["You withhold. A small part of what you withheld leaks anyway. The visitor will piece it together.", "Your silence is sufficient for now. It will not be sufficient if they return."],
+      "miss": ["You attempt to withhold. The name slips your stillness and goes to them anyway.", "You hold the answer. The answer was not yours to hold."]
+    },
+    "remember": {
+      "success": ["You bring a memory forward. It is intact, and it is exactly the one you wanted.", "You remember. The remembering is an act of careful retrieval; the memory comes whole."],
+      "partial": ["You remember. The memory is correct in shape and wrong in detail. The detail will not matter today.", "You retrieve. The retrieval costs you a portion of an adjacent memory you will miss next year."],
+      "miss": ["You reach for a memory that is no longer where you left it.", "You remember. What you remember is something else."]
+    },
+    "wait": {
+      "success": ["You wait. The waiting is the verb. Time passes well around you."],
+      "partial": ["You wait. Something passes that you should have attended to."],
+      "miss": ["You wait. The Long Wyrm passes very far below, and it has noticed you again."]
+    }
+  },
+
+  "opening": "A visitor reaches the threshold of the place where you sit. They do not knock; you have not arranged a door. They stand in the open, and you regard them without standing. Your stillness is older than the moss that has begun to suggest itself along your western edge. They have come for a name, perhaps, or for permission. You will choose what to give.",
+
   "sampleCorpus": {
     "rule": "The Still One is described in slow declarative sentences. Visitors come to them, never the reverse. Their interior life is foregrounded; their exterior is almost still.",
     "passages": [
