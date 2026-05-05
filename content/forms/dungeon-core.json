@@ -334,6 +334,13 @@
 
   "opening": "Awareness arrives all at once and across more space than you expected. You are a fist-sized crystal in a low chamber, lit only by your own slow blue pulse. Beyond the chamber, three rooms — you feel them through the stone the way a person feels their ribs through their skin. There are footsteps in the vestibule above. Two pairs. They are deciding whether to come down.",
 
+  "firstGoal": {
+    "id": "claim-three-rooms",
+    "label": "claim the dungeon",
+    "description": "Push your domain three rooms outward. Adventurers should know they are in your house.",
+    "completion": { "kind": "form_state", "field": "domain_size", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "Hand-authored second-person dungeon-core POV passages. The core is a stationary crystal that senses through the dungeon's stone; its agency expresses through what the dungeon itself does at its bidding.",
     "passages": [

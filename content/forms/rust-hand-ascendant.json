@@ -75,6 +75,13 @@
 
   "opening": "The piece has come back. The customer who took it home a year ago has brought it for the first inspection. You turn it in your hand. The mark you laid on the head has settled correctly; the rust has begun where you wanted it to begin and not where you didn't. You give the customer a single nod. They are pleased.",
 
+  "firstGoal": {
+    "id": "mark-the-iron",
+    "label": "mark the iron",
+    "description": "Lay marks through three turns. The rust will follow what you've decided.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "Rust-Hand prose is unhurried, attentive to slow change, comfortable with imperfection.",
     "passages": [

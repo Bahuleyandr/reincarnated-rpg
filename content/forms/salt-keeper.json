@@ -75,6 +75,13 @@
 
   "opening": "The cool room is dark and smells of salt and the slow patience of years. Barrels along the eastern wall, racks of meat along the north. Your hand finds a label without your eye needing to. The choir will sing again on Founding Day, and what they eat between verses is your work.",
 
+  "firstGoal": {
+    "id": "tend-the-stores",
+    "label": "tend the stores",
+    "description": "Take three turns at the work. The choir's verse approaches and the brines must hold.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "Salt-Keeper prose is sensory, slow, attentive to taste and time.",
     "passages": [

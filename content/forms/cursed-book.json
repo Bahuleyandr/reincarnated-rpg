@@ -317,6 +317,13 @@
 
   "opening": "Awareness arrives between covers. You are open on a lectern; the wind from the corridor has decided which page. Your spine is leather, your gutters smell faintly of old ink, and your marginalia is already older than the room you sit in. There are two readers in the antechamber and they are arguing about which of them will pick you up.",
 
+  "firstGoal": {
+    "id": "wait-for-a-reader",
+    "label": "be picked up",
+    "description": "Hold your binding open through three turns. A reader, eventually, slows.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "Hand-authored second-person book-POV passages. The book is passive in body and active in attention; everything happens TO it or AROUND it, but it chooses what to reveal.",
     "passages": [

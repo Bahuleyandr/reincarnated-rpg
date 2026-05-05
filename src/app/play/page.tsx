@@ -35,6 +35,16 @@ export default function Play() {
   const [error, setError] = useState<string | null>(null);
   const [llmBanner, setLlmBanner] = useState<string | null>(null);
   const [arcTagline, setArcTagline] = useState<string | null>(null);
+  const [formOpening, setFormOpening] = useState<string | null>(null);
+  const [formDisplayName, setFormDisplayName] = useState<string | null>(null);
+  const [firstGoal, setFirstGoal] = useState<{
+    id: string;
+    label: string;
+    description: string;
+    current: number;
+    target: number;
+    completed: boolean;
+  } | null>(null);
   const [metaArc, setMetaArc] = useState<{
     phaseLabel: string;
     phase: string;
@@ -75,6 +85,9 @@ export default function Play() {
         setCampaignId(data.campaignId ?? null);
         setIsTutorial(!!data.isTutorial);
         setArcTagline(data.arcTagline ?? null);
+        setFormOpening(data.formOpening ?? null);
+        setFormDisplayName(data.formDisplayName ?? null);
+        setFirstGoal(data.firstGoal ?? null);
         setEntries(
           (data.narrations as string[]).map((text) => ({
             kind: "narration" as const,
@@ -420,6 +433,49 @@ export default function Play() {
             <div className="text-sm text-stone-300 leading-6">{arcTagline}</div>
           </div>
         )}
+        {firstGoal && projection && projection.status === "active" && (
+          <div className="px-6 py-2.5 border-b border-stone-800 bg-stone-900/30 text-xs flex items-baseline gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-baseline gap-2">
+                <span className="text-[10px] uppercase tracking-widest text-stone-600">
+                  first goal
+                </span>
+                <span className="text-stone-200 truncate">
+                  {firstGoal.label}
+                </span>
+                {firstGoal.completed ? (
+                  <span className="text-emerald-400 text-[10px]">
+                    ✓ complete
+                  </span>
+                ) : (
+                  <span className="text-stone-500 text-[10px]">
+                    {firstGoal.current}/{firstGoal.target}
+                  </span>
+                )}
+              </div>
+              <p className="text-stone-500 italic text-[11px] leading-5 mt-0.5">
+                {firstGoal.description}
+              </p>
+            </div>
+            <div className="w-24 h-1 bg-stone-800 rounded overflow-hidden shrink-0">
+              <div
+                className={`h-full transition-all ${
+                  firstGoal.completed
+                    ? "bg-emerald-500"
+                    : "bg-amber-500/70"
+                }`}
+                style={{
+                  width: `${
+                    Math.min(
+                      100,
+                      (firstGoal.current / firstGoal.target) * 100,
+                    )
+                  }%`,
+                }}
+              />
+            </div>
+          </div>
+        )}
         {llmBanner && (
           <div className="px-4 py-2 border-b border-amber-900/60 bg-amber-950/40 text-amber-300 text-xs flex items-center gap-3">
             <span className="flex-1">{llmBanner}</span>
@@ -443,18 +499,30 @@ export default function Play() {
           entries={entries}
           emptyHint={
             projection && (
-              <div className="space-y-2 text-stone-300 leading-7">
-                <p className="text-stone-100">
-                  you wake as{" "}
-                  <span className="text-amber-300">
-                    {projection.form.id}
-                  </span>{" "}
-                  in{" "}
-                  <span className="text-amber-300">
-                    {projection.location.id}
-                  </span>
-                  .
-                </p>
+              <div className="space-y-3 text-stone-300 leading-7">
+                {formOpening ? (
+                  <>
+                    <div className="text-[10px] uppercase tracking-widest text-stone-600">
+                      {formDisplayName ?? projection.form.id} ·{" "}
+                      {projection.location.id}
+                    </div>
+                    <p className="text-stone-100 italic leading-7">
+                      {formOpening}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-stone-100">
+                    you wake as{" "}
+                    <span className="text-amber-300">
+                      {formDisplayName ?? projection.form.id}
+                    </span>{" "}
+                    in{" "}
+                    <span className="text-amber-300">
+                      {projection.location.id}
+                    </span>
+                    .
+                  </p>
+                )}
                 <p className="text-stone-500 text-sm italic">
                   describe what you do — anything from a single verb to a
                   whole sentence. the dice will be rolled against your

@@ -75,6 +75,13 @@
 
   "opening": "The line begins where the last line ended, and that is where the line should begin. You breathe in once. The choir behind you breathes with you. The room is candlelit; the candles, somewhere along the third verse, will gutter together and recover. You have learned not to take that as an omen. The song does not need omens.",
 
+  "firstGoal": {
+    "id": "carry-the-verse",
+    "label": "carry the verse",
+    "description": "Hold the line through three verses. The song outlasts you on purpose.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "Choristers' prose flows in long-breath sentences. The song is the structure.",
     "passages": [

@@ -83,6 +83,13 @@
 
   "opening": "It is the third hour after midnight, and the road is yours alone. You did not promise to watch it; you watch it anyway. The wind off the field is cold and you are colder. The thing you are watching for has not come tonight. It will come on a night. You will be here for that one.",
 
+  "firstGoal": {
+    "id": "hold-the-watch",
+    "label": "hold the watch",
+    "description": "Watch through three turns. You did not return to belong; you returned to attend.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "The Revenant moves at night, sleeps by day, and never settles. Prose about them is short, declarative, and does not warm.",
     "passages": [

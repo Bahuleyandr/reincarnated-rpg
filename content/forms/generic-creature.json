@@ -151,6 +151,13 @@
 
   "opening": "You wake to a place you do not recognise and a body that is not the one you went to sleep in. The first thing that returns is shape — your shape. It is unfamiliar in the way that the back of an old key is unfamiliar: the parts that work are clear, the parts that don't are not yet missed. There is no announcement. No one is here to tell you what you are. You will have to find out by trying.",
 
+  "firstGoal": {
+    "id": "find-out-by-trying",
+    "label": "find out what you are",
+    "description": "Take three actions. The new shape teaches itself, one trial at a time.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "Five short universal passages anchored on second-person + sensory detail. Deliberately vague about anatomy so the narrator can specialize them to whatever form the player declared. The last three demonstrate flavoring for absurd or mundane reincarnations — vending machine, fork, signpost — to show the narrator that ANY declared form should be treated with the same care as a slime or a dragon. The narrator should NOT copy these verbatim — use them to lock register and cadence, then write fresh prose for the player's actual declaration.",
     "passages": [

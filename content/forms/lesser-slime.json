@@ -242,6 +242,13 @@
 
   "opening": "You wake up wet. The chemistry of the world arrives before your senses do — wet stone underneath, a shifting saltiness above, the faint warmth of something living several feet away. You have no eyes. You have no hands. You are a boundary around an essence, and the boundary is hungry.",
 
+  "firstGoal": {
+    "id": "first-three-actions",
+    "label": "find what your shape can do",
+    "description": "Take three actions. The cavern has not yet decided whether to absorb you back.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "Five hand-authored second-person slime-POV passages. Embedded in the system prompt as one-shot exemplars. Match this tone, register, sentence cadence, and vocabulary.",
     "passages": [

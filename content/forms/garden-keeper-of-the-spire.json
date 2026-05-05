@@ -70,6 +70,13 @@
 
   "opening": "First light along the high garden has its own colour. You walk the rows slowly. You count the seedlings without counting; you would notice if a number were wrong without being able to say which. The choir's last verse settled the plants overnight; you can see the settling in how their leaves face.",
 
+  "firstGoal": {
+    "id": "walk-the-rows",
+    "label": "walk the rows",
+    "description": "Tend the garden through four turns. Plants keep time at their own pace.",
+    "completion": { "kind": "turn_min", "target": 4 }
+  },
+
   "sampleCorpus": {
     "rule": "Garden-Keeper prose is patient, attentive to small changes, with verbs of waiting.",
     "passages": [

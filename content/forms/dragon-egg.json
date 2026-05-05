@@ -317,6 +317,13 @@
 
   "opening": "Awareness arrives curled. You are inside a shell, inside a nest, inside the warmth of a dam who has chosen to stay. The world reaches you as pressures: the slow heart above, the wind off the cliff, the drip of meltwater somewhere out of reach. You have time. Whatever you become has not yet been decided.",
 
+  "firstGoal": {
+    "id": "warm-the-shell",
+    "label": "warm the shell",
+    "description": "Stay through four turns. Hatching is not yet the goal — being is.",
+    "completion": { "kind": "turn_min", "target": 4 }
+  },
+
   "sampleCorpus": {
     "rule": "Hand-authored second-person egg-POV passages. The egg's agency is internal: it senses, it warms, it dreams, but everything outside is mediated by the shell.",
     "passages": [

@@ -397,6 +397,36 @@ export interface FormTemplate {
    *  the form's voice. Falls back to a generic "you wake as <form>
    *  in <location>" hint when unset. */
   opening?: string;
+  /** Display name from the JSON (e.g. "Lesser Slime"). Used by the
+   *  play page's empty-state header — falls back to the form id. */
+  displayName?: string;
+  /** Phase 10 P2 — the form's first goal. A new run with this form
+   *  carries the goal in the projection until the player meets the
+   *  completion condition. Goals are intentionally simple — a label,
+   *  a description, and a target value the orchestrator can check
+   *  against form state / projection counters. */
+  firstGoal?: {
+    /** Stable id (e.g. "claim-three-rooms"). */
+    id: string;
+    /** Short imperative label shown in the goal ribbon. */
+    label: string;
+    /** One-sentence flavor that explains what to do. */
+    description: string;
+    /** Completion check. The orchestrator runs this against the
+     *  projection after each turn — when it returns true, the goal
+     *  is marked complete and the next-goal pointer (or a small
+     *  reward) fires. */
+    completion: {
+      kind: "form_state" | "vital_min" | "rooms_visited" | "turn_min";
+      /** Field name within form.state (for form_state) or vital
+       *  name (for vital_min). Unused for rooms_visited / turn_min. */
+      field?: string;
+      /** Target value the field must reach (for form_state) or
+       *  minimum value the vital must hold (for vital_min) or count
+       *  for rooms_visited / turns elapsed for turn_min. */
+      target: number;
+    };
+  };
 }
 
 export interface LocationRoom {

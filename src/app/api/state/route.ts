@@ -4,6 +4,7 @@ import { db } from "@/lib/db/client";
 import { arcTagline } from "@/lib/game/arc-routing";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
 import { loadForm, loadLocation } from "@/lib/game/content";
+import { resolveFirstGoal } from "@/lib/game/goals";
 import { readLog, rowToEvent } from "@/lib/game/events";
 import { loadProjection } from "@/lib/game/projection";
 import {
@@ -69,6 +70,13 @@ export async function GET(req: NextRequest) {
       arcId: ctx.arcId,
       arcTagline: arcTagline(ctx.arcId),
       isTutorial,
+      // Phase 10 P2: form-specific opening + first goal — surfaced
+      // here so the play page can render them without a second
+      // fetch. Both are optional; older forms without the data
+      // simply get a generic hint.
+      formOpening: form.opening ?? null,
+      formDisplayName: form.displayName ?? ctx.formId,
+      firstGoal: resolveFirstGoal(form, projection),
     });
   } catch (err) {
     log.error("state.failed", {
