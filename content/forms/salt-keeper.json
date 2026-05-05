@@ -19,6 +19,7 @@
     "weight": 2
   },
   "verbs": ["cure", "stir", "taste", "stock", "wyrm-savor"],
+  "iconicVerbs": ["cure", "taste", "stock"],
   "verbMappings": {
     "cure": { "tools": ["change_form_state"], "rollStat": "patience" },
     "stir": { "tools": ["change_form_state"], "rollStat": "kindling" },

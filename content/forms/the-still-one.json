@@ -25,6 +25,7 @@
     "withhold",
     "remember"
   ],
+  "iconicVerbs": ["abide", "regard", "withhold"],
   "verbMappings": {
     "abide": { "tools": ["pass_time"], "rollStat": null },
     "regard": { "tools": ["sense"], "rollStat": "awareness" },

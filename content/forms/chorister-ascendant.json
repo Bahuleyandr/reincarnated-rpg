@@ -19,6 +19,7 @@
     "patience": 3
   },
   "verbs": ["chant", "lead", "carry", "rest", "wyrm-line"],
+  "iconicVerbs": ["chant", "lead", "carry"],
   "verbMappings": {
     "chant": { "tools": ["change_form_state"], "rollStat": "will" },
     "lead": { "tools": ["update_relationship"], "rollStat": "will" },

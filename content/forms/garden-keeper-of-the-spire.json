@@ -19,6 +19,7 @@
     "kindling": 2
   },
   "verbs": ["tend", "prune", "wait", "sow", "wyrm-furrow"],
+  "iconicVerbs": ["tend", "prune", "sow"],
   "verbMappings": {
     "tend": { "tools": ["change_form_state"], "rollStat": "patience" },
     "prune": { "tools": ["change_form_state"], "rollStat": "awareness" },

@@ -36,6 +36,8 @@
     "wait"
   ],
 
+  "iconicVerbs": ["sense", "examine", "act"],
+
   "verbMappings": {
     "move":    { "tools": ["move_to"],                   "rollStat": "agility" },
     "sense":   { "tools": ["sense"],                     "rollStat": "awareness" },

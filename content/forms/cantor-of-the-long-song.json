@@ -19,6 +19,7 @@
     "patience": 4
   },
   "verbs": ["distill", "lead", "blend", "rest", "wyrm-tincture"],
+  "iconicVerbs": ["distill", "lead", "blend"],
   "verbMappings": {
     "distill": { "tools": ["change_form_state", "absorb"], "rollStat": "patience" },
     "lead": { "tools": ["update_relationship"], "rollStat": "will" },

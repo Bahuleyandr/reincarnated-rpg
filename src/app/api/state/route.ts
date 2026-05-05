@@ -3,11 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db/client";
 import { arcTagline } from "@/lib/game/arc-routing";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
-import { loadForm, loadLocation } from "@/lib/game/content";
+import { loadBeatPack, loadForm, loadLocation } from "@/lib/game/content";
 import { resolveFirstGoal } from "@/lib/game/goals";
 import { previewContribution } from "@/lib/meta/long-wyrm";
 import { readLog, rowToEvent } from "@/lib/game/events";
 import { loadProjection } from "@/lib/game/projection";
+import { suggestVerbs } from "@/lib/game/verb-suggestions";
+import type { BeatPack } from "@/lib/game/beats";
 import {
   SESSION_COOKIE_NAME,
   verifyCookie,
@@ -51,6 +53,29 @@ export async function GET(req: NextRequest) {
     // fires at session.ended).
     const wyrmRunning = previewContribution(eventList);
 
+    // P9: verb-button suggestions. Source priority is beat → form's
+    // iconicVerbs → form.verbs[]; the helper handles the fallthrough.
+    let beatPack: BeatPack | null = null;
+    if (ctx.arcId) {
+      try {
+        beatPack = loadBeatPack(ctx.arcId);
+      } catch {
+        // Arc has no beat file (read-the-room is form-agnostic but
+        // also has a pack; this branch handles invented arc ids).
+      }
+    }
+    const firedBeatIds = new Set<string>(
+      eventList
+        .filter((e) => e.kind === "quest.objectiveUpdated")
+        .map((e) => (e as { kind: "quest.objectiveUpdated"; objective: string }).objective),
+    );
+    const verbSuggestions = suggestVerbs({
+      form,
+      projection,
+      beatPack,
+      firedBeatIds,
+    });
+
     // Phase 5.5 Day 36-37: surface tutorial flag so the UI can
     // render TutorialHint without a separate fetch.
     const { sessions: sessTbl } = await import("@/lib/db/schema");
@@ -90,6 +115,10 @@ export async function GET(req: NextRequest) {
         delta: wyrmRunning.delta,
         prose: wyrmRunning.prose,
       },
+      // Phase 11 P9: 3 verb-button suggestions — author-curated when
+      // a beat is firing, form-iconic otherwise. The play page
+      // renders these as preset buttons + an escape-hatch text box.
+      verbSuggestions,
     });
   } catch (err) {
     log.error("state.failed", {

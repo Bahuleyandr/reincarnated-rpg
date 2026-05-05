@@ -397,6 +397,12 @@ export interface FormTemplate {
    *  the form's voice. Falls back to a generic "you wake as <form>
    *  in <location>" hint when unset. */
   opening?: string;
+  /** Phase 11 P9 — verb-button suggestions. The 3 most-iconic
+   *  verbs for this form, surfaced as preset buttons on /play
+   *  when no arc beat is currently firing. Order matters: the
+   *  first verb is the most-canonical one. Falls back to the
+   *  first three entries of `verbs[]` if absent. */
+  iconicVerbs?: string[];
   /** Display name from the JSON (e.g. "Lesser Slime"). Used by the
    *  play page's empty-state header — falls back to the form id. */
   displayName?: string;

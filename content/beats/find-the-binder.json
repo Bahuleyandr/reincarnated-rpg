@@ -18,6 +18,11 @@
       "trigger": { "all": [{ "turn": "==1" }] },
       "narrative": "You wake open to a page you did not choose. The candle on the table is still warm. Someone left this room minutes ago — maybe seconds. The page they left you on is the page they wanted seen.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "fall_open", "label": "settle on the chosen page", "description": "let them have the page they wanted seen", "advancesArc": true },
+        { "verb": "decode_passage", "label": "decode this passage", "description": "the cipher has a name half-rendered in it", "advancesArc": true },
+        { "verb": "spark_marginalia", "label": "answer in marginalia", "description": "let them know you noticed the candle", "advancesArc": "branch:provocative" }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",
@@ -38,6 +43,11 @@
       },
       "narrative": "On a shelf in the archive, three identical bound volumes. The middle one carries a single marginal note in fresh charcoal: a name half-finished — three letters and a comma — that is unmistakably yours, partial.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "absorb_word", "label": "absorb the half-name", "description": "take the charcoal mark into your margins", "advancesArc": true },
+        { "verb": "decode_passage", "label": "read what they wanted seen", "description": "the cipher resolves itself when you look closely", "advancesArc": true },
+        { "verb": "spark_marginalia", "label": "complete the name yourself", "description": "finish their letter; let them know you know", "advancesArc": "branch:revealed" }
+      ],
       "fires": [
         {
           "kind": "sensed",
@@ -57,6 +67,11 @@
       },
       "narrative": "A footstep on the stair below the landing. It is not careful. It is not hurried. It is the footstep of someone who knows where you are.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "wait_for_a_reader", "label": "let them open you", "description": "the binder will return for the page they marked", "advancesArc": true },
+        { "verb": "snap_shut", "label": "refuse to be read", "description": "they came for the page; close it on them", "advancesArc": "branch:refused" },
+        { "verb": "bind_reader", "label": "press a thought into them", "description": "they will hold you and not know why", "advancesArc": "branch:turned" }
+      ],
       "fires": [
         {
           "kind": "npc.introduced",
@@ -75,6 +90,11 @@
       "trigger": { "any": [{ "turn": ">=7" }] },
       "narrative": "The breathing above the upper stair changes pitch. It is older than the binder and it is not on anyone's side. If the binder is going to be found, it must happen now.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "wyrm_inscription", "label": "let the older hand write", "description": "a passage in a hand older than language surfaces", "advancesArc": true },
+        { "verb": "bleed_ink", "label": "bleed onto the lectern", "description": "force the binder to acknowledge the stain", "advancesArc": true },
+        { "verb": "decode_passage", "label": "one last decoded passage", "description": "the binder's name, completed", "advancesArc": "branch:exposed" }
+      ],
       "fires": [
         {
           "kind": "sensed",

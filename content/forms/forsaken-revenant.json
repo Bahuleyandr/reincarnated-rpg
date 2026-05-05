@@ -25,6 +25,7 @@
     "return",
     "endure"
   ],
+  "iconicVerbs": ["refuse", "watch", "endure"],
   "verbMappings": {
     "refuse": { "tools": ["change_form_state"], "rollStat": "will" },
     "watch": { "tools": ["sense"], "rollStat": "awareness" },

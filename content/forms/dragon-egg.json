@@ -39,6 +39,8 @@
     "wait"
   ],
 
+  "iconicVerbs": ["listen", "absorb_warmth", "dream_outward"],
+
   "verbMappings": {
     "rock":           { "tools": ["change_form_state"],                       "rollStat": "kindling" },
     "hum_low":        { "tools": ["sense", "introduce_npc"],                  "rollStat": "will" },
