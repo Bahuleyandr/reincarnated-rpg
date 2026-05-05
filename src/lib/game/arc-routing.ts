@@ -268,6 +268,18 @@ const ROUTES: ArcRoute[] = [
       "A child has joined the climbing party. Their voice is small. The line of chant must carry them up three notches before the wind takes any of you.",
     startingRoomId: "the-pass-square",
   },
+  // The Rust-hand marks iron rings with slow controlled
+  // weathering so the sea's quick corrosion can't find weakness
+  // underneath. A halfling Drowncaller is here in person because
+  // the last batch failed at sea. Mark the batch before dawn.
+  {
+    arcId: "the-joining",
+    formId: "rust-hand-ascendant",
+    locationId: "knots-landing",
+    tagline:
+      "The last batch of rigging rusted at sea. The Drowncaller has come up from the Anchorage. Mark the new batch before the morning barges.",
+    startingRoomId: "the-ropewalk",
+  },
 ];
 
 export interface PickedArc {
