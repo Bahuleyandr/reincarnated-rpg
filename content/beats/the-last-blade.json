@@ -1,0 +1,139 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "Five-beat arc for iron-hand-ascended in Threadwarden. The Iron-hand's last named blade — a piece of work begun three years ago, finished tonight. Cold forging requires the humid air of Threadwarden's basin and a master's slow patience; the named blade is the master's signature, the piece of work that will outlast them. The journeyman who has been at this bench nineteen years watches as a witness — the master names a blade only once in their career, traditionally, and the journeyman must see it to inherit the bench. Win: forge>=10 AND memory>=10 at turn>=8 (the right name surfaces; the blade carries it). Lose: memory<=0 (no name surfaced; the blade goes nameless and the work is forfeit; the journeyman inherits incomplete)."
+  },
+
+  "id": "the-last-blade",
+  "displayName": "The Last Blade",
+  "questId": "the-last-blade",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-cold-forge",
+      "displayName": "The Cold Forge",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "The forge is banked low — just warm, the colour of an embers-memory. The blade has been on the bench three years. Tonight is the night you name it. The cold strikes that have shaped it into its final form are done; what remains is the temper, the watch, and the name. The journeyman has not yet arrived. They will. They have been at this bench for nineteen years and they will not miss this.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "forge", "label": "bring the blade up", "description": "the first heat of the working night; cold-forged iron taken to its working temper, slowly", "advancesArc": true },
+        { "verb": "rest", "label": "rest with the blade", "description": "three years of work; the last night begins with you sitting beside it, not striking it", "advancesArc": true },
+        { "verb": "temper", "label": "begin the temper", "description": "the cold-forge's temper is the last temper; bring the blade to the colour your master taught you", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-last-blade",
+          "objective": "name-the-blade",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-tempering",
+      "displayName": "The Tempering",
+      "trigger": {
+        "any": [
+          { "turn": ">=2" },
+          { "form.state.brought_up": ">=1" }
+        ]
+      },
+      "narrative": "The temper is the slow part. The cold-forged iron does not flash through the colours the way a hot-forged blade does — it walks them, slowly, and the master's eye catches each one as it passes. Straw, brown, peacock, blue. The blade you are tempering tonight has had its colours waiting in it since the first cold strike three years ago.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "temper", "label": "walk the colours", "description": "straw, brown, peacock, blue; the blade walks them; you watch them pass; you stop at the right one", "advancesArc": true },
+        { "verb": "forge", "label": "settle the heat", "description": "the temper wants steady; the forge under the bench wants tending; bring it to even", "advancesArc": true },
+        { "verb": "rest", "label": "rest at peacock", "description": "the third colour; the colour your master stopped at; you have the choice to continue or end here", "advancesArc": "branch:peacock-stop" }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "brought_up",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "03-the-journeyman-arrives",
+      "displayName": "The Journeyman Arrives",
+      "trigger": {
+        "any": [
+          { "turn": ">=4" },
+          { "form.state.tempered": ">=1" }
+        ]
+      },
+      "narrative": "The journeyman steps into the forge without speaking. They sit on the stool your master used to sit on while watching you. They do not greet you; the work is mid-temper; the silence is the appropriate gift. Their being here is the witness — without a witness, the named blade does not pass cleanly into the bench's lineage; with one, the bench inherits the blade's name as part of its working memory.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "forge", "label": "forge with witness", "description": "the work continues at its right pace; the journeyman's eye learns what nineteen years has not yet shown them", "advancesArc": true },
+        { "verb": "rest", "label": "rest at their arrival", "description": "the journeyman is present; the witness is in place; the next step waits for the right moment", "advancesArc": true },
+        { "verb": "temper", "label": "complete the temper", "description": "with witness present; the colours pass; the blade arrives at the colour your master taught", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-journeyman-smith",
+          "data": {
+            "name": "the journeyman",
+            "relationship": 3,
+            "templateId": "the-journeyman-smith"
+          }
+        }
+      ]
+    },
+    {
+      "id": "04-the-name-surfaces",
+      "displayName": "The Name Surfaces",
+      "trigger": {
+        "any": [
+          { "turn": ">=6" },
+          { "form.vitals.memory": "<=14" }
+        ]
+      },
+      "narrative": "The blade is at temper. The journeyman is in place. The forge is cooled to the holding heat. The next thing is the name. The name is not chosen; the name arrives. The Iron-hand's craft is to be the kind of person a name can arrive in — to have done the three years of work that the right name will recognize and walk into. The master who taught you said: a blade you cannot name is a blade you have not finished. The name is yours to receive.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "name", "label": "let the name arrive", "description": "the right name surfaces from the three years of work; you do not choose it; you recognize it", "advancesArc": true },
+        { "verb": "rest", "label": "rest into the receiving", "description": "the name does not hurry; the bench has waited three years; another quarter-hour does not matter", "advancesArc": true },
+        { "verb": "wyrm-strike", "label": "strike with the wyrm-line", "description": "the older mode; the name carried in the metal already, surfacing under your last cold strike", "advancesArc": "branch:wyrm-named" }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "name_received",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-the-blade-named",
+      "displayName": "The Blade Named",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.forge": ">=10" },
+          { "form.vitals.memory": ">=10" }
+        ]
+      },
+      "narrative": "The name lands on the blade — a single word in iron, struck into the tang where it will not show, but will be there forever. The journeyman exhales for what is probably the first time in twenty minutes. The blade is finished. The bench has its memory. Tomorrow's work is the journeyman's now, partly; the master's, partly; the blade's name will be in the bench when both of you have moved on. The forge cools. The morning will be there in three hours.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "name", "label": "set the name into the tang", "description": "one strike, clean; the iron takes it; the blade is named for as long as iron is iron", "advancesArc": true },
+        { "verb": "rest", "label": "rest at completion", "description": "three years of work, finished; the journeyman's witness in place; the bench's lineage continues", "advancesArc": true },
+        { "verb": "forge", "label": "bank the forge for morning", "description": "the next blade is the journeyman's first; ease the forge to their working heat, not yours", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-last-blade",
+          "objective": "name-the-blade",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}

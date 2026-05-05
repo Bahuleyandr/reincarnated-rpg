@@ -327,6 +327,19 @@ const ROUTES: ArcRoute[] = [
       "The season's largest order is on the racks. The fire must hold the right red across eight hours of cold. An apprentice is watching.",
     startingRoomId: "the-tincture-room",
   },
+  // The Iron-hand sets the name on their last named blade —
+  // three years of cold-forged work finished tonight. The
+  // journeyman who has been at this bench nineteen years
+  // watches as the witness without whom the bench's lineage
+  // does not pass cleanly.
+  {
+    arcId: "the-last-blade",
+    formId: "iron-hand-ascended",
+    locationId: "threadwarden",
+    tagline:
+      "Three years on the bench. Tonight the blade gets its name. Your journeyman comes to witness. The name is yours to receive.",
+    startingRoomId: "the-cold-forges",
+  },
 ];
 
 export interface PickedArc {
