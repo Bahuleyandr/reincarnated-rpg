@@ -29,6 +29,8 @@
     "test:unit": "jest --testPathPatterns=tests/unit",
     "test:integration": "npm run test:db && jest --testPathPatterns=tests/integration --runInBand --testTimeout=15000",
     "test:e2e": "playwright test",
+    "ci:local": "bash scripts/ci-local.sh",
+    "ci:local:fast": "bash scripts/ci-local.sh --fast",
     "eval": "tsx eval/runner.ts",
     "smoke": "node scripts/smoke.mjs",
     "report:ai-cost": "tsx scripts/report-ai-cost.ts"
