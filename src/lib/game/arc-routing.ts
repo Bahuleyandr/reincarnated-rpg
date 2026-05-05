@@ -242,6 +242,19 @@ const ROUTES: ArcRoute[] = [
       "A visitor reaches the threshold of the place where you sit. They have brought a name they cannot say. Hold the silence; choose with weight.",
     startingRoomId: "the-silence-gate",
   },
+  // The Salt Keeper finds a sour note in the dawn-cup before the
+  // dawn bell. A young deacon will be down for services in three
+  // hours and will taste it themselves if no work has been done.
+  // Either cure the lot back to good or accept what the year
+  // gave you. Either is a kept year.
+  {
+    arcId: "the-sour-pull",
+    formId: "salt-keeper",
+    locationId: "salt-cathedral",
+    tagline:
+      "The third barrel has gone sour overnight. The dawn bell is three hours out. Pull it back, or offer what the year was able to give.",
+    startingRoomId: "side-chapel",
+  },
 ];
 
 export interface PickedArc {
