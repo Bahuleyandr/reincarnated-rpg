@@ -42,6 +42,17 @@
     "absorb": "rejected — 'you would not survive what is in me.'"
   },
 
+  "dueling": {
+    "acceptance": 0.95,
+    "modifier": 2,
+    "trashTalk": [
+      "my master will not be amused.",
+      "you have wagered more than you brought to the table.",
+      "this will be remembered. as all things are."
+    ],
+    "refusalLine": "I do not duel softlings. there is paperwork."
+  },
+
   "metadata": {
     "templateId": "rhozell",
     "recurring": true,

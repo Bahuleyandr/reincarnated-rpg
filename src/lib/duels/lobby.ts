@@ -12,7 +12,28 @@ import { duels, users } from "../db/schema";
 import { uuidv7 } from "../util/uuidv7";
 
 export type ChallengeResult =
-  | { ok: true; duelId: string }
+  | {
+      ok: true;
+      duelId: string;
+      /** When the target was an NPC, this carries the immediate
+       *  outcome — accepted+resolved or refused. Player-target
+       *  challenges leave this field undefined; they wait for
+       *  the human to respond. */
+      npcOutcome?:
+        | {
+            outcome: "refused";
+            refusalLine: string | null;
+          }
+        | {
+            outcome: "resolved";
+            challengerRoll: number;
+            targetRoll: number;
+            winnerUserId: string | null;
+            winnerNpcTemplateId: string | null;
+            tied: boolean;
+            trashTalk: string | null;
+          };
+    }
   | {
       ok: false;
       error:
@@ -87,7 +108,85 @@ export async function challengeUser(
     contextQuote: args.contextQuote ?? null,
     expiresAt,
   });
+
+  // Phase 9 T5.5 follow-up — auto-flow for NPC targets. Roll
+  // acceptance from the NPC template; on accept, immediately
+  // run the resolution. Both transitions persist on the same
+  // duel row so the player gets a complete outcome in one
+  // request.
+  if (targetNpcTemplateId) {
+    const { getNpcDuelStats, rollAcceptance } = await import(
+      "./npc-stats"
+    );
+    const npc = getNpcDuelStats(targetNpcTemplateId);
+    const accepts = rollAcceptance({
+      seed: simpleHashLocal(id),
+      acceptance: npc.acceptance,
+    });
+    if (!accepts) {
+      await db
+        .update(duels)
+        .set({ status: "refused", decidedAt: new Date() })
+        .where(eq(duels.id, id));
+      return {
+        ok: true,
+        duelId: id,
+        npcOutcome: {
+          outcome: "refused",
+          refusalLine: npc.refusalLine,
+        },
+      };
+    }
+    // Accept → resolve in line.
+    await db
+      .update(duels)
+      .set({ status: "accepted", decidedAt: new Date() })
+      .where(eq(duels.id, id));
+    const { resolveDuel } = await import("./resolve");
+    const r = await resolveDuel(db, id);
+    if (r.ok) {
+      const trashTalk = pickTrashTalk(npc.trashTalk, id);
+      return {
+        ok: true,
+        duelId: id,
+        npcOutcome: {
+          outcome: "resolved",
+          challengerRoll: r.challengerRoll,
+          targetRoll: r.targetRoll,
+          winnerUserId: r.winnerUserId,
+          winnerNpcTemplateId: r.winnerNpcTemplateId,
+          tied: r.tied,
+          trashTalk,
+        },
+      };
+    }
+    // Resolve failure (shouldn't happen after we set accepted) —
+    // return the duel id and let the caller see it sitting in
+    // "accepted".
+    return { ok: true, duelId: id };
+  }
+
   return { ok: true, duelId: id };
+}
+
+function simpleHashLocal(s: string): number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h;
+}
+
+function pickTrashTalk(
+  pool: string[],
+  duelId: string,
+): string | null {
+  if (pool.length === 0) return null;
+  // Deterministic pick from the duel id so the same id picks the
+  // same line on replay.
+  const h = simpleHashLocal(duelId);
+  return pool[h % pool.length] ?? null;
 }
 
 export type RespondResult =

@@ -28,5 +28,15 @@
       "never apologizes; explains",
       "calls the book by a name the book has not given them"
     ]
+  },
+  "dueling": {
+    "acceptance": 0.25,
+    "modifier": 1,
+    "trashTalk": [
+      "i did not come here for this.",
+      "you should have asked the book first.",
+      "your hand is shaking. mine is not."
+    ],
+    "refusalLine": "i bind. i do not break. find someone else."
   }
 }
