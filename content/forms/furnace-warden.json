@@ -35,6 +35,41 @@
       { "id": "wyrm-glow", "narrative": "The fire glowed at a color you did not feed it. The Long Wyrm has breathed across your forge.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
     ]
   },
+  "phraseBank": {
+    "bank": {
+      "success": ["You bank the fire the way your master taught you. Green ash, slow oak, lid. The breathing through the lid is steady all night.", "Your bank is correct. The fire will be exactly where you left it in six hours."],
+      "partial": ["You bank. The ash is uneven on the western side; tomorrow's morning will need a careful hand.", "Your bank holds. A line of heat escapes through the lid in a way you did not intend."],
+      "miss": ["You bank, and the fire drops lower than you have allowed in years.", "Your bank fails to seal. The fire breathes too freely; the fuel will be gone before dawn."]
+    },
+    "stoke": {
+      "success": ["You stoke. The flame finds the new wood the way it always has, and the heat lifts a clean step.", "Your stoking is precise. The fire takes one log and asks for no more."],
+      "partial": ["You stoke. The fire takes the log; the log was wetter than you accounted for.", "Your stoke is good. The smoke rises in the wrong colour for a moment."],
+      "miss": ["You stoke. The log smothers the heart of the fire; the flame retreats.", "Your stoking is rough. The fire chokes for a count of three before recovering."]
+    },
+    "watch": {
+      "success": ["You sit back the right distance from the heat and listen. The fire makes the right sound.", "Your watch is patient. The fire's breathing is even; the room's air is steady."],
+      "partial": ["You watch. The fire's sound has a tic in it that wasn't there an hour ago.", "Your watch holds. A small thing in the ash has shifted; you will note it tomorrow."],
+      "miss": ["You watch. Sleep takes you for a moment. When you return, the fire has dropped a step.", "Your watch fails. Something in the fuel pile has settled audibly without you noticing."]
+    },
+    "rest": {
+      "success": ["You set yourself down with your back to the heat and rest. The fire watches you tonight.", "Your rest is real. The fire holds itself steady; tomorrow's stoking will be smaller."],
+      "partial": ["You rest. The rest is shorter than the fire wanted you to take.", "Your rest holds. The fire pops once, hard, and you almost miss it."],
+      "miss": ["You try to rest. The fire's breathing is wrong, and your bones know.", "Your rest fails before it begins. The night will be long."]
+    },
+    "wyrm-glow": {
+      "success": ["The fire glows at a colour you did not feed it. The Long Wyrm has breathed across your forge tonight.", "Your fire takes on a depth of light older than your apprenticeship. You sit further back."],
+      "partial": ["The Wyrm-glow enters. The Wyrm-glow also draws something across the room that you cannot quite see.", "Your forge brightens unnaturally. The brightness costs a portion of your fuel."],
+      "miss": ["You reach for the Wyrm's older heat and find only your own bank.", "The Wyrm is not at the forge tonight. The fire is your fire."]
+    },
+    "wait": {
+      "success": ["You hold position by the fire. The night passes. The fire is where you left it."],
+      "partial": ["You wait. The room has cooled by a degree your bones noticed before your awareness did."],
+      "miss": ["You wait. The fire has dropped past comfort while you were not paying attention."]
+    }
+  },
+
+  "opening": "Third hour after midnight is the worst of the cold. You sit back exactly far enough from the furnace that the heat reaches you and does not warm you past comfort. The fire's breathing is steady through the bank lid. The forge has not gone out in your lifetime. Yours is not the only lifetime it will see.",
+
   "sampleCorpus": {
     "rule": "Furnace Warden prose is hot, attentive, alert to the sound of the flame.",
     "passages": [

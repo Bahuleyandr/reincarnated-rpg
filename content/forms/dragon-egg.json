@@ -147,6 +147,176 @@
     ]
   },
 
+  "phraseBank": {
+    "rock": {
+      "success": [
+        "You shift inside your shell. The nest's straw resettles around you. The mother's wing-warmth presses closer.",
+        "A small rock through your axis and the shell rolls a quarter-turn. The world outside is now slightly different."
+      ],
+      "partial": [
+        "You rock. A line of stress travels through your shell that wasn't there before.",
+        "Your shift is heard. Something nearby pauses to listen."
+      ],
+      "miss": [
+        "You strain against the curl of yourself. The shell does not move.",
+        "Your rock stops in the middle of itself. The straw under you has settled in a way that resists."
+      ]
+    },
+    "hum_low": {
+      "success": [
+        "A low hum builds inside your shell and the air in the nest takes on the warmth of breath.",
+        "Your hum carries through the membrane. The dam stirs. She knows you are awake."
+      ],
+      "partial": [
+        "The hum starts. The hum drops a half-step into a register you didn't intend, and the dam frowns in her sleep.",
+        "You hum. The shell rings just slightly off its true note."
+      ],
+      "miss": [
+        "The hum dies in your throat — wherever your throat will be. Your shell stays cool.",
+        "You try to hum. The straw absorbs whatever sound makes it past the shell."
+      ]
+    },
+    "kindle_glow": {
+      "success": [
+        "A small light blooms inside the shell. The nest's straw warms perceptibly. The dam shifts toward you.",
+        "Your shell brightens from within. Anyone outside the nest would see a soft amber pulse through the curtain of feathers."
+      ],
+      "partial": [
+        "The glow takes. The glow also leaks through a hairline you didn't know your shell had.",
+        "You kindle. The light is brighter than you meant, and the dam wakes."
+      ],
+      "miss": [
+        "Your kindling sputters. The shell stays cold.",
+        "The glow forms, then collapses inward. Whatever fuel you had, it wasn't enough."
+      ]
+    },
+    "listen": {
+      "success": [
+        "Sounds arrive through the shell as pressures and rhythms. Two heartbeats — yours and the dam's. A drip, somewhere, of meltwater. A sound that is not bird.",
+        "Your shell amplifies what reaches it. You hear the nest as a chamber, the cliff as a wall, the sky as a low rolling pressure that comes and goes."
+      ],
+      "partial": [
+        "The world reaches you, but the shell distorts it. You hear two of one thing and none of another.",
+        "You listen. The listening tells you something. The thing it tells you is incomplete."
+      ],
+      "miss": [
+        "The shell deadens what should have come through. You hear only your own heat.",
+        "Your listening reaches and finds the membrane between you and the outside, and stops."
+      ]
+    },
+    "absorb_warmth": {
+      "success": [
+        "The dam's wing-warmth folds itself into your shell. You feel a measurable increase in your reserves.",
+        "You take what the nest offers. The warmth crosses the membrane and settles into the slow yolk of you."
+      ],
+      "partial": [
+        "You absorb the warmth. You also absorb a little of the dam's exhaustion with it.",
+        "Heat enters. Heat also enters in a place you did not mean it to."
+      ],
+      "miss": [
+        "The warmth slides over your shell and away. Whatever in you was meant to receive it was facing the wrong way.",
+        "You reach for the heat. The heat is real. The connection between you and it is not."
+      ]
+    },
+    "dream_outward": {
+      "success": [
+        "You dream past the shell, past the nest, past the cliff. You see — without seeing — a stretch of valley, a road, a column of smoke.",
+        "Your dream extends. It returns with a fact about the world above that you should not yet know."
+      ],
+      "partial": [
+        "The dream goes far. The dream comes back with something attached to it.",
+        "Your reach succeeds and overshoots. You see something you were not ready to see."
+      ],
+      "miss": [
+        "The dream fails to leave the shell. You see only the inside of yourself.",
+        "Your outward sight bounces back from the membrane. The world stays opaque."
+      ]
+    },
+    "hatch_partial": {
+      "success": [
+        "A line of stress walks across your shell, and a single small piece — no larger than a fingernail — gives. Air enters.",
+        "Your shell cracks once, cleanly, in the place you intended. The world pours in through the gap."
+      ],
+      "partial": [
+        "A crack opens. The crack is jagged, and one of your scales is now exposed in the open air.",
+        "The shell yields where you pushed. It also yields where you didn't."
+      ],
+      "miss": [
+        "The shell holds. Whatever you put against it, it would not give.",
+        "You push. The shell pushes back. You are bruised under your own membrane."
+      ]
+    },
+    "warmth_pulse": {
+      "success": [
+        "A pulse of heat travels out from your core to your shell and back. The nest is warmer for a long minute afterward.",
+        "Your warmth pulses outward. The dam's heart slows; she relaxes around you."
+      ],
+      "partial": [
+        "The pulse reaches your shell. The pulse also reaches farther than the nest, and something on the cliff turns its head.",
+        "You pulse. The pulse takes more of your reserve than you expected."
+      ],
+      "miss": [
+        "Your warmth refuses to pulse. It pools at your core and stays there.",
+        "You attempt the pulse. The shell absorbs it and gives nothing back."
+      ]
+    },
+    "shell_song": {
+      "success": [
+        "A note rises in the shell itself, the kind of note an old bell makes. Whatever hears it knows what you are.",
+        "Your shell sings. The song is older than the dam who keeps you, and she pauses to listen."
+      ],
+      "partial": [
+        "The song begins. The song also gives away your nest's location to anything that knows what to listen for.",
+        "Your shell rings. The ring is not quite the note it was supposed to be."
+      ],
+      "miss": [
+        "The shell does not sing. Whatever you tried to coax from it has gone elsewhere.",
+        "Your song catches in your shell and dies as a hum."
+      ]
+    },
+    "memory_dream": {
+      "success": [
+        "A memory that is not yours surfaces — a flight over a long ridge, an updraft, a thermal that did not quite hold. You file it carefully.",
+        "You dream a memory that belongs to a previous dragon. It is a useful memory."
+      ],
+      "partial": [
+        "The memory comes. The memory is incomplete in a way that troubles you.",
+        "You dream. The dream gives you a name, and the name does not have a face yet."
+      ],
+      "miss": [
+        "The memory you reached for is not yours, and not anyone's. It was never written.",
+        "Your dream finds an empty room. Whatever was there has already been remembered by someone else."
+      ]
+    },
+    "wyrm_kin_call": {
+      "success": [
+        "You call the way young dragons call, and beneath the cliff, far down, something older answers. It does not speak. It does not need to.",
+        "Your call goes into the rock. The Long Wyrm registers it as kin. The registering is itself a kind of claim."
+      ],
+      "partial": [
+        "The call reaches. The call also draws the dam's attention, and she will be more careful with you tomorrow.",
+        "You call. The Wyrm answers, faintly, and the answer leaves a thread in your shell."
+      ],
+      "miss": [
+        "Your call goes into the rock and stops there. The Wyrm is not listening to you.",
+        "You reach for kin. The Wyrm is a kind of kin. The kind of kin it is, is not the kind that responds."
+      ]
+    },
+    "wait": {
+      "success": [
+        "You let the nest do the work. The dam's warmth, the slow weight of the straw, your own slow yolk. Time helps."
+      ],
+      "partial": [
+        "You wait. Time moves; a small portion of your warmth moves with it."
+      ],
+      "miss": [
+        "You wait. The cliff is colder than it should be. Something in the nest has changed and you are not sure what."
+      ]
+    }
+  },
+
+  "opening": "Awareness arrives curled. You are inside a shell, inside a nest, inside the warmth of a dam who has chosen to stay. The world reaches you as pressures: the slow heart above, the wind off the cliff, the drip of meltwater somewhere out of reach. You have time. Whatever you become has not yet been decided.",
+
   "sampleCorpus": {
     "rule": "Hand-authored second-person egg-POV passages. The egg's agency is internal: it senses, it warms, it dreams, but everything outside is mediated by the shell.",
     "passages": [

@@ -91,6 +91,66 @@
     ]
   },
 
+  "phraseBank": {
+    "move": {
+      "success": ["You move. The way you move is the way you have always moved in this shape.", "You shift position. Whatever passes for your gravity adjusts."],
+      "partial": ["You move. The going was easier than the arriving.", "You shift, but a part of you stays where it was."],
+      "miss": ["You try to move. The shape will not yet do what you asked.", "You go nowhere. The trying costs you a little."]
+    },
+    "sense": {
+      "success": ["The world arrives in whatever way your new shape receives it. The information is real.", "Your awareness widens. The room tells you what it has to tell."],
+      "partial": ["You sense. The reading is incomplete; one piece of it is missing.", "Your awareness reaches and returns. The return brings a fact you had not asked for."],
+      "miss": ["Your sense reaches and finds nothing it can read.", "You try to sense. The shape is not yet shaped for this kind of reaching."]
+    },
+    "act": {
+      "success": ["You commit, and the act commits with you. The world bends a little.", "Your action lands. Whatever was supposed to change, has."],
+      "partial": ["You act. The act is a little bigger than you intended.", "You do the thing. The thing has a small unintended companion."],
+      "miss": ["You try, and the trying does not find the world.", "Your action does not catch. The world has not been told yet."]
+    },
+    "attack": {
+      "success": ["You strike. The strike connects clean.", "You go for the target. The target gives in the way you wanted."],
+      "partial": ["Your attack lands. The landing also brings their attention to you in a way you cannot undo.", "You strike. The strike is true; it costs more than you expected."],
+      "miss": ["You attack and miss. The thing you struck at is unmoved, and watching.", "Your strike does not catch. You will need a different kind of effort."]
+    },
+    "defend": {
+      "success": ["You set yourself against what is coming. The blow lands and does not pass through.", "Your defense holds. The shape of your body — whatever shape it is — has the right rigidity."],
+      "partial": ["You defend. The defending costs more than the strike would have.", "You hold. A piece of you that should be hidden is now visible."],
+      "miss": ["You try to defend. Some part of you is not where it should be when the blow arrives.", "Your defense fails. The blow finds you cleanly."]
+    },
+    "examine": {
+      "success": ["You give the thing your full attention. It returns information you had not asked for, in the best way.", "You examine, and the examined thing reveals itself."],
+      "partial": ["You examine. The information is half-true.", "Your examination is good. It is also slow, and slowness is a cost today."],
+      "miss": ["You examine. The thing has nothing to tell you that you did not already know.", "Your examination misses. The detail you wanted was on the side you did not look at."]
+    },
+    "speak": {
+      "success": ["You communicate, in whatever way your shape communicates. The hearer listens.", "What you say lands. The room takes a small step toward you."],
+      "partial": ["You communicate. The hearer takes most of it. The part they miss is the part you needed.", "Your communication carries. It carries less far than you wanted."],
+      "miss": ["You try to communicate. The shape does not allow the word.", "Your speaking does not reach. Whatever you wanted said, did not arrive."]
+    },
+    "emit": {
+      "success": ["You emit, and the emission carries. The world is changed by a measurable degree.", "Your emission is steady. Whoever was meant to receive it, has."],
+      "partial": ["You emit. The emission also reaches farther than you intended.", "Your emission carries. It carries with a thread of something you did not mean to send."],
+      "miss": ["You try to emit. The shape is not configured for it today.", "Your emission stalls. Nothing leaves you that the room can catch."]
+    },
+    "alter": {
+      "success": ["You change a thing, and the thing accepts the change.", "Your alteration takes. The before and after are now different in the way you wanted."],
+      "partial": ["You alter. The alteration takes; an adjacent thing changes too.", "Your change holds. It changes more than you bargained for."],
+      "miss": ["You attempt to alter. The thing refuses the change.", "Your alteration does not stick. The thing reverts."]
+    },
+    "contain": {
+      "success": ["You hold what was loose. Your shape has space for it; the holding settles.", "Your containment is firm. The thing is yours now, in whatever sense holding makes things yours."],
+      "partial": ["You contain. The contained thing is restless.", "Your hold is good. The holding costs."],
+      "miss": ["You try to contain. The thing slips your shape.", "Your containment fails. Whatever you reached for is loose, again."]
+    },
+    "wait": {
+      "success": ["You hold position. Time moves around you the way time moves."],
+      "partial": ["You wait. A part of the world has shifted that you did not catch."],
+      "miss": ["You wait. The waiting was wrong; what was coming, came, while you held still."]
+    }
+  },
+
+  "opening": "You wake to a place you do not recognise and a body that is not the one you went to sleep in. The first thing that returns is shape — your shape. It is unfamiliar in the way that the back of an old key is unfamiliar: the parts that work are clear, the parts that don't are not yet missed. There is no announcement. No one is here to tell you what you are. You will have to find out by trying.",
+
   "sampleCorpus": {
     "rule": "Five short universal passages anchored on second-person + sensory detail. Deliberately vague about anatomy so the narrator can specialize them to whatever form the player declared. The last three demonstrate flavoring for absurd or mundane reincarnations — vending machine, fork, signpost — to show the narrator that ANY declared form should be treated with the same care as a slime or a dragon. The narrator should NOT copy these verbatim — use them to lock register and cadence, then write fresh prose for the player's actual declaration.",
     "passages": [

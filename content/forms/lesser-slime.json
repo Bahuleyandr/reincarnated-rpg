@@ -147,6 +147,101 @@
     ]
   },
 
+  "phraseBank": {
+    "absorb": {
+      "success": [
+        "You fold the morsel into your essence; the chemistry of it is welcome.",
+        "Your forward edge envelops the thing and dissolves what it carries."
+      ],
+      "partial": [
+        "The absorb begins, then the wrongness arrives."
+      ],
+      "miss": [
+        "Whatever you reached for slips your boundary and is gone, and worse comes after."
+      ]
+    },
+    "ooze": {
+      "success": [
+        "You let your forward edge thin and pour yourself ahead.",
+        "Gravity does most of the deciding; you merely permit it."
+      ],
+      "partial": [
+        "You move, but the floor's chemistry pulls a piece of you the wrong direction."
+      ],
+      "miss": [
+        "You go, but the going makes a sound, and something is now listening."
+      ]
+    },
+    "split": {
+      "success": [
+        "You think two thoughts at once. Briefly, you are two boundaries around one essence."
+      ],
+      "partial": [
+        "Two of you persist for an instant; one of you remembers something the other cannot."
+      ],
+      "miss": [
+        "The split fails. You remain one, but one cohered around a wound."
+      ]
+    },
+    "sense_tremor": {
+      "success": [
+        "You let your boundary widen; the room writes itself across your awareness."
+      ],
+      "partial": [
+        "Your awareness widens, and the answers it returns are not the ones you wanted."
+      ],
+      "miss": [
+        "Your boundary widens, and the cavern writes silence across your awareness, and that, too, is information."
+      ]
+    },
+    "dissolve": {
+      "success": [
+        "Your acids find weakness in the matter and unmake it without ceremony."
+      ],
+      "partial": [
+        "You weaken the matter, but a vapor rises from the breakdown that you cannot ignore."
+      ],
+      "miss": [
+        "Your acids waste themselves on the wrong thing."
+      ]
+    },
+    "smother": {
+      "success": [
+        "You spread across what breathes and let it breathe nothing."
+      ],
+      "partial": [
+        "You pin the breath, but its panic carries on a chemistry you taste long after."
+      ],
+      "miss": [
+        "Whatever you spread across had no breath to take."
+      ]
+    },
+    "mimic_shape": {
+      "success": [
+        "Your boundary remembers the shape of stillness, and you become a part of the floor."
+      ],
+      "partial": [
+        "You keep the shape, mostly. A small portion of you remains a slime."
+      ],
+      "miss": [
+        "Your boundary refuses the shape; you are wholly yourself, in the wrong place."
+      ]
+    },
+    "wait": {
+      "success": [
+        "You remain very still. Time passes through you like water."
+      ],
+      "partial": [
+        "Time passes through you, and not all of it leaves you unchanged."
+      ],
+      "miss": [
+        "Time passes. Time does not care about you."
+      ]
+    }
+  },
+
+  "opening": "You wake up wet. The chemistry of the world arrives before your senses do — wet stone underneath, a shifting saltiness above, the faint warmth of something living several feet away. You have no eyes. You have no hands. You are a boundary around an essence, and the boundary is hungry.",
+
   "sampleCorpus": {
     "rule": "Five hand-authored second-person slime-POV passages. Embedded in the system prompt as one-shot exemplars. Match this tone, register, sentence cadence, and vocabulary.",
     "passages": [

@@ -51,48 +51,10 @@ interface SlimeFormJson extends FormTemplate {
   hardMoves: { rule: string; moves: HardMove[] };
 }
 
-const SUCCESS_PHRASES: Record<string, string[]> = {
-  absorb: [
-    "You fold the morsel into your essence; the chemistry of it is welcome.",
-    "Your forward edge envelops the thing and dissolves what it carries.",
-  ],
-  ooze: [
-    "You let your forward edge thin and pour yourself ahead.",
-    "Gravity does most of the deciding; you merely permit it.",
-  ],
-  split: ["You think two thoughts at once. Briefly, you are two boundaries around one essence."],
-  sense_tremor: ["You let your boundary widen; the room writes itself across your awareness."],
-  dissolve: ["Your acids find weakness in the matter and unmake it without ceremony."],
-  smother: ["You spread across what breathes and let it breathe nothing."],
-  mimic_shape: [
-    "Your boundary remembers the shape of stillness, and you become a part of the floor.",
-  ],
-  wait: ["You remain very still. Time passes through you like water."],
-};
-
-const PARTIAL_PHRASES: Record<string, string[]> = {
-  absorb: ["The absorb begins, then the wrongness arrives."],
-  ooze: ["You move, but the floor's chemistry pulls a piece of you the wrong direction."],
-  split: ["Two of you persist for an instant; one of you remembers something the other cannot."],
-  sense_tremor: ["Your awareness widens, and the answers it returns are not the ones you wanted."],
-  dissolve: ["You weaken the matter, but a vapor rises from the breakdown that you cannot ignore."],
-  smother: ["You pin the breath, but its panic carries on a chemistry you taste long after."],
-  mimic_shape: ["You keep the shape, mostly. A small portion of you remains a slime."],
-  wait: ["Time passes through you, and not all of it leaves you unchanged."],
-};
-
-const MISS_PHRASES: Record<string, string[]> = {
-  absorb: ["Whatever you reached for slips your boundary and is gone, and worse comes after."],
-  ooze: ["You go, but the going makes a sound, and something is now listening."],
-  split: ["The split fails. You remain one, but one cohered around a wound."],
-  sense_tremor: [
-    "Your boundary widens, and the cavern writes silence across your awareness, and that, too, is information.",
-  ],
-  dissolve: ["Your acids waste themselves on the wrong thing."],
-  smother: ["Whatever you spread across had no breath to take."],
-  mimic_shape: ["Your boundary refuses the shape; you are wholly yourself, in the wrong place."],
-  wait: ["Time passes. Time does not care about you."],
-};
+// Form-specific phrase banks now live in the form JSON's `phraseBank`
+// field (see content/forms/<form>.json and FormTemplate.phraseBank).
+// `pickPhrase` reads from the form template at runtime and falls
+// back to GENERIC_FALLBACKS for verbs the form's bank doesn't cover.
 
 /**
  * Generic fallback lines for verbs the form's phrase banks don't
@@ -151,12 +113,12 @@ export class TemplateNarrator implements Narrator {
     // path) or rolled them back (tool-validation path).
     if (input.previousAttempt) {
       return {
-        text: pickPhrase(verb, band, input.roll.seed ^ 0x1),
+        text: pickPhrase(this.form, verb, band, input.roll.seed ^ 0x1),
         toolCalls: [{ name: "narrate_only" }],
       };
     }
 
-    const text = pickPhrase(verb, band, input.roll.seed);
+    const text = pickPhrase(this.form, verb, band, input.roll.seed);
     const toolCalls = toolsFor(
       verb,
       band,
@@ -169,17 +131,27 @@ export class TemplateNarrator implements Narrator {
   }
 }
 
-function pickPhrase(verb: string, band: RollBand, seed: number): string {
-  const bank =
-    band === "success" ? SUCCESS_PHRASES : band === "partial" ? PARTIAL_PHRASES : MISS_PHRASES;
-  const formSpecific = bank[verb];
-  if (formSpecific && formSpecific.length > 0) {
-    const idx = Math.abs(seed | 0) % formSpecific.length;
-    return formSpecific[idx];
+function pickPhrase(
+  form: FormTemplate,
+  verb: string,
+  band: RollBand,
+  seed: number,
+): string {
+  // 1. The form's own phraseBank is preferred. Each verb has up to
+  //    3 lists (success / partial / miss). A `wait` entry doubles
+  //    as the "no specific verb match" fallback within the form.
+  const bank = form.phraseBank;
+  if (bank) {
+    const verbBank = bank[verb] ?? bank.wait;
+    const list = verbBank?.[band];
+    if (list && list.length > 0) {
+      const idx = Math.abs(seed | 0) % list.length;
+      return list[idx];
+    }
   }
-  // Form's phrase bank doesn't cover this verb — fall back to the
-  // generic table and substitute the player's verb so the prose at
-  // least echoes the action they took.
+  // 2. Generic fallback — substitute the player's verb so the prose
+  //    at least echoes the action they took. Used for any form
+  //    that doesn't ship a phraseBank, or for verbs outside it.
   const generic = GENERIC_FALLBACKS[band];
   const idx = Math.abs(seed | 0) % generic.length;
   return generic[idx].replace("{verb}", normaliseVerb(verb));

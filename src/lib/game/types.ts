@@ -377,6 +377,26 @@ export interface FormTemplate {
    *  rolls the default 2d6. See src/lib/game/rules.ts for the
    *  catalog and rationale per form. */
   dice?: "2d6" | "3d6kh2" | "2d6r1" | "1d12";
+  /** Phase 10 form-specific narrator phrase bank. Optional per-verb
+   *  prose for each roll band. The TemplateNarrator picks a phrase
+   *  deterministically by `seed % bank.length`. When a verb isn't
+   *  in the bank, or the bank is missing entirely, the narrator
+   *  falls back to a generic line that echoes the verb. The slime
+   *  ships the original 8-verb bank in its JSON; new forms add
+   *  their own. See src/lib/narrator/template.ts. */
+  phraseBank?: Record<
+    string,
+    {
+      success?: string[];
+      partial?: string[];
+      miss?: string[];
+    }
+  >;
+  /** Phase 10 form-specific opening scene. Rendered on the play
+   *  page when the transcript is empty (turn 0). 1-3 sentences in
+   *  the form's voice. Falls back to a generic "you wake as <form>
+   *  in <location>" hint when unset. */
+  opening?: string;
 }
 
 export interface LocationRoom {

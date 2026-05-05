@@ -40,6 +40,41 @@
       { "id": "wyrm-savor", "narrative": "Today's batch carries a flavor you have not added. The Long Wyrm has salted the air over your work.", "tools": [{ "name": "change_form_state", "field": "wyrm_attuned", "delta": 1 }] }
     ]
   },
+  "phraseBank": {
+    "cure": {
+      "success": ["You set the cure. The salt finds the meat the way it always has, and the rack settles into its slow work.", "Your hand measures without measuring. The cure is right. It will hold for the year."],
+      "partial": ["You set the cure. The salt is uneven on the rack's far side; one batch will keep less well.", "Your cure takes. It takes a week longer than you wanted."],
+      "miss": ["The cure refuses to set. The brine is wrong, or the meat is, or the day is — but it is not yours today.", "You salt the rack. The salt does not bind. You will repack it in the morning."]
+    },
+    "stir": {
+      "success": ["You stir the brine. The flavor folds in evenly; the air over the barrel does not announce itself.", "Your spoon turns slow. The cure deepens, and you can taste the year in it without lifting the spoon."],
+      "partial": ["You stir. The barrel has a corner that did not turn with the rest. You will catch it next time.", "Your stirring is honest. The brine, today, is not entirely honest back."],
+      "miss": ["You stir. The brine separates at the surface; something has gone subtly off and you cannot place it.", "Your spoon meets a thickness it should not have. The barrel will need attention you do not have today."]
+    },
+    "taste": {
+      "success": ["You take a small taste from the spoon. The cure is right; the patience in it is exactly the patience you put there.", "Your palate confirms what your nose already knew. The brine has a year of weather in it and no surprises."],
+      "partial": ["You taste. The cure is correct, but a single note is louder than it should be. The next batch will need adjusting.", "Your taste is true. What it tells you is more complicated than you wanted to hear."],
+      "miss": ["You taste, and the brine has turned. You will not serve it.", "Your spoon comes up wrong. Whatever this barrel is, it is not what was promised on its label."]
+    },
+    "stock": {
+      "success": ["You take stock of the cool room. The barrels are where they should be; the racks are dated; the choir will eat well between verses.", "Your inventory settles. There is enough. There has always been enough, when you have done the work."],
+      "partial": ["You stock the room. The count is off by one in a place you cannot remember walking past.", "Your inventory holds. A jar's seal is loose; you will reseal it tomorrow."],
+      "miss": ["You stock and find a barrel missing. Someone has taken without asking.", "Your count comes up short. The shortage is small. The shortage is also unexplained."]
+    },
+    "wyrm-savor": {
+      "success": ["A flavor enters your batch that you did not put there. The Long Wyrm has salted the air over your work, again. You leave it.", "The brine carries a taste older than your trade. You do not add to it; you do not subtract."],
+      "partial": ["The Wyrm-savor enters the batch. The Wyrm-savor also enters the next batch over, which you had meant to keep clean.", "Your work draws the Wyrm's attention. Your barrel is changed for the better. Your patience is changed for the worse."],
+      "miss": ["You reach for the savor the Wyrm sometimes lends, and find only your own salt.", "The Wyrm is not in the air today. Your batch is your batch."]
+    },
+    "wait": {
+      "success": ["You let the cure work. Time is the third ingredient, after salt and patience."],
+      "partial": ["You wait. A barrel at the back has shifted; you will straighten it tomorrow."],
+      "miss": ["You wait. A jar has cracked in the cool room overnight, and you only smell it now."]
+    }
+  },
+
+  "opening": "The cool room is dark and smells of salt and the slow patience of years. Barrels along the eastern wall, racks of meat along the north. Your hand finds a label without your eye needing to. The choir will sing again on Founding Day, and what they eat between verses is your work.",
+
   "sampleCorpus": {
     "rule": "Salt-Keeper prose is sensory, slow, attentive to taste and time.",
     "passages": [
