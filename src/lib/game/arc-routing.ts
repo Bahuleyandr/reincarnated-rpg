@@ -214,6 +214,21 @@ const ROUTES: ArcRoute[] = [
     tagline:
       "Doors open. Hearths warm. Nobody. Find three clues to what called the villagers away.",
   },
+  // First arc for an ascended form. The Revenant returned to the
+  // village to refuse, not to belong. Tonight someone they once
+  // refused will ask again — first as a chapel bell, then in
+  // person. Hold the watch and the refusal until dawn.
+  {
+    arcId: "refuse-the-bell",
+    formId: "forsaken-revenant",
+    locationId: "forsaken-village",
+    tagline:
+      "It is the third hour. The bell tolls a name you said no to once. They are walking up the road. Hold the watch.",
+    // The Revenant wakes at the village-edge — the road is theirs,
+    // per the form's opening prose. The chapel where the bell
+    // tolls is reachable from there in one move.
+    startingRoomId: "village-edge",
+  },
 ];
 
 export interface PickedArc {
