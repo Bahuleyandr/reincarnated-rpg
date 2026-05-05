@@ -30,6 +30,10 @@ export async function GET(req: NextRequest) {
   const minPrice = minPriceRaw ? Number.parseInt(minPriceRaw, 10) : undefined;
   const limit = Number.parseInt(url.searchParams.get("limit") ?? "25", 10);
   const mine = url.searchParams.get("mine") === "1";
+  const locationId =
+    url.searchParams.get("locationId") ?? undefined;
+  const exclusiveRegion =
+    url.searchParams.get("exclusiveRegion") === "1";
 
   // "Your listings" view requires a session; the public browse
   // path does not.
@@ -60,7 +64,13 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const rows = await browseListings(db, { itemId, limit, minPrice });
+  const rows = await browseListings(db, {
+    itemId,
+    limit,
+    minPrice,
+    locationId,
+    exclusiveRegion,
+  });
   return NextResponse.json({
     listings: rows.map((r) => ({
       id: r.id,
@@ -90,6 +100,7 @@ export async function POST(req: NextRequest) {
     pricePerUnit?: unknown;
     note?: unknown;
     currentInventoryQty?: unknown;
+    locationId?: unknown;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -105,6 +116,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
   const note = typeof body.note === "string" ? body.note : null;
+  const postLocationId =
+    typeof body.locationId === "string" && body.locationId.length > 0
+      ? body.locationId
+      : null;
   const r = await listItem(db, {
     sellerUserId: verified.userId,
     itemId: body.itemId,
@@ -112,6 +127,7 @@ export async function POST(req: NextRequest) {
     pricePerUnit: body.pricePerUnit,
     note,
     currentInventoryQty: body.currentInventoryQty,
+    locationId: postLocationId,
   });
   if (!r.ok) {
     return NextResponse.json(r, { status: 400 });

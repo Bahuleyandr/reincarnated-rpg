@@ -17,7 +17,7 @@
  * coins.spent ('marketplace:purchase:<itemId>') for buyer. The
  * 10% fee never goes to a user — it disappears (sink).
  */
-import { and, asc, eq, gt, gte, lte } from "drizzle-orm";
+import { and, asc, eq, gt, gte, isNull, lte, or } from "drizzle-orm";
 
 import { applyCoinDelta, getCoins } from "../economy/coins";
 import type { Db } from "../db/client";
@@ -47,6 +47,9 @@ export interface ListInputs {
    *  emission lives on the caller's side via the standard
    *  inventory.removed pipeline. */
   currentInventoryQty: number;
+  /** Phase 9 T3.4 — region the listing is posted from. Optional;
+   *  null falls into the global pool (visible everywhere). */
+  locationId?: string | null;
 }
 
 export type ListError =
@@ -98,6 +101,7 @@ export async function listItem(
     status: "active",
     listedAt: now,
     expiresAt: new Date(now.getTime() + LISTING_DURATION_MS),
+    locationId: args.locationId ?? null,
   });
   return { ok: true, id };
 }
@@ -107,6 +111,13 @@ export interface BrowseFilter {
   limit?: number;
   /** Skip listings cheaper than this. */
   minPrice?: number;
+  /** Phase 9 T3.4 — restrict to a specific region. Listings with
+   *  null locationId (global pool) are still included unless
+   *  exclusiveRegion=true. */
+  locationId?: string;
+  /** When true, ONLY show listings from the given locationId
+   *  (excludes global pool). Default false. */
+  exclusiveRegion?: boolean;
 }
 
 export async function browseListings(
@@ -124,6 +135,18 @@ export async function browseListings(
   }
   if (typeof filter.minPrice === "number") {
     conds.push(gte(marketplaceListings.pricePerUnit, filter.minPrice));
+  }
+  if (filter.locationId) {
+    if (filter.exclusiveRegion) {
+      conds.push(eq(marketplaceListings.locationId, filter.locationId));
+    } else {
+      // Region OR global (null locationId is the global pool).
+      const regional = or(
+        eq(marketplaceListings.locationId, filter.locationId),
+        isNull(marketplaceListings.locationId),
+      );
+      if (regional) conds.push(regional);
+    }
   }
   return db
     .select()

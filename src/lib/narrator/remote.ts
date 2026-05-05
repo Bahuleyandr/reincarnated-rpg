@@ -362,6 +362,18 @@ const TOOL_DEFINITIONS: ProviderTool[] = [
     },
   },
   {
+    name: "travel_to",
+    description:
+      "Move the active session to a different city or town. Costs 3 turns of in-game time (server-enforced). Use only when the player explicitly says they're traveling (\"I head north toward Highfield\", \"I take the road to Saltgale\"). Provide a known location id from the atlas (caelum-by-the-wash, threadwarden, saltgale, highfield-ascending, the-coral-anchorage, the-long-indices, plus the small towns three-notches, coldspoon, mudmoth, tallowfen, cataract-mile, quietmile, furrowmouth, knots-landing, briny-bell, crab-by-crab). Cannot travel to the current location.",
+    input_schema: {
+      type: "object",
+      properties: {
+        locationId: { type: "string" },
+      },
+      required: ["locationId"],
+    },
+  },
+  {
     name: "narrate_only",
     description:
       "Emit no mechanical change this turn. Use this when nothing in projection state changes.",

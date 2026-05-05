@@ -174,6 +174,19 @@ export function reduce(state: Projection, event: Event): Projection {
     case "moved":
       return reduceMoved(state, event);
 
+    case "region.changed":
+      // Phase 9 inter-city travel. Switch projection.location to
+      // the new region; reset discovered to just the entry room
+      // (the player hasn't seen anything else yet).
+      return {
+        ...state,
+        location: {
+          id: event.toLocation,
+          roomId: event.toRoom,
+          discovered: [event.toRoom],
+        },
+      };
+
     case "time.passed":
       return {
         ...state,

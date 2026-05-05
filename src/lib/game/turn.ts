@@ -820,7 +820,60 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
+  // Phase 9 inter-city travel: resolve the $ENTRY placeholder on
+  // any region.changed events. The validator emitted them with a
+  // placeholder because it doesn't have the destination
+  // LocationTemplate; here we load it and substitute the entry
+  // room (or the per-(form, location) starting-room override).
+  // If the destination doesn't exist, log a warning and drop the
+  // event — the run continues unchanged.
+  for (let i = 0; i < pendingEvents.length; i++) {
+    const e = pendingEvents[i];
+    if (e.kind !== "region.changed") continue;
+    if (e.toRoom !== "$ENTRY") continue;
+    try {
+      const { loadLocation } = await import("./content");
+      const destLoc = loadLocation(e.toLocation);
+      const startRoom =
+        pickStartingRoom(form.id, e.toLocation) ?? destLoc.entryRoomId;
+      pendingEvents[i] = { ...e, toRoom: startRoom };
+    } catch (err) {
+      log.warn("turn.travel.unknown_destination", {
+        sessionId,
+        toLocation: e.toLocation,
+        err: err instanceof Error ? err.message : String(err),
+      });
+      // Drop the malformed travel event — keep everything else.
+      pendingEvents.splice(i, 1);
+      i -= 1;
+    }
+  }
+
   await appendEvents(db, sessionId, pendingEvents);
+  // After travel, the LocationTemplate the orchestrator has cached
+  // is stale. Re-resolve it for the snapshot reconstruction +
+  // future calls — but only when a region.changed event landed.
+  const traveled = pendingEvents.find(
+    (e): e is Event & { kind: "region.changed" } =>
+      e.kind === "region.changed",
+  );
+  if (traveled) {
+    try {
+      const { loadLocation } = await import("./content");
+      const newLoc = loadLocation(traveled.toLocation);
+      // Mutate the local 'location' for the writeSnapshot pass +
+      // remaining hooks below. Subsequent turns will pull fresh.
+      (location as unknown as { id: string; rooms: unknown }).id =
+        newLoc.id;
+      (location as unknown as { entryRoomId: string }).entryRoomId =
+        newLoc.entryRoomId;
+      (
+        location as unknown as { rooms: typeof newLoc.rooms }
+      ).rooms = newLoc.rooms;
+    } catch {
+      /* already logged above */
+    }
+  }
   projection = await loadProjection(db, sessionId, form, location);
   await writeSnapshot(db, projection);
 
@@ -1027,128 +1080,21 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     });
   }
 
-  // Dialogue persistence (post-Phase-8). For each
-  // dialogue.exchanged event this turn, append a row to
-  // dialogue_turns + attempt to fill the npc_reply by
-  // extracting the first quoted span from the narration text.
-  // Best-effort; replay-from-zero reproduces the row from the
-  // event log alone (npcReply is derived, not authoritative).
-  try {
-    const { appendExchange, fillReply } = await import(
-      "../dialogue/thread"
-    );
-    const dialogueEvents = pendingEvents.filter(
-      (e): e is Event & { kind: "dialogue.exchanged" } =>
-        e.kind === "dialogue.exchanged",
-    );
-    if (dialogueEvents.length > 0) {
-      const narrationEvent = pendingEvents.find(
-        (e): e is Event & { kind: "narration.emitted" } =>
-          e.kind === "narration.emitted",
-      );
-      const narrationText = narrationEvent?.text ?? "";
-      for (const e of dialogueEvents) {
-        const npcEntry = projection.npcs[e.npcId] as
-          | (Record<string, unknown> & { templateId?: unknown })
-          | undefined;
-        const templateId =
-          npcEntry && typeof npcEntry.templateId === "string"
-            ? npcEntry.templateId
-            : e.npcId.replace(/-[0-9a-f]{8}$/, "");
-        const inserted = await appendExchange(db, {
-          sessionId,
-          npcId: e.npcId,
-          npcTemplateId: templateId,
-          utterance: e.utterance,
-          turn: turnNumber,
-        });
-        if (inserted && narrationText) {
-          const quoteMatch = narrationText.match(
-            /[“"][^”"]{1,200}[”"]/,
-          );
-          const reply = quoteMatch
-            ? quoteMatch[0].slice(1, -1)
-            : narrationText.slice(0, 200);
-          await fillReply(db, inserted.id, reply);
-        }
-      }
-    }
-  } catch (err) {
-    log.warn("turn.dialogue.persist_failed", {
+  // Phase 9 T6.5 — extracted post-event hooks. Replaces 3
+  // inline try/catch blocks (~120 lines total) with a single
+  // call into src/lib/game/turn-side-effects.ts. Each hook
+  // (dialogue persistence, marketplace listings, daily progress)
+  // still runs best-effort; the structure is just less in-place.
+  {
+    const { runPostEventHooks } = await import("./turn-side-effects");
+    await runPostEventHooks({
+      db,
       sessionId,
-      err: err instanceof Error ? err.message : String(err),
+      pendingEvents,
+      projection,
+      world: world ?? null,
+      turnNumber,
     });
-  }
-
-  // Marketplace listing persistence (Phase 9). For each
-  // marketplace.listed event this turn, insert a row into
-  // marketplace_listings via the existing listings lib. The
-  // companion inventory.removed already escrowed the item; here
-  // we mint the listing row so /api/marketplace can surface it.
-  // Replay-from-zero reproduces every row from the event log.
-  try {
-    const listEvents = pendingEvents.filter(
-      (e): e is Event & { kind: "marketplace.listed" } =>
-        e.kind === "marketplace.listed",
-    );
-    if (listEvents.length > 0 && world?.userId) {
-      const { listItem } = await import("../marketplace/listings");
-      for (const e of listEvents) {
-        const r = await listItem(db, {
-          sellerUserId: world.userId,
-          itemId: e.itemId,
-          qty: e.qty,
-          pricePerUnit: e.pricePerUnit,
-          note: e.note,
-          // The escrow already ran via inventory.removed in the
-          // same batch, so the qty is by definition adequate.
-          currentInventoryQty: e.qty,
-        });
-        if (!r.ok) {
-          log.warn("turn.marketplace.list_failed", {
-            sessionId,
-            itemId: e.itemId,
-            error: r.error,
-          });
-        }
-      }
-    }
-  } catch (err) {
-    log.warn("turn.marketplace.persist_failed", {
-      sessionId,
-      err: err instanceof Error ? err.message : String(err),
-    });
-  }
-
-  // Daily-run progress (Phase 9 growth bet). When the current
-  // session is a daily run, push the latest status + turn count
-  // + score into daily_runs. Best-effort; non-daily sessions and
-  // anon runs no-op.
-  if (world?.userId) {
-    try {
-      const { findDailyForSession, updateDailyProgress } = await import(
-        "../daily/challenge"
-      );
-      const daily = await findDailyForSession(db, sessionId);
-      if (daily) {
-        const status = projection.status as
-          | "active"
-          | "won"
-          | "dead"
-          | "capped";
-        await updateDailyProgress(db, {
-          userId: daily.userId,
-          utcDate: daily.utcDate,
-          status,
-          turnCount: projection.turn,
-        });
-      }
-    } catch (err) {
-      log.warn("turn.daily.progress_failed", {
-        sessionId,
-        err: err instanceof Error ? err.message : String(err),
-      });
-    }
   }
 
   // Anti-farm counter bumps (Phase 5 Day 26 follow-up). Per-vendor

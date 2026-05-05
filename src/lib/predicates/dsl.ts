@@ -211,6 +211,10 @@ const TOOL_TO_KINDS: Record<ToolCall["name"], readonly string[]> = {
   // + marketplace.listed (audit). Either signal counts as "the
   // player invoked list_item this slice".
   list_item: ["marketplace.listed"],
+  // Phase 9 inter-city travel: travel_to emits time.passed +
+  // region.changed. The region.changed event is the canonical
+  // "this run moved cities" signal.
+  travel_to: ["region.changed"],
   narrate_only: [],
 };
 
