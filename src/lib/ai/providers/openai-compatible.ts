@@ -35,6 +35,10 @@ import type {
   ProviderToolUse,
 } from "../provider";
 import { withRetry } from "../../util/retry";
+import {
+  createReasoningFilter,
+  stripReasoningTags,
+} from "../strip-reasoning-tags";
 
 interface OpenAIChatRequest {
   model: string;
@@ -163,7 +167,10 @@ export class OpenAICompatibleProvider implements AIProvider {
       throw new Error("OpenAI-compatible response had no choices");
     }
 
-    const text = choice.message.content ?? "";
+    // Reasoning-model output (MiniMax-M2.7, DeepSeek-R1, QwQ, etc.)
+    // wraps chain-of-thought in `<think>…</think>` blocks. Strip
+    // before returning so the narrator gets only the answer.
+    const text = stripReasoningTags(choice.message.content ?? "");
     const toolUses: ProviderToolUse[] = (choice.message.tool_calls ?? []).map(
       (tc) => {
         let input: Record<string, unknown> = {};
@@ -271,6 +278,10 @@ export class OpenAICompatibleProvider implements AIProvider {
     const decoder = new TextDecoder();
     let buffer = "";
     let text = "";
+    // Reasoning-model output filter — drops `<think>…</think>` blocks
+    // chunk-by-chunk so the player never sees a chain-of-thought
+    // monologue, even mid-stream. No-op for non-reasoning models.
+    const reasoningFilter = createReasoningFilter();
     let stopReason = "stop";
     let rawModel = args.model;
     let usage: {
@@ -327,8 +338,15 @@ export class OpenAICompatibleProvider implements AIProvider {
           const delta = choice.delta;
           if (!delta) continue;
           if (delta.content) {
-            text += delta.content;
-            events.onText?.(delta.content);
+            // Filter out <think>…</think> chunks before storing or
+            // emitting. The full final text passes through the
+            // streaming filter chunk by chunk; visible deltas are
+            // what the user-facing onText callback receives.
+            const visible = reasoningFilter.feed(delta.content);
+            if (visible) {
+              text += visible;
+              events.onText?.(visible);
+            }
           }
           if (delta.tool_calls) {
             for (const tc of delta.tool_calls) {
@@ -359,6 +377,16 @@ export class OpenAICompatibleProvider implements AIProvider {
       const tu = { id: t.id, name: t.name, input };
       toolUses.push(tu);
       events.onToolUse?.(tu);
+    }
+
+    // Drain any tail held by the reasoning-filter (a partial open
+    // tag that turned out to just be literal text, etc.). Empty
+    // when the stream ended mid-think — the filter intentionally
+    // drops that.
+    const tail = reasoningFilter.end();
+    if (tail) {
+      text += tail;
+      events.onText?.(tail);
     }
 
     return {
