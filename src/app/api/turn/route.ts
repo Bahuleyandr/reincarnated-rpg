@@ -87,6 +87,33 @@ export async function POST(req: NextRequest) {
   let energySpent = false;
   let turnCommitted = false;
   try {
+    // Phase 9 T5.1 follow-up — co-play turn-lock. If this session
+    // is bound to an active party, only the currentTurnUserId may
+    // submit input. Other members can still GET state.
+    try {
+      const { getPartyForSession, isUsersTurn } = await import(
+        "@/lib/parties/coordination"
+      );
+      const party = await getPartyForSession(db, sessionId);
+      if (
+        party &&
+        party.status === "active" &&
+        verified.userId &&
+        !isUsersTurn(party, verified.userId)
+      ) {
+        return NextResponse.json(
+          {
+            error: "not_your_turn",
+            currentTurnUserId: party.currentTurnUserId,
+            partyId: party.id,
+          },
+          { status: 423 },
+        );
+      }
+    } catch {
+      /* coordination is best-effort; missing party = passthrough */
+    }
+
     // Energy gate: each turn costs 1. If the player is at 0 (after
     // refill), 429 with the post-refill view so the UI can render
     // "next refill in Xm". Logged-in users charge users.energy; anon
@@ -269,6 +296,42 @@ export async function POST(req: NextRequest) {
       starterBonus: ctx.starterBonus,
       userId: verified.userId ?? null,
     });
+
+    // Phase 9 T3.2 follow-up: pre-fetch race for the per-turn
+    // race-mod hook. Anon sessions get null.
+    let raceId:
+      | "human"
+      | "elven"
+      | "dwarven"
+      | "halfling"
+      | "orcish"
+      | null = null;
+    if (verified.userId) {
+      try {
+        const { users: usersForRace } = await import(
+          "@/lib/db/schema"
+        );
+        const { eq: eqForRace } = await import("drizzle-orm");
+        const r = await db
+          .select({ race: usersForRace.race })
+          .from(usersForRace)
+          .where(eqForRace(usersForRace.id, verified.userId))
+          .limit(1);
+        const v = r[0]?.race;
+        if (
+          v === "human" ||
+          v === "elven" ||
+          v === "dwarven" ||
+          v === "halfling" ||
+          v === "orcish"
+        ) {
+          raceId = v;
+        }
+      } catch {
+        /* race lookup is best-effort */
+      }
+    }
+
     const result = await runTurn({
       db,
       sessionId,
@@ -281,6 +344,7 @@ export async function POST(req: NextRequest) {
       turnCap: turnCapOverride,
       starterFormState,
       moderation,
+      raceId,
       world: verified.userId
         ? {
             userId: verified.userId,

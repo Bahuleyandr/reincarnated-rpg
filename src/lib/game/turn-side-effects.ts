@@ -151,6 +151,36 @@ export async function updateDailyRunProgress(
 }
 
 /**
+ * Phase 9 T5.1 follow-up — co-play turn rotation. If the session
+ * is bound to an active party, advance currentTurnUserId to the
+ * next member. On session.ended, transition the party to ended.
+ */
+export async function rotatePartyTurn(
+  ctx: PostEventHookContext,
+): Promise<void> {
+  try {
+    const { getPartyForSession, advanceTurn, endParty } = await import(
+      "../parties/coordination"
+    );
+    const party = await getPartyForSession(ctx.db, ctx.sessionId);
+    if (!party || party.status !== "active") return;
+    const sessionEnded = ctx.pendingEvents.some(
+      (e) => e.kind === "session.ended",
+    );
+    if (sessionEnded) {
+      await endParty(ctx.db, party.id);
+      return;
+    }
+    await advanceTurn(ctx.db, party.id);
+  } catch (err) {
+    log.warn("turn.party.rotate_failed", {
+      sessionId: ctx.sessionId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+/**
  * Run all post-event hooks in sequence. Each hook is independently
  * best-effort — a failure in one does not skip the others.
  */
@@ -160,4 +190,5 @@ export async function runPostEventHooks(
   await persistDialogueExchanges(ctx);
   await persistMarketplaceListings(ctx);
   await updateDailyRunProgress(ctx);
+  await rotatePartyTurn(ctx);
 }

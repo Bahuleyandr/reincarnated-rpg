@@ -97,6 +97,11 @@ export interface RunTurnArgs {
    *  "clean" is the default. "injection" is filtered at the route and
    *  never reaches runTurn. */
   moderation?: ModerationOutcome;
+  /** Phase 9 T3.2 follow-up — player's declared race. Threaded
+   *  through to the per-turn race-mechanic hook (lib/race/run-hooks)
+   *  which applies +/- to the roll mod when the intent + location
+   *  match a per-race rule. Null for anon sessions / undeclared. */
+  raceId?: "human" | "elven" | "dwarven" | "halfling" | "orcish" | null;
 }
 
 export interface TurnResult {
@@ -272,7 +277,36 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       });
     }
   }
-  const mod = baseMod + luckPenalty + adaptiveBonus;
+  // Phase 9 T3.2 follow-up — race-specific roll modifier. Logs
+  // the reason (e.g. dwarven-enclosed, halfling-naval) on the
+  // turn record so analytics can attribute it.
+  let raceMod = 0;
+  let raceModReason: string | null = null;
+  try {
+    const { applyRaceRollModifier } = await import("../race/run-hooks");
+    const currentRoom = location.rooms.find(
+      (r) => r.id === projection.location.roomId,
+    );
+    const eff = applyRaceRollModifier({
+      raceId: args.raceId ?? null,
+      intent: intent.verb,
+      location: { id: projection.location.id },
+      room: { id: currentRoom?.id ?? projection.location.roomId },
+    });
+    raceMod = eff.delta;
+    raceModReason = eff.reason;
+  } catch {
+    /* race hooks are best-effort */
+  }
+  const mod = baseMod + luckPenalty + adaptiveBonus + raceMod;
+  if (raceMod !== 0) {
+    log.info("turn.race.mod_applied", {
+      sessionId,
+      raceId: args.raceId,
+      delta: raceMod,
+      reason: raceModReason,
+    });
+  }
   // Phase 9: form-specific dice variants. Defaults to 2d6 when
   // the form doesn't opt in.
   const diceVariant = form.dice ?? "2d6";
