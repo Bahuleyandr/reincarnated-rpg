@@ -171,9 +171,11 @@ export default function Dashboard() {
   return (
     <main className="min-h-screen bg-stone-950 text-stone-200 font-mono px-6 py-10">
       <div className="max-w-3xl mx-auto space-y-8">
-        <header className="flex items-baseline justify-between">
-          <h1 className="text-xl text-stone-100">{user.username}'s runs</h1>
-          <div className="flex items-center gap-4 text-xs text-stone-500">
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between">
+          <h1 className="text-xl text-stone-100 break-words">
+            {user.username}&apos;s runs
+          </h1>
+          <div className="flex items-center gap-4 text-xs text-stone-500 flex-wrap">
             <Link
               href="/character"
               className="hover:text-stone-300 underline underline-offset-2"

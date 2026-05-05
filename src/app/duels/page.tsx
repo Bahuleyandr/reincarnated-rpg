@@ -23,9 +23,36 @@ interface OutgoingDuel {
   targetNpcTemplateId: string | null;
   status: string;
   challengedAtMs: number;
+  challengerRoll: number | null;
+  targetRoll: number | null;
+  winnerSide: "challenger" | "target" | "tied" | null;
 }
 
 type Folder = "incoming" | "outgoing" | "challenge";
+
+/** Maps the ChallengeResult / RespondResult error enums (defined in
+ *  src/lib/duels/lobby.ts) to player-friendly copy. Anything we don't
+ *  recognise falls through to the raw enum so it's still surfaced. */
+function humaniseDuelError(code: string | undefined, fallback: string): string {
+  switch (code) {
+    case "no_target":
+      return "pick a target first.";
+    case "self_challenge":
+      return "you can't duel yourself.";
+    case "target_not_found":
+      return "no player with that name.";
+    case "already_pending":
+      return "you already have a pending challenge against them.";
+    case "duel_not_found":
+      return "that duel no longer exists.";
+    case "not_target":
+      return "this challenge isn't yours to answer.";
+    case "wrong_status":
+      return "this challenge has already been answered.";
+    default:
+      return code ? `${code} — ${fallback}` : fallback;
+  }
+}
 
 export default function DuelsPage() {
   const [folder, setFolder] = useState<Folder>("incoming");
@@ -151,7 +178,7 @@ export default function DuelsPage() {
         setContextQuote("");
         await load();
       } else {
-        setMsg(`error: ${d.error ?? r.statusText}`);
+        setMsg(humaniseDuelError(d.error, r.statusText));
       }
     } finally {
       setBusy(false);
@@ -186,7 +213,7 @@ export default function DuelsPage() {
         }
         await load();
       } else {
-        setMsg(`error: ${d.error ?? r.statusText}`);
+        setMsg(humaniseDuelError(d.error, r.statusText));
       }
     } finally {
       setBusy(false);
@@ -212,11 +239,14 @@ export default function DuelsPage() {
         </header>
 
         <p className="text-xs text-stone-500 leading-relaxed">
-          opt-in 1v1. each side rolls 2d6 with a +1 if their race matches
-          the duel&apos;s contextFaction. higher total wins; ties count as
-          ties. accept = instant resolve. anything beyond the roll
-          (reputation, coin) is intentionally absent — duels are about
-          the moment.
+          opt-in 1v1. against another player, each side rolls 2d6 with a
+          +1 if their race matches the duel&apos;s context faction; the
+          target accepts or refuses, and an accept resolves instantly.
+          against a recurring NPC, the duel auto-flows: the NPC rolls
+          their own acceptance, and on accept rolls 2d6 + their dueling
+          modifier in one round-trip. higher total wins; ties count as
+          ties. anything beyond the roll (reputation, coin) is
+          intentionally absent — duels are about the moment.
         </p>
 
         <nav className="flex gap-1 border-b border-stone-800">
@@ -356,25 +386,57 @@ export default function DuelsPage() {
             {outgoing.map((d) => (
               <li
                 key={d.id}
-                className="border border-stone-800 px-3 py-2 flex items-baseline gap-2"
+                className="border border-stone-800 px-3 py-2 space-y-1"
               >
-                <span className="text-xs text-stone-200">
-                  {d.targetUsername ?? d.targetNpcTemplateId ?? "?"}
-                </span>
-                <span
-                  className={`text-[10px] uppercase tracking-wide ${
-                    d.status === "pending"
-                      ? "text-amber-400"
-                      : d.status === "resolved"
-                        ? "text-emerald-400"
-                        : "text-stone-500"
-                  }`}
-                >
-                  {d.status}
-                </span>
-                <span className="text-[10px] text-stone-600 ml-auto">
-                  {new Date(d.challengedAtMs).toLocaleString()}
-                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xs text-stone-200">
+                    {d.targetUsername ?? d.targetNpcTemplateId ?? "?"}
+                  </span>
+                  <span
+                    className={`text-[10px] uppercase tracking-wide ${
+                      d.status === "pending"
+                        ? "text-amber-400"
+                        : d.status === "resolved"
+                          ? "text-emerald-400"
+                          : d.status === "refused"
+                            ? "text-red-400"
+                            : "text-stone-500"
+                    }`}
+                  >
+                    {d.status}
+                  </span>
+                  <span className="text-[10px] text-stone-600 ml-auto">
+                    {new Date(d.challengedAtMs).toLocaleString()}
+                  </span>
+                </div>
+                {d.status === "resolved" &&
+                  d.challengerRoll !== null &&
+                  d.targetRoll !== null && (
+                    <div className="text-[10px] text-stone-500">
+                      <span
+                        className={
+                          d.winnerSide === "challenger"
+                            ? "text-emerald-400"
+                            : d.winnerSide === "target"
+                              ? "text-red-400"
+                              : "text-stone-400"
+                        }
+                      >
+                        {d.winnerSide === "challenger"
+                          ? "you won"
+                          : d.winnerSide === "target"
+                            ? "you lost"
+                            : "tied"}
+                      </span>
+                      <span className="ml-2">
+                        you {d.challengerRoll} ·{" "}
+                        {d.targetUsername ??
+                          d.targetNpcTemplateId ??
+                          "target"}{" "}
+                        {d.targetRoll}
+                      </span>
+                    </div>
+                  )}
               </li>
             ))}
           </ul>

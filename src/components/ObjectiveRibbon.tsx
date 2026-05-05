@@ -32,19 +32,32 @@ export function ObjectiveRibbon() {
 
   useEffect(() => {
     let cancelled = false;
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     async function load() {
       try {
         const r = await fetch("/api/objectives");
-        if (r.ok && !cancelled) setData(await r.json());
+        if (cancelled) return;
+        if (r.ok) {
+          setData(await r.json());
+          return;
+        }
+        // 401 = anon user. Stop polling so we don't spam the
+        // server with auth-failures every 60s for the rest of
+        // the session.
+        if (r.status === 401 && intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
       } catch {
-        /* anon users / 401 — silently hide */
+        /* network error — try again on the next tick */
       }
     }
     load();
-    const id = setInterval(load, 60_000);
+    intervalId = setInterval(load, 60_000);
     return () => {
       cancelled = true;
-      clearInterval(id);
+      if (intervalId) clearInterval(intervalId);
     };
   }, []);
 

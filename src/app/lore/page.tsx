@@ -6,7 +6,10 @@
  * Server component: renders fresh on each request, cached upstream
  * by /api/lore/public's 5-min in-memory cache.
  */
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = { title: "world lore" };
 
 interface LoreEntry {
   id: string;

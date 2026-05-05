@@ -94,6 +94,43 @@ const MISS_PHRASES: Record<string, string[]> = {
   wait: ["Time passes. Time does not care about you."],
 };
 
+/**
+ * Generic fallback lines for verbs the form's phrase banks don't
+ * cover. The trial run made the narrator's repetition obvious — a
+ * dungeon-core trying "claim this room as my domain" hit the same
+ * "Time does not care about you." line over and over.
+ *
+ * `{verb}` is replaced with the player's input verb, lower-cased, so
+ * the player at least sees their action echoed. Each band has 6+
+ * lines so a normal session doesn't recycle them visibly.
+ */
+const GENERIC_FALLBACKS: Record<RollBand, string[]> = {
+  success: [
+    "The {verb} lands. The world bends, and stays bent.",
+    "You {verb}, and what answers you is not the world resisting.",
+    "The {verb} works. Something downstream notices.",
+    "You commit, and the {verb} commits with you.",
+    "The shape of {verb} holds. The room is changed by a degree.",
+    "You {verb}, and the doing of it is reflected back at you, intact.",
+  ],
+  partial: [
+    "You {verb}, but only most of it lands.",
+    "The {verb} half-takes. The other half is somewhere you cannot see.",
+    "You {verb}; the world meets you halfway, and asks for a price.",
+    "The {verb} works, and pulls something with it that you did not intend.",
+    "You commit to {verb}, and find the act has costs you didn't read on the page.",
+    "The {verb} lands at an angle. You feel it settle wrong.",
+  ],
+  miss: [
+    "You reach for {verb}, and the world refuses to translate.",
+    "The {verb} does not catch.",
+    "You try to {verb}; the moment slips by without committing to either of you.",
+    "The {verb} fails, and the failing makes a small sound.",
+    "You will {verb}, and the world does not. Time passes.",
+    "The {verb} comes apart in your attention before it leaves you.",
+  ],
+};
+
 export class TemplateNarrator implements Narrator {
   private form: SlimeFormJson;
   private location: LocationTemplate;
@@ -135,9 +172,30 @@ export class TemplateNarrator implements Narrator {
 function pickPhrase(verb: string, band: RollBand, seed: number): string {
   const bank =
     band === "success" ? SUCCESS_PHRASES : band === "partial" ? PARTIAL_PHRASES : MISS_PHRASES;
-  const list = bank[verb] ?? bank.wait ?? ["You hold."];
-  const idx = Math.abs(seed | 0) % list.length;
-  return list[idx];
+  const formSpecific = bank[verb];
+  if (formSpecific && formSpecific.length > 0) {
+    const idx = Math.abs(seed | 0) % formSpecific.length;
+    return formSpecific[idx];
+  }
+  // Form's phrase bank doesn't cover this verb — fall back to the
+  // generic table and substitute the player's verb so the prose at
+  // least echoes the action they took.
+  const generic = GENERIC_FALLBACKS[band];
+  const idx = Math.abs(seed | 0) % generic.length;
+  return generic[idx].replace("{verb}", normaliseVerb(verb));
+}
+
+/** Strip noise from raw input verbs so they read in prose. The
+ *  classifier may pass through multi-word actions like
+ *  "claim this room"; we keep the leading verb and lower-case. */
+function normaliseVerb(verb: string): string {
+  if (!verb) return "act";
+  const trimmed = verb.trim().toLowerCase();
+  // Most verbs come through as a single token from the classifier.
+  // For multi-word inputs, take the first word so the sentence
+  // reads cleanly ("you claim ..." rather than "you claim this
+  // room as my domain ...").
+  return trimmed.split(/\s+/)[0] || "act";
 }
 
 function toolsFor(

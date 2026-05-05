@@ -115,7 +115,17 @@ export function DiceRollDisplay({ roll, animate = true }: Props) {
         {roll.mod !== 0 && (
           <>
             <span className="text-stone-700"> {sign}</span>
-            {roll.mod}
+            <span
+              title={modSourcesTitle(roll.modSources, roll.mod)}
+              className={
+                roll.modSources && roll.modSources.length > 0
+                  ? "underline decoration-dotted decoration-stone-700 underline-offset-2 cursor-help"
+                  : ""
+              }
+              data-testid="roll-mod"
+            >
+              {roll.mod}
+            </span>
           </>
         )}
         <span className="text-stone-700"> = </span>
@@ -128,6 +138,34 @@ export function DiceRollDisplay({ roll, animate = true }: Props) {
           {roll.band}
         </span>
       )}
+      {!tumbling &&
+        roll.modSources &&
+        roll.modSources.length > 0 && (
+          <span
+            className="text-[10px] text-stone-600"
+            data-testid="roll-mod-breakdown"
+          >
+            ({roll.modSources
+              .map((s) => `${s.delta >= 0 ? "+" : ""}${s.delta} ${s.source}`)
+              .join(", ")})
+          </span>
+        )}
     </div>
   );
+}
+
+/** Tooltip text for the mod number — same content as the inline
+ *  breakdown, but available even when the breakdown is hidden by
+ *  width constraints. */
+function modSourcesTitle(
+  sources: RollResult["modSources"],
+  total: number,
+): string | undefined {
+  if (!sources || sources.length === 0) return undefined;
+  return sources
+    .map((s) => `${s.delta >= 0 ? "+" : ""}${s.delta} ${s.source}`)
+    .concat(total !== sources.reduce((a, s) => a + s.delta, 0)
+      ? [`(net ${total >= 0 ? "+" : ""}${total})`]
+      : [])
+    .join(", ");
 }

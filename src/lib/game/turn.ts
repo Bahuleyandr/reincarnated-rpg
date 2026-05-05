@@ -30,7 +30,13 @@ import { rollDice, rollFromDice } from "./rules";
 import { sanitizePlayerInput } from "./sanitize";
 import { checkTone, checkToneFast } from "./tone";
 import { validateToolsToEvents } from "./tools";
-import type { Event, FormTemplate, LocationTemplate, Projection } from "./types";
+import type {
+  Event,
+  FormTemplate,
+  LocationTemplate,
+  Projection,
+  RollResult,
+} from "./types";
 import type { Db } from "../db/client";
 
 export interface RunTurnArgs {
@@ -299,6 +305,26 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     /* race hooks are best-effort */
   }
   const mod = baseMod + luckPenalty + adaptiveBonus + raceMod;
+  // Cosmetic breakdown of `mod` for the dice display. The math is
+  // already in `mod`; this list just lets the UI explain *why*. Stat
+  // gets the actual stat name (awareness, will, etc.) so players see
+  // "+1 awareness" rather than a generic "stat".
+  const modSources: Array<{ source: string; delta: number }> = [];
+  if (baseMod !== 0 && rollStat) {
+    modSources.push({ source: rollStat, delta: baseMod });
+  }
+  if (luckPenalty !== 0) {
+    modSources.push({ source: "bad-luck", delta: luckPenalty });
+  }
+  if (adaptiveBonus !== 0) {
+    modSources.push({ source: "adaptive", delta: adaptiveBonus });
+  }
+  if (raceMod !== 0) {
+    modSources.push({
+      source: raceModReason ?? "race",
+      delta: raceMod,
+    });
+  }
   if (raceMod !== 0) {
     log.info("turn.race.mod_applied", {
       sessionId,
@@ -310,12 +336,14 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   // Phase 9: form-specific dice variants. Defaults to 2d6 when
   // the form doesn't opt in.
   const diceVariant = form.dice ?? "2d6";
-  const roll = args.rollOverride
+  const rollBase: RollResult = args.rollOverride
     ? {
         ...rollFromDice(args.rollOverride.d1, args.rollOverride.d2, args.rollOverride.mod ?? mod),
         seed,
       }
     : rollDice(diceVariant, seed, mod);
+  const roll: RollResult =
+    modSources.length > 0 ? { ...rollBase, modSources } : rollBase;
   const rollEvent: Event = {
     kind: "roll.resolved",
     roll,
