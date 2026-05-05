@@ -44,5 +44,8 @@ A persistent text RPG where every reincarnation form (slime, cursed book, dragon
 ## Things that look wrong but are not
 
 - **No `git config` changes ever.** Commit author email is set per-commit via `GIT_AUTHOR_EMAIL` / `GIT_COMMITTER_EMAIL` env vars (noreply form). pm.me email triggers GH007 push reject.
-- **Postgres on port 5433**, not 5432. Avoids clash with VH Health's local Postgres.
+- **Two Postgres targets, on purpose**:
+  - **Dev DB** is on Dalekdefender (home tailnet k3s) at `dalekdefender.hippocampus-monitor.ts.net:5435`. Always-on; survives WSL reboots; survives this PC's reboots. `npm run dev` reads it from `.env.local`. Setup in `infra/dalekdefender/README.md`.
+  - **Test DB** is local WSL at `127.0.0.1:5434/reincarnated_ci`, recreated fresh by `bash scripts/ci-local.sh` per run. `npm run test:integration` is wrapped to pin this URL so it can't accidentally hit Dalek.
+- **Tailscale must be connected** for `npm run dev` to reach the DB. Tray icon → reconnect if `ECONNREFUSED`.
 - **The slime form has no language and no hands.** The system prompt enforces a negative vocabulary (no `hand`, `see`, `speak`, etc.). This is by design; do not "fix" the prose.

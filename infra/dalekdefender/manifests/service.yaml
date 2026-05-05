@@ -1,0 +1,22 @@
+# NodePort service on 30435 — exposed externally only via the
+# tailscale serve TCP map at port 5435 on the tailnet hostname.
+# k3s nodes also expose this directly; firewall keeps the world
+# out, tailscale serve provides the tunnel.
+apiVersion: v1
+kind: Service
+metadata:
+  name: reincarnated-postgres
+  namespace: reincarnated
+  labels:
+    app.kubernetes.io/part-of: reincarnated-rpg
+    app.kubernetes.io/component: postgres
+spec:
+  type: NodePort
+  selector:
+    app: reincarnated-postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      nodePort: 30435
+      protocol: TCP

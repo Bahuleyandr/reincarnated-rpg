@@ -27,7 +27,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathPatterns=tests/unit",
-    "test:integration": "npm run test:db && jest --testPathPatterns=tests/integration --runInBand --testTimeout=15000",
+    "test:integration": "node scripts/run-integration-tests.mjs",
     "test:e2e": "playwright test",
     "ci:local": "bash scripts/ci-local.sh",
     "ci:local:fast": "bash scripts/ci-local.sh --fast",

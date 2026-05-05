@@ -1,0 +1,81 @@
+# Single-replica Deployment with strategy=Recreate so the PVC is
+# released cleanly during rollouts (multi-attach errors otherwise).
+# Image is pgvector's pg16 build — matches docker-compose.yml on
+# the dev machine, distinct from VH Health's pg17.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reincarnated-postgres
+  namespace: reincarnated
+  labels:
+    app: reincarnated-postgres
+    app.kubernetes.io/part-of: reincarnated-rpg
+    app.kubernetes.io/component: postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: reincarnated-postgres
+  template:
+    metadata:
+      labels:
+        app: reincarnated-postgres
+        app.kubernetes.io/part-of: reincarnated-rpg
+        app.kubernetes.io/component: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:pg16
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: reincarnated
+            - name: POSTGRES_DB
+              value: reincarnated
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-postgres-creds
+                  key: POSTGRES_PASSWORD
+            # Idle TCP connections from the dev server need to be
+            # held open longer than the default; tailscale routing
+            # otherwise drops them quietly.
+            - name: PGOPTIONS
+              value: "-c tcp_keepalives_idle=60 -c tcp_keepalives_interval=20 -c tcp_keepalives_count=3"
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              # subPath is necessary because pg-init refuses to
+              # initialise into a directory that isn't empty
+              # (lost+found shows up under fresh PVCs).
+              subPath: pgdata
+          readinessProbe:
+            exec:
+              command:
+                ["pg_isready", "-U", "reincarnated", "-d", "reincarnated"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            exec:
+              command:
+                ["pg_isready", "-U", "reincarnated", "-d", "reincarnated"]
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: reincarnated-postgres-data
