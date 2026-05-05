@@ -590,10 +590,18 @@ export const marketplaceListings = pgTable(
       .defaultNow(),
     soldAt: timestamp("sold_at", { withTimezone: true }),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    /** Phase 9 T3.4 — region the listing was posted from. NULL =
+     *  global / unaffiliated; visible across all city tabs. */
+    locationId: text("location_id"),
   },
   (t) => [
     index("marketplace_listings_seller_idx").on(t.sellerUserId),
     index("marketplace_listings_status_idx").on(t.status, t.expiresAt),
+    index("marketplace_listings_location_idx").on(
+      t.locationId,
+      t.status,
+      t.expiresAt,
+    ),
   ],
 );
 
@@ -1693,5 +1701,128 @@ export const sessionCompanions = pgTable(
 
 export type SessionCompanion = typeof sessionCompanions.$inferSelect;
 export type NewSessionCompanion = typeof sessionCompanions.$inferInsert;
+
+/**
+ * Phase 9 T3.3 — letters / async mail. Players can send letters
+ * to other players (to_user_id) OR to recurring NPCs by template
+ * id (to_npc_template_id). Letters are immutable once sent;
+ * status flips on delivery / read / refused.
+ */
+export const letters = pgTable(
+  "letters",
+  {
+    id: uuid("id").primaryKey(),
+    fromUserId: uuid("from_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    toUserId: uuid("to_user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    toNpcTemplateId: text("to_npc_template_id"),
+    subject: text("subject").notNull(),
+    body: text("body").notNull(),
+    replyToId: uuid("reply_to_id"),
+    status: text("status").notNull().default("pending"),
+    sentAt: timestamp("sent_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    voiceMode: text("voice_mode").notNull().default("spoken"),
+  },
+  (t) => [
+    index("letters_to_user_idx").on(t.toUserId, t.sentAt),
+    index("letters_from_user_idx").on(t.fromUserId, t.sentAt),
+  ],
+);
+
+export type Letter = typeof letters.$inferSelect;
+export type NewLetter = typeof letters.$inferInsert;
+
+/**
+ * Phase 9 T5.1 — multi-player co-play parties (minimal slice).
+ * The schema lets a host create a party, others join, and the
+ * party links to a single shared session. Coordination logic
+ * (turn-lock, input-routing) is a follow-up; this is the
+ * substrate.
+ */
+export const parties = pgTable("parties", {
+  id: uuid("id").primaryKey(),
+  hostUserId: uuid("host_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => sessions.id, { onDelete: "cascade" }),
+  status: text("status").notNull().default("forming"),
+  currentTurnUserId: uuid("current_turn_user_id").references(
+    () => users.id,
+    { onDelete: "set null" },
+  ),
+  maxSize: integer("max_size").notNull().default(3),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  endedAt: timestamp("ended_at", { withTimezone: true }),
+});
+
+export const partyMembers = pgTable(
+  "party_members",
+  {
+    partyId: uuid("party_id")
+      .notNull()
+      .references(() => parties.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    turnOrder: integer("turn_order").notNull(),
+    joinedAt: timestamp("joined_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    leftAt: timestamp("left_at", { withTimezone: true }),
+  },
+  (t) => [
+    uniqueIndex("party_members_pk").on(t.partyId, t.userId),
+    index("party_members_user_idx").on(t.userId),
+  ],
+);
+
+export type Party = typeof parties.$inferSelect;
+export type NewParty = typeof parties.$inferInsert;
+export type PartyMember = typeof partyMembers.$inferSelect;
+
+/**
+ * Phase 9 T5.5 — PvP duels (minimal slice).
+ * Opt-in 1v1. Challenger → target user OR recurring NPC; target
+ * accepts/refuses; resolution rolls 2d6 with faction modifiers.
+ * Resolution logic deferred; the schema is the substrate.
+ */
+export const duels = pgTable("duels", {
+  id: uuid("id").primaryKey(),
+  challengerUserId: uuid("challenger_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  targetUserId: uuid("target_user_id").references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  targetNpcTemplateId: text("target_npc_template_id"),
+  status: text("status").notNull().default("pending"),
+  contextFaction: text("context_faction"),
+  contextVenue: text("context_venue"),
+  contextQuote: text("context_quote"),
+  challengerRoll: integer("challenger_roll"),
+  targetRoll: integer("target_roll"),
+  winnerUserId: uuid("winner_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  challengedAt: timestamp("challenged_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+
+export type Duel = typeof duels.$inferSelect;
+export type NewDuel = typeof duels.$inferInsert;
 
 export const _sql = sql; // re-export for migration writers if needed

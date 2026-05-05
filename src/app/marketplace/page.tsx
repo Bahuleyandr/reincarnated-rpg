@@ -39,6 +39,8 @@ export default function MarketplacePage() {
   const [mine, setMine] = useState<Listing[]>([]);
   const [filterItem, setFilterItem] = useState("");
   const [minPrice, setMinPrice] = useState<string>("");
+  const [filterCity, setFilterCity] = useState<string>("");
+  const [exclusiveRegion, setExclusiveRegion] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -48,6 +50,7 @@ export default function MarketplacePage() {
   const [listPrice, setListPrice] = useState("10");
   const [listNote, setListNote] = useState("");
   const [listInvQty, setListInvQty] = useState("1");
+  const [listCity, setListCity] = useState<string>("");
 
   async function submitNewListing(e: React.FormEvent) {
     e.preventDefault();
@@ -64,6 +67,7 @@ export default function MarketplacePage() {
           pricePerUnit: Number.parseInt(listPrice, 10),
           note: listNote.trim() || null,
           currentInventoryQty: Number.parseInt(listInvQty, 10),
+          locationId: listCity || undefined,
         }),
       });
       const data = (await r.json()) as
@@ -92,12 +96,14 @@ export default function MarketplacePage() {
     const params = new URLSearchParams();
     if (filterItem.trim()) params.set("itemId", filterItem.trim());
     if (minPrice.trim()) params.set("minPrice", minPrice.trim());
+    if (filterCity) params.set("locationId", filterCity);
+    if (exclusiveRegion) params.set("exclusiveRegion", "1");
     const r = await fetch(`/api/marketplace?${params.toString()}`);
     if (r.ok) {
       const data = (await r.json()) as { listings: Listing[] };
       setBrowse(data.listings);
     }
-  }, [filterItem, minPrice]);
+  }, [filterItem, minPrice, filterCity, exclusiveRegion]);
 
   const loadMine = useCallback(async () => {
     const r = await fetch(`/api/marketplace?mine=1`);
@@ -229,7 +235,7 @@ export default function MarketplacePage() {
         {tab === "browse" && (
           <section className="space-y-3">
             <form
-              className="flex gap-2 text-xs"
+              className="flex flex-wrap gap-2 text-xs"
               onSubmit={(e) => {
                 e.preventDefault();
                 void loadBrowse();
@@ -239,7 +245,7 @@ export default function MarketplacePage() {
                 type="text"
                 value={filterItem}
                 onChange={(e) => setFilterItem(e.target.value)}
-                placeholder="filter by item id (e.g. iron-ingot)"
+                placeholder="item id"
                 className="flex-1 bg-stone-900 border border-stone-700 px-2 py-1 rounded text-stone-200"
               />
               <input
@@ -247,8 +253,30 @@ export default function MarketplacePage() {
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
                 placeholder="min price"
-                className="w-24 bg-stone-900 border border-stone-700 px-2 py-1 rounded text-stone-200"
+                className="w-20 bg-stone-900 border border-stone-700 px-2 py-1 rounded text-stone-200"
               />
+              <select
+                value={filterCity}
+                onChange={(e) => setFilterCity(e.target.value)}
+                className="bg-stone-900 border border-stone-700 px-2 py-1 rounded text-stone-200"
+              >
+                <option value="">all regions</option>
+                <option value="caelum-by-the-wash">Caelum</option>
+                <option value="threadwarden">Threadwarden</option>
+                <option value="saltgale">Saltgale</option>
+                <option value="highfield-ascending">Highfield</option>
+                <option value="the-coral-anchorage">Anchorage</option>
+                <option value="the-long-indices">Long Indices</option>
+              </select>
+              <label className="flex items-center gap-1 text-[10px] text-stone-500">
+                <input
+                  type="checkbox"
+                  checked={exclusiveRegion}
+                  onChange={(e) => setExclusiveRegion(e.target.checked)}
+                  disabled={!filterCity}
+                />
+                exclusive
+              </label>
               <button
                 type="submit"
                 className="px-3 py-1 bg-stone-800 hover:bg-stone-700 border border-stone-700 rounded text-stone-200"
@@ -385,7 +413,7 @@ export default function MarketplacePage() {
                   className="w-full bg-stone-900 border border-stone-700 px-3 py-2 rounded text-stone-200 text-sm"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label htmlFor="lst-qty" className="block text-xs text-stone-400 mb-1">
                     qty (1-99)
@@ -437,6 +465,25 @@ export default function MarketplacePage() {
                     className="w-full bg-stone-900 border border-stone-700 px-3 py-2 rounded text-stone-200 text-sm"
                   />
                 </div>
+              </div>
+              <div>
+                <label htmlFor="lst-city" className="block text-xs text-stone-400 mb-1">
+                  region (optional — null = global pool, visible in all city tabs)
+                </label>
+                <select
+                  id="lst-city"
+                  value={listCity}
+                  onChange={(e) => setListCity(e.target.value)}
+                  className="w-full bg-stone-900 border border-stone-700 px-3 py-2 rounded text-stone-200 text-sm"
+                >
+                  <option value="">global (all regions)</option>
+                  <option value="caelum-by-the-wash">Caelum-by-the-Wash (metropolis)</option>
+                  <option value="threadwarden">Threadwarden (humans)</option>
+                  <option value="saltgale">Saltgale (elves)</option>
+                  <option value="highfield-ascending">Highfield Ascending (dwarves)</option>
+                  <option value="the-coral-anchorage">Coral Anchorage (halflings)</option>
+                  <option value="the-long-indices">Long Indices (orcs)</option>
+                </select>
               </div>
               <div>
                 <label htmlFor="lst-note" className="block text-xs text-stone-400 mb-1">

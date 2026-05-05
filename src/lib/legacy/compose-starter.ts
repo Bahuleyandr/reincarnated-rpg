@@ -14,6 +14,7 @@ import { eq } from "drizzle-orm";
 
 import type { Db } from "../db/client";
 import { users } from "../db/schema";
+import { applyRaceStarter } from "../race/mechanics";
 import { log } from "../util/log";
 
 import { applyLegacyTraitsToStarterFormState } from "./apply";
@@ -28,6 +29,13 @@ export interface ComposeArgs {
 /**
  * Returns the merged starterFormState, or undefined when both
  * sources are empty (so callers can pass `undefined` directly).
+ *
+ * Three sources merged additively:
+ *   1. Campaign starterBonus (one per reincarnation pick).
+ *   2. Player legacy traits (cross-run, persistent).
+ *   3. Player race modifier (Phase 9 T3.2; one bump per race).
+ *
+ * Field-level clamping happens inside applyLegacyTraits.
  */
 export async function composeStarterFormState(
   db: Db,
@@ -38,15 +46,17 @@ export async function composeStarterFormState(
     : {};
 
   let legacyDelta: Record<string, number> = {};
+  let raceId: string | null = null;
   if (args.userId) {
     try {
       const rows = await db
-        .select({ legacyTraits: users.legacyTraits })
+        .select({ legacyTraits: users.legacyTraits, race: users.race })
         .from(users)
         .where(eq(users.id, args.userId))
         .limit(1);
       const counts = (rows[0]?.legacyTraits ?? {}) as Record<string, number>;
       legacyDelta = applyLegacyTraitsToStarterFormState(counts);
+      raceId = rows[0]?.race ?? null;
     } catch (err) {
       log.warn("legacy.apply_failed", {
         userId: args.userId,
@@ -59,5 +69,8 @@ export async function composeStarterFormState(
   for (const k of Object.keys(legacyDelta)) {
     if (k in base) merged[k] = base[k] + legacyDelta[k];
   }
-  return Object.keys(merged).length > 0 ? merged : undefined;
+  // Phase 9 T3.2 — race buffs land last so they show up across all
+  // form/region combos, not just specific catalog picks.
+  const withRace = applyRaceStarter(merged, raceId);
+  return Object.keys(withRace).length > 0 ? withRace : undefined;
 }

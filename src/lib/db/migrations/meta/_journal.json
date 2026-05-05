@@ -421,6 +421,34 @@
       "when": 1778310000000,
       "tag": "0059_users_race",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1778320000000,
+      "tag": "0060_letters",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1778330000000,
+      "tag": "0061_marketplace_location",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1778340000000,
+      "tag": "0062_parties",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1778350000000,
+      "tag": "0063_duels",
+      "breakpoints": true
     }
   ]
 }

@@ -80,6 +80,17 @@ export type Event =
       customName: string;
     }
   | { kind: "moved"; fromRoom: string; toRoom: string }
+  | {
+      /** Phase 9 inter-city travel. Mutates projection.location to
+       *  a new locationId + entry room. Companion time.passed
+       *  event covers the energy cost (3 ticks). The session's
+       *  beat pack does NOT auto-reload — free-form play in the
+       *  new region until the player departs again. */
+      kind: "region.changed";
+      fromLocation: string;
+      toLocation: string;
+      toRoom: string;
+    }
   | { kind: "time.passed"; ticks: number }
   | { kind: "sensed"; modality: string; detail: string }
   | { kind: "absorbed"; itemId: string; into: string }
@@ -324,6 +335,15 @@ export type ToolCall =
       qty: number;
       pricePerUnit: number;
       note?: string;
+    }
+  | {
+      /** Phase 9 inter-city travel. Move the active session to a
+       *  different location. Costs 3 turns of energy (server-
+       *  enforced via companion time.passed). The narrator can
+       *  optionally summon road-encounter prose; the orchestrator
+       *  does not currently script road beats. */
+      name: "travel_to";
+      locationId: string;
     }
   | { name: "narrate_only" };
 

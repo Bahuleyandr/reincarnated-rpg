@@ -156,6 +156,10 @@ const toolSchemas = {
     pricePerUnit: z.number().int().min(1).max(100_000),
     note: z.string().max(160).optional(),
   }),
+  travel_to: z.object({
+    name: z.literal("travel_to"),
+    locationId: nonEmptyString,
+  }),
   narrate_only: z.object({
     name: z.literal("narrate_only"),
   }),
@@ -185,6 +189,7 @@ export const toolCallSchema = z.discriminatedUnion("name", [
   toolSchemas.pledge_faction,
   toolSchemas.speak_to,
   toolSchemas.list_item,
+  toolSchemas.travel_to,
   toolSchemas.narrate_only,
 ]);
 
@@ -565,6 +570,39 @@ export function validateToolsToEvents(args: ValidateToolsArgs): ValidateToolsRes
       });
       continue;
     }
+    if (tool.name === "travel_to") {
+      // Phase 9 inter-city travel — multi-event: time.passed (3
+      // ticks for the journey) + region.changed (the actual
+      // location swap). The orchestrator's gather/coin/anti-farm
+      // hooks read these events normally; the projection reducer
+      // handles the location swap by replacing location.id +
+      // entry-room. Validation rules:
+      //   - destination cannot equal current location
+      //   - destination must be a known location id (we trust
+      //     the caller for the AVAILABLE_LOCATIONS check, since
+      //     loadLocation will explode loudly otherwise)
+      if (tool.locationId === projection.location.id) {
+        return {
+          ok: false,
+          failure: {
+            tool: "travel_to",
+            error: `travel_to: already in ${tool.locationId}`,
+          },
+        };
+      }
+      events.push({ kind: "time.passed", ticks: 3 });
+      // The destination's entry room is filled in by the
+      // orchestrator's side-effect — we don't have the
+      // LocationTemplate here. Leave toRoom blank-ish; turn.ts
+      // overrides it post-emission.
+      events.push({
+        kind: "region.changed",
+        fromLocation: projection.location.id,
+        toLocation: tool.locationId,
+        toRoom: "$ENTRY", // placeholder — turn.ts substitutes
+      });
+      continue;
+    }
     const evt = toolToEvent(tool, projection);
     if (evt) events.push(evt);
   }
@@ -785,6 +823,16 @@ export function checkPrecondition(
       }
       return null;
     }
+    case "travel_to": {
+      // Cheap precondition — just block same-location travel.
+      // The destination-validity check (must be a real location
+      // template) happens at the orchestrator's loadLocation call
+      // post-emission, with a graceful warning.
+      if (tool.locationId === projection.location.id) {
+        return `travel_to: already in ${tool.locationId}`;
+      }
+      return null;
+    }
     case "pass_time":
     case "sense":
     case "update_quest_objective":
@@ -954,6 +1002,7 @@ export function toolToEvent(tool: ToolCall, projection: Projection): Event | nul
     case "learn_skill_from":
     case "pledge_faction":
     case "list_item":
+    case "travel_to":
       // Handled by the inline multi-event branch in
       // validateToolsToEvents; toolToEvent returns null so this
       // function stays 1:1-or-zero and predicate audits don't get
