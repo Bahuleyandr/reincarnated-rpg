@@ -20,6 +20,18 @@
   },
   "verbs": ["distill", "lead", "blend", "rest", "wyrm-tincture"],
   "iconicVerbs": ["distill", "lead", "blend"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "hoarse",
+      "when": { "form.vitals.voice": "<=7" },
+      "verbs": ["rest", "blend", "distill"]
+    },
+    {
+      "label": "low-tincture",
+      "when": { "form.vitals.tincture": "<=7" },
+      "verbs": ["distill", "blend", "lead"]
+    }
+  ],
   "verbMappings": {
     "distill": { "tools": ["change_form_state", "absorb"], "rollStat": "patience" },
     "lead": { "tools": ["update_relationship"], "rollStat": "will" },

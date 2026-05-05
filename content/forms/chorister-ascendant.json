@@ -20,6 +20,18 @@
   },
   "verbs": ["chant", "lead", "carry", "rest", "wyrm-line"],
   "iconicVerbs": ["chant", "lead", "carry"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "hoarse",
+      "when": { "form.vitals.voice": "<=7" },
+      "verbs": ["rest", "lead", "carry"]
+    },
+    {
+      "label": "off-key",
+      "when": { "form.vitals.harmony": "<=7" },
+      "verbs": ["carry", "chant", "lead"]
+    }
+  ],
   "verbMappings": {
     "chant": { "tools": ["change_form_state"], "rollStat": "will" },
     "lead": { "tools": ["update_relationship"], "rollStat": "will" },

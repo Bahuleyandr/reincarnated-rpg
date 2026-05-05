@@ -20,6 +20,18 @@
   },
   "verbs": ["mark", "weather", "join", "rest", "wyrm-iron"],
   "iconicVerbs": ["mark", "weather", "join"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "thin-iron",
+      "when": { "form.vitals.iron": "<=7" },
+      "verbs": ["weather", "mark", "join"]
+    },
+    {
+      "label": "impatient",
+      "when": { "form.vitals.patience": "<=7" },
+      "verbs": ["rest", "weather", "mark"]
+    }
+  ],
   "verbMappings": {
     "mark": { "tools": ["change_form_state"], "rollStat": "will" },
     "weather": { "tools": ["pass_time"], "rollStat": "patience" },

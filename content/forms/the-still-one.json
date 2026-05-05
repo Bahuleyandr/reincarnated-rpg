@@ -26,6 +26,18 @@
     "remember"
   ],
   "iconicVerbs": ["abide", "regard", "withhold"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "fading",
+      "when": { "form.vitals.presence": "<=8" },
+      "verbs": ["abide", "withhold", "regard"]
+    },
+    {
+      "label": "asked",
+      "when": { "form.vitals.remembrance": "<=8" },
+      "verbs": ["remember", "withhold", "abide"]
+    }
+  ],
   "verbMappings": {
     "abide": { "tools": ["pass_time"], "rollStat": null },
     "regard": { "tools": ["sense"], "rollStat": "awareness" },

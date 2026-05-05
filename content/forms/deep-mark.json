@@ -15,6 +15,18 @@
   "stats": { "awareness": 4, "patience": 3, "weight": 3, "will": 2 },
   "verbs": ["descend", "feel", "rest", "surface", "wyrm-listen"],
   "iconicVerbs": ["descend", "feel", "rest"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "no-air",
+      "when": { "form.vitals.lung": "<=7" },
+      "verbs": ["surface", "rest", "feel"]
+    },
+    {
+      "label": "shallow",
+      "when": { "form.vitals.depth": "<=7" },
+      "verbs": ["descend", "feel", "rest"]
+    }
+  ],
   "verbMappings": {
     "descend": { "tools": ["move_to"], "rollStat": "patience" },
     "feel": { "tools": ["sense"], "rollStat": "awareness" },

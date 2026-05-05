@@ -15,6 +15,18 @@
   "stats": { "kindling": 4, "awareness": 3, "patience": 3, "will": 2 },
   "verbs": ["bank", "stoke", "watch", "rest", "wyrm-glow"],
   "iconicVerbs": ["bank", "stoke", "watch"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "cold",
+      "when": { "form.vitals.fire": "<=7" },
+      "verbs": ["stoke", "bank", "watch"]
+    },
+    {
+      "label": "weary",
+      "when": { "form.vitals.vigil": "<=7" },
+      "verbs": ["rest", "bank", "watch"]
+    }
+  ],
   "verbMappings": {
     "bank": { "tools": ["change_form_state"], "rollStat": "patience" },
     "stoke": { "tools": ["change_form_state"], "rollStat": "kindling" },

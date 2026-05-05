@@ -15,6 +15,18 @@
   "stats": { "will": 4, "weight": 3, "awareness": 3, "kindling": 3 },
   "verbs": ["forge", "temper", "name", "rest", "wyrm-strike"],
   "iconicVerbs": ["forge", "temper", "name"],
+  "iconicVerbsByCondition": [
+    {
+      "label": "cold-forge",
+      "when": { "form.vitals.forge": "<=7" },
+      "verbs": ["rest", "name", "temper"]
+    },
+    {
+      "label": "fading-memory",
+      "when": { "form.vitals.memory": "<=7" },
+      "verbs": ["name", "forge", "temper"]
+    }
+  ],
   "verbMappings": {
     "forge": { "tools": ["change_form_state"], "rollStat": "will" },
     "temper": { "tools": ["change_form_state"], "rollStat": "kindling" },
