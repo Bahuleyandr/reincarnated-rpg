@@ -307,6 +307,42 @@ export async function POST(req: NextRequest) {
         starterBonus: ctx.starterBonus,
         userId: verified.userId ?? null,
       });
+
+      // Phase 9 T3.2 follow-up: pre-fetch race for the per-turn
+      // race-mod hook. Anon sessions get null.
+      let raceId:
+        | "human"
+        | "elven"
+        | "dwarven"
+        | "halfling"
+        | "orcish"
+        | null = null;
+      if (verified.userId) {
+        try {
+          const { users: usersForRace } = await import(
+            "@/lib/db/schema"
+          );
+          const { eq: eqForRace } = await import("drizzle-orm");
+          const r = await db
+            .select({ race: usersForRace.race })
+            .from(usersForRace)
+            .where(eqForRace(usersForRace.id, verified.userId))
+            .limit(1);
+          const v = r[0]?.race;
+          if (
+            v === "human" ||
+            v === "elven" ||
+            v === "dwarven" ||
+            v === "halfling" ||
+            v === "orcish"
+          ) {
+            raceId = v;
+          }
+        } catch {
+          /* best-effort */
+        }
+      }
+
       const result = await runTurn({
         db,
         sessionId,
@@ -319,6 +355,7 @@ export async function POST(req: NextRequest) {
         turnCap: turnCapOverride,
         starterFormState,
         moderation,
+        raceId,
         world: verified.userId
           ? {
               userId: verified.userId,

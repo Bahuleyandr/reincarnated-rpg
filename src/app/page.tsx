@@ -201,6 +201,24 @@ export default function Home() {
             marketplace →
           </Link>
           <Link
+            href="/letters"
+            className="underline underline-offset-2 hover:text-stone-400"
+          >
+            letters →
+          </Link>
+          <Link
+            href="/party"
+            className="underline underline-offset-2 hover:text-stone-400"
+          >
+            parties →
+          </Link>
+          <Link
+            href="/duels"
+            className="underline underline-offset-2 hover:text-stone-400"
+          >
+            duels →
+          </Link>
+          <Link
             href="/forms/new"
             className="underline underline-offset-2 hover:text-stone-400"
           >

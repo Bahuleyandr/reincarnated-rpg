@@ -103,8 +103,21 @@ export async function respondToDuel(
     duelId: string;
     targetUserId: string;
     decision: "accept" | "refuse";
+    /** Phase 9 T5.5 follow-up: when true, an "accept" decision
+     *  immediately rolls the resolution. Default true for v1
+     *  UX (instant outcome). */
+    autoResolve?: boolean;
   },
-): Promise<RespondResult> {
+): Promise<
+  RespondResult & {
+    resolution?: {
+      challengerRoll: number;
+      targetRoll: number;
+      winnerUserId: string | null;
+      tied: boolean;
+    };
+  }
+> {
   const [d] = await db
     .select()
     .from(duels)
@@ -124,6 +137,31 @@ export async function respondToDuel(
       decidedAt: new Date(),
     })
     .where(eq(duels.id, args.duelId));
+
+  if (args.decision !== "accept") return { ok: true };
+  const autoResolve = args.autoResolve ?? true;
+  if (!autoResolve) return { ok: true };
+
+  // Auto-resolve. Best-effort — if resolveDuel fails (NPC target,
+  // races not declared, etc.) the duel sits at "accepted" and a
+  // future POST /api/duels/[id]/resolve can finish it.
+  try {
+    const { resolveDuel } = await import("./resolve");
+    const r = await resolveDuel(db, args.duelId);
+    if (r.ok) {
+      return {
+        ok: true,
+        resolution: {
+          challengerRoll: r.challengerRoll,
+          targetRoll: r.targetRoll,
+          winnerUserId: r.winnerUserId,
+          tied: r.tied,
+        },
+      };
+    }
+  } catch {
+    /* ignore — still accepted, just unresolved */
+  }
   return { ok: true };
 }
 
