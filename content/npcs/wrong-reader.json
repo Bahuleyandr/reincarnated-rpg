@@ -19,5 +19,15 @@
   },
   "attitudeDefault": -1,
   "attitudeRange": [-3, 1],
-  "tags": ["reader", "curious", "unsafe"]
+  "tags": ["reader", "curious", "unsafe"],
+  "dueling": {
+    "acceptance": 0.7,
+    "modifier": 0,
+    "trashTalk": [
+      "i found you on the table. i decide.",
+      "the page wanted me to.",
+      "the binding has more give than you expect."
+    ],
+    "refusalLine": "i'm just here to read."
+  }
 }

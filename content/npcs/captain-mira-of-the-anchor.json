@@ -22,6 +22,16 @@
       "Has not raised her voice on deck in nine years."
     ]
   },
+  "dueling": {
+    "acceptance": 0.4,
+    "modifier": 2,
+    "trashTalk": [
+      "the four ribbons mean what they mean.",
+      "land-folk count their wins differently.",
+      "i have time. you do not."
+    ],
+    "refusalLine": "not at this hour. not for free."
+  },
   "metadata": {
     "templateId": "captain-mira-of-the-anchor",
     "recurring": true,

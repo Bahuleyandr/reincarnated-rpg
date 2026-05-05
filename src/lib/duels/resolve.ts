@@ -54,15 +54,19 @@ export type ResolveResult =
       ok: true;
       challengerRoll: number;
       targetRoll: number;
+      /** Set when a player wins. Mutually exclusive with
+       *  winnerNpcTemplateId; both null = tie. */
       winnerUserId: string | null;
+      /** Set when an NPC wins. Phase 9 T5.5 follow-up. */
+      winnerNpcTemplateId: string | null;
       tied: boolean;
+      /** When the target was an NPC, the modifier applied to
+       *  their roll (derived from their template stats). */
+      npcModifier?: number;
     }
   | {
       ok: false;
-      error:
-        | "duel_not_found"
-        | "wrong_status"
-        | "target_is_npc_resolution_unsupported";
+      error: "duel_not_found" | "wrong_status";
     };
 
 const SEED_MAGIC = 0xa1b2c3d4;
@@ -70,12 +74,13 @@ const SEED_MAGIC = 0xa1b2c3d4;
 /**
  * Resolve an accepted duel. Side-effecting:
  *   - rolls 2d6 per side (deterministic from duel.id hash)
+ *   - for player targets: looks up users.race for faction bonus
+ *   - for NPC targets: loads the NPC template via getNpcDuelStats
+ *     for the modifier (and faction bonus when contextFaction
+ *     matches the NPC's metadata.faction)
  *   - persists challenger_roll, target_roll, winner_user_id
+ *     OR winner_npc_template_id (the CHECK enforces at most one)
  *   - flips status to "resolved", sets resolved_at
- *
- * NPC duels are not resolved here — those need a recurring-NPC
- * stat lookup that's out of scope. Returns
- * target_is_npc_resolution_unsupported.
  */
 export async function resolveDuel(
   db: Db,
@@ -90,49 +95,93 @@ export async function resolveDuel(
   if (d.status !== "accepted") {
     return { ok: false, error: "wrong_status" };
   }
-  if (!d.targetUserId) {
-    return {
-      ok: false,
-      error: "target_is_npc_resolution_unsupported",
-    };
-  }
 
-  // Look up each side's race for the faction-match check.
+  // Look up the challenger's race for the faction-match check.
   const [challenger] = await db
     .select({ id: users.id, race: users.race })
     .from(users)
     .where(eq(users.id, d.challengerUserId))
     .limit(1);
-  const [target] = await db
-    .select({ id: users.id, race: users.race })
-    .from(users)
-    .where(eq(users.id, d.targetUserId))
-    .limit(1);
-  // Deterministic per-duel seeds: hash of duel id + a magic
-  // separator per side.
+
   const baseSeed = simpleHash(d.id);
+
+  // Challenger roll — same in both branches.
   const cRoll = rollDuelSide({
     seed: (baseSeed ^ 0xc0ffee) >>> 0,
     factionMatches:
       d.contextFaction !== null && challenger?.race === d.contextFaction,
   });
+
+  // Branch on target type.
+  if (d.targetUserId) {
+    // Player vs Player.
+    const [target] = await db
+      .select({ id: users.id, race: users.race })
+      .from(users)
+      .where(eq(users.id, d.targetUserId))
+      .limit(1);
+    const tRoll = rollDuelSide({
+      seed: (baseSeed ^ SEED_MAGIC) >>> 0,
+      factionMatches:
+        d.contextFaction !== null && target?.race === d.contextFaction,
+    });
+    const tied = cRoll.finalTotal === tRoll.finalTotal;
+    const winnerUserId = tied
+      ? null
+      : cRoll.finalTotal > tRoll.finalTotal
+        ? d.challengerUserId
+        : d.targetUserId;
+    await db
+      .update(duels)
+      .set({
+        challengerRoll: cRoll.finalTotal,
+        targetRoll: tRoll.finalTotal,
+        winnerUserId,
+        winnerNpcTemplateId: null,
+        status: "resolved",
+        resolvedAt: new Date(),
+      })
+      .where(eq(duels.id, duelId));
+    return {
+      ok: true,
+      challengerRoll: cRoll.finalTotal,
+      targetRoll: tRoll.finalTotal,
+      winnerUserId,
+      winnerNpcTemplateId: null,
+      tied,
+    };
+  }
+
+  // Player vs NPC. targetNpcTemplateId is set per the schema's
+  // CHECK constraint (one of targetUserId / targetNpcTemplateId).
+  const npcTemplateId = d.targetNpcTemplateId!;
+  const { getNpcDuelStats } = await import("./npc-stats");
+  const npc = getNpcDuelStats(npcTemplateId);
+  // NPC base 2d6 + modifier; faction bonus when contextFaction
+  // matches the template's metadata.faction.
   const tRoll = rollDuelSide({
     seed: (baseSeed ^ SEED_MAGIC) >>> 0,
     factionMatches:
-      d.contextFaction !== null && target?.race === d.contextFaction,
+      d.contextFaction !== null && npc.faction === d.contextFaction,
   });
-  const tied = cRoll.finalTotal === tRoll.finalTotal;
-  const winnerUserId = tied
-    ? null
-    : cRoll.finalTotal > tRoll.finalTotal
-      ? d.challengerUserId
-      : d.targetUserId;
+  const npcFinal = tRoll.finalTotal + npc.modifier;
+  const tied = cRoll.finalTotal === npcFinal;
+  let winnerUserId: string | null = null;
+  let winnerNpcTemplateId: string | null = null;
+  if (!tied) {
+    if (cRoll.finalTotal > npcFinal) {
+      winnerUserId = d.challengerUserId;
+    } else {
+      winnerNpcTemplateId = npcTemplateId;
+    }
+  }
   await db
     .update(duels)
     .set({
       challengerRoll: cRoll.finalTotal,
-      targetRoll: tRoll.finalTotal,
+      targetRoll: npcFinal,
       winnerUserId,
+      winnerNpcTemplateId,
       status: "resolved",
       resolvedAt: new Date(),
     })
@@ -140,9 +189,11 @@ export async function resolveDuel(
   return {
     ok: true,
     challengerRoll: cRoll.finalTotal,
-    targetRoll: tRoll.finalTotal,
+    targetRoll: npcFinal,
     winnerUserId,
+    winnerNpcTemplateId,
     tied,
+    npcModifier: npc.modifier,
   };
 }
 

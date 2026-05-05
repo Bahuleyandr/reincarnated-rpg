@@ -1814,6 +1814,11 @@ export const duels = pgTable("duels", {
   winnerUserId: uuid("winner_user_id").references(() => users.id, {
     onDelete: "set null",
   }),
+  /** Phase 9 T5.5 follow-up — when an NPC wins a duel against a
+   *  player, the recurring-NPC template id lands here. The CHECK
+   *  constraint enforces at most one of (winner_user_id,
+   *  winner_npc_template_id) is set; both null = tie. */
+  winnerNpcTemplateId: text("winner_npc_template_id"),
   challengedAt: timestamp("challenged_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
