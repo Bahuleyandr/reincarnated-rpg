@@ -70,6 +70,13 @@
 
   "opening": "Forty-three blanks on the rack and you know each by hand-feel. The customer is waiting at the bench; they have come for a blade and they will leave with one in three days. The blade will outlast them. They know this. You take the seventh blank from the left, third from the bottom — Tallowfen iron from two summers ago — and set it on the bench. The forge breathes once.",
 
+  "firstGoal": {
+    "id": "bring-iron-to-heat",
+    "label": "bring iron to heat",
+    "description": "Hold the forge through three turns. The work outlasts the wars it was made for.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "Iron Hand prose is dense, technical when needed, deeply familiar with metal.",
     "passages": [

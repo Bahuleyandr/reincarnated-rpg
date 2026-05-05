@@ -70,6 +70,13 @@
 
   "opening": "Third hour after midnight is the worst of the cold. You sit back exactly far enough from the furnace that the heat reaches you and does not warm you past comfort. The fire's breathing is steady through the bank lid. The forge has not gone out in your lifetime. Yours is not the only lifetime it will see.",
 
+  "firstGoal": {
+    "id": "tend-the-long-night",
+    "label": "tend the long night",
+    "description": "Hold the fire through four turns. The forge does not go out on your watch.",
+    "completion": { "kind": "turn_min", "target": 4 }
+  },
+
   "sampleCorpus": {
     "rule": "Furnace Warden prose is hot, attentive, alert to the sound of the flame.",
     "passages": [

@@ -70,6 +70,13 @@
 
   "opening": "You stand at the lip of a shaft you know by hand. Behind you, the entry chamber and a narrow stair to daylight. Below you, the seam-line goes down for thirty meters before the rung-line gives out. The pressure has begun its slow change against your ears. You have not been to the surface in nine days, and the world above is starting to feel like a place you read about in a letter.",
 
+  "firstGoal": {
+    "id": "descend-deeper",
+    "label": "descend deeper",
+    "description": "Reach a second chamber. The first one is too close to daylight.",
+    "completion": { "kind": "rooms_visited", "target": 2 }
+  },
+
   "sampleCorpus": {
     "rule": "Deep Mark prose is dim, attentive to weight and pressure, alien to surface dwellers.",
     "passages": [

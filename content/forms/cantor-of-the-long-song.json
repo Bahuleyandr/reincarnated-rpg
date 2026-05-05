@@ -75,6 +75,13 @@
 
   "opening": "Twelve drops into the small glass. You count them aloud, for yourself, not for the choir. The still has been working since before dawn; the tincture has been listened to as much as watched. The choir is gathering in the next room, and one of them will come for the bottle without asking.",
 
+  "firstGoal": {
+    "id": "fill-the-bottle",
+    "label": "finish the tincture",
+    "description": "Hold the still through three turns. The choir gathers; the bottle must be ready.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "Cantor prose is measured, precise, with the rhythm of a careful pour.",
     "passages": [

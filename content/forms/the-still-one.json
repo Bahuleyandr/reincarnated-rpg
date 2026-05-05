@@ -84,6 +84,13 @@
 
   "opening": "A visitor reaches the threshold of the place where you sit. They do not knock; you have not arranged a door. They stand in the open, and you regard them without standing. Your stillness is older than the moss that has begun to suggest itself along your western edge. They have come for a name, perhaps, or for permission. You will choose what to give.",
 
+  "firstGoal": {
+    "id": "abide",
+    "label": "abide",
+    "description": "Hold your place for three turns. The visitor will know what to ask in time.",
+    "completion": { "kind": "turn_min", "target": 3 }
+  },
+
   "sampleCorpus": {
     "rule": "The Still One is described in slow declarative sentences. Visitors come to them, never the reverse. Their interior life is foregrounded; their exterior is almost still.",
     "passages": [
