@@ -315,6 +315,18 @@ const ROUTES: ArcRoute[] = [
       "The season is turning. The autumn cuts must close the year. The elder will walk the rows beside you; the wind will say when.",
     startingRoomId: "the-windbench",
   },
+  // The Furnace-warden holds the long-fire under the Coldspoon
+  // tincture-room benches across an eight-hour cloud-bitters
+  // extraction. The cold wind off the south slope tests the
+  // banking. An apprentice watches their first long fire.
+  {
+    arcId: "the-long-fire",
+    formId: "furnace-warden",
+    locationId: "coldspoon",
+    tagline:
+      "The season's largest order is on the racks. The fire must hold the right red across eight hours of cold. An apprentice is watching.",
+    startingRoomId: "the-tincture-room",
+  },
 ];
 
 export interface PickedArc {

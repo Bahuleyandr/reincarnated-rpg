@@ -1,0 +1,139 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "Five-beat arc for furnace-warden in Coldspoon. Tonight's extraction is the season's largest cloud-bitters order from the Long Indices — six dozen bottles, dripping out one drop at a time across the night. The fire under the tincture-room benches must hold a precise low heat; too hot ruins the batch, cold ruins the batch. The cold wind off the slope is the antagonist. An apprentice watches their first long fire. Win: fire>=10 AND vigil>=10 at turn>=8 (the bottles fill at dawn; the order ships). Lose: fire<=0 (the fire failed; the batch ruined; six dozen bottles will not exist this season)."
+  },
+
+  "id": "the-long-fire",
+  "displayName": "The Long Fire",
+  "questId": "the-long-fire",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-banking",
+      "displayName": "The Banking",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "The tincture room's south wall is the wall that is not there; the cold wind off the drying slope finds the fire under the benches and decides whether it lives. The fire must be banked, not roaring — a steady low heat, the colour of an old man's last embers. Tonight is the season's largest order. Six dozen bottles will fill across the next eight hours, drop by drop, if the fire holds. The banking sets the night.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "bank", "label": "bank the fire", "description": "green ash, slow oak, lid; the fire settles into the heat the night needs", "advancesArc": true },
+        { "verb": "watch", "label": "watch the colour come", "description": "the right red is the red of a slow heart; you know it when you see it; banking is patience", "advancesArc": true },
+        { "verb": "rest", "label": "rest before the long night", "description": "the next eight hours are yours alone; the breath you take now you take with you", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-long-fire",
+          "objective": "hold-the-fire",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-cold-finds",
+      "displayName": "The Cold Finds",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-drying-slope" }, { "turn": ">=2" }] },
+          { "turn": ">=3" }
+        ]
+      },
+      "narrative": "The wind off the slope shifts an hour into the work. It is a cold older than the day — the kind of cold the cloudtea was bred to survive. It finds the open south wall of the tincture room and asks the fire whether it is committed. The fire's answer depends on yours.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "stoke", "label": "stoke against the cold", "description": "small wood, brief; bring the fire's colour back without sending it past the right red", "advancesArc": true },
+        { "verb": "bank", "label": "rebank the edges", "description": "the cold finds the edges first; close them with green ash; the centre holds", "advancesArc": true },
+        { "verb": "watch", "label": "watch the fire answer", "description": "the fire knows the cold; trust the banking; observe before adjusting", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "cold_arrived",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "03-the-apprentice-watches",
+      "displayName": "The Apprentice Watches",
+      "trigger": {
+        "any": [
+          { "turn": ">=4" },
+          { "form.state.cold_arrived": ">=1" }
+        ]
+      },
+      "narrative": "The apprentice has been here since the banking; you have been ignoring them in the right way. They are watching to learn. They will not interfere. Their first long-fire night is the night they understand whether the work is theirs to take on. The fire knows they are watching. So do you.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "watch", "label": "watch with them", "description": "let the apprentice see what you see; the lesson is in the seeing, not the saying", "advancesArc": true },
+        { "verb": "rest", "label": "rest visibly", "description": "the apprentice will need to know that resting is part of the work; show them the right kind of rest", "advancesArc": true },
+        { "verb": "bank", "label": "bank with them watching", "description": "do the next banking slow enough that the apprentice's eye has time to read your hands", "advancesArc": "branch:teaching" }
+      ],
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-apothecary-apprentice",
+          "data": {
+            "name": "the apprentice",
+            "relationship": 2,
+            "templateId": "the-apothecary-apprentice"
+          }
+        }
+      ]
+    },
+    {
+      "id": "04-the-mid-night-test",
+      "displayName": "The Mid-Night Test",
+      "trigger": {
+        "any": [
+          { "turn": ">=6" },
+          { "form.vitals.fire": "<=10" }
+        ]
+      },
+      "narrative": "The deepest hour is the hour that asks the fire to lie. The cold has been in the room for four hours; the fire's ash is deep enough to muffle the heat; the right red is moving toward the wrong red. This is the hour that keeps furnace-wardens awake for years. The work is in the next quarter-hour. The bottles below the filters glow dimly already; the next quarter-hour decides whether they keep glowing.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "stoke", "label": "stoke the centre", "description": "carefully; the fire wants the colour back; the wrong stoke sends it past the red entirely", "advancesArc": true },
+        { "verb": "bank", "label": "rebank the deep ash", "description": "the ash that has gone too deep needs lifting; the fire can find air again", "advancesArc": true },
+        { "verb": "wyrm-glow", "label": "let the wyrm-glow surface", "description": "the older mode of fire-tending; the heat that comes from below the wood; tonight is the night to use it", "advancesArc": "branch:wyrm-touched" }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "midnight_passed",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-the-dawn-bottles",
+      "displayName": "The Dawn Bottles",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.fire": ">=10" },
+          { "form.vitals.vigil": ">=10" }
+        ]
+      },
+      "narrative": "The light through the open south wall finds the bottles before it finds you. They are blue; they are full; they are the season's largest order, completed. The apprentice is asleep at the bench, the way an apprentice should be at the end of their first long fire. The fire is the colour of the morning's first cup of cloudtea, which the master apothecary will bring you in five minutes without asking how the night was. The bottles will know.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "rest", "label": "rest by the fire", "description": "the morning's cup is coming; the fire's last warmth is yours; the work is closed", "advancesArc": true },
+        { "verb": "bank", "label": "bank for the morning", "description": "the master will need a cooler fire for tomorrow's smaller batch; ease the fire down for the day", "advancesArc": true },
+        { "verb": "watch", "label": "watch the light arrive", "description": "the bottles glow; the south wall fills; the apprentice will wake; the day takes the night cleanly", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-long-fire",
+          "objective": "hold-the-fire",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}
