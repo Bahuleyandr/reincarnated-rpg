@@ -13,15 +13,25 @@ import { InputBox } from "@/components/InputBox";
 import { InventoryPanel } from "@/components/InventoryPanel";
 import { NearbyBox } from "@/components/NearbyBox";
 import { QuestLog } from "@/components/QuestLog";
+import { StateDiffToast } from "@/components/StateDiffToast";
 import { StatusSidebar } from "@/components/StatusSidebar";
 import { InRunCompanions } from "@/components/InRunCompanions";
 import { Transcript, type TranscriptEntry } from "@/components/Transcript";
 import { TutorialHint } from "@/components/TutorialHint";
 import { WhereAmI } from "@/components/WhereAmI";
+import {
+  diffProjection,
+  EMPTY_DIFF,
+  type ProjectionDiff,
+} from "@/lib/game/diff-projection";
 import type { Projection, RollResult } from "@/lib/game/types";
 
 export default function Play() {
   const [projection, setProjection] = useState<Projection | null>(null);
+  // Per-turn diff for the state-change toast. We keep the last
+  // committed projection in a ref-like state so we can diff in-flight
+  // updates against it without flickering on every re-render.
+  const [stateDiff, setStateDiff] = useState<ProjectionDiff>(EMPTY_DIFF);
   const [entries, setEntries] = useState<TranscriptEntry[]>([]);
   const [hasAccount, setHasAccount] = useState(false);
   const [campaignId, setCampaignId] = useState<string | null>(null);
@@ -312,6 +322,10 @@ export default function Play() {
       return;
     }
     if (final) {
+      // Compute the state diff against the previous projection so
+      // the StateDiffToast can pulse the per-turn changes (-4 mana,
+      // +1 inventory, room discovered).
+      setStateDiff(diffProjection(projection, final.projection));
       setProjection(final.projection);
       // Replace the streamed entry with the canonical final text +
       // attach the roll. The narration text from `final` may differ
@@ -549,6 +563,12 @@ export default function Play() {
           />
         ) : (
           <>
+            {projection && (
+              <StateDiffToast
+                diff={stateDiff}
+                resetKey={projection.upToSeq}
+              />
+            )}
             {isTutorial && projection && (
               <TutorialHint
                 turn={projection.turn + 1}

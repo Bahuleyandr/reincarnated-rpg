@@ -31,6 +31,7 @@ function makeProjection(overrides?: Partial<Projection>): Projection {
     },
     npcs: {},
     turn: 0,
+    xp: 0,
     quest: { id: null, objectives: {} },
     status: "active",
     location: { id: "loc-a", roomId: "r-1", discovered: ["r-1"] },
