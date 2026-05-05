@@ -1,0 +1,8 @@
+# Reincarnated RPG dev DB. Single-node k3s, tailnet-only, dev only.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: reincarnated
+  labels:
+    app.kubernetes.io/part-of: reincarnated-rpg
+    app.kubernetes.io/managed-by: manual

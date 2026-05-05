@@ -1,0 +1,16 @@
+# 5Gi local-path PVC for Postgres data. Single-node k3s, no
+# replication. Backups are pg_dump -based (see README).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: reincarnated-postgres-data
+  namespace: reincarnated
+  labels:
+    app.kubernetes.io/part-of: reincarnated-rpg
+    app.kubernetes.io/component: postgres
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
