@@ -121,6 +121,11 @@
       },
       "narrative": "The finder kneels. They place a hand-warm of something close to the shell — not enough to stir you, just enough to keep what you have. The cold loses its appetite. You are not yet alone in this world.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "warmth_pulse", "label": "return the warmth", "description": "out from your core to their hand and back; the trust completes itself", "advancesArc": true },
+        { "verb": "dream_outward", "label": "show them the long ridge", "description": "a memory not yours, shared at the moment of being kept", "advancesArc": true },
+        { "verb": "shell_song", "label": "ring the shell for them", "description": "a note older than the dam who keeps you, given to the one who chose to stay", "advancesArc": "branch:claimed" }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",

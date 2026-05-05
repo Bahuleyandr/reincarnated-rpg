@@ -114,6 +114,11 @@
       },
       "narrative": "The page settles. The marginalia clarifies. The binder stands revealed — to you, to themselves, and to whatever waits above. You have been used and you have used. This is the conclusion of one strand.",
       "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "decode_passage", "label": "decode the binder's name", "description": "the cipher resolves; their name renders, completed", "advancesArc": true },
+        { "verb": "bleed_ink", "label": "leave the record on the lectern", "description": "the binder's account, in your own ink, where it cannot be removed", "advancesArc": true },
+        { "verb": "bind_reader", "label": "press them into your binding", "description": "what they did to you, returned in kind", "advancesArc": "branch:claimed" }
+      ],
       "fires": [
         {
           "kind": "quest.objectiveUpdated",

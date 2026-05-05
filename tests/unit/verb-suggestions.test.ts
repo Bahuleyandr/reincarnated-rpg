@@ -155,4 +155,113 @@ describe("suggestVerbs", () => {
     const [first] = suggestVerbs({ form, projection: makeProj(2) });
     expect(first.label).toBe("mystery verb"); // snake → space
   });
+
+  // ---- Per-form keyed suggestedVerbs (form-agnostic arcs) ----
+  // Used by read-the-room and any other arc that fires across
+  // multiple forms with distinct verb registries.
+
+  const FORM_AGNOSTIC_PACK: BeatPack = {
+    id: "form-agnostic-pack",
+    beats: [
+      {
+        id: "01-keyed",
+        trigger: { all: [{ turn: "==1" }] },
+        oncePerSession: true,
+        fires: [],
+        suggestedVerbs: {
+          "form-a": [
+            { verb: "alpha", label: "alpha", description: "a-desc", advancesArc: true },
+            { verb: "beta", label: "beta", description: "b-desc" },
+            { verb: "gamma", label: "gamma", description: "g-desc" },
+          ],
+          "form-b": [
+            { verb: "delta", label: "delta", description: "d-desc", advancesArc: true },
+            { verb: "epsilon", label: "epsilon", description: "e-desc" },
+          ],
+          default: [
+            { verb: "zeta", label: "zeta", description: "z-desc" },
+            { verb: "eta", label: "eta", description: "h-desc" },
+          ],
+        },
+      },
+    ],
+  };
+
+  test("per-form suggestedVerbs: dispatches by form.id", () => {
+    const form = makeForm({ id: "form-a" });
+    const result = suggestVerbs({
+      form,
+      projection: makeProj(1),
+      beatPack: FORM_AGNOSTIC_PACK,
+    });
+    expect(result.map((v) => v.verb)).toEqual(["alpha", "beta", "gamma"]);
+    expect(result.every((v) => v.source === "beat")).toBe(true);
+  });
+
+  test("per-form suggestedVerbs: picks form-b for form-b", () => {
+    const form = makeForm({ id: "form-b" });
+    const result = suggestVerbs({
+      form,
+      projection: { ...makeProj(1), form: { ...makeProj(1).form, id: "form-b" } },
+      beatPack: FORM_AGNOSTIC_PACK,
+    });
+    expect(result.map((v) => v.verb)).toEqual(["delta", "epsilon"]);
+  });
+
+  test("per-form suggestedVerbs: falls through to default when form-id has no entry", () => {
+    const form = makeForm({ id: "form-other" });
+    const result = suggestVerbs({
+      form,
+      projection: { ...makeProj(1), form: { ...makeProj(1).form, id: "form-other" } },
+      beatPack: FORM_AGNOSTIC_PACK,
+    });
+    expect(result.map((v) => v.verb)).toEqual(["zeta", "eta"]);
+    expect(result.every((v) => v.source === "beat")).toBe(true);
+  });
+
+  test("per-form suggestedVerbs: form-id absent + no default → falls to iconicVerbs", () => {
+    const form = makeForm({ id: "form-c", iconicVerbs: ["alpha", "beta", "gamma"] });
+    const noDefaultPack: BeatPack = {
+      id: "no-default",
+      beats: [
+        {
+          id: "01-keyed",
+          trigger: { all: [{ turn: "==1" }] },
+          oncePerSession: true,
+          fires: [],
+          suggestedVerbs: {
+            "form-a": [{ verb: "alpha", label: "alpha", description: "" }],
+          },
+        },
+      ],
+    };
+    const result = suggestVerbs({
+      form,
+      projection: { ...makeProj(1), form: { ...makeProj(1).form, id: "form-c" } },
+      beatPack: noDefaultPack,
+    });
+    expect(result.every((v) => v.source === "iconic")).toBe(true);
+  });
+
+  test("per-form suggestedVerbs: empty array for form-id falls through", () => {
+    const form = makeForm({ id: "form-c", iconicVerbs: ["alpha", "beta", "gamma"] });
+    const emptyPack: BeatPack = {
+      id: "empty",
+      beats: [
+        {
+          id: "01-keyed",
+          trigger: { all: [{ turn: "==1" }] },
+          oncePerSession: true,
+          fires: [],
+          suggestedVerbs: { "form-c": [] },
+        },
+      ],
+    };
+    const result = suggestVerbs({
+      form,
+      projection: { ...makeProj(1), form: { ...makeProj(1).form, id: "form-c" } },
+      beatPack: emptyPack,
+    });
+    expect(result.every((v) => v.source === "iconic")).toBe(true);
+  });
 });

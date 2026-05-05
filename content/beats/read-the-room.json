@@ -1,9 +1,10 @@
 {
   "_meta": {
     "license": "CC BY-NC 4.0",
-    "version": 1,
+    "version": 2,
     "authoredOn": "2026-05-03",
-    "notes": "Form-agnostic five-beat arc for the Forsaken Village. The villagers fled mid-everything; the player, in whatever form, has to figure out WHY before the thing that drove them out comes back. The chapel altar holds the first clue. Win: clue_count>=3 AND turn>=5. Designed to work for slime / book / egg / core / generic-creature without form-specific phrasing — beats describe events, not actions, so the narrator reframes them per form."
+    "lastEditedOn": "2026-05-05",
+    "notes": "Form-agnostic five-beat arc for the Forsaken Village. The villagers fled mid-everything; the player, in whatever form, has to figure out WHY before the thing that drove them out comes back. The chapel altar holds the first clue. Win: clue_count>=3 AND turn>=5. Designed to work for slime / book / egg / core / generic-creature without form-specific phrasing — beats describe events, not actions, so the narrator reframes them per form. v2 (2026-05-05): suggestedVerbs added as per-form records (Phase 11 P11+). Slime/book/egg/core get hand-authored 3-button menus per beat; generic-creature falls through to its own iconicVerbs (examine/sense/act)."
   },
 
   "id": "read-the-room",
@@ -18,6 +19,28 @@
       "trigger": { "all": [{ "turn": "==1" }] },
       "narrative": "Nothing has happened for a half-day, and that is itself the wrongest thing about this place. There were people here this morning. There aren't now. Whatever called them away did not stop to be polite about it.",
       "oncePerSession": true,
+      "suggestedVerbs": {
+        "lesser-slime": [
+          { "verb": "sense_tremor", "label": "feel the absence", "description": "no footsteps; no breath; only stone holding its own weight", "advancesArc": true },
+          { "verb": "ooze", "label": "ooze into the silence", "description": "let your forward edge thin and pour across the empty floor", "advancesArc": true },
+          { "verb": "absorb", "label": "absorb the vacated air", "description": "the chemistry of recent leaving — sweat, hearth-smoke, fear", "advancesArc": true }
+        ],
+        "cursed-book": [
+          { "verb": "fall_open", "label": "fall open to absence", "description": "let the page settle on whatever the wind chooses; it is the silence's page", "advancesArc": true },
+          { "verb": "flutter_pages", "label": "flutter into the still air", "description": "the only motion in the room is yours; let the silence notice", "advancesArc": true },
+          { "verb": "decode_passage", "label": "decode the absence", "description": "the silence has a shape; read it as cipher", "advancesArc": true }
+        ],
+        "dragon-egg": [
+          { "verb": "listen", "label": "listen to the empty village", "description": "the world arrives as the rhythm of nothing", "advancesArc": true },
+          { "verb": "hum_low", "label": "hum into the silence", "description": "a note in the empty room; let it return to you unanswered", "advancesArc": true },
+          { "verb": "absorb_warmth", "label": "find a hearth still warm", "description": "warmth lingers somewhere; locate it through your shell", "advancesArc": true }
+        ],
+        "dungeon-core": [
+          { "verb": "sense_intruder", "label": "search the stone", "description": "the dungeon's stone reports back: no one is here, but someone was", "advancesArc": true },
+          { "verb": "shape_room", "label": "claim what was left", "description": "the village's silence becomes your dungeon's antechamber", "advancesArc": true },
+          { "verb": "deepen_chamber", "label": "settle into the silence", "description": "more dungeon than there was a moment ago", "advancesArc": true }
+        ]
+      },
       "fires": [
         {
           "kind": "quest.objectiveUpdated",
@@ -37,6 +60,28 @@
       },
       "narrative": "On the altar, something that should not be on an altar. It is still wet. Whatever was placed here was placed recently, and it is the most recent honest thing in this village.",
       "oncePerSession": true,
+      "suggestedVerbs": {
+        "lesser-slime": [
+          { "verb": "absorb", "label": "taste the offering", "description": "fold the wet thing into your essence — it will tell you what it is", "advancesArc": true },
+          { "verb": "sense_tremor", "label": "feel the altar's weight", "description": "the placement was recent; the stone still remembers the hand", "advancesArc": true },
+          { "verb": "ooze", "label": "ooze across the altar", "description": "let your edge cross the offering and read it through contact", "advancesArc": true }
+        ],
+        "cursed-book": [
+          { "verb": "decode_passage", "label": "read the offering", "description": "the wet thing is a sentence; the altar its punctuation", "advancesArc": true },
+          { "verb": "absorb_word", "label": "take a word from the wood", "description": "the altar holds a syllable spoken into it; pull it into your margins", "advancesArc": true },
+          { "verb": "spark_marginalia", "label": "note the placement", "description": "a marginal mark; a record that you witnessed", "advancesArc": true }
+        ],
+        "dragon-egg": [
+          { "verb": "listen", "label": "listen for the placer", "description": "they are not far; their breath still presses the chapel air", "advancesArc": true },
+          { "verb": "absorb_warmth", "label": "absorb the offering's warmth", "description": "still warm; whoever brought it left only minutes ago", "advancesArc": true },
+          { "verb": "dream_outward", "label": "dream past the placer", "description": "they came from the west; show yourself their road", "advancesArc": true }
+        ],
+        "dungeon-core": [
+          { "verb": "sense_intruder", "label": "track the placer", "description": "their weight pressed the altar stone; follow the impression", "advancesArc": true },
+          { "verb": "weave_illusion", "label": "preserve the altar's pretense", "description": "let later visitors see what was meant to be seen", "advancesArc": true },
+          { "verb": "shape_room", "label": "claim the chapel", "description": "the altar is a fixture in your dungeon now", "advancesArc": true }
+        ]
+      },
       "fires": [
         {
           "kind": "sensed",
@@ -60,6 +105,28 @@
       },
       "narrative": "On three tables in the tavern, coins. The patrons did not pay as they left — not because they could not, but because paying was not what their minds were doing. They are running.",
       "oncePerSession": true,
+      "suggestedVerbs": {
+        "lesser-slime": [
+          { "verb": "absorb", "label": "absorb the unfinished cups", "description": "taste the residue — fear thickened the ale before they left it", "advancesArc": true },
+          { "verb": "sense_tremor", "label": "feel the chairs", "description": "the wood still holds the shape of a body that stood up too fast", "advancesArc": true },
+          { "verb": "ooze", "label": "ooze across the abandoned tables", "description": "let your edge cross every coin and mug; learn the exodus by contact", "advancesArc": true }
+        ],
+        "cursed-book": [
+          { "verb": "decode_passage", "label": "read the coins as a sentence", "description": "their layout is a story — three tables, all unpaid, the same direction of flight", "advancesArc": true },
+          { "verb": "absorb_word", "label": "take a word from a stained note", "description": "a name half-rendered on a beer-soaked ledger page", "advancesArc": true },
+          { "verb": "bleed_ink", "label": "mark the open ledger", "description": "weep onto the open page; record that you witnessed the flight", "advancesArc": true }
+        ],
+        "dragon-egg": [
+          { "verb": "listen", "label": "listen to the leaving", "description": "the tavern still holds the rhythm of chairs scraped back at once", "advancesArc": true },
+          { "verb": "kindle_glow", "label": "warm the cooling cups", "description": "let your glow find what their hands left; the room remembers them", "advancesArc": true },
+          { "verb": "absorb_warmth", "label": "find the last warm cup", "description": "the heat will tell you how recently they were here", "advancesArc": true }
+        ],
+        "dungeon-core": [
+          { "verb": "sense_intruder", "label": "track them out the door", "description": "their boot-prints in the sawdust point west; follow with the stone", "advancesArc": true },
+          { "verb": "lure", "label": "set the tavern as a trap", "description": "make it look untouched; whoever returns will not expect a watching", "advancesArc": true },
+          { "verb": "siphon_intruder", "label": "draw warmth from the residue", "description": "they left heat in every chair; take it back into the dungeon's stone", "advancesArc": true }
+        ]
+      },
       "fires": [
         {
           "kind": "sensed",
@@ -83,6 +150,28 @@
       },
       "narrative": "Hoofprints in the dust on the western road, all going one way. Everyone — every one — went west. The road's other direction is empty in the way roads do not usually choose to be.",
       "oncePerSession": true,
+      "suggestedVerbs": {
+        "lesser-slime": [
+          { "verb": "sense_tremor", "label": "feel the road's vibration", "description": "the western road still hums with their leaving; the eastern road is silent", "advancesArc": true },
+          { "verb": "ooze", "label": "ooze along the prints", "description": "let your forward edge follow the hoof-marks west, slowly", "advancesArc": true },
+          { "verb": "absorb", "label": "absorb the road's dust", "description": "what they kicked up is still settling; learn the column's chemistry", "advancesArc": true }
+        ],
+        "cursed-book": [
+          { "verb": "decode_passage", "label": "read the prints as a passage", "description": "the road is a sentence written in a single direction", "advancesArc": true },
+          { "verb": "flutter_pages", "label": "flutter in the western wind", "description": "let the wind from the west turn your pages; learn what it carries", "advancesArc": true },
+          { "verb": "wyrm_inscription", "label": "let an older hand write the road", "description": "an inscription appears in your pages — the road's history, in older script", "advancesArc": true }
+        ],
+        "dragon-egg": [
+          { "verb": "listen", "label": "listen to the road carry breath", "description": "the western wind carries voices; not yours, but kin to something", "advancesArc": true },
+          { "verb": "dream_outward", "label": "dream past the village edge", "description": "past the road's bend, past the cliff, toward what called them", "advancesArc": true },
+          { "verb": "warmth_pulse", "label": "pulse warmth toward the west", "description": "if a kindred thing went that way, your warmth may reach it", "advancesArc": true }
+        ],
+        "dungeon-core": [
+          { "verb": "sense_intruder", "label": "track them through stone", "description": "the road's bedrock remembers every hoof; let it report back", "advancesArc": true },
+          { "verb": "weave_illusion", "label": "show the road's wrong fork", "description": "if anyone returns, let them take the path you choose", "advancesArc": true },
+          { "verb": "bind_minion", "label": "send something west", "description": "tether a will to a creature in the dust; learn what they fled to", "advancesArc": true }
+        ]
+      },
       "fires": [
         {
           "kind": "sensed",
@@ -107,6 +196,28 @@
       },
       "narrative": "Three pieces are enough. The villagers were not driven from the village by something that came in. They were called from it by something that asked. The asking happened from the west.",
       "oncePerSession": true,
+      "suggestedVerbs": {
+        "lesser-slime": [
+          { "verb": "ooze", "label": "ooze toward the asking", "description": "let your forward edge thin and pour west — the call is still resonating", "advancesArc": true },
+          { "verb": "sense_tremor", "label": "feel the asking in the stone", "description": "the call still hums in the bedrock; locate its source", "advancesArc": true },
+          { "verb": "absorb", "label": "absorb the residue of the call", "description": "fold the asking's chemistry into your essence — learn its shape", "advancesArc": "branch:claim" }
+        ],
+        "cursed-book": [
+          { "verb": "decode_passage", "label": "decode the asking", "description": "the call has a grammar; render it on your pages", "advancesArc": true },
+          { "verb": "wyrm_inscription", "label": "let the older hand surface", "description": "an inscription writes itself — the asking's true name, in older script", "advancesArc": true },
+          { "verb": "bleed_ink", "label": "record the asking", "description": "weep the call onto your lectern; preserve what was asked", "advancesArc": "branch:claim" }
+        ],
+        "dragon-egg": [
+          { "verb": "dream_outward", "label": "dream toward the asker", "description": "past the western road, past whatever cliff — find the one who called", "advancesArc": true },
+          { "verb": "shell_song", "label": "answer the asking", "description": "ring your shell with a note older than the call; let the asker hear", "advancesArc": "branch:claim" },
+          { "verb": "absorb_warmth", "label": "absorb the call's warmth", "description": "the asking carried heat; take what reaches you through the cold", "advancesArc": true }
+        ],
+        "dungeon-core": [
+          { "verb": "wyrm_signal", "label": "signal westward", "description": "send a low pulse through the stone; the older predator above also notices", "advancesArc": true },
+          { "verb": "shape_room", "label": "claim the village as outer ring", "description": "the abandoned village becomes the outermost chamber of your dungeon", "advancesArc": true },
+          { "verb": "bind_minion", "label": "send a binding west", "description": "tether a will to a creature heading toward the asker; learn through it", "advancesArc": "branch:claim" }
+        ]
+      },
       "fires": [
         {
           "kind": "quest.objectiveUpdated",
