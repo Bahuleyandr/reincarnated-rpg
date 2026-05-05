@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "The Petitioner — a voice from the Revenant's past. Returns at the chapel bell mid-arc; arrives in person at turn>=4. Non-recurring; bound to the refuse-the-bell beat-pack. Their petition is the test of the Revenant's refusal. They do not threaten; they ask. The cost of refusing them is exactly the cost the form is designed to spend."
+  },
+  "id": "the-petitioner",
+  "displayName": "the petitioner",
+  "kind": "npc",
+  "tagline": "a name from a long time ago, returned to ask one more time.",
+  "vitals": {
+    "hp": { "max": 6, "start": 6 }
+  },
+  "stats": {
+    "patience": 3,
+    "will": 2,
+    "awareness": 2
+  },
+  "attitudeDefault": 0,
+  "attitudeRange": [-2, 2],
+  "tags": ["forsaken-village", "revenant-arc", "petitioner"]
+}

@@ -1,0 +1,144 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Five-beat arc for forsaken-revenant in the Forsaken Village. The Revenant returned to refuse, not to belong. Tonight, a name they once said no to is about to ask them again — first as a chapel bell at the third hour, then as a person walking up the road. The arc is to hold the watch, hold the refusal, hold the cost, until dawn. Win: vigil>=10 AND refusal>=10 at turn>=8. Lose: refusal<=0 (drawn back into the world they swore off)."
+  },
+
+  "id": "refuse-the-bell",
+  "displayName": "Refuse the Bell",
+  "questId": "refuse-the-bell",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-third-hour",
+      "displayName": "The Third Hour",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "It is the third hour after midnight, and the road is yours alone. You did not promise to watch it; you watch it anyway. The wind off the field is cold and you are colder. The thing you are watching for has not come tonight. It will come on a night. You will be here for that one.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "watch", "label": "watch the road", "description": "let the empty road write itself across your awareness; nothing arrives that you have not accounted for", "advancesArc": true },
+        { "verb": "endure", "label": "endure the cold", "description": "the hour passes; you are still here, and still refusing", "advancesArc": true },
+        { "verb": "refuse", "label": "refuse the warmth", "description": "the village's residual heat asks you to come in; you do not", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "refuse-the-bell",
+          "objective": "hold-the-watch",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-bell-tolls",
+      "displayName": "The Bell Tolls",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==chapel" }, { "turn": ">=2" }] },
+          { "turn": ">=3" }
+        ]
+      },
+      "narrative": "The chapel bell finds itself rung. No hand pulls it; the wind is not enough to move that bell. The note that comes out of it is a name. It is a name you said no to once. You said no to it twice. You have not been asked a third time in a season.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "refuse", "label": "refuse the bell", "description": "say no to the name without ceremony; let the bell finish unanswered", "advancesArc": true },
+        { "verb": "watch", "label": "watch the bell finish", "description": "let it ring itself out; do not move toward it, do not move away", "advancesArc": true },
+        { "verb": "leave", "label": "leave the chapel's reach", "description": "walk to the village edge before the third toll lands", "advancesArc": "branch:withdrawn" }
+      ],
+      "fires": [
+        {
+          "kind": "sensed",
+          "modality": "sound",
+          "detail": "chapel bell tolling a name at the third hour"
+        },
+        {
+          "kind": "form_state.changed",
+          "field": "bell_heard",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "03-petitioner-arrives",
+      "displayName": "The Petitioner Arrives",
+      "trigger": {
+        "all": [
+          { "form.state.bell_heard": ">=1" },
+          { "turn": ">=4" }
+        ]
+      },
+      "narrative": "The bell did not ring itself. A figure walks up the western road — slow, deliberate, not afraid of you. You know the gait. You know the gait better than you know your own name now, on most nights. They stop at a respectful distance. They have not yet spoken. They are about to.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "watch", "label": "watch them speak", "description": "let them finish the asking before you answer; refusing without hearing is not refusing", "advancesArc": true },
+        { "verb": "refuse", "label": "refuse before they speak", "description": "your no arrives first; the asking will land on it", "advancesArc": "branch:precluded" },
+        { "verb": "endure", "label": "hold the watch through their plea", "description": "they will speak; the watch will hold; the refusal is the refusal of the watch, not of the words", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-petitioner",
+          "data": {
+            "name": "the petitioner",
+            "relationship": 0,
+            "templateId": "the-petitioner"
+          }
+        }
+      ]
+    },
+    {
+      "id": "04-the-long-watch",
+      "displayName": "The Long Watch",
+      "trigger": {
+        "any": [
+          { "turn": ">=6" },
+          { "form.vitals.vigil": "<=14" }
+        ]
+      },
+      "narrative": "The hour is past four now. The watch grows heavy in a way that is not about sleep. The petitioner has said what they came to say, or they have not, but the asking is in the air either way and the air is colder than it was. Refusing the second time is harder than refusing the first.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "endure", "label": "hold the cost", "description": "the watch takes from your vigil tonight; you accept the subtraction", "advancesArc": true },
+        { "verb": "refuse", "label": "refuse a second time", "description": "your no, said again, costs more than the first; spend the cost cleanly", "advancesArc": true },
+        { "verb": "return", "label": "return to the road's edge", "description": "back to the vantage where the watch is yours; the petitioner can stand or go", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "watch_heavy",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-dawn-held",
+      "displayName": "Dawn — Held",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.refusal": ">=10" },
+          { "form.vitals.vigil": ">=10" }
+        ]
+      },
+      "narrative": "The east edge of the field turns the colour of a refusal that has held all night. The petitioner is gone — not driven off, not won over; they understood, and walked back the way they came. The road is yours again, and the watch was kept. Tomorrow's third hour will find you here. Tonight's already has.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "watch", "label": "watch the dawn", "description": "the road accepts your watch as the night accepted it; nothing else needs to happen", "advancesArc": true },
+        { "verb": "endure", "label": "one last hold", "description": "the hour completes itself; you completed yourself with it", "advancesArc": true },
+        { "verb": "refuse", "label": "refuse the morning's offer", "description": "the day asks you to come inside; your no is older than the day's asking", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "refuse-the-bell",
+          "objective": "hold-the-watch",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}
