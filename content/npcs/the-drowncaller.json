@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "The Drowncaller — a halfling shipping inspector from the Coral Anchorage. Comes up to Knot's Landing in person when a previous batch of rigging has rusted at sea. Their stamp on the manifest is the difference between a barge that ships and a barge that doesn't. They are not unkind, but they are not lenient. Non-recurring; bound to the-joining beat-pack."
+  },
+  "id": "the-drowncaller",
+  "displayName": "the drowncaller",
+  "kind": "npc",
+  "tagline": "halfling, salt-cured, holding the manifest like a verdict.",
+  "vitals": {
+    "hp": { "max": 6, "start": 6 }
+  },
+  "stats": {
+    "patience": 3,
+    "will": 4,
+    "awareness": 4
+  },
+  "attitudeDefault": 0,
+  "attitudeRange": [-2, 2],
+  "tags": ["knots-landing", "rust-hand-arc", "shipping-inspector"]
+}

@@ -1,0 +1,139 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "Five-beat arc for rust-hand-ascendant in Knot's Landing. A previous shipment of rope-and-ring rigging rusted at sea; the halfling Drowncaller has come up in person. The rust-hand's craft is to mark the iron rings so they take the rust on willingly — a slow controlled weathering that protects the ring from the sea's quick destructive corrosion. Tonight's batch must be marked before the morning barges. Win: iron>=10 AND patience>=10 at turn>=8 (the rings carry your mark; the Drowncaller stamps the bill). Lose: patience<=0 (you rushed; the rings will fail at sea; the Drowncaller will not stamp)."
+  },
+
+  "id": "the-joining",
+  "displayName": "The Joining",
+  "questId": "the-joining",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-walk-end",
+      "displayName": "The Walk End",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "The ropewalk is empty in the way a workspace is empty when the work has already been moved on without you. At the far end, the new batch — rope coiled with the iron rings already laid in. The rings have not been marked yet. Your hands have done this several thousand times. They will do it again tonight. The barges leave at dawn.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "mark", "label": "lay the first mark", "description": "the rust will follow this mark; the ring takes its weathering by your hand", "advancesArc": true },
+        { "verb": "weather", "label": "weather the first ring", "description": "set the slow corrosion on the surface; the salt sea will not find weakness underneath", "advancesArc": true },
+        { "verb": "join", "label": "join the first splice", "description": "rope to ring, the namesake knot tied around the marked iron", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-joining",
+          "objective": "mark-the-batch",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-drowncaller-watches",
+      "displayName": "The Drowncaller Watches",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-coil-yard" }, { "turn": ">=2" }] },
+          { "turn": ">=3" }
+        ]
+      },
+      "narrative": "The halfling Drowncaller has been standing at the coil-yard's edge since you began. They came up from the Coral Anchorage three days ago because the last batch rusted in the open sea. They have not yet introduced themselves. They are watching the way you set the mark. They will know within a quarter of an hour whether the new batch will fail.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "mark", "label": "let them see the mark", "description": "the work speaks; the Drowncaller will read the mark before you finish it", "advancesArc": true },
+        { "verb": "weather", "label": "weather under their watch", "description": "the slow corrosion takes its time; the Drowncaller's patience matches the work's", "advancesArc": true },
+        { "verb": "join", "label": "join while they appraise", "description": "the splice goes through; their assessment forms in real time", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-drowncaller",
+          "data": {
+            "name": "the drowncaller",
+            "relationship": 0,
+            "templateId": "the-drowncaller"
+          }
+        }
+      ]
+    },
+    {
+      "id": "03-the-river-mid",
+      "displayName": "The River at Mid",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-flax-bank" }, { "turn": ">=4" }] },
+          { "turn": ">=5" }
+        ]
+      },
+      "narrative": "The river is the colour of slow tea and the flax beds are full at this season. The retting work the rope-makers do here is the same work yours does, only with water instead of air, only with cellulose instead of iron. The bank is a good place to think about how slowly a thing should be allowed to fall apart. Some breakages are correct. The rust-hand's job is to choose which ones.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "weather", "label": "weather the next ring", "description": "patience set into iron; the river's slow work in metal", "advancesArc": true },
+        { "verb": "rest", "label": "rest by the bank", "description": "your hands have done enough this turn; the slow corrosion does not rush", "advancesArc": true },
+        { "verb": "wyrm-iron", "label": "let the wyrm-touch surface", "description": "the older mark; the iron remembers the wyrm's salt; this batch will not fail", "advancesArc": "branch:wyrm-marked" }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "river_observed",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "04-the-tide-comes-up",
+      "displayName": "The Tide Comes Up",
+      "trigger": {
+        "any": [
+          { "turn": ">=6" },
+          { "form.vitals.iron": "<=10" }
+        ]
+      },
+      "narrative": "Word comes down from the lower bend: the tide is up at the Anchorage and the barges' captains are casting off in two hours. There is no extra time. There is also no shortcut for the work that is left. The Drowncaller has not moved from their position. They will not move until you have either finished or admitted you cannot finish.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "mark", "label": "mark the last rings", "description": "the work goes through at its proper pace; rushing it is the failure they came to find", "advancesArc": true },
+        { "verb": "join", "label": "join the last splices", "description": "rope to ring, the namesake knot, the iron marked; the batch closes", "advancesArc": true },
+        { "verb": "weather", "label": "give the last set time", "description": "the surface takes the slow corrosion; the rings cool; the work completes itself", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "tide_pressure",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-the-shipment-stamped",
+      "displayName": "The Shipment Stamped",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.iron": ">=10" },
+          { "form.vitals.patience": ">=10" }
+        ]
+      },
+      "narrative": "The Drowncaller comes up to the coil yard, lifts the topmost ring, flexes the rope through their fingers, examines the mark you set on the iron with the slow corrosion already taking. They nod once. The heavy stamp comes down on the bill: SHIPPED. The barges will leave with rigging that holds. The next batch begins tomorrow. Your hands belong to themselves again until the bell.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "rest", "label": "rest from the joining", "description": "the work is signed; your hands lower; the day's iron is yours again", "advancesArc": true },
+        { "verb": "mark", "label": "mark the day's last ring", "description": "the spare; the keepsake; the one you did for yourself, not the batch", "advancesArc": true },
+        { "verb": "join", "label": "join one for the apprentice", "description": "tomorrow's work begins now; teach the namesake knot to the next pair of hands", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-joining",
+          "objective": "mark-the-batch",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}

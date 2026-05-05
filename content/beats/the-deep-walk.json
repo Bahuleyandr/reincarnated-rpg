@@ -1,0 +1,144 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "Five-beat arc for deep-mark in the Coral Anchorage. The Tidehands have requested a piece of reef-iridium that has fallen from the living reef into the deep below the platform. Only the deep-mark can retrieve it — the rest of the navy stops at the depth where the rung-line gives out. The dive is the test. Living coral cannot be cut; the deep-mark takes only what is given. Win: lung>=10 AND depth>=10 at turn>=8 (returned with the find, or returned having decided the depth was the point). Lose: lung<=0 (stayed too long, the surface lost you). The Reef Watcher above keeps the time."
+  },
+
+  "id": "the-deep-walk",
+  "displayName": "The Deep Walk",
+  "questId": "the-deep-walk",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-reef-edge",
+      "displayName": "The Reef Edge",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "You stand at the lip of the seaward platform. The water below is the colour of inside-of-the-mouth red, a yellow that is not gold, a sun-orange. The living coral pulses slowly, slowly. The piece the Tidehands want has fallen past it — into the deep where their line stops being able to follow you. The pressure has begun its slow change against your ears. The descent begins now, or it does not begin.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "descend", "label": "begin the descent", "description": "the seam-line goes down; your hand finds the first rung; the platform recedes above you", "advancesArc": true },
+        { "verb": "feel", "label": "feel the water's grain", "description": "before you go, learn the day's pressure; the reef will not be the reef it was yesterday", "advancesArc": true },
+        { "verb": "rest", "label": "rest one breath", "description": "the next breath is the breath you take down with you; let it be a full one", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-deep-walk",
+          "objective": "retrieve-the-iridium",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-seam-line",
+      "displayName": "The Seam Line",
+      "trigger": {
+        "any": [
+          { "turn": ">=2" },
+          { "form.state.descended": ">=1" }
+        ]
+      },
+      "narrative": "Thirty meters down. The rung-line is your line; the navy laid it years ago and it has held. The water at this depth is colder than the water at the surface and is colder than the water ten meters below. The pressure tells you where you are. The platform's underside is a small bright shape above you. The deep is below.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "descend", "label": "follow the rung-line down", "description": "hand over hand; the line knows the way; the depth knows you", "advancesArc": true },
+        { "verb": "feel", "label": "feel the cold change", "description": "the water at this layer is a different water; the reef's edge is below the cold", "advancesArc": true },
+        { "verb": "rest", "label": "rest at the line's mid", "description": "the line allows pauses; the breath holds; the body adjusts", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "descended",
+          "delta": 1
+        },
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-reef-watcher",
+          "data": {
+            "name": "the reef watcher",
+            "relationship": 1,
+            "templateId": "the-reef-watcher"
+          }
+        }
+      ]
+    },
+    {
+      "id": "03-the-rung-line-ends",
+      "displayName": "The Rung Line Ends",
+      "trigger": {
+        "any": [
+          { "turn": ">=4" },
+          { "form.vitals.depth": ">=15" }
+        ]
+      },
+      "narrative": "The rung-line stops at the last rung. Below the last rung is the deep the navy does not go to. The reef-iridium is below the last rung. The water here is the colour of a memory you have of dark. You can feel the world's plates drift in your bones. The platform above is no longer a shape; it is a direction, only.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "descend", "label": "go past the last rung", "description": "the line ends; you go on; this is the part of the dive only the deep-mark does", "advancesArc": true },
+        { "verb": "feel", "label": "feel for the iridium", "description": "the metal calls in a frequency the water carries; locate without seeing", "advancesArc": true },
+        { "verb": "wyrm-listen", "label": "listen for the wyrm", "description": "the deep is wyrm-touched; the older sound is here; locate the iridium by what it is near", "advancesArc": "branch:wyrm-marked" }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "past_the_line",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "04-the-iridium",
+      "displayName": "The Iridium",
+      "trigger": {
+        "any": [
+          { "turn": ">=6" },
+          { "form.state.past_the_line": ">=1" }
+        ]
+      },
+      "narrative": "The piece is where the watcher said it would be — fallen from the living reef, lying on a shelf of dead coral, wholly given. You can take it. The reef has not asked you not to. Or you can leave it; the dive itself is the work, and the depth is the point, and the surface knows by your return whether the deep was kind to you. Either is acceptable to the watcher above. Both have been done before.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "feel", "label": "feel the piece", "description": "weight, shape, edge; the iridium reports its own shape to your hand", "advancesArc": true },
+        { "verb": "rest", "label": "rest at the find", "description": "the piece can wait; your breath cannot; the choice can take a beat", "advancesArc": true },
+        { "verb": "surface", "label": "begin the rise", "description": "with or without the piece; the dive's true work was the dive; either return is honored", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "found",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-the-surface",
+      "displayName": "The Surface",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.lung": ">=10" },
+          { "form.vitals.depth": ">=10" }
+        ]
+      },
+      "narrative": "The platform's underside is a shape again, then a face — the watcher, holding the line. You break the surface. The day is the day you left. The watcher logs the time; they do not ask whether you brought the piece. They will see it on the platform if you have, and not see it if you have not. Either way: the dive is closed. The deep is yours again until tomorrow's slate.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "surface", "label": "complete the surface", "description": "the dive's last meter; the reef-edge accepts you back", "advancesArc": true },
+        { "verb": "rest", "label": "rest on the platform", "description": "the lung returns; the depth subsides; the body is yours again", "advancesArc": true },
+        { "verb": "feel", "label": "feel the day", "description": "the surface's pressure is its own pressure; learn it again, slowly", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-deep-walk",
+          "objective": "retrieve-the-iridium",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}

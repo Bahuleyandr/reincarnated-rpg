@@ -1,0 +1,23 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "The Topgrove Elder — a dwarven orchardist of the Whitestar line who has worked these terraces for sixty years. They have asked the garden-keeper-of-the-spire to handle this season's last pruning; the elder's hands cannot make the cuts they once did, but their eye still knows which branch goes. They walk the rows alongside, advising in dwarven wind-pace. Non-recurring; bound to the-last-pruning beat-pack."
+  },
+  "id": "the-topgrove-elder",
+  "displayName": "the Topgrove elder",
+  "kind": "npc",
+  "tagline": "dwarven, sun-burned at the back of the neck only, sixty years' worth of cuts in their eye.",
+  "vitals": {
+    "hp": { "max": 6, "start": 6 }
+  },
+  "stats": {
+    "patience": 5,
+    "will": 4,
+    "awareness": 5
+  },
+  "attitudeDefault": 2,
+  "attitudeRange": [0, 3],
+  "tags": ["highfield-ascending", "garden-keeper-arc", "elder-orchardist"]
+}

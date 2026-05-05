@@ -229,6 +229,117 @@ const ROUTES: ArcRoute[] = [
     // tolls is reachable from there in one move.
     startingRoomId: "village-edge",
   },
+  // The Still One sits at the silence-gate of Quietmile. A
+  // visitor reaches the threshold with a name they cannot say
+  // (vow of silence). The arc is whether to take the name into
+  // remembrance or to withhold it. Both are valid. The sitting
+  // is the test, not the choice.
+  {
+    arcId: "the-long-sit",
+    formId: "the-still-one",
+    locationId: "quietmile",
+    tagline:
+      "A visitor reaches the threshold of the place where you sit. They have brought a name they cannot say. Hold the silence; choose with weight.",
+    startingRoomId: "the-silence-gate",
+  },
+  // The Salt Keeper finds a sour note in the dawn-cup before the
+  // dawn bell. A young deacon will be down for services in three
+  // hours and will taste it themselves if no work has been done.
+  // Either cure the lot back to good or accept what the year
+  // gave you. Either is a kept year.
+  {
+    arcId: "the-sour-pull",
+    formId: "salt-keeper",
+    locationId: "salt-cathedral",
+    tagline:
+      "The third barrel has gone sour overnight. The dawn bell is three hours out. Pull it back, or offer what the year was able to give.",
+    startingRoomId: "side-chapel",
+  },
+  // The Chorister leads the pre-climb chant — the line of voice
+  // that carries climbers up the switchback pass. Tonight's
+  // party includes a child on their first crossing. Hold the
+  // line through three notches; the chant carries them or the
+  // wind does.
+  {
+    arcId: "the-pass-bowed",
+    formId: "chorister-ascendant",
+    locationId: "three-notches",
+    tagline:
+      "A child has joined the climbing party. Their voice is small. The line of chant must carry them up three notches before the wind takes any of you.",
+    startingRoomId: "the-pass-square",
+  },
+  // The Rust-hand marks iron rings with slow controlled
+  // weathering so the sea's quick corrosion can't find weakness
+  // underneath. A halfling Drowncaller is here in person because
+  // the last batch failed at sea. Mark the batch before dawn.
+  {
+    arcId: "the-joining",
+    formId: "rust-hand-ascendant",
+    locationId: "knots-landing",
+    tagline:
+      "The last batch of rigging rusted at sea. The Drowncaller has come up from the Anchorage. Mark the new batch before the morning barges.",
+    startingRoomId: "the-ropewalk",
+  },
+  // The Deep-mark dives below the Coral Anchorage's seaward
+  // platform, past the navy's rung-line, to retrieve a piece of
+  // reef-iridium fallen from the living coral. The dive itself
+  // is the work; depth is the point; either return is honored.
+  {
+    arcId: "the-deep-walk",
+    formId: "deep-mark",
+    locationId: "the-coral-anchorage",
+    tagline:
+      "A piece of reef-iridium has fallen past the navy's rung-line. Only you can reach it. The dive is the test; the depth is the point.",
+    startingRoomId: "the-reef-edge",
+  },
+  // The Cantor distills eight layers of marginalia commentary
+  // into a single verse the choir can carry. The Hush-readers
+  // accept or reject the distillation by a single margin-mark.
+  {
+    arcId: "the-distilled-verse",
+    formId: "cantor-of-the-long-song",
+    locationId: "the-long-indices",
+    tagline:
+      "Eight layers of marginalia. One folio. One verse to carry it all. The Hush-readers will mark in three hours.",
+    startingRoomId: "the-outer-quadrangle",
+  },
+  // The Garden-keeper handles the season's last pruning on the
+  // Highfield orchards. The Topgrove elder's eye still knows
+  // which branch goes; their hands no longer do. The Gust-
+  // watcher signals when the wind permits the highest cuts.
+  {
+    arcId: "the-last-pruning",
+    formId: "garden-keeper-of-the-spire",
+    locationId: "highfield-ascending",
+    tagline:
+      "The season is turning. The autumn cuts must close the year. The elder will walk the rows beside you; the wind will say when.",
+    startingRoomId: "the-windbench",
+  },
+  // The Furnace-warden holds the long-fire under the Coldspoon
+  // tincture-room benches across an eight-hour cloud-bitters
+  // extraction. The cold wind off the south slope tests the
+  // banking. An apprentice watches their first long fire.
+  {
+    arcId: "the-long-fire",
+    formId: "furnace-warden",
+    locationId: "coldspoon",
+    tagline:
+      "The season's largest order is on the racks. The fire must hold the right red across eight hours of cold. An apprentice is watching.",
+    startingRoomId: "the-tincture-room",
+  },
+  // The Iron-hand sets the name on their last named blade —
+  // three years of cold-forged work finished tonight. The
+  // journeyman who has been at this bench nineteen years
+  // watches as the witness without whom the bench's lineage
+  // does not pass cleanly.
+  {
+    arcId: "the-last-blade",
+    formId: "iron-hand-ascended",
+    locationId: "threadwarden",
+    tagline:
+      "Three years on the bench. Tonight the blade gets its name. Your journeyman comes to witness. The name is yours to receive.",
+    startingRoomId: "the-cold-forges",
+  },
 ];
 
 export interface PickedArc {

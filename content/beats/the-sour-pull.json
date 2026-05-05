@@ -1,0 +1,144 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-05",
+    "notes": "Five-beat arc for salt-keeper in the Salt Cathedral. The Keeper has tasted a sour note in the brine — a lot has gone wrong overnight. Either cure it back to good (slow, careful work, costs stores) or strip and start fresh (faster, costs the lot's worth). A young deacon has noticed too. They will speak about it before the high services if the Keeper has not acted. Win: brine>=10 AND stores>=10 at turn>=8 (the lot is saved one way or another, and the Keeper's reputation with it). Lose: brine<=0 (the lot is fully ruined; the deacon speaks; the Keeper's standing in the cathedral suffers)."
+  },
+
+  "id": "the-sour-pull",
+  "displayName": "The Sour Pull",
+  "questId": "the-sour-pull",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-cool-room",
+      "displayName": "The Cool Room",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "The cool room of the cathedral is dark and smells of salt and the slow patience of years. Barrels along the eastern wall hold the year's pull, in stages. The dawn-tasting cup is on the bench beside the small wooden ladle. Something is wrong with the air; you have not yet placed it. The wrong is small enough to ignore and large enough to grow.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "taste", "label": "taste the dawn-cup", "description": "small spoon, careful palate; the wrong has a name on the back of the tongue", "advancesArc": true },
+        { "verb": "stock", "label": "take stock of the barrels", "description": "count what's holding and what's not; the wrong is in one barrel, not all", "advancesArc": true },
+        { "verb": "stir", "label": "stir the topmost barrel", "description": "before tasting, see if the surface is intact; sour rises", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-sour-pull",
+          "objective": "save-the-lot",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-sour-note",
+      "displayName": "The Sour Note",
+      "trigger": {
+        "any": [
+          { "turn": ">=2" },
+          { "form.state.tasted": ">=1" }
+        ]
+      },
+      "narrative": "The third barrel from the door has gone over. The sour note is unmistakable now — a brightness where there should be roundness, a hot edge where the year should have softened. The lot is not yet ruined. It is on its way. The deacon will be down for the dawn services in three hours and they will taste this without being asked.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "taste", "label": "taste the sour barrel", "description": "settle the diagnosis; how far gone is it really, and how fast", "advancesArc": true },
+        { "verb": "cure", "label": "begin the cure", "description": "set fresh salt on the rack; bring the third barrel back, slow", "advancesArc": true },
+        { "verb": "stir", "label": "stir the third barrel", "description": "the sour layered; turning the brine may pull it back from the edge", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "tasted",
+          "delta": 1
+        },
+        {
+          "kind": "sensed",
+          "modality": "taste",
+          "detail": "third barrel gone over; salvageable; not for long"
+        }
+      ]
+    },
+    {
+      "id": "03-the-deacon-arrives",
+      "displayName": "The Deacon Arrives",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==salt-nave" }, { "turn": ">=4" }] },
+          { "turn": ">=5" }
+        ]
+      },
+      "narrative": "The deacon comes down through the nave with the dawn light at their back. They are young; the salt has rimed their hair already; they will be old before the year is out. They have already smelled what is wrong — the cathedral's air gives nothing up easily, but the sour comes through. They do not yet say. They are deciding whether to.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "cure", "label": "show them the cure", "description": "let them see the work in progress; the sour is being pulled back, and they witness it", "advancesArc": true },
+        { "verb": "taste", "label": "offer them the dawn-cup", "description": "the cup acknowledges the sour without naming it; the deacon will know", "advancesArc": true },
+        { "verb": "stock", "label": "stock the rack between you", "description": "let the work speak; the deacon will read the work better than your words", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-deacon",
+          "data": {
+            "name": "the deacon",
+            "relationship": 1,
+            "templateId": "the-deacon"
+          }
+        }
+      ]
+    },
+    {
+      "id": "04-the-bell-demands",
+      "displayName": "The Bell Demands",
+      "trigger": {
+        "any": [
+          { "turn": ">=6" },
+          { "form.vitals.brine": "<=10" }
+        ]
+      },
+      "narrative": "The dawn bell is half an hour from ringing. The cathedral's services need a full lot of cured salt for the basin and the altar. The lot you have is the lot it has to be. There is no time for a strip and a fresh fill; either the cure holds, or you offer what you have and trust the cathedral to forgive what the year was unable to give it.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "cure", "label": "finish the cure", "description": "spend the last of your stores; the rack takes the brunt; the lot comes back, mostly", "advancesArc": true },
+        { "verb": "stir", "label": "stir one last time", "description": "settle whatever the cure has done; the surface accepts what it can; the bell is close", "advancesArc": true },
+        { "verb": "taste", "label": "taste the result", "description": "the diagnosis is yours alone; whatever the cup says, the cathedral will accept your word", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "bell_close",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-delivered",
+      "displayName": "Delivered",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.brine": ">=10" },
+          { "form.vitals.stores": ">=10" }
+        ]
+      },
+      "narrative": "The bell rings. The lot goes up to the altar — not perfect, not ruined; the year that the year was, in salt. The deacon nods once when they pass the rack. The basin trembles in its small daily way. The cathedral does not require perfection; it requires that someone has been keeping. You have been. The cool room cools. The next year's barrels begin tomorrow.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "stock", "label": "stock for tomorrow", "description": "tomorrow's barrels begin now; the work continues; the keeping continues", "advancesArc": true },
+        { "verb": "cure", "label": "set tomorrow's cure", "description": "the rack is empty; refill it for the next sour pull, whenever it comes", "advancesArc": true },
+        { "verb": "taste", "label": "taste the year's first cup", "description": "the dawn cup of the new lot; the year reports back through your tongue", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-sour-pull",
+          "objective": "save-the-lot",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}

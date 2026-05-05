@@ -1,0 +1,144 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "Five-beat arc for cantor-of-the-long-song in The Long Indices. A Marginal has commissioned a distillation: a folio with eight layers of marginalia commentary on a centuries-old argument. The cantor's task is to distill all eight layers into a single verse the choir can carry — portable, memorable, faithful to the argument's true shape. The Hush-readers in the innermost quadrangle will read the verse silently and accept or reject by margin-mark. Win: voice>=10 AND tincture>=10 at turn>=8 (the verse is accepted by the Hush-readers' marginalia). Lose: tincture<=0 (the distillation lost the argument's essence; the Hush-readers write a single dismissive word and the verse dies)."
+  },
+
+  "id": "the-distilled-verse",
+  "displayName": "The Distilled Verse",
+  "questId": "the-distilled-verse",
+  "introTurnCap": 10,
+
+  "beats": [
+    {
+      "id": "01-the-outer-quadrangle",
+      "displayName": "The Outer Quadrangle",
+      "trigger": { "all": [{ "turn": "==1" }] },
+      "narrative": "A Cataloguer in the outer quadrangle has set the folio down on the bench beside you. It is heavier than it looks. Eight layers of marginalia, beginning with a margin from one hundred and twenty years ago, ending with a margin from last winter. The argument they make and remake is yours to distill into one verse. The Hush-readers will hear it through a margin-mark in three hours.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "rest", "label": "rest with the folio", "description": "let the weight of it settle into your hand; eight layers will tell you their key in their own time", "advancesArc": true },
+        { "verb": "distill", "label": "begin distilling", "description": "the first layer is the oldest; start there; the argument has a key buried near the start", "advancesArc": true },
+        { "verb": "lead", "label": "lead yourself in", "description": "set the cadence the distillation will run in; the verse begins as a key, not a line", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-distilled-verse",
+          "objective": "distill-the-argument",
+          "status": "open"
+        }
+      ]
+    },
+    {
+      "id": "02-the-marginalia",
+      "displayName": "The Marginalia",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-marginalia-quadrangle" }, { "turn": ">=2" }] },
+          { "turn": ">=3" }
+        ]
+      },
+      "narrative": "The Marginalia Quadrangle holds the eight authors as a long argument among themselves; six are dead, two are alive, one of the living is sitting at the next table watching you read their own margin without yet looking at you. The argument's eight voices are yours to hear. The verse must hold them all without flattening them.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "blend", "label": "blend the eight voices", "description": "two tinctures into one, then four into two, then eight into one; the work is iterative", "advancesArc": true },
+        { "verb": "distill", "label": "distill the youngest layer", "description": "last winter's margin is the freshest; it carries the seven older arguments forward", "advancesArc": true },
+        { "verb": "rest", "label": "rest with the dispute", "description": "the eight authors do not agree; let the disagreement be part of what the verse carries", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "npc.introduced",
+          "npcId": "the-marginal",
+          "data": {
+            "name": "the marginal",
+            "relationship": 2,
+            "templateId": "the-marginal"
+          }
+        },
+        {
+          "kind": "form_state.changed",
+          "field": "layers_read",
+          "delta": 4
+        }
+      ]
+    },
+    {
+      "id": "03-the-blend",
+      "displayName": "The Blend",
+      "trigger": {
+        "any": [
+          { "turn": ">=4" },
+          { "form.state.layers_read": ">=8" }
+        ]
+      },
+      "narrative": "The eight layers are inside you now and they are not yet a verse. The blend is the part of the work where the cantor learns whether they are a cantor at all this year. Two tinctures are not addition; two arguments are not addition; the line that holds them is not their sum. The line that holds them is itself. The line is yours to find.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "distill", "label": "distill toward one line", "description": "the verse is a single line at this stage; the line decides what cannot fit into it", "advancesArc": true },
+        { "verb": "blend", "label": "blend toward portability", "description": "the verse must be carried by the choir; what is not carryable is not the verse", "advancesArc": true },
+        { "verb": "wyrm-tincture", "label": "let the wyrm-tincture surface", "description": "the older mode of distillation; it will carry what the eight authors did not say but meant", "advancesArc": "branch:wyrm-rendered" }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "verse_drafted",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "04-the-hush-room",
+      "displayName": "The Hush Room",
+      "trigger": {
+        "any": [
+          { "all": [{ "location.roomId": "==the-hush-room" }, { "turn": ">=6" }] },
+          { "turn": ">=7" }
+        ]
+      },
+      "narrative": "The Hush-readers do not look up when you enter. The air in the inner quadrangle absorbs sound the way the rest of the world absorbs heat. You write your verse in the margin of the folio with a Hush-reader's lent quill — once, carefully. Sliding the folio across the table is a longer act than writing the verse was. A Hush-reader pulls the folio toward themselves, reads, considers.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "rest", "label": "rest while they read", "description": "the Hush-room runs at the Hush-readers' pace; your part of the work is done", "advancesArc": true },
+        { "verb": "lead", "label": "lead in your head", "description": "the verse goes through itself in your inner ear while they read; you hear the choir take it after", "advancesArc": true },
+        { "verb": "blend", "label": "blend with the silence", "description": "the air here is structural; let your distillation join the structure for a moment", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "form_state.changed",
+          "field": "submitted",
+          "delta": 1
+        }
+      ]
+    },
+    {
+      "id": "05-the-verse-accepted",
+      "displayName": "The Verse Accepted",
+      "trigger": {
+        "all": [
+          { "turn": ">=8" },
+          { "form.vitals.voice": ">=10" },
+          { "form.vitals.tincture": ">=10" }
+        ]
+      },
+      "narrative": "The Hush-reader writes a single careful word in the margin beside your verse and slides the folio back across the table. The word is the orcish accept-mark — three strokes, the third of which makes a small joining curl. The verse will be carried. It will be sung in three weeks at the high distillation; the Marginal at the next table closes their eyes for a moment, satisfied. The eight authors are now nine, briefly, before the verse goes into the choir's mouth and becomes only the verse.",
+      "oncePerSession": true,
+      "suggestedVerbs": [
+        { "verb": "rest", "label": "rest at the acceptance", "description": "the work is closed; the verse is the choir's now, not yours; the day continues without you", "advancesArc": true },
+        { "verb": "lead", "label": "lead the choir's first reading", "description": "tomorrow's choir; the line in their mouths for the first time; the work's last gift to itself", "advancesArc": true },
+        { "verb": "distill", "label": "distill tomorrow's first draft", "description": "the next folio is on the bench in the outer quadrangle already; the work continues", "advancesArc": true }
+      ],
+      "fires": [
+        {
+          "kind": "quest.objectiveUpdated",
+          "questId": "the-distilled-verse",
+          "objective": "distill-the-argument",
+          "status": "done"
+        },
+        { "kind": "session.ended", "reason": "win" }
+      ]
+    }
+  ]
+}
