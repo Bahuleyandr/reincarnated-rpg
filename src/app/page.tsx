@@ -219,6 +219,12 @@ export default function Home() {
             duels →
           </Link>
           <Link
+            href="/registers"
+            className="underline underline-offset-2 hover:text-stone-400"
+          >
+            registers →
+          </Link>
+          <Link
             href="/forms/new"
             className="underline underline-offset-2 hover:text-stone-400"
           >
