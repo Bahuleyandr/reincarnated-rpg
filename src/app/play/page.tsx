@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import { Avatar } from "@/components/Avatar";
 import { ChatPanel } from "@/components/ChatPanel";
+import { MapPanel } from "@/components/MapPanel";
 import { CoinBadge } from "@/components/CoinBadge";
 import { EnergyBar } from "@/components/EnergyBar";
 import { LocationNotes } from "@/components/LocationNotes";
@@ -70,6 +71,14 @@ export default function Play() {
     [],
   );
   const [freeTextOpen, setFreeTextOpen] = useState(false);
+  // POLISH_PLAN G.2 — minimal map data for the MapPanel sidebar.
+  // Loaded once on /api/state response; doesn't change mid-session
+  // (the location's room topology is static).
+  const [mapView, setMapView] = useState<{
+    locationId: string;
+    entryRoomId: string;
+    rooms: Array<{ id: string; displayName?: string; exits: string[] }>;
+  } | null>(null);
   const [metaArc, setMetaArc] = useState<{
     phaseLabel: string;
     phase: string;
@@ -115,6 +124,7 @@ export default function Play() {
         setFirstGoal(data.firstGoal ?? null);
         setWyrmRunning(data.wyrmRunning ?? null);
         setVerbSuggestions(data.verbSuggestions ?? []);
+        setMapView(data.mapView ?? null);
         setEntries(
           (data.narrations as string[]).map((text) => ({
             kind: "narration" as const,
@@ -421,6 +431,26 @@ export default function Play() {
         </div>
         <ObjectiveRibbon />
         <StatusSidebar projection={projection} />
+        {projection && mapView && (
+          <div className="px-4 py-3 border-t border-stone-800">
+            <div className="text-[10px] uppercase tracking-widest text-stone-600 mb-2">
+              map · {mapView.locationId.replace(/-/g, " ")}
+            </div>
+            <div className="flex items-center justify-center">
+              <MapPanel
+                view={mapView}
+                discovered={projection.location.discovered}
+                currentRoomId={projection.location.roomId}
+                formId={projection.form.id}
+                size={180}
+              />
+            </div>
+            <div className="text-[10px] text-stone-500 mt-2 leading-snug">
+              {projection.location.discovered.length} of{" "}
+              {mapView.rooms.length} rooms discovered
+            </div>
+          </div>
+        )}
       </aside>
 
       <section className="flex flex-col min-h-screen md:min-h-0 md:order-2 order-1">

@@ -9,6 +9,7 @@ import { previewContribution } from "@/lib/meta/long-wyrm";
 import { readLog, rowToEvent } from "@/lib/game/events";
 import { loadProjection } from "@/lib/game/projection";
 import { suggestVerbs } from "@/lib/game/verb-suggestions";
+import { buildMapView } from "@/lib/game/map-view";
 import type { BeatPack } from "@/lib/game/beats";
 import {
   SESSION_COOKIE_NAME,
@@ -119,6 +120,11 @@ export async function GET(req: NextRequest) {
       // a beat is firing, form-iconic otherwise. The play page
       // renders these as preset buttons + an escape-hatch text box.
       verbSuggestions,
+      // POLISH_PLAN G.2 — minimal map data for the <MapPanel>.
+      // Just rooms + adjacency (no positions; layout happens in
+      // the renderer) so the payload stays under 1 KB for typical
+      // 5-room locations.
+      mapView: buildMapView(location),
     });
   } catch (err) {
     log.error("state.failed", {
