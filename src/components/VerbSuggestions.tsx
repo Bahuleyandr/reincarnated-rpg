@@ -82,7 +82,7 @@ export function VerbSuggestions({
         <button
           type="button"
           onClick={onOpenFreeText}
-          className="w-full text-left px-3 py-2 border border-dashed border-stone-700 rounded text-[11px] text-stone-500 hover:text-stone-300 hover:border-stone-500 transition-colors"
+          className="w-full text-left px-3 py-3 sm:py-2 min-h-[44px] sm:min-h-0 border border-dashed border-stone-700 rounded text-[11px] text-stone-500 hover:text-stone-300 hover:border-stone-500 transition-colors"
           disabled={disabled}
           aria-label="open the free-text input to say something else"
         >
@@ -118,10 +118,10 @@ function PresetButton({
       disabled={disabled}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className={`text-left px-3 py-2 border rounded transition-colors ${
+      className={`text-left px-3 py-3 sm:py-2 min-h-[44px] sm:min-h-0 border rounded transition-colors ${
         disabled
           ? "border-stone-800 text-stone-700 cursor-not-allowed"
-          : "border-stone-700 hover:border-[var(--form-accent-border)] hover:bg-[var(--form-accent-bg)]"
+          : "border-stone-700 hover:border-[var(--form-accent-border)] hover:bg-[var(--form-accent-bg)] active:bg-[var(--form-accent-bg)]"
       }`}
     >
       <div className="flex items-baseline gap-1.5 mb-0.5">

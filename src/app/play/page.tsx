@@ -454,7 +454,11 @@ export default function Play() {
             <div className="text-[10px] uppercase tracking-widest text-stone-600 mb-2">
               map · {projection.location.id.replace(/-/g, " ")}
             </div>
-            <div className="flex items-center justify-center">
+            {/* Mobile UX (POLISH_PLAN Day 67) — let the map fill the
+                full-width sidebar on mobile (single column below md).
+                Desktop column is fixed at 260px so the SVG settles
+                into ~228px / ~180px there. */}
+            <div className="flex items-center justify-center [&>svg]:w-full [&>svg]:max-w-[420px] md:[&>svg]:max-w-none [&>svg]:h-auto">
               {tileMap ? (
                 <TileMapView
                   map={tileMap}
