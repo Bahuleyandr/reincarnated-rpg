@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { Avatar } from "@/components/Avatar";
 import { ChatPanel } from "@/components/ChatPanel";
 import { CoinBadge } from "@/components/CoinBadge";
 import { EnergyBar } from "@/components/EnergyBar";
@@ -424,9 +425,12 @@ export default function Play() {
 
       <section className="flex flex-col min-h-screen md:min-h-0 md:order-2 order-1">
         {projection && (
-          <div className="md:hidden px-4 py-2 border-b border-stone-800 bg-stone-900/60 text-[11px] text-stone-400 flex items-baseline gap-3 flex-wrap">
-            <span>
-              <span className="text-stone-600">form </span>
+          <div className="md:hidden px-4 py-2 border-b border-stone-800 bg-stone-900/60 text-[11px] text-stone-400 flex items-center gap-3 flex-wrap">
+            <span
+              className="flex items-center gap-1.5"
+              style={{ color: "var(--form-accent)" }}
+            >
+              <Avatar formId={projection.form.id} size={18} />
               <span className="text-stone-200">{projection.form.id}</span>
             </span>
             {Object.entries(projection.form.vitals).map(([k, v]) => {
@@ -593,9 +597,14 @@ export default function Play() {
               <div className="space-y-3 text-stone-300 leading-7">
                 {formOpening ? (
                   <>
-                    <div className="text-[10px] uppercase tracking-widest text-stone-600">
-                      {formDisplayName ?? projection.form.id} ·{" "}
-                      {projection.location.id}
+                    <div className="flex items-center gap-3">
+                      <span style={{ color: "var(--form-accent)" }}>
+                        <Avatar formId={projection.form.id} size={36} />
+                      </span>
+                      <div className="text-[10px] uppercase tracking-widest text-stone-600">
+                        {formDisplayName ?? projection.form.id} ·{" "}
+                        {projection.location.id}
+                      </div>
                     </div>
                     <p className="text-stone-100 italic leading-7">
                       {formOpening}
