@@ -50,24 +50,24 @@
   },
   "phraseBank": {
     "bank": {
-      "success": ["You bank the fire the way your master taught you. Green ash, slow oak, lid. The breathing through the lid is steady all night.", "Your bank is correct. The fire will be exactly where you left it in six hours."],
-      "partial": ["You bank. The ash is uneven on the western side; tomorrow's morning will need a careful hand.", "Your bank holds. A line of heat escapes through the lid in a way you did not intend."],
-      "miss": ["You bank, and the fire drops lower than you have allowed in years.", "Your bank fails to seal. The fire breathes too freely; the fuel will be gone before dawn."]
+      "success": ["You bank the fire the way your master taught you. Green ash, slow oak, lid. The breathing through the lid is steady all night.", "Your bank is correct. The fire will be exactly where you left it in six hours.", "You bank with the second-shovel ratio. The ash settles into the right red and stays there.", "Your bank closes clean. The lid sits flush; the air trapped beneath holds the colour you wanted."],
+      "partial": ["You bank. The ash is uneven on the western side; tomorrow's morning will need a careful hand.", "Your bank holds. A line of heat escapes through the lid in a way you did not intend.", "You bank. The ash drops a half-inch under the lid where it shouldn't have settled. The fire will need feeding sooner than you'd planned.", "Your bank seals, but the green ash on the right is thinner than it should be. By midnight you'll need to add."],
+      "miss": ["You bank, and the fire drops lower than you have allowed in years.", "Your bank fails to seal. The fire breathes too freely; the fuel will be gone before dawn.", "You bank. The lid does not sit; you knock it three times before it settles, and by then the colour has gone past the right red.", "Your bank fails. The fire takes the bank as a challenge instead of a calming, and burns up half its reserve."]
     },
     "stoke": {
-      "success": ["You stoke. The flame finds the new wood the way it always has, and the heat lifts a clean step.", "Your stoking is precise. The fire takes one log and asks for no more."],
-      "partial": ["You stoke. The fire takes the log; the log was wetter than you accounted for.", "Your stoke is good. The smoke rises in the wrong colour for a moment."],
-      "miss": ["You stoke. The log smothers the heart of the fire; the flame retreats.", "Your stoking is rough. The fire chokes for a count of three before recovering."]
+      "success": ["You stoke. The flame finds the new wood the way it always has, and the heat lifts a clean step.", "Your stoking is precise. The fire takes one log and asks for no more.", "You stoke. A small split log catches at exactly the spot you placed it; the fire does the rest.", "Your stoke is the kind that asks the fire a question and gets a yes."],
+      "partial": ["You stoke. The fire takes the log; the log was wetter than you accounted for.", "Your stoke is good. The smoke rises in the wrong colour for a moment.", "You stoke. The fire takes the wood, but it takes a count of seven where it should take three.", "Your stoke is competent. A spark jumps the firescreen line and you stamp it before it does any harm."],
+      "miss": ["You stoke. The log smothers the heart of the fire; the flame retreats.", "Your stoking is rough. The fire chokes for a count of three before recovering.", "You stoke. The log is half-rotten in a way you should have caught; the fire spits it back at you within the minute.", "Your stoke crowds the fire. Heat climbs the chimney instead of the room; the night will be colder for it."]
     },
     "watch": {
-      "success": ["You sit back the right distance from the heat and listen. The fire makes the right sound.", "Your watch is patient. The fire's breathing is even; the room's air is steady."],
-      "partial": ["You watch. The fire's sound has a tic in it that wasn't there an hour ago.", "Your watch holds. A small thing in the ash has shifted; you will note it tomorrow."],
-      "miss": ["You watch. Sleep takes you for a moment. When you return, the fire has dropped a step.", "Your watch fails. Something in the fuel pile has settled audibly without you noticing."]
+      "success": ["You sit back the right distance from the heat and listen. The fire makes the right sound.", "Your watch is patient. The fire's breathing is even; the room's air is steady.", "You watch. The fire's colour is the colour you wanted. The night's first hour passes through your watch unaltered.", "Your watch is held. The fire's tone is right; nothing in the ash speaks out of turn."],
+      "partial": ["You watch. The fire's sound has a tic in it that wasn't there an hour ago.", "Your watch holds. A small thing in the ash has shifted; you will note it tomorrow.", "You watch. The chimney's draft has changed; the fire compensates, and so do you.", "Your watch is steady. The fire's colour has shifted by half a shade; you can correct it on the next stoke."],
+      "miss": ["You watch. Sleep takes you for a moment. When you return, the fire has dropped a step.", "Your watch fails. Something in the fuel pile has settled audibly without you noticing.", "You watch. Your eye drifts to a corner of the room that does not need watching, and the fire takes the moment to misbehave.", "Your watch breaks. By the time you return your full attention, the fire is half a colour wrong."]
     },
     "rest": {
-      "success": ["You set yourself down with your back to the heat and rest. The fire watches you tonight.", "Your rest is real. The fire holds itself steady; tomorrow's stoking will be smaller."],
-      "partial": ["You rest. The rest is shorter than the fire wanted you to take.", "Your rest holds. The fire pops once, hard, and you almost miss it."],
-      "miss": ["You try to rest. The fire's breathing is wrong, and your bones know.", "Your rest fails before it begins. The night will be long."]
+      "success": ["You set yourself down with your back to the heat and rest. The fire watches you tonight.", "Your rest is real. The fire holds itself steady; tomorrow's stoking will be smaller.", "You rest. The fire's breathing slows in time with yours; you hold the watch even in sleep.", "Your rest closes you cleanly into an hour you needed. The fire was kind."],
+      "partial": ["You rest. The rest is shorter than the fire wanted you to take.", "Your rest holds. The fire pops once, hard, and you almost miss it.", "You rest, but with one ear open. The fire is being honest tonight; the ear was not needed.", "Your rest is half-rest. You wake from it more tired than you went in."],
+      "miss": ["You try to rest. The fire's breathing is wrong, and your bones know.", "Your rest fails before it begins. The night will be long.", "You try to rest. The room is cold in a way that suggests the fire is no longer doing its share.", "Your rest does not take. You stand back up after twenty minutes; the fire is grateful and you are not."]
     },
     "wyrm-glow": {
       "success": ["The fire glows at a colour you did not feed it. The Long Wyrm has breathed across your forge tonight.", "Your fire takes on a depth of light older than your apprenticeship. You sit further back."],
