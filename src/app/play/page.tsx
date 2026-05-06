@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { ChatPanel } from "@/components/ChatPanel";
 import { MapPanel } from "@/components/MapPanel";
+import { TileMapView } from "@/components/TileMapView";
 import { CoinBadge } from "@/components/CoinBadge";
 import { EnergyBar } from "@/components/EnergyBar";
 import { LocationNotes } from "@/components/LocationNotes";
@@ -79,6 +80,22 @@ export default function Play() {
     entryRoomId: string;
     rooms: Array<{ id: string; displayName?: string; exits: string[] }>;
   } | null>(null);
+  // POLISH_PLAN G.3b — authored tile-map (when one exists for the
+  // current location). When set, the play page renders the rich
+  // pixel-art view above the simpler graph map.
+  const [tileMap, setTileMap] = useState<{
+    locationId: string;
+    width: number;
+    height: number;
+    legend: Record<string, {
+      label: string;
+      fill: string;
+      glyph?: string;
+      walkable: boolean;
+    }>;
+    grid: string[];
+    roomAnchors: Record<string, { x: number; y: number }>;
+  } | null>(null);
   const [metaArc, setMetaArc] = useState<{
     phaseLabel: string;
     phase: string;
@@ -125,6 +142,7 @@ export default function Play() {
         setWyrmRunning(data.wyrmRunning ?? null);
         setVerbSuggestions(data.verbSuggestions ?? []);
         setMapView(data.mapView ?? null);
+        setTileMap(data.tileMap ?? null);
         setEntries(
           (data.narrations as string[]).map((text) => ({
             kind: "narration" as const,
@@ -431,23 +449,35 @@ export default function Play() {
         </div>
         <ObjectiveRibbon />
         <StatusSidebar projection={projection} />
-        {projection && mapView && (
+        {projection && (mapView || tileMap) && (
           <div className="px-4 py-3 border-t border-stone-800">
             <div className="text-[10px] uppercase tracking-widest text-stone-600 mb-2">
-              map · {mapView.locationId.replace(/-/g, " ")}
+              map · {projection.location.id.replace(/-/g, " ")}
             </div>
             <div className="flex items-center justify-center">
-              <MapPanel
-                view={mapView}
-                discovered={projection.location.discovered}
-                currentRoomId={projection.location.roomId}
-                formId={projection.form.id}
-                size={180}
-              />
+              {tileMap ? (
+                <TileMapView
+                  map={tileMap}
+                  currentRoomId={projection.location.roomId}
+                  formId={projection.form.id}
+                  discoveredRoomIds={projection.location.discovered}
+                  size={260}
+                />
+              ) : mapView ? (
+                <MapPanel
+                  view={mapView}
+                  discovered={projection.location.discovered}
+                  currentRoomId={projection.location.roomId}
+                  formId={projection.form.id}
+                  size={180}
+                />
+              ) : null}
             </div>
             <div className="text-[10px] text-stone-500 mt-2 leading-snug">
               {projection.location.discovered.length} of{" "}
-              {mapView.rooms.length} rooms discovered
+              {mapView?.rooms.length ??
+                Object.keys(tileMap?.roomAnchors ?? {}).length}{" "}
+              rooms discovered
             </div>
           </div>
         )}
