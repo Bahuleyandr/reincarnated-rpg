@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Vertical tower. Spire-base bottom, mid-landing in the middle (entry — branches east to spire-archive), upper stair, and spire-top at the very top where the older thing breathes. Walls thick. Stairs run vertically on the right; archive branches off mid."
+  },
+  "locationId": "sunless-spire",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "#": { "label": "spire wall", "fill": "#0c0a09", "walkable": false },
+    ".": { "label": "stone floor", "fill": "#3f3f46", "walkable": true },
+    "s": { "label": "spiral stair", "fill": "#78716c", "glyph": "≡", "walkable": true },
+    "b": { "label": "book stack", "fill": "#92400e", "glyph": "≣", "walkable": true },
+    "c": { "label": "candle", "fill": "#fde68a", "glyph": "*", "walkable": false },
+    "T": { "label": "the breathing top", "fill": "#1c1917", "glyph": "◉", "walkable": true }
+  },
+  "grid": [
+    "########TTTT####",
+    "#########ss#####",
+    "#########ss#####",
+    "#######...ss####",
+    "#######...ss####",
+    "###bb..c..ss####",
+    "###bb..c..ss####",
+    "#######...ss####",
+    "#######...ss####",
+    "##########ss####",
+    "########..s#####",
+    "##########.#####"
+  ],
+  "roomAnchors": {
+    "spire-base": { "x": 10, "y": 11 },
+    "spire-mid-landing": { "x": 8, "y": 5 },
+    "spire-archive": { "x": 4, "y": 5 },
+    "spire-upper-stair": { "x": 9, "y": 2 },
+    "spire-top": { "x": 10, "y": 0 }
+  }
+}

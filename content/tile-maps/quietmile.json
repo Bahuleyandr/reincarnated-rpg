@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Vow-of-silence town. Silence-gate (a wooden post-and-lintel arch with the vow inscribed) at the south. Vow-poppy fields stretch north from the gate; cutters walk between rows."
+  },
+  "locationId": "quietmile",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "g": { "label": "still grass", "fill": "#3f6212", "walkable": true },
+    "f": { "label": "vow-poppy", "fill": "#fafaf9", "glyph": "✿", "walkable": true },
+    "p": { "label": "stone path", "fill": "#a8a29e", "walkable": true },
+    "h": { "label": "gate post", "fill": "#451a03", "walkable": false },
+    "L": { "label": "gate lintel", "fill": "#1c1917", "glyph": "═", "walkable": false },
+    "v": { "label": "the vow inscription", "fill": "#fde68a", "glyph": "‡", "walkable": false }
+  },
+  "grid": [
+    "fgfgfgfgfgfgfgfg",
+    "gfgfgfgfgfgfgfgf",
+    "fgfgfgfgfgfgfgfg",
+    "gfgfgfgfgfgfgfgf",
+    "fgfgfppppppfgfgf",
+    "gfgfppppppppfgfg",
+    "fgfgppppppppgfgf",
+    "gfgfppppppppfgfg",
+    "fgfgppppppppgfgf",
+    "ggggppppppppgggg",
+    "ghhLLLLvLLLLhhgg",
+    "gpppppppppppppgg"
+  ],
+  "roomAnchors": {
+    "the-poppy-field": { "x": 8, "y": 2 },
+    "the-silence-gate": { "x": 8, "y": 11 }
+  }
+}
