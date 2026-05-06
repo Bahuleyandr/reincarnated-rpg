@@ -13,7 +13,7 @@
  * `session.started` event; we cache it per-process with a small map.
  */
 import { badLuckRollPenalty, BAD_LUCK_MAX, type ModerationOutcome } from "../moderation";
-import { log } from "../util/log";
+import { log, logTurnCompleted } from "../util/log";
 import { deriveSeed } from "../util/rng";
 import { type Narrator } from "../narrator";
 
@@ -160,6 +160,12 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   let narratorFallbackReason: string | undefined;
 
   const t0 = Date.now();
+  // POLISH_PLAN 0b.3 — narrator-mode tag for the canonical
+  // turn.completed metrics line. Matches the env's NARRATOR enum.
+  // Detected via class name to avoid threading another arg through
+  // the call sites; both narrators have stable runtime class names.
+  const narratorMode: "template" | "remote" =
+    narrator.constructor.name === "TemplateNarrator" ? "template" : "remote";
   // Form-specific starting-room override. Only takes effect on
   // first load (no snapshot yet); replays/resumes pull the
   // existing projection unchanged.
@@ -170,6 +176,18 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     startingRoomId,
   });
   if (projection.status !== "active") {
+    logTurnCompleted({
+      sessionId,
+      formId: form.id,
+      locationId: location.id,
+      turn: projection.turn,
+      narratorMode,
+      latencyMs: Date.now() - t0,
+      success: false,
+      beatsFiredCount: 0,
+      userId: world?.userId ?? null,
+      errorReason: `session_${projection.status}`,
+    });
     return { ok: false, error: `session is ${projection.status}`, projection };
   }
 
@@ -219,6 +237,18 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     await appendEvents(db, sessionId, pendingEvents);
     const refused = await loadProjection(db, sessionId, form, location);
     await writeSnapshot(db, refused);
+    logTurnCompleted({
+      sessionId,
+      formId: form.id,
+      locationId: location.id,
+      turn: refused.turn,
+      narratorMode,
+      latencyMs: Date.now() - t0,
+      success: true,
+      beatsFiredCount: 0,
+      userId: world?.userId ?? null,
+      errorReason: "moderation_severe",
+    });
     return {
       ok: true,
       narration: refusalText,
@@ -1388,6 +1418,19 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     toolFellBack,
     toneRetried,
     activeBadLuck,
+  });
+
+  logTurnCompleted({
+    sessionId,
+    formId: form.id,
+    locationId: location.id,
+    turn: turnNumber,
+    narratorMode,
+    latencyMs: Date.now() - t0,
+    success: true,
+    beatsFiredCount: beatsFired.length,
+    userId: world?.userId ?? null,
+    presetId: llmJudges?.presetId ?? null,
   });
 
   return {

@@ -37,6 +37,16 @@ const schema = z.object({
     .enum(["anthropic", "openai-compatible"])
     .default("anthropic"),
   NARRATOR: z.enum(["template", "remote"]).default("template"),
+  /** Sentry DSN. When set, server errors are forwarded via
+   *  lib/observability/sentry.ts to the Sentry envelope endpoint.
+   *  When unset, all sentry.captureException() calls no-op (no
+   *  network, no logs, no errors). Pre-launch foundation —
+   *  POLISH_PLAN sub-phase 0b.3. */
+  SENTRY_DSN: z.string().url().optional().or(z.literal("")),
+  /** Build-time Git SHA — surfaced in Sentry events + /api/health
+   *  for postmortem auditability. Set by CI; falls back to
+   *  "unknown" in dev. */
+  GIT_COMMIT_SHA: z.string().optional(),
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 });
 
