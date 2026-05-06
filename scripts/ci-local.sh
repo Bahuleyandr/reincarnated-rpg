@@ -328,6 +328,63 @@ job_integration() {
 
 job_build() { npm run build; }
 
+# E2E smoke — POLISH_PLAN 0b.4. Boots `next start` against the
+# already-built bundle on port 3100, then drives the happy-path
+# Playwright spec. Skipped when Playwright browsers aren't
+# installed (run `npx playwright install --with-deps chromium`
+# locally once; CI installs on every run).
+#
+# Env hygiene: NODE_ENV=test stops Next from loading .env.local
+# (which on this PC points at Dalek). The Next server inherits
+# DATABASE_URL + SESSION_SECRET from the process env.
+job_e2e() {
+    if ! command -v npx >/dev/null 2>&1; then
+        skip_job "e2e skipped: npx not on PATH"
+        return "$JOB_SKIP_RC"
+    fi
+    # Browser must be installed. We don't auto-install here —
+    # too slow + needs sudo on Linux. Soft-skip with a hint.
+    if ! npx --yes playwright --version >/dev/null 2>&1; then
+        skip_job "e2e skipped: install with 'npx playwright install --with-deps chromium'"
+        return "$JOB_SKIP_RC"
+    fi
+    if [ ! -d ".next" ]; then
+        echo "${C_YELLOW}  no .next build artifact; running 'next build' first${C_RESET}"
+        if ! npm run build >/dev/null 2>&1; then
+            return 1
+        fi
+    fi
+    # Boot `next start` on a non-default port so a developer's
+    # running `next dev` (port 3000) doesn't collide.
+    local port=3100
+    NODE_ENV=test \
+    DATABASE_URL="$CI_DATABASE_URL" \
+    SESSION_SECRET="ci-local-session-secret-pad-to-32-bytes" \
+    NARRATOR=template EMBEDDINGS=mock NEXT_TELEMETRY_DISABLED=1 \
+    npx --yes next start -p "$port" >/tmp/next-e2e.log 2>&1 &
+    local server_pid=$!
+    # Cleanup on any exit path.
+    trap "kill $server_pid 2>/dev/null || true" RETURN
+    # Wait up to 30s for the server to start serving.
+    local ready=0
+    for _ in {1..30}; do
+        if curl -fsS "http://127.0.0.1:$port/api/health" >/dev/null 2>&1; then
+            ready=1
+            break
+        fi
+        sleep 1
+    done
+    if [ "$ready" -ne 1 ]; then
+        echo "${C_RED}  next start never came up — see /tmp/next-e2e.log${C_RESET}"
+        return 1
+    fi
+    # Run playwright against the running server (skip its built-in
+    # webServer launcher via env, and override baseURL via env).
+    PLAYWRIGHT_BASE_URL="http://127.0.0.1:$port" \
+    PLAYWRIGHT_SKIP_WEBSERVER=1 \
+    npx --yes playwright test --reporter=line
+}
+
 job_audit() {
     # `npm audit --audit-level=high` exits 0 when nothing is high-or-
     # worse and exits non-zero only on findings at the configured
@@ -350,6 +407,7 @@ run_job migrate     "Drizzle migrate"              job_migrate
 run_job seed        "Seed reference data"          job_seed
 run_job integration "Jest integration (via WSL)"   job_integration
 run_job build       "Next build"                   job_build
+run_job e2e         "Playwright smoke (happy path)" job_e2e
 run_job audit       "npm audit (high)"             job_audit
 
 # --- Summary ---
