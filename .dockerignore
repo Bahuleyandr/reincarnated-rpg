@@ -1,0 +1,62 @@
+# .dockerignore — keep the build context lean and prevent secret leaks.
+#
+# Without this file, Docker's `COPY . .` in the builder stage drags in
+# the host's node_modules, .next bundle, .git history, and .env.local
+# (which contains the dev DB URL + API keys). All of those would land
+# inside the produced image. The deps stage runs npm ci itself, so we
+# don't need anything from the host's node_modules; the builder stage
+# rebuilds .next from sources; .git contributes only to image bloat;
+# .env.local contributes secrets we explicitly DO NOT want shipped.
+
+# Build outputs (rebuilt by the Dockerfile)
+node_modules
+.next
+out
+dist
+build
+
+# Local env (CRITICAL — never include in the image; Fly secrets feed
+# production env at runtime)
+.env
+.env.*
+!.env.example
+
+# Git + CI metadata
+.git
+.gitignore
+.gitattributes
+.github
+
+# IDE / editor
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Tests + coverage (not needed at runtime)
+tests
+test-results
+playwright-report
+coverage
+*.test.ts
+*.test.tsx
+*.spec.ts
+
+# Eval / scripts not needed in the production image (the ones we DO
+# need — migrate-prod, seed-runtime, smoke — are explicitly COPY'd
+# in the runner stage, so excluding the rest of scripts/ here is
+# fine for the builder context too)
+eval/runs
+
+# Local CI artifacts
+.cache
+*.log
+npm-debug.log*
+
+# Docs (optional — keeps image slimmer; comment out if you want
+# README served via the app)
+docs
+*.md
+!README.md
