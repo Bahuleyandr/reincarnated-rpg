@@ -55,24 +55,24 @@
   },
   "phraseBank": {
     "distill": {
-      "success": ["The still does its work. Twelve drops collect in the small glass. The choir will sing better for them.", "You count drops aloud, for yourself. The tincture finishes clean."],
-      "partial": ["The distillation takes. A drop strays past the lip; the bottle is short by one tonight.", "Your patience holds. The tincture's flavor is not quite the one the verse calls for."],
-      "miss": ["The still produces nothing usable. The flame burned too high or your patience was too thin.", "Your distillation fails. The glass is empty, and the kindling is spent."]
+      "success": ["The still does its work. Twelve drops collect in the small glass. The choir will sing better for them.", "You count drops aloud, for yourself. The tincture finishes clean.", "The condenser ticks the way it ticks when the pressure is correct. You let the still run; it knows.", "You distill. The first drop falls on the count of forty-three; you have done this enough that the count is the count."],
+      "partial": ["The distillation takes. A drop strays past the lip; the bottle is short by one tonight.", "Your patience holds. The tincture's flavor is not quite the one the verse calls for.", "The still runs. A small steam-leak at the joint costs you two drops you'd counted on.", "You distill. The bottle fills; one drop carries a faint scorch you'll need to mention to the choir."],
+      "miss": ["The still produces nothing usable. The flame burned too high or your patience was too thin.", "Your distillation fails. The glass is empty, and the kindling is spent.", "You distill, and the still answers with a hiss instead of a tick. The flame ran past the right blue.", "Your distillation refuses. The tincture's solvent has gone off in the bottle without your noticing."]
     },
     "lead": {
-      "success": ["You take the first note and the choir takes the second. The verse is steady.", "You lead. The harmony holds for the whole long line, and the room remembers it."],
-      "partial": ["You lead. One singer's voice catches on a register you didn't account for.", "Your lead carries. It carries less far than it should."],
-      "miss": ["You attempt the lead. The first note misses its centre, and the choir hesitates.", "Your voice is not where it should be tonight."]
+      "success": ["You take the first note and the choir takes the second. The verse is steady.", "You lead. The harmony holds for the whole long line, and the room remembers it.", "You take the verse from a low E. The choir lifts it; the verse knows where it is going.", "Your first note settles into the room. The choir falls in on the second beat without rehearsal."],
+      "partial": ["You lead. One singer's voice catches on a register you didn't account for.", "Your lead carries. It carries less far than it should.", "You take the lead. One alto comes in early and the choir corrects without breaking the line.", "Your verse holds. A note three measures in goes flat; you correct it on the fourth."],
+      "miss": ["You attempt the lead. The first note misses its centre, and the choir hesitates.", "Your voice is not where it should be tonight.", "You take the lead. A cough in the back row breaks the second measure; the verse never recovers.", "Your first note is the right note in the wrong register. The choir cannot follow into where you went."]
     },
     "blend": {
-      "success": ["You blend two tinctures and the new flavor opens cleanly. The choir will discover it as one taste.", "Your blend takes. The combined liquor is more than either ingredient was alone."],
-      "partial": ["You blend. The flavors hold but the colour clouds. A singer will mention it.", "Your blend is good. It is not the blend you were after."],
-      "miss": ["You blend, and the two tinctures separate again in the bottle.", "Your blending refuses to settle. You will pour both away tomorrow."]
+      "success": ["You blend two tinctures and the new flavor opens cleanly. The choir will discover it as one taste.", "Your blend takes. The combined liquor is more than either ingredient was alone.", "You pour. The two tinctures meet at the bottle's neck and become one thing on the way down.", "Your blend settles into a colour neither ingredient had alone. The choir's first taste will mark the verse."],
+      "partial": ["You blend. The flavors hold but the colour clouds. A singer will mention it.", "Your blend is good. It is not the blend you were after.", "You blend. The new flavor is what you wanted; one undertone fights the third tincture you hadn't planned to add.", "Your blend closes. A faint sediment will settle at the bottle's bottom by morning."],
+      "miss": ["You blend, and the two tinctures separate again in the bottle.", "Your blending refuses to settle. You will pour both away tomorrow.", "You blend. The tinctures fight; the bottle hisses for a count of three before settling into separation.", "Your blend's colour is wrong on the count. You'll empty the bottle and start over."]
     },
     "rest": {
-      "success": ["You set the still down and rest. Your voice will return tomorrow steadier.", "Your rest is full. The tincture room hums quietly in your absence."],
-      "partial": ["You rest. The rest is short. The choir's verse tomorrow will know it.", "Your rest holds. A small batch on the still has stopped progressing."],
-      "miss": ["You try to rest. A note in the next room is wrong, and you cannot stop hearing it.", "Your rest is broken before it begins."]
+      "success": ["You set the still down and rest. Your voice will return tomorrow steadier.", "Your rest is full. The tincture room hums quietly in your absence.", "You rest. The choir's last verse settles in your throat; tomorrow's verse will know what to do.", "Your rest is real. The voice will be there in the morning; so will the next bottle."],
+      "partial": ["You rest. The rest is short. The choir's verse tomorrow will know it.", "Your rest holds. A small batch on the still has stopped progressing.", "You rest. A bottle in the rack has settled wrong overnight; you'll re-shake it before service.", "Your rest closes. A note from your last verse is still in your throat where it shouldn't be."],
+      "miss": ["You try to rest. A note in the next room is wrong, and you cannot stop hearing it.", "Your rest is broken before it begins.", "You try to rest. Your voice is hoarser than it has any right to be after one verse; you will not lead tomorrow.", "Your rest declines. The still hisses on for an hour after you've laid down; you'll close it manually."]
     },
     "wyrm-tincture": {
       "success": ["A flavor enters the bottle that you did not pour. Faintly mineral. The Long Wyrm has tasted of your work today.", "Your tincture carries a note older than your distillation."],

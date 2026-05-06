@@ -55,24 +55,24 @@
   },
   "phraseBank": {
     "chant": {
-      "success": ["You take the line and the choir takes it after you, half a beat behind. The harmony sits.", "Your chant carries. The room's candles gutter together and recover, and the song does not notice."],
-      "partial": ["You chant. The line lands, but a singer behind you has come in late and the harmony bows.", "Your voice holds. The phrase you wanted falls one breath short."],
-      "miss": ["You take the line and lose it on the second beat. The choir improvises.", "Your chant breaks. The room hears the break."]
+      "success": ["You take the line and the choir takes it after you, half a beat behind. The harmony sits.", "Your chant carries. The room's candles gutter together and recover, and the song does not notice.", "You chant. The first verse settles into the choir's posture; the room's air realigns to the harmony.", "Your line catches. The choir's collective breath drops by half a degree; the song is going where it needs to."],
+      "partial": ["You chant. The line lands, but a singer behind you has come in late and the harmony bows.", "Your voice holds. The phrase you wanted falls one breath short.", "You chant. The verse holds; one tenor is half a beat behind and the choir bends to absorb him.", "Your chant works. A small fold in the second register requires a re-take that the choir handles cleanly."],
+      "miss": ["You take the line and lose it on the second beat. The choir improvises.", "Your chant breaks. The room hears the break.", "You chant. The first note's wrong, the choir pretends it isn't, the verse is salvaged into something else.", "Your line cracks at the third measure. The choir saves the verse; you lead them back, eventually."]
     },
     "lead": {
-      "success": ["You lift the choir into the verse and they lift with you. No one stumbles.", "Your lead is steady. The line passes from you to the choir without seam."],
-      "partial": ["You lead. The choir follows; one voice has decided to follow a half-step ahead.", "Your lead carries. It carries less far than the verse asks."],
-      "miss": ["You attempt to lead. The first note is correct and the second is not.", "Your lead misses. The choir holds; the holding is mercy."]
+      "success": ["You lift the choir into the verse and they lift with you. No one stumbles.", "Your lead is steady. The line passes from you to the choir without seam.", "You lead. The choir's breath synchronises by the second measure; the verse runs as one body.", "Your lead settles into the room. The room reshapes around the line; the candles stay together."],
+      "partial": ["You lead. The choir follows; one voice has decided to follow a half-step ahead.", "Your lead carries. It carries less far than the verse asks.", "You lead. The verse holds; a soprano comes in on the wrong vowel and the choir folds her in.", "Your lead is correct. The choir's tail-end is dragging by half a beat; the verse will tighten by morning."],
+      "miss": ["You attempt to lead. The first note is correct and the second is not.", "Your lead misses. The choir holds; the holding is mercy.", "You lead. The line you wanted is in the wrong key for the room tonight; the verse never lifts.", "Your lead is the wrong lead for the verse. The choir improvises its way to a different ending."]
     },
     "carry": {
-      "success": ["You carry the line through the long passage. The choir's breath synchronises with yours.", "Your carry is patient. The verse, by its third minute, holds itself up."],
-      "partial": ["You carry. The carrying takes more from your voice than you expected.", "Your line holds. It holds at the cost of a small fraying you will hear tomorrow."],
-      "miss": ["You try to carry the verse and find your breath is short.", "Your carry breaks midway; a singer takes it from you cleanly."]
+      "success": ["You carry the line through the long passage. The choir's breath synchronises with yours.", "Your carry is patient. The verse, by its third minute, holds itself up.", "You carry. The verse passes through its hardest measure on your breath; the choir takes the next.", "Your carry is the kind that earns the long verses their reputation — the line holds and holds and holds."],
+      "partial": ["You carry. The carrying takes more from your voice than you expected.", "Your line holds. It holds at the cost of a small fraying you will hear tomorrow.", "You carry. The verse passes through; the third minute is rougher than the second by a small margin.", "Your carry closes. A frayed measure sits in your throat for the rest of the night."],
+      "miss": ["You try to carry the verse and find your breath is short.", "Your carry breaks midway; a singer takes it from you cleanly.", "You try to carry. Your throat closes on the second register; the choir takes the verse without you.", "Your carry stalls. A mezzo lifts the line from you mid-measure; you fall in behind her, grateful."]
     },
     "rest": {
-      "success": ["You set down the song and rest. The choir rests with you. Tomorrow's verse will be steadier.", "Your rest is full. The candle in the rest-chamber burns evenly."],
-      "partial": ["You rest. The rest is shorter than the song needed.", "Your rest holds. A passage is humming in your sleep that you cannot let go of."],
-      "miss": ["You try to rest. The song is in your throat and refuses to leave.", "Your rest fails. You will sing tired."]
+      "success": ["You set down the song and rest. The choir rests with you. Tomorrow's verse will be steadier.", "Your rest is full. The candle in the rest-chamber burns evenly.", "You rest. The choir's breath calms with yours; tomorrow's verse begins on a clean throat.", "Your rest is honest. The voice will return; so will the verse."],
+      "partial": ["You rest. The rest is shorter than the song needed.", "Your rest holds. A passage is humming in your sleep that you cannot let go of.", "You rest. The choir's after-tone hangs in the rest-chamber for an hour, refusing to fade.", "Your rest closes. The song's last measure is in your throat where it should be in your sleep."],
+      "miss": ["You try to rest. The song is in your throat and refuses to leave.", "Your rest fails. You will sing tired.", "You try to rest. A passage from a verse you sang twelve years ago surfaces and runs all night.", "Your rest declines. The choir will lead tomorrow's verse without you; the harmony will know."]
     },
     "wyrm-line": {
       "success": ["A line emerges in the verse you did not write. The Long Wyrm has hummed along, and the choir, briefly, has sung something older than the song.", "Your verse takes on a passage that is not yours. You carry it through and let it pass."],

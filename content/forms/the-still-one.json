@@ -64,29 +64,29 @@
   },
   "phraseBank": {
     "abide": {
-      "success": ["You hold your place. The hour passes and finds you exactly where it left you.", "You abide. The world shifts very slightly to accommodate you."],
-      "partial": ["You abide. A small piece of your remembrance dims while you are not attending to it.", "Your abiding is steady. Steadiness is itself a cost the world will collect, slowly."],
-      "miss": ["You abide. The hour passes you. Something that should have come, has come, and gone, without registering.", "You hold. You hold longer than was useful."]
+      "success": ["You hold your place. The hour passes and finds you exactly where it left you.", "You abide. The world shifts very slightly to accommodate you.", "You stay seated. The stillness is its own work; the work is sufficient.", "You abide. The moss along your western edge gains a thread."],
+      "partial": ["You abide. A small piece of your remembrance dims while you are not attending to it.", "Your abiding is steady. Steadiness is itself a cost the world will collect, slowly.", "You hold. The hour holds back, but not all of it. A few minutes pass through you instead of around.", "You abide. A name you were keeping fades by one degree."],
+      "miss": ["You abide. The hour passes you. Something that should have come, has come, and gone, without registering.", "You hold. You hold longer than was useful.", "Your abiding becomes absence. You sat through a moment that needed a witness.", "You hold. The holding is the holding of a vow you are no longer keeping."]
     },
     "regard": {
-      "success": ["You look upon the visitor without standing. They feel themselves seen, and they flinch first.", "Your regard settles on them with the weight of long attention. They will remember the looking."],
-      "partial": ["You regard them. They do not flinch. They have been regarded before.", "Your gaze finds them. The finding is uneven; a part of them stays unread."],
-      "miss": ["You regard. The visitor has not arrived yet. You have spent a small portion of yourself looking at empty air.", "Your regard misses. Whatever you turned toward had already turned away."]
+      "success": ["You look upon the visitor without standing. They feel themselves seen, and they flinch first.", "Your regard settles on them with the weight of long attention. They will remember the looking.", "You regard them. The looking is a complete sentence. They understand it without translation.", "You regard. They straighten — being seen at this depth is rarer than they realised."],
+      "partial": ["You regard them. They do not flinch. They have been regarded before.", "Your gaze finds them. The finding is uneven; a part of them stays unread.", "You look. The looking is correct, but they read it as something other than what you offered.", "You regard them. The regard reaches them; the meaning of the regard does not, quite."],
+      "miss": ["You regard. The visitor has not arrived yet. You have spent a small portion of yourself looking at empty air.", "Your regard misses. Whatever you turned toward had already turned away.", "You look upon a place that should hold them. It does not. Your attention falls into the gap.", "Your regard goes out and finds nothing to settle on. The visitor was elsewhere all along."]
     },
     "permit": {
-      "success": ["You permit the thing that was being asked. The visitor leaves with what they came for, and they will not know to thank you.", "You allow it. The allowing is a kindness the world does not record."],
-      "partial": ["You permit. The permission goes further than you intended. Something the visitor did not ask for, they now have.", "Your allowance settles. The cost of it is in your remembrance, not theirs."],
-      "miss": ["You attempt to permit. The thing being asked is no longer the thing in front of you.", "Your permission lands wrong. The visitor takes it as a refusal and leaves."]
+      "success": ["You permit the thing that was being asked. The visitor leaves with what they came for, and they will not know to thank you.", "You allow it. The allowing is a kindness the world does not record.", "You permit. The visitor's posture loosens; they did not realize how heavy the asking had become.", "You permit. The permission lands and the visitor breathes out a breath they had been holding for an hour."],
+      "partial": ["You permit. The permission goes further than you intended. Something the visitor did not ask for, they now have.", "Your allowance settles. The cost of it is in your remembrance, not theirs.", "You permit, but with a delay the visitor reads as reluctance. They take the gift and the doubt together.", "You allow it. The allowance includes one more thing than the visitor asked for; they will not know which."],
+      "miss": ["You attempt to permit. The thing being asked is no longer the thing in front of you.", "Your permission lands wrong. The visitor takes it as a refusal and leaves.", "You allow what you thought was being asked. They were asking for something else; the gift is wasted on them.", "You permit. The visitor's face changes; whatever you allowed, they had hoped you would not."]
     },
     "withhold": {
-      "success": ["You withhold. The name you could have given stays in you. The visitor leaves without it.", "You hold the answer back. The question, having been answered with silence, is satisfied."],
-      "partial": ["You withhold. A small part of what you withheld leaks anyway. The visitor will piece it together.", "Your silence is sufficient for now. It will not be sufficient if they return."],
-      "miss": ["You attempt to withhold. The name slips your stillness and goes to them anyway.", "You hold the answer. The answer was not yours to hold."]
+      "success": ["You withhold. The name you could have given stays in you. The visitor leaves without it.", "You hold the answer back. The question, having been answered with silence, is satisfied.", "You keep what is yours. The visitor's hands stay empty in a way that is, on reflection, dignified.", "You withhold. The name calcifies one layer deeper into your remembrance."],
+      "partial": ["You withhold. A small part of what you withheld leaks anyway. The visitor will piece it together.", "Your silence is sufficient for now. It will not be sufficient if they return.", "You hold back. The holding back is correct in spirit and imperfect in execution; a syllable escapes.", "You withhold. The shape of what you are not saying is itself a kind of saying. The visitor reads the shape."],
+      "miss": ["You attempt to withhold. The name slips your stillness and goes to them anyway.", "You hold the answer. The answer was not yours to hold.", "You withhold. The withholding is louder than the giving would have been; the visitor leaves with the louder version.", "You hold. The holding crumbles in the middle. By the time you notice, the visitor has gathered enough to leave with."]
     },
     "remember": {
-      "success": ["You bring a memory forward. It is intact, and it is exactly the one you wanted.", "You remember. The remembering is an act of careful retrieval; the memory comes whole."],
-      "partial": ["You remember. The memory is correct in shape and wrong in detail. The detail will not matter today.", "You retrieve. The retrieval costs you a portion of an adjacent memory you will miss next year."],
-      "miss": ["You reach for a memory that is no longer where you left it.", "You remember. What you remember is something else."]
+      "success": ["You bring a memory forward. It is intact, and it is exactly the one you wanted.", "You remember. The remembering is an act of careful retrieval; the memory comes whole.", "You retrieve. The memory comes up like a stone from a still pool — slow, deliberate, complete.", "You remember. The memory arrives so cleanly that the visitor sees it land in your face."],
+      "partial": ["You remember. The memory is correct in shape and wrong in detail. The detail will not matter today.", "You retrieve. The retrieval costs you a portion of an adjacent memory you will miss next year.", "You bring it forward. Something near it comes too — an adjacent fact you didn't ask for and now must hold.", "You remember. The memory is yours; the year you place it in is not."],
+      "miss": ["You reach for a memory that is no longer where you left it.", "You remember. What you remember is something else.", "You retrieve. What surfaces is from an adjacent year, an adjacent visitor, an adjacent vow.", "You remember. The memory is a fiction your remembrance composed in your absence."]
     },
     "wait": {
       "success": ["You wait. The waiting is the verb. Time passes well around you."],

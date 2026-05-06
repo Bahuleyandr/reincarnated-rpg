@@ -55,24 +55,24 @@
   },
   "phraseBank": {
     "tend": {
-      "success": ["You walk the rows. The seedlings settle into their places under your attention. The garden knows you.", "Your tending is unhurried. The plants face you and then face away as if a verse had passed."],
-      "partial": ["You tend. A row at the eastern edge has come up paler than it should.", "Your attention is good. The garden has needed more than your attention today."],
-      "miss": ["You tend, and find a row that has refused you. The seedlings are turned the wrong way.", "Your tending fails to settle the plants. They want a verse, not a hand."]
+      "success": ["You walk the rows. The seedlings settle into their places under your attention. The garden knows you.", "Your tending is unhurried. The plants face you and then face away as if a verse had passed.", "You tend. A row of greybark cuttings stands an inch taller by the time you reach the row's end.", "Your hand passes through the row without touching; the touching was not necessary today."],
+      "partial": ["You tend. A row at the eastern edge has come up paler than it should.", "Your attention is good. The garden has needed more than your attention today.", "You tend. The wind has shifted a layer of mulch off a row you set yesterday; you reset it.", "Your tending finishes. A small portion of one row prefers to face the wrong direction; you let it."],
+      "miss": ["You tend, and find a row that has refused you. The seedlings are turned the wrong way.", "Your tending fails to settle the plants. They want a verse, not a hand.", "You tend. A row has gone limp in a way that suggests the season changed two days ago and you missed it.", "Your attention slides off the row. The row, in turn, slides off you."]
     },
     "prune": {
-      "success": ["You take the cuts the plants want taken. The garden sighs into a tidier shape.", "Your shears find the right places without your eye telling them. The plant releases what it was holding."],
-      "partial": ["You prune. A cut you took was the right cut and a small part of the plant will mind it.", "Your shears are correct. The pruning takes a leaf you had wanted to keep."],
-      "miss": ["You prune wrong. A line of growth is gone that you needed.", "Your cut wanders. The plant will recover; the recovery will take a season."]
+      "success": ["You take the cuts the plants want taken. The garden sighs into a tidier shape.", "Your shears find the right places without your eye telling them. The plant releases what it was holding.", "You prune. The plant resumes its breathing within the cut; there is more space inside it now than there was.", "Your cut is the cut the plant wanted; the plant will not need pruning again until the third frost."],
+      "partial": ["You prune. A cut you took was the right cut and a small part of the plant will mind it.", "Your shears are correct. The pruning takes a leaf you had wanted to keep.", "You prune. One branch you cut had a fruit-bud you didn't see; the plant will be a fruit short next season.", "Your shears find one good cut and one almost-good cut. The almost-good will scar."],
+      "miss": ["You prune wrong. A line of growth is gone that you needed.", "Your cut wanders. The plant will recover; the recovery will take a season.", "You prune. The cut goes deeper than the plant could spare; sap rises to the wound and stays there.", "Your shears jam mid-cut. The cut completes itself with a tear instead of a slice; the plant will mind."]
     },
     "wait": {
-      "success": ["You sit at the row's end and wait. The plants do their slow work; the choir sings somewhere below.", "Your waiting is part of the tending. The garden uses it."],
-      "partial": ["You wait. The afternoon is hotter than the season called for; one row will need water tonight.", "Your wait holds. A bird has taken three seeds from a row you were going to thin."],
-      "miss": ["You wait, and the season slips a little while you do.", "Your patience is good. The garden was not asking for patience today."]
+      "success": ["You sit at the row's end and wait. The plants do their slow work; the choir sings somewhere below.", "Your waiting is part of the tending. The garden uses it.", "You wait. The wind off the cloudline shifts a row's leaves the way the row needed shifting.", "Your patience holds the row through a slow hour. The hour returns the patience with a hand of yield."],
+      "partial": ["You wait. The afternoon is hotter than the season called for; one row will need water tonight.", "Your wait holds. A bird has taken three seeds from a row you were going to thin.", "You wait. A breeze moves the rows in a way that suggests the wind is asking for one more cut you hadn't planned.", "Your patience is correct. The garden's patience is longer."],
+      "miss": ["You wait, and the season slips a little while you do.", "Your patience is good. The garden was not asking for patience today.", "You wait. The light changes by an hour without your noticing; a row drinks deeper than it should.", "Your wait completes itself. While it did, a row began to bolt that you'd meant to hold back."]
     },
     "sow": {
-      "success": ["You sow the row. Each seed goes a finger's width into the soil and the soil closes around it.", "Your sowing is paced. The row, by week's end, will know what you have given it."],
-      "partial": ["You sow. The row is uneven; one length will harvest a day before the rest.", "Your sowing holds. A small portion of seed has gone to the wrong row entirely."],
-      "miss": ["You sow, and a wind takes half your seed before the soil could close.", "Your sowing is hasty in a way you didn't notice until you reached the row's end."]
+      "success": ["You sow the row. Each seed goes a finger's width into the soil and the soil closes around it.", "Your sowing is paced. The row, by week's end, will know what you have given it.", "You sow. The seeds settle into the row at exactly the spacing your master taught you.", "Your sowing closes the row clean. The first leaves will be up by Thursday."],
+      "partial": ["You sow. The row is uneven; one length will harvest a day before the rest.", "Your sowing holds. A small portion of seed has gone to the wrong row entirely.", "You sow. The soil at the row's south end is drier than the rest; those seeds will need more water.", "Your sowing is correct. Your hand-cramp at row eight cost a seed or two; the row will manage."],
+      "miss": ["You sow, and a wind takes half your seed before the soil could close.", "Your sowing is hasty in a way you didn't notice until you reached the row's end.", "You sow. A bird has been waiting in the windbench since first light; half the row goes with it.", "Your sowing fails the depth test — the seeds went too shallow and the season is going to know."]
     },
     "wyrm-furrow": {
       "success": ["A row that was not straight yesterday is perfectly straight today. The Long Wyrm has laid a furrow under your soil overnight.", "Your garden has corrected itself. The correction is not the kind a hand can make."],
