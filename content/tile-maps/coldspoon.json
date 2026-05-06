@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Apothecary town. Cloudtea drying racks line the south slope (the drying-slope room). Tincture room north — open-fronted with the south wall absent. Open south wall is where the cold wind enters."
+  },
+  "locationId": "coldspoon",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "g": { "label": "wind-grass", "fill": "#3f6212", "walkable": true },
+    "h": { "label": "stone wall", "fill": "#1c1917", "walkable": false },
+    "_": { "label": "tincture room floor", "fill": "#44403c", "walkable": true },
+    "j": { "label": "tincture jar", "fill": "#67e8f9", "glyph": "○", "walkable": false },
+    "f": { "label": "filter cloth", "fill": "#a3a3a3", "glyph": "▭", "walkable": false },
+    "r": { "label": "drying rack", "fill": "#451a03", "glyph": "≡", "walkable": false },
+    "l": { "label": "cloudtea leaf", "fill": "#365314", "glyph": "·", "walkable": true },
+    "p": { "label": "stone path", "fill": "#a8a29e", "walkable": true }
+  },
+  "grid": [
+    "hhhhhhhhhhhhhhhh",
+    "h______________h",
+    "h__ffffffffff__h",
+    "h__jjjjjjjjjj__h",
+    "h______________h",
+    "h______________h",
+    "ggggggppppgggggg",
+    "ggrrgggppgggrrgg",
+    "lrlrlggppggrlrlg",
+    "lrlrlggppggrlrlg",
+    "ggggggggggggrlrl",
+    "gggggggggggggggg"
+  ],
+  "roomAnchors": {
+    "the-tincture-room": { "x": 8, "y": 4 },
+    "the-drying-slope": { "x": 8, "y": 10 }
+  }
+}

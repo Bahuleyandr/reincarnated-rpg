@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Mountain pass town. Switchback pass climbs north. The pass square at center, the half-inn west, the mule-yard east. Mountains close in to the north."
+  },
+  "locationId": "three-notches",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "#": { "label": "rock face", "fill": "#1c1917", "walkable": false },
+    "g": { "label": "grass", "fill": "#3f6212", "walkable": true },
+    "c": { "label": "flagstone square", "fill": "#a8a29e", "walkable": true },
+    "h": { "label": "inn wall", "fill": "#451a03", "walkable": false },
+    "_": { "label": "inn floor", "fill": "#92400e", "walkable": true },
+    "d": { "label": "doorway", "fill": "#1c1917", "glyph": "▢", "walkable": true },
+    "y": { "label": "mule yard", "fill": "#78350f", "glyph": "·", "walkable": true },
+    "p": { "label": "pack rail", "fill": "#44403c", "glyph": "—", "walkable": false },
+    "n": { "label": "notch path", "fill": "#a8a29e", "glyph": "↑", "walkable": true }
+  },
+  "grid": [
+    "################",
+    "######nn########",
+    "#####gnng#######",
+    "##gggcccccgggg##",
+    "##hhhdcccdyyyy##",
+    "##h__hcccdyyyy##",
+    "##h__hcccdypyy##",
+    "##h__hcccdyyyy##",
+    "##hhhhcccdyyyy##",
+    "##gggcccccgggg##",
+    "##gggcccccgggg##",
+    "################"
+  ],
+  "roomAnchors": {
+    "the-pass-square": { "x": 7, "y": 6 },
+    "the-half-inn": { "x": 4, "y": 6 },
+    "the-mule-yard": { "x": 12, "y": 5 }
+  }
+}

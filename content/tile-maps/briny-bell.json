@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Coast town. Bell pier extends seaward (south). Causeway head north — the start of the tidal walk to the Coral Anchorage. The bells ring with the tide."
+  },
+  "locationId": "briny-bell",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "g": { "label": "salt grass", "fill": "#365314", "walkable": true },
+    "p": { "label": "wooden pier", "fill": "#451a03", "walkable": true },
+    "B": { "label": "bell tower", "fill": "#a3a3a3", "glyph": "♫", "walkable": true },
+    "h": { "label": "shed wall", "fill": "#1c1917", "walkable": false },
+    "c": { "label": "causeway stone", "fill": "#78716c", "walkable": true },
+    "~": { "label": "open sea", "fill": "#0c4a6e", "glyph": "~", "walkable": false }
+  },
+  "grid": [
+    "ggggggggcccccggg",
+    "gggggggcccccgggg",
+    "ggggggcccccggggg",
+    "ggggggccccgggggg",
+    "ggggghhccggggggg",
+    "ggggghhccggggggg",
+    "ggggggcccccggggg",
+    "gggppppppppppggg",
+    "ggppppppppppppgg",
+    "gpppppBBBpppppgg",
+    "~pppppppppppppgg",
+    "~~~~~~~~~~~~~~~~"
+  ],
+  "roomAnchors": {
+    "the-bell-pier": { "x": 8, "y": 9 },
+    "the-causeway-head": { "x": 8, "y": 1 }
+  }
+}

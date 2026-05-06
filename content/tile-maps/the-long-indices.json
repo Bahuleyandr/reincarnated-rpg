@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Nested concentric library quadrangles. Outer quadrangle wraps around; cataloguers' inside that, marginalia inside that, the silent Hush Room at the very center. Paper yards outside the city walls (top of the map)."
+  },
+  "locationId": "the-long-indices",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "#": { "label": "city wall", "fill": "#0c0a09", "walkable": false },
+    "y": { "label": "paper yard", "fill": "#78716c", "glyph": "▦", "walkable": true },
+    "o": { "label": "outer colonnade", "fill": "#3f3f46", "walkable": true },
+    "C": { "label": "cataloguers' floor", "fill": "#44403c", "glyph": ".", "walkable": true },
+    "M": { "label": "marginalia floor", "fill": "#57534e", "glyph": ".", "walkable": true },
+    "h": { "label": "hush room", "fill": "#1c1917", "glyph": "ψ", "walkable": true },
+    "p": { "label": "colonnade pillar", "fill": "#000000", "glyph": "│", "walkable": false }
+  },
+  "grid": [
+    "yyyyyyyyyyyyyyyy",
+    "yyyyyyyyyyyyyyyy",
+    "################",
+    "#oooooooooooooo#",
+    "#opppppppppppoo#",
+    "#opCCCCCCCCCCpo#",
+    "#opCMMMMMMMMCpo#",
+    "#opCMhhhhhhMCpo#",
+    "#opCMMMMMMMMCpo#",
+    "#opCCCCCCCCCCpo#",
+    "#oooooooooooooo#",
+    "################"
+  ],
+  "roomAnchors": {
+    "the-outer-quadrangle": { "x": 2, "y": 3 },
+    "the-cataloguers-quadrangle": { "x": 4, "y": 5 },
+    "the-marginalia-quadrangle": { "x": 5, "y": 6 },
+    "the-hush-room": { "x": 7, "y": 7 },
+    "the-paper-yards": { "x": 8, "y": 0 }
+  }
+}

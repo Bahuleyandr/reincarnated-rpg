@@ -1,0 +1,38 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Coastal town where every crab on the coast is in named tubs. Crab pier south (water + tubs). Broth row north — long shed where the broth is simmered."
+  },
+  "locationId": "crab-by-crab",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "g": { "label": "salt grass", "fill": "#365314", "walkable": true },
+    "h": { "label": "broth shed wall", "fill": "#451a03", "walkable": false },
+    "_": { "label": "broth shed floor", "fill": "#92400e", "walkable": true },
+    "k": { "label": "broth kettle", "fill": "#9a3412", "glyph": "○", "walkable": true },
+    "p": { "label": "crab pier", "fill": "#78716c", "walkable": true },
+    "t": { "label": "named crab tub", "fill": "#1c1917", "glyph": "▭", "walkable": true },
+    "~": { "label": "shallow surf", "fill": "#0c4a6e", "glyph": "~", "walkable": false }
+  },
+  "grid": [
+    "gggggggggggggggg",
+    "ghhhhhhhhhhhhhhg",
+    "gh_kk_kk_kk_kkhg",
+    "gh____________hg",
+    "gh____________hg",
+    "ghhhhhhhhhhhhhhg",
+    "gggggggggggggggg",
+    "gggppppppppppggg",
+    "ggptttptttptttpg",
+    "gpptttptttptttpp",
+    "p~~~~~~~~~~~~~~p",
+    "~~~~~~~~~~~~~~~~"
+  ],
+  "roomAnchors": {
+    "the-broth-row": { "x": 8, "y": 3 },
+    "the-crab-pier": { "x": 8, "y": 9 }
+  }
+}

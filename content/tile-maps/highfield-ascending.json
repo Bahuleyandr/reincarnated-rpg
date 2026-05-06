@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Dwarven highland orchards above the cloudline. Wide skies, narrow paths, no roofs. Windbench arrival terrace south; orchard terraces step up toward the gust clearing at the top. Cider cellars (open-roofed) east. Cloud-mass implied below."
+  },
+  "locationId": "highfield-ascending",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "C": { "label": "cloud-mass below", "fill": "#1e293b", "glyph": "≋", "walkable": false },
+    "g": { "label": "terrace grass", "fill": "#3f6212", "walkable": true },
+    "T": { "label": "fruit tree", "fill": "#1a2e05", "glyph": "♣", "walkable": false },
+    "s": { "label": "stone steps", "fill": "#a8a29e", "glyph": "═", "walkable": true },
+    "b": { "label": "wind-bench", "fill": "#451a03", "glyph": "═", "walkable": false },
+    "_": { "label": "open platform", "fill": "#78716c", "walkable": true },
+    "v": { "label": "cider cask", "fill": "#92400e", "glyph": "○", "walkable": false },
+    "i": { "label": "bone instrument", "fill": "#fafaf9", "glyph": "✦", "walkable": true }
+  },
+  "grid": [
+    "________________",
+    "______iiiii_____",
+    "_____________vvv",
+    "g__sssTTTsss_vvv",
+    "g_TTTTTTTTTT_vvv",
+    "gTTTTgggTTTTT__v",
+    "gTTTggggggTTTT_v",
+    "gTTggggggggTTT_g",
+    "gTTggggggggTTbbg",
+    "gTTTggggggTTTTbg",
+    "gTTTTggggTTTTTgg",
+    "CCCCCCCCCCCCCCCC"
+  ],
+  "roomAnchors": {
+    "the-windbench": { "x": 8, "y": 9 },
+    "the-orchard-terraces": { "x": 8, "y": 6 },
+    "the-cider-cellars": { "x": 14, "y": 5 },
+    "the-gust-clearing": { "x": 8, "y": 1 }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Inland river basin city; districts by craft. Loom square center. Cold forges east. Page quarter north. Furrow banks south where the river runs east-west. Each compound is its own walled space; the square is the only fully-public ground."
+  },
+  "locationId": "threadwarden",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "h": { "label": "compound wall", "fill": "#451a03", "walkable": false },
+    "c": { "label": "loom square", "fill": "#a8a29e", "walkable": true },
+    "_": { "label": "interior floor", "fill": "#78716c", "walkable": true },
+    "L": { "label": "loom", "fill": "#92400e", "glyph": "═", "walkable": false },
+    "F": { "label": "cold forge", "fill": "#1c1917", "glyph": "▣", "walkable": false },
+    "P": { "label": "scribe table", "fill": "#fafaf9", "glyph": "≡", "walkable": false },
+    "g": { "label": "river grass", "fill": "#3f6212", "walkable": true },
+    "~": { "label": "Furrow river", "fill": "#0369a1", "glyph": "~", "walkable": false }
+  },
+  "grid": [
+    "hhhhhhhhhhhhhhhh",
+    "hPPPP____PPPP_hh",
+    "hPPPP____PPPP_hh",
+    "hhhhhhccchhhhhhh",
+    "h___hhcccchhhhhh",
+    "hLLLhcccccch__Fh",
+    "hLLLhcccccch_FFh",
+    "hLLLhcccccch__Fh",
+    "hhhhhcccccchhhhh",
+    "h_____cccc_____h",
+    "ggggggggggggggg~",
+    "~~~~~~~~~~~~~~~~"
+  ],
+  "roomAnchors": {
+    "the-loom-square": { "x": 8, "y": 6 },
+    "the-cold-forges": { "x": 13, "y": 7 },
+    "the-page-quarter": { "x": 6, "y": 1 },
+    "the-furrow-banks": { "x": 8, "y": 10 }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. The Furrow widens here. Long ropewalk pavilion runs east-west across the middle. Flax bank to the south on the river; coil yard to the east at the river-mouth where barges load."
+  },
+  "locationId": "knots-landing",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "g": { "label": "grass", "fill": "#3f6212", "walkable": true },
+    "p": { "label": "pavilion roof", "fill": "#451a03", "walkable": false },
+    "_": { "label": "ropewalk floor", "fill": "#92400e", "walkable": true },
+    "f": { "label": "flax bed", "fill": "#65a30d", "glyph": "≋", "walkable": true },
+    "~": { "label": "river", "fill": "#0369a1", "glyph": "~", "walkable": false },
+    "y": { "label": "coil yard", "fill": "#78716c", "walkable": true },
+    "c": { "label": "rope coil", "fill": "#44403c", "glyph": "◯", "walkable": false },
+    "b": { "label": "barge dock", "fill": "#a16207", "glyph": "▬", "walkable": true }
+  },
+  "grid": [
+    "gggggggggggggggg",
+    "ggggggggggggggyy",
+    "ppppppppppppppyy",
+    "p____________yyy",
+    "p_____________yc",
+    "p____________ycc",
+    "p____________yyy",
+    "ppppppppppppppyy",
+    "ggggggggggggggyy",
+    "ffggggggggggggbb",
+    "ff~~~~~~~~~~~~bb",
+    "~~~~~~~~~~~~~~~~"
+  ],
+  "roomAnchors": {
+    "the-ropewalk": { "x": 8, "y": 5 },
+    "the-flax-bank": { "x": 1, "y": 9 },
+    "the-coil-yard": { "x": 13, "y": 5 }
+  }
+}
