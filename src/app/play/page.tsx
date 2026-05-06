@@ -7,6 +7,11 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
 import { ChatPanel } from "@/components/ChatPanel";
 import { MapPanel } from "@/components/MapPanel";
+import {
+  NudgeBanner,
+  readDismissedNudgeIds,
+  recordDismissedNudgeId,
+} from "@/components/NudgeBanner";
 import { TileMapView } from "@/components/TileMapView";
 import { CoinBadge } from "@/components/CoinBadge";
 import { EnergyBar } from "@/components/EnergyBar";
@@ -96,6 +101,9 @@ export default function Play() {
     grid: string[];
     roomAnchors: Record<string, { x: number; y: number }>;
   } | null>(null);
+  // POLISH_PLAN 0c.5 — current nudge to surface (when one matches +
+  // hasn't been dismissed in this browser).
+  const [nudge, setNudge] = useState<{ id: string; text: string } | null>(null);
   const [metaArc, setMetaArc] = useState<{
     phaseLabel: string;
     phase: string;
@@ -120,7 +128,13 @@ export default function Play() {
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch("/api/state");
+        // POLISH_PLAN 0c.5 — pass dismissed nudge ids so the
+        // server-side runner skips them in the response.
+        const dismissed = readDismissedNudgeIds();
+        const url = dismissed.length
+          ? `/api/state?dismissedNudgeIds=${encodeURIComponent(dismissed.join(","))}`
+          : "/api/state";
+        const res = await fetch(url);
         if (res.status === 401) {
           router.push("/");
           return;
@@ -143,6 +157,7 @@ export default function Play() {
         setVerbSuggestions(data.verbSuggestions ?? []);
         setMapView(data.mapView ?? null);
         setTileMap(data.tileMap ?? null);
+        setNudge(data.nudge ?? null);
         setEntries(
           (data.narrations as string[]).map((text) => ({
             kind: "narration" as const,
@@ -726,6 +741,13 @@ export default function Play() {
                 onSkip={() => setIsTutorial(false)}
               />
             )}
+            <NudgeBanner
+              nudge={nudge}
+              onDismiss={(id) => {
+                recordDismissedNudgeId(id);
+                setNudge(null);
+              }}
+            />
             <VerbSuggestions
               suggestions={verbSuggestions}
               freeTextOpen={freeTextOpen}

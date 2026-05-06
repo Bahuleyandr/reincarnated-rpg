@@ -11,6 +11,7 @@ import { loadProjection } from "@/lib/game/projection";
 import { suggestVerbs } from "@/lib/game/verb-suggestions";
 import { buildMapView } from "@/lib/game/map-view";
 import { loadTileMap } from "@/lib/world/tile-map";
+import { pickNudge } from "@/lib/onboarding/nudges";
 import type { BeatPack } from "@/lib/game/beats";
 import {
   SESSION_COOKIE_NAME,
@@ -131,6 +132,26 @@ export async function GET(req: NextRequest) {
       // when not yet authored — the play page falls back to the
       // simpler MapPanel graph view.
       tileMap: loadTileMap(ctx.locationId),
+      // POLISH_PLAN 0c.5 — onboarding nudge. Pure read against
+      // the current event slice + projection. The play page
+      // dismisses client-side via localStorage; the request body
+      // can include `dismissedNudgeIds` to suppress already-seen
+      // nudges in the response. (We accept it as a query param
+      // here too for ergonomics.)
+      nudge: (() => {
+        const dismissedRaw = req.nextUrl.searchParams.get("dismissedNudgeIds");
+        const dismissedIds = dismissedRaw
+          ? dismissedRaw.split(",").map((s) => s.trim()).filter(Boolean)
+          : [];
+        const result = pickNudge({
+          events: eventList,
+          projection,
+          dismissedIds,
+        });
+        return result.nudge
+          ? { id: result.nudge.id, text: result.nudge.text }
+          : null;
+      })(),
     });
   } catch (err) {
     log.error("state.failed", {
