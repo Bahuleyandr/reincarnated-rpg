@@ -368,6 +368,7 @@ export async function POST(req: NextRequest) {
         starterFormState,
         moderation,
         raceId,
+        presetVerb,
         world: verified.userId
           ? {
               userId: verified.userId,
