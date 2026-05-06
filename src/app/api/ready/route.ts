@@ -139,6 +139,22 @@ async function checkAnthropic(): Promise<CheckResult> {
       detail: "skipped (NARRATOR != remote)",
     };
   }
+  // Skip when the deployment routes to a non-Anthropic provider
+  // (MiniMax, Ollama, OpenRouter, etc. — anything OpenAI-compatible).
+  // Without this skip, a Dalek deploy with NARRATOR=remote +
+  // AI_PROVIDER=openai-compatible would 503 on /api/ready trying to
+  // ping Anthropic with a key that isn't even set. The OpenAI-
+  // compatible endpoint's reachability is best validated by the
+  // first real turn rather than a synthetic ready-check (and most
+  // hosts rate-limit empty POSTs, so a synthetic check would be
+  // hostile).
+  if (env().AI_PROVIDER !== "anthropic") {
+    return {
+      ok: true,
+      durationMs: Date.now() - t0,
+      detail: `skipped (AI_PROVIDER=${env().AI_PROVIDER})`,
+    };
+  }
   if (!env().ANTHROPIC_API_KEY) {
     return {
       ok: false,

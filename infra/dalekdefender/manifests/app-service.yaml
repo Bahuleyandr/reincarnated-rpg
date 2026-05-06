@@ -1,0 +1,25 @@
+# NodePort service on 30000 — exposed externally via tailscale serve
+# (tailnet-only HTTPS) or tailscale funnel (public HTTPS). Both wrap
+# the same NodePort. See docs/DEPLOY-DALEK.md for the recipe.
+#
+# ClusterIP is enough for inter-pod traffic (the migration Job hits
+# the Service from inside the cluster). NodePort exists so tailscale
+# serve has a stable host port to map to.
+apiVersion: v1
+kind: Service
+metadata:
+  name: reincarnated-app
+  namespace: reincarnated
+  labels:
+    app.kubernetes.io/part-of: reincarnated-rpg
+    app.kubernetes.io/component: web
+spec:
+  type: NodePort
+  selector:
+    app: reincarnated-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+      nodePort: 30000
+      protocol: TCP
