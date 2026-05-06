@@ -1,0 +1,161 @@
+# reincarnated-rpg app — Next 16 server bundled in the multi-stage
+# Dockerfile at the repo root. Same namespace as the Postgres pod
+# so the app reaches the DB via cluster-internal DNS, no tailscale
+# round-trip:
+#   reincarnated-postgres.reincarnated.svc.cluster.local:5432
+#
+# Image tag is `reincarnated-rpg:latest` — built on the dev machine
+# and imported into k3s containerd via `k3s ctr images import`
+# (see docs/DEPLOY-DALEK.md). imagePullPolicy: IfNotPresent because
+# the image lives in containerd, not a registry.
+#
+# Single replica, strategy=Recreate. Volumes are content-only at
+# runtime (the JSONs are baked into the image), so we don't need
+# a PVC. Migrations run as a one-shot Job, not at pod startup —
+# avoids the "every restart re-applies migrations" pattern that
+# can deadlock during rolling updates.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reincarnated-app
+  namespace: reincarnated
+  labels:
+    app: reincarnated-app
+    app.kubernetes.io/part-of: reincarnated-rpg
+    app.kubernetes.io/component: web
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: reincarnated-app
+  template:
+    metadata:
+      labels:
+        app: reincarnated-app
+        app.kubernetes.io/part-of: reincarnated-rpg
+        app.kubernetes.io/component: web
+    spec:
+      containers:
+        - name: app
+          image: reincarnated-rpg:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            # Cluster-internal DB URL. The Service DNS form is
+            # short and stable inside the namespace; the FQDN
+            # variant works the same and is more explicit:
+            # reincarnated-postgres.reincarnated.svc.cluster.local
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: DATABASE_URL
+            # No pgbouncer in front of an in-cluster PG; the direct
+            # URL equals the pooled URL. Set both for the migrate
+            # script's branch-aware fallback.
+            - name: DATABASE_URL_DIRECT
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: DATABASE_URL
+            - name: SESSION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: SESSION_SECRET
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: ANTHROPIC_API_KEY
+                  optional: true
+            - name: VOYAGE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: VOYAGE_API_KEY
+                  optional: true
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: OPENAI_API_KEY
+                  optional: true
+            - name: OPENAI_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: OPENAI_BASE_URL
+                  optional: true
+            - name: OPENAI_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: OPENAI_MODEL
+                  optional: true
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: SENTRY_DSN
+                  optional: true
+            # Non-secret runtime config — keep here so it's visible
+            # via `kubectl describe deploy` without `kubectl get secret`.
+            - name: AI_PROVIDER
+              value: openai-compatible
+            - name: NARRATOR
+              value: remote
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"
+            - name: HOSTNAME
+              value: 0.0.0.0
+          # /api/health is the cheap liveness probe (process is up).
+          # /api/ready does deep checks (DB, pgvector, content,
+          # Anthropic). startupProbe gives the container 60s to boot
+          # before the liveness probe starts checking — Next 16's
+          # standalone server takes ~3-5s on a small VM.
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 60
+            timeoutSeconds: 8
+            failureThreshold: 2
+            successThreshold: 1
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "1500m"
+              memory: "768Mi"
+          # Read-only root FS would be ideal but Next standalone
+          # writes a couple of cache files at runtime. Leave RW for
+          # now; revisit when tightening security.
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop: ["ALL"]

@@ -1,0 +1,40 @@
+# Seed Job — runs `node scripts/seed-runtime.mjs` to load reference
+# content into the templates_* tables. Run once after the first
+# migration; re-run only if the seed script's idempotency rules
+# change (it currently re-upserts on conflict, so re-running is safe).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: reincarnated-seed
+  namespace: reincarnated
+  labels:
+    app.kubernetes.io/part-of: reincarnated-rpg
+    app.kubernetes.io/component: seed
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: reincarnated-rpg
+        app.kubernetes.io/component: seed
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: seed
+          image: reincarnated-rpg:latest
+          imagePullPolicy: IfNotPresent
+          command: ["node", "scripts/seed-runtime.mjs"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: reincarnated-app-secrets
+                  key: DATABASE_URL
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

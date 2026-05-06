@@ -55,3 +55,6 @@ next-env.d.ts
 # claude-mem / agent caches if any
 .claude-mem/
 
+
+# Real Dalek deployment secret — never commit. Use app-secret.example.yaml as the template.
+infra/dalekdefender/manifests/app-secret.yaml
