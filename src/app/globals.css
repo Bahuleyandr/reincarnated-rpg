@@ -155,3 +155,71 @@ body {
     animation: none;
   }
 }
+
+/*
+ * POLISH_PLAN 0c.2 (E) — deeper form-flavor accents.
+ *
+ * Subtle ambient backdrop tint on /play. The dark stone base
+ * stays the dominant tone (the prose has to stay readable), but
+ * a low-opacity radial gradient in the form's accent color leaks
+ * in at the edges of the viewport so each form's session FEELS
+ * different at a glance — slime green-washed, cursed-book
+ * violet, dragon-egg orange, etc.
+ *
+ * The wash is keyed off the same `[data-form="<id>"]` root as
+ * --form-accent. Reduced-motion users get the same wash without
+ * any animation.
+ */
+[data-form] {
+  /* Layered radial gradients: the accent leaks in at the corners
+   * (top-left + bottom-right) at very low alpha (~14%). The base
+   * stone-950 fill stays underneath via the page's bg color. */
+  background-image:
+    radial-gradient(
+      ellipse at top left,
+      var(--form-accent-bg, transparent) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      var(--form-accent-bg, transparent) 0%,
+      transparent 55%
+    );
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/*
+ * Per-form transcript voice tweaks. Each form's prose gets a
+ * subtle typographic treatment that matches its identity. Kept
+ * minimal so prose readability is never compromised — these are
+ * accent-only.
+ */
+[data-form="lesser-slime"] [data-testid="transcript"] {
+  /* Slime prose drips. Slightly looser leading. */
+  letter-spacing: 0.005em;
+  line-height: 1.75;
+}
+
+[data-form="cursed-book"] [data-testid="transcript"] {
+  /* Cursed-book reads like a manuscript. Tighter, denser. */
+  letter-spacing: 0;
+  line-height: 1.65;
+}
+
+[data-form="dragon-egg"] [data-testid="transcript"] {
+  /* Egg prose breathes — wider line-height for the heartbeat
+   * pacing. */
+  line-height: 1.8;
+}
+
+[data-form="dungeon-core"] [data-testid="transcript"] {
+  /* Core prose is stone-still; tightest leading. */
+  line-height: 1.55;
+}
+
+[data-form="the-still-one"] [data-testid="transcript"] {
+  /* Still-one prose is meditative; widest leading + tracking. */
+  letter-spacing: 0.02em;
+  line-height: 1.85;
+}
