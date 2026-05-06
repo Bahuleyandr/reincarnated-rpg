@@ -208,12 +208,16 @@ export function OverworldMap({
               </text>
             )}
 
-            {/* Label below the node. */}
+            {/* Label below the node. Larger fontSize for legibility
+                at the typical mobile rendered width — at 360px wide
+                the 1000-unit viewBox scales 1 unit ≈ 0.36 device px,
+                so fontSize 26 → ~9 device px (still small but legible).
+                Mobile UX (POLISH_PLAN Day 67). */}
             <text
-              y={r + 22}
-              fontSize={20}
-              fill={isVisited ? "#e7e5e4" : "#78716c"}
-              fontWeight={isCurrent ? 700 : 400}
+              y={r + 26}
+              fontSize={26}
+              fill={isVisited ? "#e7e5e4" : "#a8a29e"}
+              fontWeight={isCurrent ? 700 : 500}
               textAnchor="middle"
             >
               {node.displayName}
