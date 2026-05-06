@@ -88,6 +88,30 @@ Tracked here so we can see what's accumulated above the MVP line. See `docs/POST
 | 2026-05-04 | Marketplace loop completion — `list_item` tool (escrow + audit, multi-event) + `list new` UI tab + `mine=1` query | `33b6d1c` |
 | 2026-05-04 | Form #3 Dungeon Core at depth — 8 unit tests + 2 eval scenarios (24, 25) | `20af440` |
 | 2026-05-04 | Form-specific dice variants (roadmap 62) — 2d6 / 3d6kh2 / 2d6r1 / 1d12; cursed-book → 3d6kh2, dragon-egg → 2d6r1, dungeon-core → 1d12 | `a983ce9` |
+| 2026-05-05 | P1 — Per-form phrase banks for all 15 forms | `87367ce` |
+| 2026-05-05 | P2 — Per-form opening prose + first goal ribbon | `eaccf7e` |
+| 2026-05-05 | P3 — Visible state diffs after each turn | `b971ec5` |
+| 2026-05-05 | P4 — Per-turn wyrm-contribution UI | `584d427` |
+| 2026-05-05 | P5 — NPC-initiated letters after first meeting | `4f87eae` |
+| 2026-05-05 | P6 — `/registers` page (5 world ledgers) | `8b568c1` |
+| 2026-05-05 | P7 — Per-form CSS theming + TTS + asset commission brief | `ddd42e3` |
+| 2026-05-05 | P8 — Dev Postgres migrated to Dalekdefender (home tailnet k3s) | `bacd19a` |
+| 2026-05-05 | P9 — Verb-button substrate (iconicVerbs + suggestedVerbs schema) | `7874ae8` |
+| 2026-05-05 | P10 — VerbSuggestions UI + per-turn template-narrator routing | `060ec4c` |
+| 2026-05-05 | P11 — MiniMax narrator (OpenAI-compatible) + `<think>` reasoning-tag stripper | `d263020` |
+| 2026-05-05 | Verb coverage T1+T2+T3 — per-form-keyed `suggestedVerbs`, `iconicVerbsByCondition` (state-aware iconic), full coverage for every form | `1e69a72` |
+| 2026-05-05 | First ascended-form arc — `refuse-the-bell` (forsaken-revenant × forsaken-village) | `7fd8605` |
+| 2026-05-06 | 9 more ascended-form arcs (10 total): the-long-sit, the-sour-pull, the-pass-bowed, the-joining, the-deep-walk, the-distilled-verse, the-last-pruning, the-long-fire, the-last-blade | `497600d` |
+| 2026-05-06 | (A) Arc smoke harness + (B) `branch:*` markers wired as actual arc-branching events | `4aaa27c` |
+| 2026-05-06 | (C) Sentry-envelope wrapper (no-SDK, Next 16 instrumentation) + canonical `turn.completed` log + `/api/metrics` endpoint | `224eb06` |
+| 2026-05-06 | (G.1) 15 inline-SVG per-form avatars + `<Avatar>` component | `474e3f5` |
+| 2026-05-06 | (G.2) Tier 1 map panel — SVG node-graph of current location with discovery state | `c3b30e9` |
+| 2026-05-06 | (G.3a) Cartographic overworld of 22 locations on `/world` (atlas-driven layout, biome-tinted nodes) | `3e0e15b` |
+| 2026-05-06 | (G.3b) Tier 3 tile-art interior PoC — collapsed-tunnel + forsaken-village (16×12 ASCII grids + `<TileMapView>`) | `c0e8df5` |
+| 2026-05-06 | (G.3c) Tile-art rollout to all 22 locations (hand-authored 16×12 maps with biome legends) | `59a569e` |
+| 2026-05-06 | (D) E2E smoke in CI — Playwright happy-path on `next start` (port 3100) added to `scripts/ci-local.sh` + GHA workflow | `9d7ac46` |
+| 2026-05-06 | (E) Deeper form-flavor accents — ambient backdrop tint per form + per-form transcript leading/tracking | `146a5fe` |
+| 2026-05-06 | (F) Phrase-bank depth pass — all 10 ascended forms doubled (~30 → ~55-63 entries each) | `ef15358` + `b34e6ae` |
 
 ## Pre-Phase-1 polish (~14 dev days)
 
