@@ -23,7 +23,7 @@
  */
 import type { Beat, BeatPack, SuggestedVerb, SuggestedVerbsField } from "./beats";
 import { evaluate as evaluateTrigger } from "./beats";
-import type { FormTemplate, Projection } from "./types";
+import type { Event, FormTemplate, Projection } from "./types";
 
 export interface VerbSuggestion {
   verb: string;
@@ -280,4 +280,54 @@ export function suggestVerbs(args: SuggestArgs): VerbSuggestion[] {
       source: "fallback" as const,
     };
   });
+}
+
+/**
+ * Phase 11+ T(B) — branch resolution.
+ *
+ * When a player picks a preset verb whose `suggestedVerb.advancesArc`
+ * matches the literal `branch:<id>` shape, this helper emits a
+ * `form_state.changed` event setting `branch_<id>` += 1. Beats can
+ * then trigger on `form.state.branch_<id>: ">=1"` to fork the arc
+ * onto an authored alternate path.
+ *
+ * Returns an empty array (not null) when:
+ *   - no presetVerb supplied (free-text input, LLM narrator path),
+ *   - no active beat for the projection,
+ *   - the chosen verb isn't in the active beat's suggestedVerbs,
+ *   - the chosen verb's `advancesArc` is missing / `true` / `false`
+ *     (those don't create branches; `true` just means "this verb
+ *     advances the arc to the next beat" which is the default).
+ *
+ * Multiple `branch:<id>` markers can accumulate across an arc —
+ * the field convention `branch_<id>` is per-branch, so a player
+ * who picks both `branch:withdrawn` (beat 02) and `branch:claim`
+ * (beat 05) ends with both `form.state.branch_withdrawn=1` and
+ * `form.state.branch_claim=1`.
+ */
+export function extractBranchEvents(args: {
+  beatPack: BeatPack | null | undefined;
+  projection: Projection;
+  formId: string;
+  firedBeatIds: Set<string>;
+  presetVerb: string | null | undefined;
+}): Event[] {
+  if (!args.presetVerb || !args.beatPack) return [];
+  const beat = pickActiveBeat(args.beatPack, args.projection, args.firedBeatIds);
+  if (!beat?.suggestedVerbs) return [];
+  const list = pickFormSuggestions(beat.suggestedVerbs, args.formId);
+  if (!list) return [];
+  const chosen = list.find((s) => s.verb === args.presetVerb);
+  if (!chosen) return [];
+  const adv = chosen.advancesArc;
+  if (typeof adv !== "string" || !adv.startsWith("branch:")) return [];
+  const branchId = adv.slice("branch:".length).trim();
+  if (!branchId) return [];
+  return [
+    {
+      kind: "form_state.changed",
+      field: `branch_${branchId.replace(/[^a-zA-Z0-9_-]/g, "_")}`,
+      delta: 1,
+    },
+  ];
 }

@@ -108,6 +108,14 @@ export interface RunTurnArgs {
    *  which applies +/- to the roll mod when the intent + location
    *  match a per-race rule. Null for anon sessions / undeclared. */
   raceId?: "human" | "elven" | "dwarven" | "halfling" | "orcish" | null;
+  /** Phase 11+ T(B) — preset verb the player picked from the
+   *  verb-button menu, if any. When the chosen verb's
+   *  suggestedVerb.advancesArc is "branch:<id>", the orchestrator
+   *  emits a form_state.changed event setting `branch_<id>` += 1
+   *  in the same batch as the beat's fires. Beats can then trigger
+   *  on `form.state.branch_<id>` to fork onto authored alternate
+   *  paths. Null/undefined for free-text input. */
+  presetVerb?: string | null;
 }
 
 export interface TurnResult {
@@ -865,6 +873,22 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     for (const beat of matches) {
       pendingEvents.push(...beat.fires);
       beatsFired.push(beat.id);
+    }
+    // T(B) — when the player picked a preset verb whose
+    // suggestedVerb.advancesArc is "branch:<id>", emit a
+    // form_state.changed event setting `branch_<id>` += 1 in the
+    // same batch. Subsequent beats can trigger on it to fork the
+    // arc onto an authored alternate path.
+    if (args.presetVerb) {
+      const { extractBranchEvents } = await import("./verb-suggestions");
+      const branchEvents = extractBranchEvents({
+        beatPack,
+        projection: speculativeProjection,
+        formId: form.id,
+        firedBeatIds: fired,
+        presetVerb: args.presetVerb,
+      });
+      pendingEvents.push(...branchEvents);
     }
   }
 

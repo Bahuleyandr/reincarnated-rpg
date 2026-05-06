@@ -2,7 +2,7 @@
  * suggestVerbs — pure helper that picks 3 verb-button suggestions
  * from (active beat → form iconicVerbs → form.verbs[]).
  */
-import { suggestVerbs } from "@/lib/game/verb-suggestions";
+import { suggestVerbs, extractBranchEvents } from "@/lib/game/verb-suggestions";
 import type { BeatPack } from "@/lib/game/beats";
 import type { FormTemplate, Projection } from "@/lib/game/types";
 
@@ -374,5 +374,236 @@ describe("suggestVerbs", () => {
     });
     expect(result.map((v) => v.verb)).toEqual(["alpha", "beta", "gamma"]);
     expect(result.every((v) => v.source === "beat")).toBe(true);
+  });
+});
+
+// ---- T(B): branch:* markers as actual branching ----
+
+describe("extractBranchEvents", () => {
+  const branchPack: BeatPack = {
+    id: "branch-pack",
+    beats: [
+      {
+        id: "01-opener",
+        trigger: { all: [{ turn: "==1" }] },
+        oncePerSession: true,
+        fires: [],
+        suggestedVerbs: [
+          { verb: "alpha", label: "alpha", description: "", advancesArc: true },
+          {
+            verb: "beta",
+            label: "beta",
+            description: "",
+            advancesArc: "branch:withdrawn",
+          },
+          {
+            verb: "gamma",
+            label: "gamma",
+            description: "",
+            advancesArc: "branch:precluded",
+          },
+          { verb: "delta", label: "delta", description: "" }, // no advancesArc
+          { verb: "wait", label: "wait", description: "", advancesArc: false },
+        ],
+      },
+    ],
+  };
+
+  test("returns empty when presetVerb is null (free-text path)", () => {
+    expect(
+      extractBranchEvents({
+        beatPack: branchPack,
+        projection: makeProj(1),
+        formId: "test-form",
+        firedBeatIds: new Set(),
+        presetVerb: null,
+      }),
+    ).toEqual([]);
+  });
+
+  test("returns empty when no beat is active", () => {
+    expect(
+      extractBranchEvents({
+        beatPack: branchPack,
+        projection: makeProj(5), // turn 5 — branchPack only fires on turn 1
+        formId: "test-form",
+        firedBeatIds: new Set(),
+        presetVerb: "beta",
+      }),
+    ).toEqual([]);
+  });
+
+  test("returns empty when verb has no advancesArc", () => {
+    expect(
+      extractBranchEvents({
+        beatPack: branchPack,
+        projection: makeProj(1),
+        formId: "test-form",
+        firedBeatIds: new Set(),
+        presetVerb: "delta",
+      }),
+    ).toEqual([]);
+  });
+
+  test("returns empty when advancesArc is the literal `true`", () => {
+    expect(
+      extractBranchEvents({
+        beatPack: branchPack,
+        projection: makeProj(1),
+        formId: "test-form",
+        firedBeatIds: new Set(),
+        presetVerb: "alpha",
+      }),
+    ).toEqual([]);
+  });
+
+  test("returns empty when advancesArc is `false`", () => {
+    expect(
+      extractBranchEvents({
+        beatPack: branchPack,
+        projection: makeProj(1),
+        formId: "test-form",
+        firedBeatIds: new Set(),
+        presetVerb: "wait",
+      }),
+    ).toEqual([]);
+  });
+
+  test("emits form_state.changed{branch_<id>, +1} for branch:<id>", () => {
+    expect(
+      extractBranchEvents({
+        beatPack: branchPack,
+        projection: makeProj(1),
+        formId: "test-form",
+        firedBeatIds: new Set(),
+        presetVerb: "beta",
+      }),
+    ).toEqual([
+      { kind: "form_state.changed", field: "branch_withdrawn", delta: 1 },
+    ]);
+  });
+
+  test("different branch ids produce different fields", () => {
+    const a = extractBranchEvents({
+      beatPack: branchPack,
+      projection: makeProj(1),
+      formId: "test-form",
+      firedBeatIds: new Set(),
+      presetVerb: "beta",
+    });
+    const b = extractBranchEvents({
+      beatPack: branchPack,
+      projection: makeProj(1),
+      formId: "test-form",
+      firedBeatIds: new Set(),
+      presetVerb: "gamma",
+    });
+    expect(a[0]).toMatchObject({ field: "branch_withdrawn" });
+    expect(b[0]).toMatchObject({ field: "branch_precluded" });
+  });
+
+  test("returns empty when presetVerb isn't in the active beat's suggestedVerbs", () => {
+    expect(
+      extractBranchEvents({
+        beatPack: branchPack,
+        projection: makeProj(1),
+        formId: "test-form",
+        firedBeatIds: new Set(),
+        presetVerb: "epsilon",
+      }),
+    ).toEqual([]);
+  });
+
+  test("works with per-form-keyed suggestedVerbs (read-the-room shape)", () => {
+    const perFormPack: BeatPack = {
+      id: "per-form",
+      beats: [
+        {
+          id: "01-keyed",
+          trigger: { all: [{ turn: "==1" }] },
+          oncePerSession: true,
+          fires: [],
+          suggestedVerbs: {
+            "form-a": [
+              {
+                verb: "alpha",
+                label: "alpha",
+                description: "",
+                advancesArc: "branch:claim",
+              },
+            ],
+            "form-b": [
+              {
+                verb: "alpha",
+                label: "alpha",
+                description: "",
+                advancesArc: "branch:withhold",
+              },
+            ],
+          },
+        },
+      ],
+    };
+    const eventsForA = extractBranchEvents({
+      beatPack: perFormPack,
+      projection: { ...makeProj(1), form: { ...makeProj(1).form, id: "form-a" } },
+      formId: "form-a",
+      firedBeatIds: new Set(),
+      presetVerb: "alpha",
+    });
+    const eventsForB = extractBranchEvents({
+      beatPack: perFormPack,
+      projection: { ...makeProj(1), form: { ...makeProj(1).form, id: "form-b" } },
+      formId: "form-b",
+      firedBeatIds: new Set(),
+      presetVerb: "alpha",
+    });
+    expect(eventsForA[0]).toMatchObject({ field: "branch_claim" });
+    expect(eventsForB[0]).toMatchObject({ field: "branch_withhold" });
+  });
+
+  test("sanitises odd characters in branch id (defense in depth)", () => {
+    const oddPack: BeatPack = {
+      id: "odd",
+      beats: [
+        {
+          id: "01-odd",
+          trigger: { all: [{ turn: "==1" }] },
+          oncePerSession: true,
+          fires: [],
+          suggestedVerbs: [
+            {
+              verb: "alpha",
+              label: "",
+              description: "",
+              advancesArc: "branch:wyrm-touched",
+            },
+            {
+              verb: "beta",
+              label: "",
+              description: "",
+              advancesArc: "branch:bad/path",
+            },
+          ],
+        },
+      ],
+    };
+    const a = extractBranchEvents({
+      beatPack: oddPack,
+      projection: makeProj(1),
+      formId: "test-form",
+      firedBeatIds: new Set(),
+      presetVerb: "alpha",
+    });
+    const b = extractBranchEvents({
+      beatPack: oddPack,
+      projection: makeProj(1),
+      formId: "test-form",
+      firedBeatIds: new Set(),
+      presetVerb: "beta",
+    });
+    // hyphens kept; slashes replaced with underscore
+    expect(a[0]).toMatchObject({ field: "branch_wyrm-touched" });
+    expect(b[0]).toMatchObject({ field: "branch_bad_path" });
   });
 });
