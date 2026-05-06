@@ -1,0 +1,43 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Abandoned market. Broken stalls. Once-public square where coin still moves but most of the trade is gone. The fishmonger left fastest; the scribe still writes."
+  },
+  "locationId": "hollow-market",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "c": { "label": "broken cobble", "fill": "#57534e", "walkable": true },
+    "g": { "label": "weeds", "fill": "#365314", "walkable": true },
+    "h": { "label": "stall wall", "fill": "#451a03", "walkable": false },
+    "_": { "label": "stall floor", "fill": "#78716c", "walkable": true },
+    "f": { "label": "fish-counter", "fill": "#a3a3a3", "glyph": "═", "walkable": true },
+    "k": { "label": "cloth bale", "fill": "#9a3412", "glyph": "▭", "walkable": true },
+    "p": { "label": "scribe paper", "fill": "#fafaf9", "glyph": "≡", "walkable": true },
+    "a": { "label": "alley", "fill": "#1c1917", "walkable": true },
+    "d": { "label": "fallen door", "fill": "#1c1917", "glyph": "▢", "walkable": true }
+  },
+  "grid": [
+    "gggggggggggggggg",
+    "ghhhhhgghhhhhggg",
+    "gh___fhgh___pggg",
+    "gh___fhgh___pggg",
+    "gh___fhgh___pggg",
+    "ghhdhhgghhdhhggg",
+    "gccccccccccccggg",
+    "gccccccccccccggg",
+    "gccccccccccccggg",
+    "ghhhhhgggggggggg",
+    "gh_kkkk____aaaag",
+    "gggggggggggggggg"
+  ],
+  "roomAnchors": {
+    "market-square": { "x": 7, "y": 7 },
+    "fishmonger-stall": { "x": 4, "y": 3 },
+    "cloth-stall": { "x": 4, "y": 10 },
+    "scribes-table": { "x": 11, "y": 3 },
+    "alley-out": { "x": 13, "y": 10 }
+  }
+}

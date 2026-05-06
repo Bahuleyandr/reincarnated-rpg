@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Post-flood orchard. Trees standing in shallow water. Rows that used to be field. A drowned cottage. A lock that broke and didn't get repaired. Deep grove east where the water is over your head."
+  },
+  "locationId": "drowned-orchard",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "g": { "label": "edge grass", "fill": "#3f6212", "walkable": true },
+    "T": { "label": "drowned tree", "fill": "#1a2e05", "glyph": "♣", "walkable": false },
+    "~": { "label": "shallow water", "fill": "#0c4a6e", "glyph": "≈", "walkable": true },
+    "W": { "label": "deep water", "fill": "#1e3a8a", "glyph": "~", "walkable": true },
+    "h": { "label": "cottage wall", "fill": "#1c1917", "walkable": false },
+    "_": { "label": "cottage floor", "fill": "#451a03", "walkable": true },
+    "L": { "label": "the lock", "fill": "#78716c", "glyph": "═", "walkable": true }
+  },
+  "grid": [
+    "gggggggggggggggg",
+    "ggT~T~T~T~T~Tggg",
+    "gT~T~T~T~T~T~Tgg",
+    "g~T~T~T~T~T~T~Tg",
+    "gT~T~~~~~~~T~T~g",
+    "gT~~hhhhh~~~T~Wg",
+    "gTT~h___h~~T~WWg",
+    "gT~~h___h~T~TWWg",
+    "gT~T~hhhhh~TWWWg",
+    "gT~T~~~~~~~WWWWg",
+    "g~~LLLLLL~~WWWWg",
+    "gggggggggggggggg"
+  ],
+  "roomAnchors": {
+    "orchard-edge": { "x": 1, "y": 0 },
+    "shallow-rows": { "x": 5, "y": 4 },
+    "drowned-cottage": { "x": 6, "y": 6 },
+    "deep-grove": { "x": 13, "y": 8 },
+    "the-lock": { "x": 7, "y": 10 }
+  }
+}

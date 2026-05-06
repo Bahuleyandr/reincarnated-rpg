@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Wheat town. Market square center. River dock south on the Furrow where the grain barges load."
+  },
+  "locationId": "furrowmouth",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "g": { "label": "wheat field", "fill": "#a16207", "glyph": "▴", "walkable": true },
+    "c": { "label": "market cobble", "fill": "#a8a29e", "walkable": true },
+    "s": { "label": "market stall", "fill": "#451a03", "glyph": "▭", "walkable": true },
+    "_": { "label": "dock plank", "fill": "#92400e", "walkable": true },
+    "b": { "label": "grain barge", "fill": "#78350f", "glyph": "▬", "walkable": false },
+    "~": { "label": "the Furrow", "fill": "#0369a1", "glyph": "~", "walkable": false }
+  },
+  "grid": [
+    "gggggggggggggggg",
+    "gggggggggggggggg",
+    "gggcccccccccgggg",
+    "gccsccccsccccggg",
+    "ccccccccccccccgg",
+    "ccssccccccsscccg",
+    "cccccccccccccccg",
+    "cccsccccsccccccg",
+    "cccccccccccccccg",
+    "gggcccccccccgggg",
+    "____bb____bb____",
+    "~~~~~~~~~~~~~~~~"
+  ],
+  "roomAnchors": {
+    "the-market-square": { "x": 8, "y": 5 },
+    "the-river-dock": { "x": 8, "y": 10 }
+  }
+}
