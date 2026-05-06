@@ -79,7 +79,7 @@
       "suggestedVerbs": [
         { "verb": "chant", "label": "chant against the wind", "description": "the line steadies in the upper register; the wind takes what it must, the rest holds", "advancesArc": true },
         { "verb": "carry", "label": "carry through the test", "description": "the line bears down; the climbers feel it under their breath; the second notch passes", "advancesArc": true },
-        { "verb": "blend", "label": "blend two voices", "description": "the child's line into yours; the older choristers do the same below; the line thickens", "advancesArc": true }
+        { "verb": "lead", "label": "lead the child's line", "description": "the child's line into yours; the older choristers do the same below; the line thickens", "advancesArc": true }
       ],
       "fires": [
         {

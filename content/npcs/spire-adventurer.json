@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "The Spire Adventurer — climbs the Sunless Spire to challenge whatever sits at its top. They have been here before; they know the climb. They are the dungeon-core's primary antagonist in the defend-the-deep arc. Non-recurring; bound to that beat-pack."
+  },
+  "id": "spire-adventurer",
+  "displayName": "the adventurer",
+  "kind": "npc",
+  "tagline": "good boots, careful footing, third try at this climb.",
+  "vitals": {
+    "hp": { "max": 8, "start": 8 }
+  },
+  "stats": {
+    "patience": 3,
+    "will": 4,
+    "awareness": 3,
+    "endurance": 4
+  },
+  "attitudeDefault": -1,
+  "attitudeRange": [-3, 1],
+  "tags": ["sunless-spire", "defend-the-deep-arc", "intruder"]
+}
