@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "Tile-art interior for the forsaken-village. 16×12 ASCII grid. The square is at the center; the chapel north, the smithy west, the tavern east, the village-edge south where the road runs west. Trees ring the village on three sides. Doors mark the entries. The hearth in the smithy is where the dragon-egg waits in the keep-the-warmth arc."
+  },
+
+  "locationId": "forsaken-village",
+  "width": 16,
+  "height": 12,
+
+  "legend": {
+    "g": { "label": "grass", "fill": "#3f6212", "walkable": true },
+    "t": { "label": "tree", "fill": "#1a2e05", "glyph": "♣", "walkable": false },
+    "c": { "label": "cobblestone", "fill": "#78716c", "walkable": true },
+    "h": { "label": "house wall", "fill": "#451a03", "walkable": false },
+    "_": { "label": "wooden floor", "fill": "#92400e", "walkable": true },
+    "d": { "label": "door", "fill": "#1c1917", "glyph": "▢", "walkable": true },
+    "f": { "label": "hearth", "fill": "#9a3412", "glyph": "✺", "walkable": false },
+    "a": { "label": "chapel altar", "fill": "#a3a3a3", "glyph": "†", "walkable": false },
+    "r": { "label": "dirt road", "fill": "#a16207", "walkable": true }
+  },
+
+  "grid": [
+    "tttttttttttttttt",
+    "tggggghhhggggggt",
+    "tggggh_a_hgggggt",
+    "tggggh___hgggggt",
+    "tgggghhdhhgggggt",
+    "tgggcccccccccggt",
+    "thhhdcccccccdhht",
+    "th_hccccccccch_t",
+    "thfhcccccccccc_t",
+    "thhhccccccccchhh",
+    "tgggcccccccccggt",
+    "rrrrrrrrrrrrrrrr"
+  ],
+
+  "roomAnchors": {
+    "chapel": { "x": 8, "y": 3 },
+    "village-square": { "x": 8, "y": 5 },
+    "smith-house": { "x": 2, "y": 7 },
+    "tavern": { "x": 14, "y": 7 },
+    "village-edge": { "x": 8, "y": 11 }
+  }
+}

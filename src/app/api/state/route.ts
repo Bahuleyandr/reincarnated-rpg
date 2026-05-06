@@ -10,6 +10,7 @@ import { readLog, rowToEvent } from "@/lib/game/events";
 import { loadProjection } from "@/lib/game/projection";
 import { suggestVerbs } from "@/lib/game/verb-suggestions";
 import { buildMapView } from "@/lib/game/map-view";
+import { loadTileMap } from "@/lib/world/tile-map";
 import type { BeatPack } from "@/lib/game/beats";
 import {
   SESSION_COOKIE_NAME,
@@ -125,6 +126,11 @@ export async function GET(req: NextRequest) {
       // the renderer) so the payload stays under 1 KB for typical
       // 5-room locations.
       mapView: buildMapView(location),
+      // POLISH_PLAN G.3b/G.3c — authored tile-map for this
+      // location, when one exists in content/tile-maps/. Null
+      // when not yet authored — the play page falls back to the
+      // simpler MapPanel graph view.
+      tileMap: loadTileMap(ctx.locationId),
     });
   } catch (err) {
     log.error("state.failed", {

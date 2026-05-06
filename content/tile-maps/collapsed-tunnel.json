@@ -1,0 +1,46 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "Tile-art interior for the collapsed-tunnel. 16×12 ASCII grid; legend maps each char to a tile type. Rooms occupy contiguous regions; their exits mirror the location JSON's room.exits graph. Lit only by the outside-fissure (top-right corner); the rest of the cave is dim. Player avatar sits at the per-room anchor."
+  },
+
+  "locationId": "collapsed-tunnel",
+  "width": 16,
+  "height": 12,
+
+  "legend": {
+    "#": { "label": "cave wall", "fill": "#1c1917", "walkable": false },
+    ".": { "label": "rough stone floor", "fill": "#3f3f46", "walkable": true },
+    "m": { "label": "moss-covered floor", "fill": "#365314", "glyph": ".", "walkable": true },
+    "~": { "label": "water drips", "fill": "#0c4a6e", "glyph": "~", "walkable": true },
+    "s": { "label": "pebble slope", "fill": "#57534e", "glyph": "·", "walkable": true },
+    "e": { "label": "outside fissure", "fill": "#a8a29e", "glyph": "↑", "walkable": true },
+    "p": { "label": "predator-marked floor", "fill": "#451a03", "walkable": true }
+  },
+
+  "grid": [
+    "###########eeee#",
+    "##.........mm.##",
+    "##..ssss...mm.##",
+    "##.ssssss..mm.##",
+    "##..ssss......##",
+    "##........~~~.##",
+    "##........~~..##",
+    "##.....~~.....##",
+    "###...~.....pp##",
+    "###..~.....ppp##",
+    "###........pp.##",
+    "################"
+  ],
+
+  "roomAnchors": {
+    "seam-of-the-collapse": { "x": 5, "y": 1 },
+    "pebble-slope": { "x": 4, "y": 3 },
+    "mossy-alcove": { "x": 12, "y": 2 },
+    "outside-fissure": { "x": 12, "y": 0 },
+    "dripping-cavern": { "x": 9, "y": 6 },
+    "predator-den": { "x": 12, "y": 9 }
+  }
+}
