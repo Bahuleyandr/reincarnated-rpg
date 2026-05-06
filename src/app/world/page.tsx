@@ -7,6 +7,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { OverworldMap } from "@/components/OverworldMap";
+import type { WorldMap as WorldMapData } from "@/lib/world/world-map";
 import { WorldMap } from "@/components/WorldMap";
 
 interface LocationSummary {
@@ -37,6 +39,7 @@ interface AtlasResp {
     towns: LocationSummary[];
   }>;
   asciiMap: string[];
+  worldMap?: WorldMapData;
   rivers: Array<{ name: string; summary: string }>;
   races: RaceSummary[];
 }
@@ -93,7 +96,17 @@ export default function WorldAtlasPage() {
 
         <section className="space-y-3">
           <h2 className="text-sm text-stone-100">map</h2>
-          <WorldMap />
+          {data.worldMap ? (
+            <div className="bg-stone-950 border border-stone-800 rounded-md overflow-hidden">
+              <OverworldMap
+                map={data.worldMap}
+                size={720}
+                className="w-full max-w-3xl mx-auto block"
+              />
+            </div>
+          ) : (
+            <WorldMap />
+          )}
           <details className="text-[10px] text-stone-500">
             <summary className="cursor-pointer hover:text-stone-300">
               show ASCII map (terminal-friendly)
