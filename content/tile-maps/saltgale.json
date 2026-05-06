@@ -1,0 +1,40 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Pontoon city on the mudflats. The Pontoon Mile runs east-west across the middle. Branch House (banking) west. Clearseer Room (information brokers) north. Mudglass kilns south at the tide-line."
+  },
+  "locationId": "saltgale",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "~": { "label": "tidal mud", "fill": "#1c1917", "walkable": false },
+    "_": { "label": "pontoon decking", "fill": "#451a03", "walkable": true },
+    "h": { "label": "house wall", "fill": "#92400e", "walkable": false },
+    "v": { "label": "ledger desk", "fill": "#fde68a", "glyph": "≡", "walkable": true },
+    "c": { "label": "clearseer chair", "fill": "#a3a3a3", "glyph": "▭", "walkable": false },
+    "k": { "label": "mudglass kiln", "fill": "#b91c1c", "glyph": "▲", "walkable": false },
+    "f": { "label": "kiln floor", "fill": "#78350f", "walkable": true }
+  },
+  "grid": [
+    "~~~~~~~~~~~~~~~~",
+    "~hhhhhhhhhhhhh~~",
+    "~h___ccc__ccc_h~",
+    "~h_v__c____c__h~",
+    "~h_v__________h~",
+    "~hhhhhhhhhhhhhh~",
+    "_______________~",
+    "_______________~",
+    "_______________~",
+    "ffhhhhhhhhhhhhh~",
+    "fkfkfk___fkfkfk~",
+    "~~~~~~~~~~~~~~~~"
+  ],
+  "roomAnchors": {
+    "the-pontoon-mile": { "x": 8, "y": 7 },
+    "the-branch-house": { "x": 3, "y": 4 },
+    "the-clearseer-room": { "x": 7, "y": 3 },
+    "the-mudglass-kilns": { "x": 8, "y": 10 }
+  }
+}

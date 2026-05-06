@@ -1,0 +1,37 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Brackish wetland. Chest-high tallow-reeds. Rendering yard south where the wax is cooked. Fen edge north — paths wind among reed-stands."
+  },
+  "locationId": "tallowfen",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "r": { "label": "tallow reed", "fill": "#365314", "glyph": "│", "walkable": false },
+    "p": { "label": "fen path", "fill": "#3f3f46", "walkable": true },
+    "~": { "label": "brackish water", "fill": "#0c4a6e", "glyph": "~", "walkable": false },
+    "h": { "label": "yard wall", "fill": "#451a03", "walkable": false },
+    "_": { "label": "yard floor", "fill": "#78716c", "walkable": true },
+    "k": { "label": "rendering kettle", "fill": "#9a3412", "glyph": "○", "walkable": false }
+  },
+  "grid": [
+    "rrrrrrrrrrrrrrrr",
+    "rrrpprrrrrpprrrr",
+    "rrrpprrr~~pprrrr",
+    "rrrpprrr~~pprrrr",
+    "rrrppprr~~pprrrr",
+    "rrrppppprrrrrrrr",
+    "rrrrrppppprrrrrr",
+    "rrrhhhhhhhhhhhrr",
+    "rrh___k_k_k___hh",
+    "rrh___________hh",
+    "rrh___________hh",
+    "rrhhhhhhhhhhhhhh"
+  ],
+  "roomAnchors": {
+    "the-fen-edge": { "x": 4, "y": 1 },
+    "the-rendering-yard": { "x": 8, "y": 9 }
+  }
+}

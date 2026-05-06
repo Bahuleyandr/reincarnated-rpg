@@ -1,0 +1,42 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Estuary metropolis where the five rivers meet. Spoke Square at center with the bronze compass-rose. River quay south on the Wash. Five Quarters NW (mixed-population district). Counting Arcade NE. Paper Row NW outer."
+  },
+  "locationId": "caelum-by-the-wash",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "c": { "label": "compass-rose square", "fill": "#a8a29e", "walkable": true },
+    "*": { "label": "compass-rose bronze", "fill": "#b45309", "glyph": "✦", "walkable": false },
+    "h": { "label": "quarter wall", "fill": "#451a03", "walkable": false },
+    "_": { "label": "quarter floor", "fill": "#78716c", "walkable": true },
+    "p": { "label": "paper stall", "fill": "#fafaf9", "glyph": "▭", "walkable": true },
+    "v": { "label": "ledger desk", "fill": "#92400e", "glyph": "≡", "walkable": true },
+    "~": { "label": "the Wash", "fill": "#0369a1", "glyph": "~", "walkable": false },
+    "q": { "label": "river quay", "fill": "#a16207", "walkable": true }
+  },
+  "grid": [
+    "hpppphhhhhhvvvvh",
+    "h____h______vv_h",
+    "h____h______vv_h",
+    "hhhhhcccccccccch",
+    "h____ccc**ccc_ch",
+    "h____ccc**ccc_ch",
+    "h____cccccccc_ch",
+    "hhhhhhhhhhhhhhhh",
+    "h______________h",
+    "h______________h",
+    "qqqqqqqqqqqqqqqq",
+    "~~~~~~~~~~~~~~~~"
+  ],
+  "roomAnchors": {
+    "the-spoke-square": { "x": 6, "y": 5 },
+    "the-river-quay": { "x": 8, "y": 10 },
+    "the-five-quarters": { "x": 3, "y": 9 },
+    "the-counting-arcade": { "x": 13, "y": 1 },
+    "the-paper-row": { "x": 2, "y": 0 }
+  }
+}

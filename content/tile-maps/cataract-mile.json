@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. A mile of waterfalls turning a row of paper-mills. Mill courtyard at the entry; pulp floor below the wheels (south); drying loft above (north, on a wooden upper level marked by the lighter-color plank tiles)."
+  },
+  "locationId": "cataract-mile",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "~": { "label": "cataract", "fill": "#0369a1", "glyph": "≈", "walkable": false },
+    "h": { "label": "mill wall", "fill": "#451a03", "walkable": false },
+    "L": { "label": "drying loft floor", "fill": "#fde68a", "walkable": true },
+    "_": { "label": "pulp floor stone", "fill": "#3f3f46", "walkable": true },
+    "c": { "label": "courtyard cobble", "fill": "#a8a29e", "walkable": true },
+    "v": { "label": "pulp vat", "fill": "#1c1917", "glyph": "○", "walkable": false },
+    "w": { "label": "mill wheel", "fill": "#78716c", "glyph": "✦", "walkable": false }
+  },
+  "grid": [
+    "hhhhhhhhhhhhhhhh",
+    "hLLLLLLLLLLLLLLh",
+    "hLLLLLLLLLLLLLLh",
+    "hLLLLLLLLLLLLLLh",
+    "hhhhhhhhhhhhhhhh",
+    "ccccccccccccccch",
+    "ccccccccccccccch",
+    "ccccccccccccccch",
+    "hhhhhhhhwwwwwwhh",
+    "h___v___wwwwww_h",
+    "h___v__________h",
+    "hhhh~~~~~~~~~~hh"
+  ],
+  "roomAnchors": {
+    "the-mill-courtyard": { "x": 7, "y": 6 },
+    "the-pulp-floor": { "x": 5, "y": 9 },
+    "the-drying-loft": { "x": 7, "y": 2 }
+  }
+}
