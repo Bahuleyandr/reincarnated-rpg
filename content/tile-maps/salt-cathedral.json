@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Cathedral built into a salt cave on the cliff coast. Cliff vestibule top — sea is implied to the north. Salt nave runs vertically. Side chapel branches west. Deep vault hidden behind the altar."
+  },
+  "locationId": "salt-cathedral",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "#": { "label": "salt rock", "fill": "#0c0a09", "walkable": false },
+    ".": { "label": "salt floor", "fill": "#a8a29e", "walkable": true },
+    "p": { "label": "salt pew", "fill": "#78716c", "glyph": "=", "walkable": false },
+    "a": { "label": "altar", "fill": "#fde68a", "glyph": "†", "walkable": false },
+    "v": { "label": "deep vault", "fill": "#1c1917", "glyph": "◊", "walkable": true },
+    "c": { "label": "side chapel", "fill": "#a3a3a3", "glyph": "☩", "walkable": true },
+    "~": { "label": "cliff sea", "fill": "#0c4a6e", "glyph": "~", "walkable": false }
+  },
+  "grid": [
+    "~~~~~~~~~~~~~~~~",
+    "~~~~~~####~~~~~~",
+    "######....######",
+    "##.....p..p....#",
+    "##.....p..p....#",
+    "##cccc.p..p....#",
+    "##c....p..p..a##",
+    "##c....p..p...##",
+    "##cccc........##",
+    "##.....p..p.vv##",
+    "##.....p..p..v##",
+    "################"
+  ],
+  "roomAnchors": {
+    "cliff-vestibule": { "x": 7, "y": 2 },
+    "salt-nave": { "x": 5, "y": 4 },
+    "salt-altar": { "x": 12, "y": 6 },
+    "side-chapel": { "x": 3, "y": 6 },
+    "deep-vault": { "x": 13, "y": 10 }
+  }
+}

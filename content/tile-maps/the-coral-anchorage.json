@@ -1,0 +1,41 @@
+{
+  "_meta": {
+    "license": "CC BY-NC 4.0",
+    "version": 1,
+    "authoredOn": "2026-05-06",
+    "notes": "16×12 tilemap. Halfling reef navy. Tidal causeway enters from the north. Tidehands yard west (small navy ships docked). Dawn galley center (the only meal). Reef edge east — the seaward platform where Drowncallers stand watch and the coral pulses below."
+  },
+  "locationId": "the-coral-anchorage",
+  "width": 16,
+  "height": 12,
+  "legend": {
+    "~": { "label": "open ocean", "fill": "#0c4a6e", "glyph": "~", "walkable": false },
+    "C": { "label": "living coral", "fill": "#a16207", "glyph": "❀", "walkable": false },
+    "_": { "label": "pontoon decking", "fill": "#451a03", "walkable": true },
+    "d": { "label": "tidal causeway", "fill": "#78716c", "glyph": "▭", "walkable": true },
+    "s": { "label": "ship hull", "fill": "#1c1917", "glyph": "▴", "walkable": false },
+    "g": { "label": "galley table", "fill": "#92400e", "glyph": "—", "walkable": false },
+    "f": { "label": "flag pole", "fill": "#a3a3a3", "glyph": "♦", "walkable": false },
+    "p": { "label": "reef-edge platform", "fill": "#fde68a", "glyph": ".", "walkable": true }
+  },
+  "grid": [
+    "~~~~~~~ddd~~~~~~",
+    "~~~~~~~ddd~~~~~~",
+    "~~ssss_____~~~~~",
+    "~~ssss______Cppp",
+    "~_______gg__pppC",
+    "~__ssss_gg__ppp~",
+    "~__ssss_____pCp~",
+    "~__________Cpp~~",
+    "~_________pppCC~",
+    "~~_________pp~~~",
+    "~~~_________~~~~",
+    "~~~~~~~~~~~~~~~~"
+  ],
+  "roomAnchors": {
+    "the-causeway-end": { "x": 8, "y": 1 },
+    "the-tidehands-yard": { "x": 1, "y": 5 },
+    "the-dawn-galley": { "x": 7, "y": 4 },
+    "the-reef-edge": { "x": 13, "y": 5 }
+  }
+}
