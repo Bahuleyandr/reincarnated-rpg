@@ -102,6 +102,13 @@ export async function GET() {
         })
     : [];
 
+  // POLISH_PLAN G.3a — world-map node positions for the
+  // <OverworldMap> component. Derived from the atlas spokes +
+  // hand-placed wilderness nodes so the renderer can stay
+  // pure-client.
+  const { getWorldMap } = await import("@/lib/world/world-map");
+  const worldMap = getWorldMap();
+
   return NextResponse.json({
     metropolis: hydrate(atlas.metropolis.id),
     metropolisShortName: atlas.metropolis.shortName,
@@ -115,5 +122,6 @@ export async function GET() {
     asciiMap: atlas.asciiMap,
     rivers: atlas.rivers,
     races,
+    worldMap,
   });
 }
