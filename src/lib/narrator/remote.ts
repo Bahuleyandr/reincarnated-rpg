@@ -716,6 +716,20 @@ prior text: "${input.previousAttempt.text.slice(0, 200)}"
 
   const variantLabel =
     input.roll.variant && input.roll.variant !== "2d6" ? ` variant=${input.roll.variant}` : "";
+  const resolutionBlock =
+    input.risk?.level === "safe"
+      ? `<resolution>
+classifier_verb: ${input.intent}
+risk: safe
+reason: ${input.risk.reason}
+outcome: clean success; no dice were rolled because this is an ordinary or form-native action. Advance the player's stated action without adding a failure, hard cost, or unrelated complication.
+</resolution>`
+      : `<roll>
+classifier_verb: ${input.intent}
+risk: ${input.risk?.level ?? "risky"}
+reason: ${input.risk?.reason ?? "legacy_roll"}
+roll: d1=${input.roll.d1} d2=${input.roll.d2} mod=${input.roll.mod} total=${input.roll.total} band=${input.roll.band}${variantLabel}
+</roll>`;
   return `${retryHint}<projection>
 turn: ${input.projection.turn}
 status: ${input.projection.status}
@@ -738,10 +752,7 @@ npcs: ${
 xp: ${input.projection.xp}
 </projection>
 
-<roll>
-classifier_verb: ${input.intent}
-roll: d1=${input.roll.d1} d2=${input.roll.d2} mod=${input.roll.mod} total=${input.roll.total} band=${input.roll.band}${variantLabel}
-</roll>
+${resolutionBlock}
 
 <memories>
 ${memories}

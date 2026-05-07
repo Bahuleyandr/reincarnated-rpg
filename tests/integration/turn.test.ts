@@ -31,7 +31,7 @@ beforeEach(async () => {
 });
 
 describe("runTurn — happy path", () => {
-  test("first turn: ooze → moved + projection turn=1", async () => {
+  test("ordinary first turn: ooze advances without rolling dice", async () => {
     const form = loadForm("lesser-slime");
     const location = loadLocation("collapsed-tunnel");
     const narrator = new TemplateNarrator({ form, location });
@@ -55,7 +55,7 @@ describe("runTurn — happy path", () => {
     expect(kinds).toContain("session.started");
     expect(kinds).toContain("turn.begun");
     expect(kinds).toContain("intent.classified");
-    expect(kinds).toContain("roll.resolved");
+    expect(kinds).not.toContain("roll.resolved");
     expect(kinds).toContain("narration.emitted");
   });
 
@@ -161,7 +161,7 @@ describe("runTurn — happy path", () => {
 });
 
 describe("runTurn — moderation", () => {
-  test("mild profanity: turn proceeds, bad_luck stacks +2, roll modifier penalized", async () => {
+  test("mild profanity: turn proceeds, bad_luck stacks +2, then decays", async () => {
     const { moderate } = await import("@/lib/moderation");
     const form = loadForm("lesser-slime");
     const location = loadLocation("collapsed-tunnel");

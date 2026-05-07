@@ -31,6 +31,7 @@ export const MANUAL_TOPICS: ManualTopic[] = [
     bullets: [
       "Preset choices are the safest path. They use authored verbs for your current form and usually cost no AI call.",
       "Free text is for anything unusual. The backend still validates what happens, even when the remote narrator writes the prose.",
+      "Ordinary actions advance cleanly. Dice are reserved for danger, force, major self-cost, or big world-changing moves.",
       "Every run is event logged. If the projection says you lost health, gained an item, moved, or died, it came from accepted events.",
       "The first goal ribbon is your current short-term nudge. It is not the only valid thing to do.",
     ],
@@ -41,10 +42,11 @@ export const MANUAL_TOPICS: ManualTopic[] = [
     id: "actions",
     label: "Actions",
     summary:
-      "Actions are interpreted as intent first, then resolved into dice, events, and narration.",
+      "Actions are interpreted as intent first, then resolved into clean progress or a risky roll.",
     bullets: [
       "Button actions send a known verb such as absorb, squeeze, hatch, claim, or read.",
-      "Typed actions are sanitized, classified, rolled, and then passed to the narrator with your exact cleaned input.",
+      "Typed actions are sanitized, classified, and passed to the narrator with your exact cleaned input.",
+      "Movement, sensing, waiting, examining, reading, and other normal form-native actions usually do not roll dice.",
       "A turn can move you, change vitals, change form state, add or remove items, reveal rooms, advance goals, or only narrate.",
       "Tool calls are validated together. If one tool is invalid, the turn should not leave a half-applied log.",
     ],
@@ -54,8 +56,10 @@ export const MANUAL_TOPICS: ManualTopic[] = [
   {
     id: "dice",
     label: "Dice",
-    summary: `Risky actions roll dice plus modifiers: ${SUCCESS_THRESHOLD}+ is success, ${PARTIAL_THRESHOLD}-${SUCCESS_THRESHOLD - 1} is partial, ${PARTIAL_THRESHOLD - 1} or less is miss.`,
+    summary: `Only risky actions roll dice plus modifiers: ${SUCCESS_THRESHOLD}+ is success, ${PARTIAL_THRESHOLD}-${SUCCESS_THRESHOLD - 1} is partial, ${PARTIAL_THRESHOLD - 1} or less is miss.`,
     bullets: [
+      "No dice display means the action was ordinary: the game treated it as clean progress, not a wasted attempt.",
+      "Risky rolls appear for attacks, coercion, forced control, self-damage, hatching, summoning, wyrm moves, and other high-stakes actions.",
       "Most forms roll 2d6. The displayed total already includes any modifier.",
       "Success means you get what you wanted cleanly or with strong advantage.",
       "Partial means you get something, but the world takes a cost, pressure, damage, time, or position.",

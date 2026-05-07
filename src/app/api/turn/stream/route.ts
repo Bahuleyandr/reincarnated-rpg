@@ -24,6 +24,7 @@ import { getProviderForUser } from "@/lib/ai/factory";
 import { db } from "@/lib/db/client";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
 import { loadBeatPack, loadForm, loadLocation } from "@/lib/game/content";
+import { rollForLatestTurn } from "@/lib/game/current-turn-roll";
 import { loadProjection } from "@/lib/game/projection";
 import { runTurn, type RunTurnArgs } from "@/lib/game/turn";
 import { refundEnergy, trySpend } from "@/lib/energy/state";
@@ -461,8 +462,7 @@ export async function POST(req: NextRequest) {
 
       const { readLog, rowToEvent } = await import("@/lib/game/events");
       const events = (await readLog(db, sessionId)).map(rowToEvent);
-      const lastRoll = [...events].reverse().find((e) => e.kind === "roll.resolved");
-      const roll = lastRoll && lastRoll.kind === "roll.resolved" ? lastRoll.roll : null;
+      const roll = rollForLatestTurn(events);
       // P4: include the running wyrm tally so the play page can
       // refresh its pulse without a separate /api/state fetch.
       const { previewContribution } = await import("@/lib/meta/long-wyrm");

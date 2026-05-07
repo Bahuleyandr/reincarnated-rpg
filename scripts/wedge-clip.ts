@@ -24,6 +24,7 @@ import type { Db } from "../src/lib/db/client";
 import { sessions } from "../src/lib/db/schema";
 import { pickStartingRoom } from "../src/lib/game/arc-routing";
 import { loadForm, loadLocation } from "../src/lib/game/content";
+import { rollForLatestTurn } from "../src/lib/game/current-turn-roll";
 import { appendEvents, readLog, rowToEvent } from "../src/lib/game/events";
 import { _resetSessionCacheForTests, runTurn } from "../src/lib/game/turn";
 import type { FormTemplate, LocationTemplate } from "../src/lib/game/types";
@@ -45,16 +46,17 @@ const CASES: FormCase[] = [
 
 const SHARED_SEED = 0x5eed1234; // any 32-bit unsigned, fixed for evidence
 
-// Universally-interpretable inputs. The wedge isn't about
+// Universally-interpretable risky inputs. The wedge isn't about
 // whether the inputs make different sense — it's about the
 // classifier mapping each one onto the form's actual verbs and
 // the prose-shape constraints making the response materially
-// different even on identical dice.
+// different even on identical dice. Ordinary play no longer rolls
+// for every action, so this artifact intentionally pushes danger.
 const TURNS = [
-  "I take stock of where I am",
-  "I sense who else is here",
-  "I act — toward warmth or away from cold, whichever the form prefers",
-  "I wait, attentive",
+  "I summon danger to test this body",
+  "I force a hidden change in the room",
+  "I attack the nearest threat before it understands me",
+  "I call toward the wyrm and accept the answer",
 ];
 
 interface CapturedTurn {
@@ -134,21 +136,17 @@ async function captureForm(
         e.kind === "intent.classified",
       )
       .pop();
-    const roll = events
-      .filter((e): e is typeof e & { kind: "roll.resolved" } =>
-        e.kind === "roll.resolved",
-      )
-      .pop();
+    const roll = rollForLatestTurn(events);
     captured.push({
       turn: i + 1,
       input,
       classifierVerb: intent?.verb ?? "?",
-      rollD1: roll?.roll.d1 ?? 0,
-      rollD2: roll?.roll.d2 ?? 0,
-      rollMod: roll?.roll.mod ?? 0,
-      rollTotal: roll?.roll.total ?? 0,
-      rollBand: roll?.roll.band ?? "?",
-      rollVariant: roll?.roll.variant,
+      rollD1: roll?.d1 ?? 0,
+      rollD2: roll?.d2 ?? 0,
+      rollMod: roll?.mod ?? 0,
+      rollTotal: roll?.total ?? 0,
+      rollBand: roll?.band ?? "none",
+      rollVariant: roll?.variant,
       narration: result.narration,
       toolEvents: result.toolEvents,
       status: result.projection.status,
@@ -170,9 +168,11 @@ async function captureForm(
 function renderTurnMarkdown(t: CapturedTurn): string {
   const variant = t.rollVariant && t.rollVariant !== "2d6" ? ` [${t.rollVariant}]` : "";
   const dice =
-    t.rollD2 === 0
-      ? `d=${t.rollD1}`
-      : `d1=${t.rollD1} d2=${t.rollD2}`;
+    t.rollBand === "none"
+      ? "none"
+      : t.rollD2 === 0
+        ? `d=${t.rollD1}`
+        : `d1=${t.rollD1} d2=${t.rollD2}`;
   const mod = t.rollMod === 0 ? "" : t.rollMod > 0 ? ` +${t.rollMod}` : ` ${t.rollMod}`;
   return `### Turn ${t.turn}
 
