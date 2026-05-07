@@ -96,4 +96,44 @@ describe("RemoteNarrator", () => {
     expect(toolNames).toContain("apply_damage");
     expect(toolNames).toContain("narrate_only");
   });
+
+  test("rejects empty prose so runTurn can use the fallback narrator", async () => {
+    const form = loadForm("lesser-slime");
+    const location = loadLocation("collapsed-tunnel");
+    const projection = initialProjection({
+      sessionId: "00000000-0000-0000-0000-000000000000",
+      form,
+      location,
+    });
+
+    const provider: AIProvider = {
+      providerName: "test",
+      async complete(): Promise<CompleteResponse> {
+        return {
+          text: "",
+          toolUses: [{ id: "t1", name: "pass_time", input: { ticks: 1 } }],
+          usage: {
+            inputTokens: 1,
+            outputTokens: 1,
+            cacheReadTokens: 0,
+            cacheCreateTokens: 0,
+          },
+          stopReason: "tool_calls",
+          rawModel: "test",
+        };
+      },
+    };
+
+    const narrator = new RemoteNarrator({ form, location, provider });
+    await expect(
+      narrator.narrate({
+        projection,
+        lastEvents: [],
+        playerInputSanitized: "barley malt, rye meal",
+        roll: { d1: 2, d2: 5, mod: 0, total: 7, band: "partial", seed: 1 },
+        intent: "wait",
+        relevantMemories: [],
+      }),
+    ).rejects.toThrow("remote narrator returned empty narration");
+  });
 });

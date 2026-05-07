@@ -364,7 +364,7 @@ const TOOL_DEFINITIONS: ProviderTool[] = [
   {
     name: "travel_to",
     description:
-      "Move the active session to a different city or town. Costs 3 turns of in-game time (server-enforced). Use only when the player explicitly says they're traveling (\"I head north toward Highfield\", \"I take the road to Saltgale\"). Provide a known location id from the atlas (caelum-by-the-wash, threadwarden, saltgale, highfield-ascending, the-coral-anchorage, the-long-indices, plus the small towns three-notches, coldspoon, mudmoth, tallowfen, cataract-mile, quietmile, furrowmouth, knots-landing, briny-bell, crab-by-crab). Cannot travel to the current location.",
+      'Move the active session to a different city or town. Costs 3 turns of in-game time (server-enforced). Use only when the player explicitly says they\'re traveling ("I head north toward Highfield", "I take the road to Saltgale"). Provide a known location id from the atlas (caelum-by-the-wash, threadwarden, saltgale, highfield-ascending, the-coral-anchorage, the-long-indices, plus the small towns three-notches, coldspoon, mudmoth, tallowfen, cataract-mile, quietmile, furrowmouth, knots-landing, briny-bell, crab-by-crab). Cannot travel to the current location.',
     input_schema: {
       type: "object",
       properties: {
@@ -630,6 +630,34 @@ export class RemoteNarrator implements Narrator {
     }
 
     const durationMs = Date.now() - t0;
+    const text = response.text.trim();
+    if (!text) {
+      const err = new Error("remote narrator returned empty narration");
+      log.warn("narrate.remote.empty_text", {
+        provider: this.provider.providerName,
+        model: this.model,
+        stopReason: response.stopReason,
+        toolUseCount: toolCalls.length,
+      });
+      if (this.db) {
+        await recordAiCall(this.db, {
+          sessionId: this.sessionId,
+          userId: this.userId,
+          presetId: this.presetId,
+          callType: "narrator",
+          model: this.model,
+          inputTokens: response.usage.inputTokens,
+          outputTokens: response.usage.outputTokens,
+          cacheReadTokens: response.usage.cacheReadTokens,
+          cacheCreateTokens: response.usage.cacheCreateTokens,
+          durationMs,
+          success: false,
+          errorMsg: err.message,
+        });
+      }
+      throw err;
+    }
+
     log.info("narrate.remote.complete", {
       provider: this.provider.providerName,
       model: this.model,
@@ -658,7 +686,7 @@ export class RemoteNarrator implements Narrator {
       });
     }
 
-    return { text: response.text, toolCalls };
+    return { text, toolCalls };
   }
 }
 
@@ -687,9 +715,7 @@ prior text: "${input.previousAttempt.text.slice(0, 200)}"
     : `form: ${input.projection.form.id}`;
 
   const variantLabel =
-    input.roll.variant && input.roll.variant !== "2d6"
-      ? ` variant=${input.roll.variant}`
-      : "";
+    input.roll.variant && input.roll.variant !== "2d6" ? ` variant=${input.roll.variant}` : "";
   return `${retryHint}<projection>
 turn: ${input.projection.turn}
 status: ${input.projection.status}
@@ -701,11 +727,7 @@ location: ${input.projection.location.id} / room=${input.projection.location.roo
 room_exits: ${exits}
 inventory: ${
     input.projection.inventory
-      .map((i) =>
-        i.customName
-          ? `${i.itemId}x${i.qty}[${i.customName}]`
-          : `${i.itemId}x${i.qty}`,
-      )
+      .map((i) => (i.customName ? `${i.itemId}x${i.qty}[${i.customName}]` : `${i.itemId}x${i.qty}`))
       .join(", ") || "(empty)"
   }
 npcs: ${
