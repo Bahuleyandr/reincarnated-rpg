@@ -34,7 +34,7 @@ export function Transcript({ entries, emptyHint }: TranscriptProps) {
   return (
     <div
       ref={ref}
-      className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-stone-200"
+      className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 text-stone-200"
       data-testid="transcript"
     >
       {entries.length === 0
