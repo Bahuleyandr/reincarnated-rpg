@@ -3,7 +3,9 @@
  *
  * Returns the user's active daily + weekly objective progress, with
  * the catalog metadata joined so the UI doesn't need a second
- * fetch. Anon callers get 401.
+ * fetch. Anon callers get an empty objective set; anonymous play is
+ * a normal v0.1 path, so this endpoint should not create noisy 401s
+ * in the browser console.
  */
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,22 +16,27 @@ import { periodKeyFor } from "@/lib/objectives/period";
 import { SESSION_COOKIE_NAME, verifyCookie } from "@/lib/session/cookie";
 
 export async function GET(req: NextRequest) {
+  const now = new Date();
+  const dailyPK = periodKeyFor("daily", now);
+  const weeklyPK = periodKeyFor("weekly", now);
+  const empty = {
+    daily: [],
+    weekly: [],
+    periodKeys: { daily: dailyPK, weekly: weeklyPK },
+  };
+
   const cookie = req.cookies.get(SESSION_COOKIE_NAME)?.value;
-  if (!cookie) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  if (!cookie) return NextResponse.json(empty);
   const verified = await verifyCookie(cookie);
   if (!verified?.userId) {
-    return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+    return NextResponse.json(empty);
   }
 
-  const now = new Date();
   const rows = await getActiveProgress(db, verified.userId, now);
   const byCatalogKey = new Map<string, (typeof rows)[number]>();
   for (const r of rows) {
     byCatalogKey.set(`${r.objectiveId}:${r.periodKey}`, r);
   }
-
-  const dailyPK = periodKeyFor("daily", now);
-  const weeklyPK = periodKeyFor("weekly", now);
 
   const projection = listObjectives().map((obj) => {
     const periodKey = obj.period === "weekly" ? weeklyPK : dailyPK;

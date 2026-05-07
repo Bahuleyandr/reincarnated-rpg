@@ -34,31 +34,38 @@ export function Transcript({ entries, emptyHint }: TranscriptProps) {
   return (
     <div
       ref={ref}
-      className="flex-1 overflow-y-auto px-4 py-4 space-y-4 text-stone-200"
+      className="flex-1 space-y-4 overflow-y-auto px-4 py-4 text-stone-200"
       data-testid="transcript"
     >
-      {entries.length === 0 ? (
-        emptyHint ?? (
-          <p className="text-stone-600 italic">awaiting first impression…</p>
-        )
-      ) : (
-        entries.map((e, i) => (
-          <div key={i} className="space-y-1">
-            {e.roll && <DiceRollDisplay roll={e.roll} />}
-            <div
-              className={
-                e.kind === "narration"
-                  ? "leading-7 text-stone-100"
-                  : e.kind === "input"
-                    ? "leading-7 text-stone-500 italic before:content-['>_']"
-                    : "leading-6 text-stone-600 italic text-xs"
-              }
-            >
-              {e.text}
+      {entries.length === 0
+        ? (emptyHint ?? <p className="text-stone-600 italic">awaiting first impression…</p>)
+        : entries.map((e, i) => (
+            <div key={i} className="space-y-1">
+              {e.roll && <DiceRollDisplay roll={e.roll} />}
+              <div
+                className={
+                  e.kind === "narration"
+                    ? "leading-7 text-stone-100"
+                    : e.kind === "input"
+                      ? "leading-7 text-stone-500 italic before:content-['>_']"
+                      : "text-xs leading-6 text-stone-600 italic"
+                }
+                aria-live={e.kind === "narration" && !e.text.trim() ? "polite" : undefined}
+              >
+                {e.kind === "narration" && !e.text.trim() ? (
+                  <span className="inline-flex items-center gap-2 text-xs text-stone-500 italic">
+                    <span
+                      className="h-1.5 w-1.5 animate-pulse rounded-full"
+                      style={{ background: "var(--form-accent)" }}
+                    />
+                    turn resolving...
+                  </span>
+                ) : (
+                  e.text
+                )}
+              </div>
             </div>
-          </div>
-        ))
-      )}
+          ))}
     </div>
   );
 }

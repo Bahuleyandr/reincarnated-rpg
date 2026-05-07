@@ -48,7 +48,11 @@ test("anon player begins, plays 3 turns via verb buttons", async ({ page }) => {
   await page.getByRole("button", { name: /say something else/i }).click();
   await page.getByTestId("input").fill("barley malt, rye meal");
   await page.getByRole("button", { name: "send" }).click();
-  await expect(page.getByText(/turn 1 ·/)).toBeVisible({ timeout: 30_000 });
+  // Local developer runs may use the configured remote narrator for
+  // this escape-hatch turn. MiniMax is non-streaming here and can take
+  // longer than the deterministic CI template narrator, especially
+  // when tone-safety retry fires.
+  await expect(page.getByText(/turn 1 ·/)).toBeVisible({ timeout: 75_000 });
   await expect(page.getByTestId("preset-verb").first()).toBeEnabled({
     timeout: 30_000,
   });
