@@ -21,7 +21,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { getProvider } from "../ai/factory";
-import type { AIProvider, ProviderTool } from "../ai/provider";
+import type { AIProvider, CompleteResponse, ProviderTool, ProviderUsage } from "../ai/provider";
 import type {
   FormTemplate,
   LocationTemplate,
@@ -629,14 +629,39 @@ export class RemoteNarrator implements Narrator {
       toolCalls.push({ name: "narrate_only" });
     }
 
-    const durationMs = Date.now() - t0;
-    const text = response.text.trim();
+    let durationMs = Date.now() - t0;
+    let usage = response.usage;
+    let text = response.text.trim();
+    let repairedEmptyText = false;
+    let repairStopReason: string | undefined;
+    let repairError: string | undefined;
+    if (!text) {
+      try {
+        const repair = await this.repairEmptyNarration({
+          input,
+          userMessage,
+          toolCalls,
+          stopReason: response.stopReason,
+        });
+        durationMs = Date.now() - t0;
+        usage = mergeUsage(usage, repair.usage);
+        text = repair.text.trim();
+        repairedEmptyText = !!text;
+        repairStopReason = repair.stopReason;
+      } catch (err) {
+        durationMs = Date.now() - t0;
+        repairError = err instanceof Error ? err.message : String(err);
+      }
+    }
+
     if (!text) {
       const err = new Error("remote narrator returned empty narration");
       log.warn("narrate.remote.empty_text", {
         provider: this.provider.providerName,
         model: this.model,
         stopReason: response.stopReason,
+        repairStopReason,
+        repairError,
         toolUseCount: toolCalls.length,
       });
       if (this.db) {
@@ -646,10 +671,10 @@ export class RemoteNarrator implements Narrator {
           presetId: this.presetId,
           callType: "narrator",
           model: this.model,
-          inputTokens: response.usage.inputTokens,
-          outputTokens: response.usage.outputTokens,
-          cacheReadTokens: response.usage.cacheReadTokens,
-          cacheCreateTokens: response.usage.cacheCreateTokens,
+          inputTokens: usage.inputTokens,
+          outputTokens: usage.outputTokens,
+          cacheReadTokens: usage.cacheReadTokens,
+          cacheCreateTokens: usage.cacheCreateTokens,
           durationMs,
           success: false,
           errorMsg: err.message,
@@ -658,16 +683,28 @@ export class RemoteNarrator implements Narrator {
       throw err;
     }
 
+    if (repairedEmptyText) {
+      log.warn("narrate.remote.repaired_empty_text", {
+        provider: this.provider.providerName,
+        model: this.model,
+        stopReason: response.stopReason,
+        repairStopReason,
+        toolUseCount: toolCalls.length,
+        durationMs,
+      });
+    }
+
     log.info("narrate.remote.complete", {
       provider: this.provider.providerName,
       model: this.model,
       streaming: !!onText,
       durationMs,
-      cacheRead: response.usage.cacheReadTokens,
-      cacheCreate: response.usage.cacheCreateTokens,
-      input: response.usage.inputTokens,
-      output: response.usage.outputTokens,
+      cacheRead: usage.cacheReadTokens,
+      cacheCreate: usage.cacheCreateTokens,
+      input: usage.inputTokens,
+      output: usage.outputTokens,
       stopReason: response.stopReason,
+      ...(repairStopReason ? { repairStopReason } : {}),
       toolUseCount: toolCalls.length,
     });
 
@@ -678,16 +715,64 @@ export class RemoteNarrator implements Narrator {
         presetId: this.presetId,
         callType: "narrator",
         model: this.model,
-        inputTokens: response.usage.inputTokens,
-        outputTokens: response.usage.outputTokens,
-        cacheReadTokens: response.usage.cacheReadTokens,
-        cacheCreateTokens: response.usage.cacheCreateTokens,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        cacheReadTokens: usage.cacheReadTokens,
+        cacheCreateTokens: usage.cacheCreateTokens,
         durationMs,
       });
     }
 
     return { text, toolCalls };
   }
+
+  private async repairEmptyNarration(args: {
+    input: NarrateInput;
+    userMessage: string;
+    toolCalls: ToolCall[];
+    stopReason: string;
+  }): Promise<CompleteResponse> {
+    const repairPrompt = `${args.userMessage}
+
+<empty_narration_repair>
+The previous model response stopped with "${args.stopReason}" and selected these backend tool calls, but returned no visible narration:
+${formatToolCallsForRepair(args.toolCalls)}
+
+Write the missing player-facing narration now.
+Rules:
+- Return prose only; do not request tools in this repair.
+- Do not change, add, or contradict the listed backend tool calls.
+- Ground the prose in the player input, current room, form, and resolved outcome.
+- Keep it concise: 2 to 5 sentences unless the player action clearly needs more.
+</empty_narration_repair>`;
+
+    return this.provider.complete({
+      model: this.model,
+      maxTokens: 512,
+      system: [
+        ...this.buildSystem(args.input.projection.reincarnatedAs),
+        {
+          type: "text",
+          text: "EMPTY-NARRATION REPAIR MODE: output only visible narration text. No tool calls are available in this repair pass; the backend will apply the already-selected tool calls from the previous pass.",
+        },
+      ],
+      messages: [{ role: "user" as const, content: repairPrompt }],
+    });
+  }
+}
+
+function mergeUsage(a: ProviderUsage, b: ProviderUsage): ProviderUsage {
+  return {
+    inputTokens: a.inputTokens + b.inputTokens,
+    outputTokens: a.outputTokens + b.outputTokens,
+    cacheReadTokens: a.cacheReadTokens + b.cacheReadTokens,
+    cacheCreateTokens: a.cacheCreateTokens + b.cacheCreateTokens,
+  };
+}
+
+function formatToolCallsForRepair(toolCalls: ToolCall[]): string {
+  if (toolCalls.length === 0) return "- narrate_only";
+  return toolCalls.map((tc) => `- ${JSON.stringify(tc).slice(0, 500)}`).join("\n");
 }
 
 function buildUserMessage(input: NarrateInput, location: LocationTemplate): string {
