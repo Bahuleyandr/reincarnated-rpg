@@ -82,4 +82,39 @@ test("anon player begins, plays 3 turns via verb buttons", async ({ page }) => {
       timeout: 30_000,
     });
   }
+
+  await page.getByRole("button", { name: /say something else/i }).click();
+  await expect(page.getByTestId("input")).toBeVisible();
+  await page.getByTestId("input").fill("the input should stay pinned");
+
+  const layout = await page.evaluate(() => {
+    const box = (selector: string) => {
+      const el = document.querySelector(selector);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { top: r.top, bottom: r.bottom, height: r.height };
+    };
+    const transcript = document.querySelector('[data-testid="transcript"]');
+    return {
+      viewportHeight: window.innerHeight,
+      documentScrollHeight: document.documentElement.scrollHeight,
+      documentClientHeight: document.documentElement.clientHeight,
+      input: box('[data-testid="input"]'),
+      composer: box('[data-testid="turn-composer"]'),
+      transcript:
+        transcript instanceof HTMLElement
+          ? {
+              clientHeight: transcript.clientHeight,
+              scrollHeight: transcript.scrollHeight,
+            }
+          : null,
+    };
+  });
+
+  expect(layout.input).not.toBeNull();
+  expect(layout.composer).not.toBeNull();
+  expect(layout.transcript).not.toBeNull();
+  expect(layout.input!.bottom).toBeLessThanOrEqual(layout.viewportHeight);
+  expect(layout.composer!.bottom).toBeLessThanOrEqual(layout.viewportHeight);
+  expect(layout.documentScrollHeight).toBe(layout.documentClientHeight);
 });

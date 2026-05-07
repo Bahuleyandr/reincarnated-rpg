@@ -439,11 +439,11 @@ export default function Play() {
       // CSS attribute selector in globals.css so the goal ribbon,
       // meta-arc strip, and dice display can read --form-accent.
       data-form={projection?.form.id ?? null}
-      className="grid min-h-dvh grid-rows-[1fr] bg-stone-950 font-mono text-stone-200 md:grid-cols-[260px_1fr_260px]"
+      className="grid min-h-dvh bg-stone-950 font-mono text-stone-200 md:h-dvh md:grid-cols-[260px_minmax(0,1fr)_260px] md:overflow-hidden"
     >
       <InstructionManual />
       <aside
-        className="order-2 flex min-w-0 flex-col overflow-y-auto border-r border-stone-800 md:order-1"
+        className="order-2 flex min-w-0 flex-col overflow-y-auto border-r border-stone-800 md:order-1 md:h-dvh"
         data-testid="left-sidebar"
       >
         <EnergyBar />
@@ -492,7 +492,10 @@ export default function Play() {
         )}
       </aside>
 
-      <section className="order-1 flex min-h-screen min-w-0 flex-col md:order-2 md:min-h-0">
+      <section
+        className="order-1 flex h-dvh min-h-0 min-w-0 flex-col overflow-hidden md:order-2"
+        data-testid="play-column"
+      >
         {projection && (
           <div className="flex flex-wrap items-center gap-3 border-b border-stone-800 bg-stone-900/60 px-4 py-2 text-[11px] text-stone-400 md:hidden">
             <span className="flex items-center gap-1.5" style={{ color: "var(--form-accent)" }}>
@@ -659,11 +662,10 @@ export default function Play() {
             )
           }
         />
-        <div className="space-y-2 px-4 py-1">
+        <div className="shrink-0 space-y-2 px-4 py-1">
           <WhereAmI />
           <InRunCompanions />
         </div>
-        {error && <p className="px-4 py-1 text-xs text-red-400">{error}</p>}
         {ended ? (
           <Recap
             projection={projection!}
@@ -673,7 +675,12 @@ export default function Play() {
             campaignId={campaignId}
           />
         ) : (
-          <>
+          <div
+            className="shrink-0 border-t border-stone-800 bg-stone-950/95 shadow-[0_-18px_36px_rgba(0,0,0,0.45)] backdrop-blur"
+            data-testid="turn-composer"
+            style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          >
+            {error && <p className="px-4 py-2 text-xs text-red-400">{error}</p>}
             {projection && <StateDiffToast diff={stateDiff} resetKey={projection.upToSeq} />}
             {isTutorial && projection && (
               <TutorialHint
@@ -715,11 +722,11 @@ export default function Play() {
                 draft={tutorialDraft}
               />
             )}
-          </>
+          </div>
         )}
       </section>
 
-      <aside className="order-3 flex min-w-0 flex-col overflow-y-auto border-l border-stone-800 bg-stone-900/40 md:order-3">
+      <aside className="order-3 flex min-w-0 flex-col overflow-y-auto border-l border-stone-800 bg-stone-900/40 md:order-3 md:h-dvh">
         <QuestLog projection={projection} />
         {projection && (
           <LocationNotes
