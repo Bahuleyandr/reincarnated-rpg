@@ -58,9 +58,11 @@ export function VerbSuggestions({
   // The three preset buttons. Hidden when free-text is open so
   // the player isn't choosing between two surfaces at once.
   return (
-    <div className="space-y-2 border-t border-stone-800 px-4 py-3">
+    <div className="space-y-2 border-t border-stone-800 px-4 py-3" aria-busy={disabled}>
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[10px] tracking-widest text-stone-600 uppercase">choices</div>
+        <div className="text-[10px] tracking-widest text-stone-600 uppercase">
+          {disabled ? "turn resolving..." : "choices"}
+        </div>
         <ManualHelpButton topicId="actions" compact />
       </div>
       {!freeTextOpen && suggestions.length > 0 && (
@@ -79,7 +81,7 @@ export function VerbSuggestions({
         <button
           type="button"
           onClick={onOpenFreeText}
-          className="w-full text-left text-[10px] text-stone-500 underline underline-offset-2 hover:text-stone-300"
+          className="w-full text-left text-[10px] text-stone-500 underline underline-offset-2 hover:text-stone-300 disabled:cursor-not-allowed disabled:text-stone-700"
           disabled={disabled}
         >
           ← back to preset choices
@@ -88,7 +90,7 @@ export function VerbSuggestions({
         <button
           type="button"
           onClick={onOpenFreeText}
-          className="min-h-[44px] w-full rounded border border-dashed border-stone-700 px-3 py-3 text-left text-[11px] text-stone-500 transition-colors hover:border-stone-500 hover:text-stone-300 sm:min-h-0 sm:py-2"
+          className="min-h-[44px] w-full rounded border border-dashed border-stone-700 px-3 py-3 text-left text-[11px] text-stone-500 transition-colors hover:border-stone-500 hover:text-stone-300 disabled:cursor-not-allowed disabled:border-stone-800 disabled:text-stone-700 disabled:hover:border-stone-800 disabled:hover:text-stone-700 sm:min-h-0 sm:py-2"
           disabled={disabled}
           aria-label="open the free-text input to say something else"
         >
@@ -140,12 +142,20 @@ function PresetButton({
             {branches ? "↳" : "▸"}
           </span>
         )}
-        <span className={`text-xs ${hover && !disabled ? "text-stone-100" : "text-stone-200"}`}>
+        <span
+          className={`text-xs ${
+            disabled ? "text-stone-600" : hover ? "text-stone-100" : "text-stone-200"
+          }`}
+        >
           {suggestion.label}
         </span>
       </div>
       {suggestion.description && (
-        <p className="text-[10px] leading-4 text-stone-500 italic">{suggestion.description}</p>
+        <p
+          className={`text-[10px] leading-4 italic ${disabled ? "text-stone-700" : "text-stone-500"}`}
+        >
+          {suggestion.description}
+        </p>
       )}
     </button>
   );

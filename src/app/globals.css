@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0c0a09;
+  --foreground: #e7e5e4;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -12,14 +13,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--background);
 }
 
 body {
+  min-height: 100dvh;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
@@ -65,51 +64,51 @@ body {
  * thing. Hex values from tailwindcss/colors.
  */
 :root {
-  --form-accent: #fcd34d;          /* amber-300 */
-  --form-accent-soft: #f59e0b99;   /* amber-500 / 60% */
-  --form-accent-bg: #45130933;     /* amber-950 / 20% */
+  --form-accent: #fcd34d; /* amber-300 */
+  --form-accent-soft: #f59e0b99; /* amber-500 / 60% */
+  --form-accent-bg: #45130933; /* amber-950 / 20% */
   --form-accent-border: #b4530999; /* amber-700 / 60% */
 }
 
 [data-form="lesser-slime"] {
-  --form-accent: #6ee7b7;          /* emerald-300 */
-  --form-accent-soft: #10b98199;   /* emerald-500 / 60% */
-  --form-accent-bg: #022c2240;     /* emerald-950 / 25% */
+  --form-accent: #6ee7b7; /* emerald-300 */
+  --form-accent-soft: #10b98199; /* emerald-500 / 60% */
+  --form-accent-bg: #022c2240; /* emerald-950 / 25% */
   --form-accent-border: #04785799; /* emerald-700 / 60% */
 }
 
 [data-form="dungeon-core"] {
-  --form-accent: #7dd3fc;          /* sky-300 */
-  --form-accent-soft: #0ea5e999;   /* sky-500 / 60% */
-  --form-accent-bg: #0c2c4f40;     /* sky-950 / 25% */
+  --form-accent: #7dd3fc; /* sky-300 */
+  --form-accent-soft: #0ea5e999; /* sky-500 / 60% */
+  --form-accent-bg: #0c2c4f40; /* sky-950 / 25% */
   --form-accent-border: #0369a199; /* sky-700 / 60% */
 }
 
 [data-form="cursed-book"] {
-  --form-accent: #c4b5fd;          /* violet-300 */
-  --form-accent-soft: #8b5cf699;   /* violet-500 / 60% */
-  --form-accent-bg: #2e1065c0;     /* violet-950 / 25% */
+  --form-accent: #c4b5fd; /* violet-300 */
+  --form-accent-soft: #8b5cf699; /* violet-500 / 60% */
+  --form-accent-bg: #2e1065c0; /* violet-950 / 25% */
   --form-accent-border: #6d28d999; /* violet-700 / 60% */
 }
 
 [data-form="dragon-egg"] {
-  --form-accent: #fdba74;          /* orange-300 */
-  --form-accent-soft: #f9731699;   /* orange-500 / 60% */
-  --form-accent-bg: #431407c0;     /* orange-950 / 25% */
+  --form-accent: #fdba74; /* orange-300 */
+  --form-accent-soft: #f9731699; /* orange-500 / 60% */
+  --form-accent-bg: #431407c0; /* orange-950 / 25% */
   --form-accent-border: #c2410c99; /* orange-700 / 60% */
 }
 
 [data-form="forsaken-revenant"] {
-  --form-accent: #d6d3d1;          /* stone-300 */
-  --form-accent-soft: #78716c99;   /* stone-500 / 60% */
-  --form-accent-bg: #0c0a0940;     /* stone-950 / 25% */
+  --form-accent: #d6d3d1; /* stone-300 */
+  --form-accent-soft: #78716c99; /* stone-500 / 60% */
+  --form-accent-bg: #0c0a0940; /* stone-950 / 25% */
   --form-accent-border: #57534e99; /* stone-600 / 60% */
 }
 
 [data-form="the-still-one"] {
-  --form-accent: #a5b4fc;          /* indigo-300 */
-  --form-accent-soft: #6366f199;   /* indigo-500 / 60% */
-  --form-accent-bg: #1e1b4b40;     /* indigo-950 / 25% */
+  --form-accent: #a5b4fc; /* indigo-300 */
+  --form-accent-soft: #6366f199; /* indigo-500 / 60% */
+  --form-accent-bg: #1e1b4b40; /* indigo-950 / 25% */
   --form-accent-border: #4338ca99; /* indigo-700 / 60% */
 }
 
@@ -117,33 +116,39 @@ body {
 [data-form="cantor-of-the-long-song"],
 [data-form="chorister-ascendant"],
 [data-form="garden-keeper-of-the-spire"] {
-  --form-accent: #67e8f9;          /* cyan-300 */
-  --form-accent-soft: #06b6d499;   /* cyan-500 / 60% */
-  --form-accent-bg: #083344c0;     /* cyan-950 / 25% */
+  --form-accent: #67e8f9; /* cyan-300 */
+  --form-accent-soft: #06b6d499; /* cyan-500 / 60% */
+  --form-accent-bg: #083344c0; /* cyan-950 / 25% */
   --form-accent-border: #0e749099; /* cyan-700 / 60% */
 }
 
 [data-form="furnace-warden"],
 [data-form="iron-hand-ascended"],
 [data-form="rust-hand-ascendant"] {
-  --form-accent: #fda4af;          /* rose-300 */
-  --form-accent-soft: #f43f5e99;   /* rose-500 / 60% */
-  --form-accent-bg: #4c0519c0;     /* rose-950 / 25% */
+  --form-accent: #fda4af; /* rose-300 */
+  --form-accent-soft: #f43f5e99; /* rose-500 / 60% */
+  --form-accent-bg: #4c0519c0; /* rose-950 / 25% */
   --form-accent-border: #be123c99; /* rose-700 / 60% */
 }
 
 [data-form="deep-mark"] {
-  --form-accent: #5eead4;          /* teal-300 */
-  --form-accent-soft: #14b8a699;   /* teal-500 / 60% */
-  --form-accent-bg: #042f2ec0;     /* teal-950 / 25% */
+  --form-accent: #5eead4; /* teal-300 */
+  --form-accent-soft: #14b8a699; /* teal-500 / 60% */
+  --form-accent-bg: #042f2ec0; /* teal-950 / 25% */
   --form-accent-border: #0f766e99; /* teal-700 / 60% */
 }
 
 /* Goal-ribbon completion celebrates with a brief glow pulse. */
 @keyframes goal-pulse {
-  0%   { box-shadow: 0 0 0 0 var(--form-accent-soft, rgba(245, 158, 11, .5)); }
-  60%  { box-shadow: 0 0 0 12px transparent; }
-  100% { box-shadow: 0 0 0 0 transparent; }
+  0% {
+    box-shadow: 0 0 0 0 var(--form-accent-soft, rgba(245, 158, 11, 0.5));
+  }
+  60% {
+    box-shadow: 0 0 0 12px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
 }
 
 .animate-goal-pulse {
@@ -175,16 +180,8 @@ body {
    * (top-left + bottom-right) at very low alpha (~14%). The base
    * stone-950 fill stays underneath via the page's bg color. */
   background-image:
-    radial-gradient(
-      ellipse at top left,
-      var(--form-accent-bg, transparent) 0%,
-      transparent 55%
-    ),
-    radial-gradient(
-      ellipse at bottom right,
-      var(--form-accent-bg, transparent) 0%,
-      transparent 55%
-    );
+    radial-gradient(ellipse at top left, var(--form-accent-bg, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, var(--form-accent-bg, transparent) 0%, transparent 55%);
   background-attachment: fixed;
   background-repeat: no-repeat;
 }

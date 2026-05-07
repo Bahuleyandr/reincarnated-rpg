@@ -439,11 +439,11 @@ export default function Play() {
       // CSS attribute selector in globals.css so the goal ribbon,
       // meta-arc strip, and dice display can read --form-accent.
       data-form={projection?.form.id ?? null}
-      className="grid min-h-screen grid-rows-[1fr] bg-stone-950 font-mono text-stone-200 md:min-h-0 md:grid-cols-[260px_1fr_260px]"
+      className="grid min-h-dvh grid-rows-[1fr] bg-stone-950 font-mono text-stone-200 md:grid-cols-[260px_1fr_260px]"
     >
       <InstructionManual />
       <aside
-        className="order-2 flex flex-col overflow-y-auto border-r border-stone-800 md:order-1"
+        className="order-2 flex min-w-0 flex-col overflow-y-auto border-r border-stone-800 md:order-1"
         data-testid="left-sidebar"
       >
         <EnergyBar />
@@ -492,7 +492,7 @@ export default function Play() {
         )}
       </aside>
 
-      <section className="order-1 flex min-h-screen flex-col md:order-2 md:min-h-0">
+      <section className="order-1 flex min-h-screen min-w-0 flex-col md:order-2 md:min-h-0">
         {projection && (
           <div className="flex flex-wrap items-center gap-3 border-b border-stone-800 bg-stone-900/60 px-4 py-2 text-[11px] text-stone-400 md:hidden">
             <span className="flex items-center gap-1.5" style={{ color: "var(--form-accent)" }}>
@@ -719,7 +719,7 @@ export default function Play() {
         )}
       </section>
 
-      <aside className="order-3 flex flex-col overflow-y-auto border-l border-stone-800 bg-stone-900/40 md:order-3">
+      <aside className="order-3 flex min-w-0 flex-col overflow-y-auto border-l border-stone-800 bg-stone-900/40 md:order-3">
         <QuestLog projection={projection} />
         {projection && (
           <LocationNotes
