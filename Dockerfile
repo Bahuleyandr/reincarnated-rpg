@@ -6,6 +6,7 @@
 #          public/ + content/ since the app reads JSON from disk at runtime).
 
 ARG NODE_VERSION=22.22.2
+ARG GIT_COMMIT_SHA=unknown
 
 FROM node:${NODE_VERSION}-slim AS deps
 WORKDIR /app
@@ -18,13 +19,24 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # next.config.ts has serverExternalPackages — voyageai + Anthropic SDK
 # stay external rather than bundled into the standalone server.
+ARG GIT_COMMIT_SHA=unknown
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV GIT_COMMIT_SHA=$GIT_COMMIT_SHA
+# Next collects route metadata during `next build`, which evaluates
+# server modules that validate env. These are build-only placeholders;
+# the runtime container gets real values from k8s secrets.
+ENV DATABASE_URL=postgres://reincarnated:reincarnated@127.0.0.1:5432/reincarnated
+ENV SESSION_SECRET=build-time-placeholder-session-secret
+ENV AI_PROVIDER=openai-compatible
+ENV NARRATOR=template
 RUN npx next build --turbopack=false 2>/dev/null || npm run build
 
 FROM node:${NODE_VERSION}-slim AS runner
 WORKDIR /app
+ARG GIT_COMMIT_SHA=unknown
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV GIT_COMMIT_SHA=$GIT_COMMIT_SHA
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
