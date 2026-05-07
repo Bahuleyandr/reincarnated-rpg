@@ -6,6 +6,7 @@
  */
 import type { FormTemplate, LocationTemplate, Narrator } from "../game/types";
 
+import { RemoteNarrator } from "./remote";
 import { TemplateNarrator } from "./template";
 
 export type NarratorMode = "template" | "remote";
@@ -62,10 +63,6 @@ export function makeNarrator(args: {
 }): Narrator {
   const mode = args.mode ?? getNarratorMode();
   if (mode === "remote") {
-    // Lazy require so the Anthropic SDK is only loaded when we need it
-    // (keeps cold-start fast on the template path).
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { RemoteNarrator } = require("./remote") as typeof import("./remote");
     return new RemoteNarrator({
       form: args.form,
       location: args.location,
