@@ -11,9 +11,9 @@
  *          "narratorFallback":bool?,"narratorFallbackReason":string?}
  *   data: {"type":"error","error":"..."}     // turn failed; closes stream
  *
- * Falls back to the non-streaming path internally if the resolved
- * provider doesn't implement completeStream — the client still gets
- * a `text` event at the end with the whole text + a `done` event.
+ * Falls back to the non-streaming path internally when the resolved
+ * provider is known to be safer without token streaming. The client
+ * still gets the full narration on the final `done` event.
  *
  * The UI can detect this endpoint via feature query / capability ping;
  * /api/turn remains as the non-stream fallback.
@@ -24,7 +24,8 @@ import { getProviderForUser } from "@/lib/ai/factory";
 import { db } from "@/lib/db/client";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
 import { loadBeatPack, loadForm, loadLocation } from "@/lib/game/content";
-import { runTurn } from "@/lib/game/turn";
+import { loadProjection } from "@/lib/game/projection";
+import { runTurn, type RunTurnArgs } from "@/lib/game/turn";
 import { refundEnergy, trySpend } from "@/lib/energy/state";
 import { acquireTurnLock, releaseTurnLock } from "@/lib/game/turn-lock";
 import { getCurrentArc, phaseForProgress } from "@/lib/meta/long-wyrm";
@@ -39,6 +40,22 @@ export const runtime = "nodejs";
 
 function sseLine(payload: unknown): string {
   return `data: ${JSON.stringify(payload)}\n\n`;
+}
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+function errorStack(err: unknown): string | undefined {
+  return err instanceof Error ? err.stack : undefined;
+}
+
+function publicTurnError(err: unknown): string {
+  const msg = errorMessage(err);
+  if (/constructor|is not a function|cannot read|undefined|null|internal/i.test(msg)) {
+    return "the narrator stumbled before the turn could finish. please try again.";
+  }
+  return msg.slice(0, 160);
 }
 
 export async function POST(req: NextRequest) {
@@ -221,9 +238,7 @@ export async function POST(req: NextRequest) {
       let resolvedMood = "standard";
       try {
         const { resolveMood } = await import("@/lib/narrator/moods");
-        const { sessions: sessionsTbl, users: usersTbl } = await import(
-          "@/lib/db/schema"
-        );
+        const { sessions: sessionsTbl, users: usersTbl } = await import("@/lib/db/schema");
         const { eq: eqOp } = await import("drizzle-orm");
         const sessionRow = (
           await db
@@ -275,15 +290,13 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      let regionFlavor:
-        | {
-            locationId: string;
-            raceId: string | null;
-            raceVoice: string | null;
-            subPopulations: string[];
-            signatureResources: string[];
-          }
-        | null = null;
+      let regionFlavor: {
+        locationId: string;
+        raceId: string | null;
+        raceVoice: string | null;
+        subPopulations: string[];
+        signatureResources: string[];
+      } | null = null;
       try {
         const { regionFlavorFor } = await import("@/lib/world/regions");
         regionFlavor = regionFlavorFor(location.id);
@@ -312,9 +325,7 @@ export async function POST(req: NextRequest) {
           });
       const fallbackNarrator = new TemplateNarrator({ form, location });
 
-      const { composeStarterFormState } = await import(
-        "@/lib/legacy/compose-starter"
-      );
+      const { composeStarterFormState } = await import("@/lib/legacy/compose-starter");
       const starterFormState = await composeStarterFormState(db, {
         starterBonus: ctx.starterBonus,
         userId: verified.userId ?? null,
@@ -322,18 +333,10 @@ export async function POST(req: NextRequest) {
 
       // Phase 9 T3.2 follow-up: pre-fetch race for the per-turn
       // race-mod hook. Anon sessions get null.
-      let raceId:
-        | "human"
-        | "elven"
-        | "dwarven"
-        | "halfling"
-        | "orcish"
-        | null = null;
+      let raceId: "human" | "elven" | "dwarven" | "halfling" | "orcish" | null = null;
       if (verified.userId) {
         try {
-          const { users: usersForRace } = await import(
-            "@/lib/db/schema"
-          );
+          const { users: usersForRace } = await import("@/lib/db/schema");
           const { eq: eqForRace } = await import("drizzle-orm");
           const r = await db
             .select({ race: usersForRace.race })
@@ -355,14 +358,12 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      const result = await runTurn({
+      const runArgs = {
         db,
         sessionId,
         input,
         form,
         location,
-        narrator,
-        fallbackNarrator,
         beatPack,
         turnCap: turnCapOverride,
         starterFormState,
@@ -390,10 +391,57 @@ export async function POST(req: NextRequest) {
                 presetId: presetForTelemetry,
               }
             : undefined,
-        onNarrationStreamDelta: (delta) => {
-          send({ type: "text", delta });
-        },
-      });
+      } satisfies Omit<RunTurnArgs, "narrator" | "fallbackNarrator" | "onNarrationStreamDelta">;
+
+      const beforeTurn = (
+        await loadProjection(db, sessionId, form, location, {
+          reincarnatedAs: ctx.reincarnatedAs,
+          starterFormState,
+        })
+      ).turn;
+      const shouldStreamNarration = !presetVerb && resolved.provider.providerName === "anthropic";
+
+      let result: Awaited<ReturnType<typeof runTurn>>;
+      try {
+        result = await runTurn({
+          ...runArgs,
+          narrator,
+          fallbackNarrator,
+          onNarrationStreamDelta: shouldStreamNarration
+            ? (delta) => {
+                send({ type: "text", delta });
+              }
+            : undefined,
+        });
+      } catch (primaryErr) {
+        const primaryReason = errorMessage(primaryErr).slice(0, 200);
+        log.warn("turn.stream.primary_failed", {
+          sessionId,
+          provider: resolved.provider.providerName,
+          err: primaryReason,
+          stack: errorStack(primaryErr),
+        });
+
+        const afterPrimary = await loadProjection(db, sessionId, form, location, {
+          reincarnatedAs: ctx.reincarnatedAs,
+          starterFormState,
+        });
+        if (afterPrimary.turn > beforeTurn) {
+          throw primaryErr;
+        }
+
+        result = await runTurn({
+          ...runArgs,
+          narrator: fallbackNarrator,
+        });
+        if (result.ok) {
+          result = {
+            ...result,
+            narratorFallback: true,
+            narratorFallbackReason: primaryReason,
+          };
+        }
+      }
 
       if (!result.ok) {
         await refundEnergy(db, {
@@ -426,11 +474,7 @@ export async function POST(req: NextRequest) {
       const firedBeatIds = new Set<string>(
         events
           .filter((e) => e.kind === "quest.objectiveUpdated")
-          .map(
-            (e) =>
-              (e as { kind: "quest.objectiveUpdated"; objective: string })
-                .objective,
-          ),
+          .map((e) => (e as { kind: "quest.objectiveUpdated"; objective: string }).objective),
       );
       const verbSuggestions = suggestVerbs({
         form,
@@ -472,11 +516,12 @@ export async function POST(req: NextRequest) {
       }
       log.error("turn.stream.failed", {
         sessionId,
-        err: err instanceof Error ? err.message : String(err),
+        err: errorMessage(err),
+        stack: errorStack(err),
       });
       send({
         type: "error",
-        error: err instanceof Error ? err.message : "internal",
+        error: publicTurnError(err),
       });
       close();
     } finally {

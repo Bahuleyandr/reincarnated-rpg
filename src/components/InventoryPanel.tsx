@@ -3,6 +3,8 @@
 import { inventoryCapacity, inventoryUsed, SAFETY_CAPS } from "@/lib/game/safety";
 import type { Projection } from "@/lib/game/types";
 
+import { ManualHelpButton } from "./InstructionManual";
+
 interface Props {
   projection: Projection | null;
 }
@@ -21,7 +23,10 @@ export function InventoryPanel({ projection }: Props) {
     <section className="space-y-3 px-4 py-3 text-xs" data-testid="inventory-panel">
       <div className="space-y-1">
         <div className="flex items-baseline justify-between">
-          <h4 className="text-[10px] tracking-wider text-stone-400 uppercase">inventory</h4>
+          <div className="flex items-center gap-1.5">
+            <h4 className="text-[10px] tracking-wider text-stone-400 uppercase">inventory</h4>
+            <ManualHelpButton topicId="inventory" compact />
+          </div>
           <span
             className={`text-[10px] ${isFull ? "text-red-400" : "text-stone-500"}`}
             title={
@@ -49,16 +54,14 @@ export function InventoryPanel({ projection }: Props) {
             {items.map((i) => (
               <li
                 key={i.itemId}
-                className="flex justify-between items-baseline gap-2"
+                className="flex items-baseline justify-between gap-2"
                 data-testid={`item-${i.itemId}`}
               >
-                <span className="text-stone-300 truncate" title={i.itemId}>
+                <span className="truncate text-stone-300" title={i.itemId}>
                   {i.customName ? (
                     <>
                       <span className="text-amber-300">{i.customName}</span>
-                      <span className="text-stone-700 text-[10px] ml-1">
-                        ({i.itemId})
-                      </span>
+                      <span className="ml-1 text-[10px] text-stone-700">({i.itemId})</span>
                     </>
                   ) : (
                     i.itemId
@@ -72,9 +75,12 @@ export function InventoryPanel({ projection }: Props) {
       </div>
 
       <div className="space-y-1">
-        <h4 className="text-[10px] tracking-wider text-stone-400 uppercase">
-          known ({npcs.length})
-        </h4>
+        <div className="flex items-center gap-1.5">
+          <h4 className="text-[10px] tracking-wider text-stone-400 uppercase">
+            known ({npcs.length})
+          </h4>
+          <ManualHelpButton topicId="npcs" compact />
+        </div>
         {npcs.length === 0 ? (
           <p className="text-stone-600 italic">no one yet</p>
         ) : (
