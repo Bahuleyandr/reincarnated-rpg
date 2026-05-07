@@ -97,7 +97,72 @@ describe("RemoteNarrator", () => {
     expect(toolNames).toContain("narrate_only");
   });
 
-  test("rejects empty prose so runTurn can use the fallback narrator", async () => {
+  test("repairs tool-only responses instead of falling back immediately", async () => {
+    const form = loadForm("lesser-slime");
+    const location = loadLocation("collapsed-tunnel");
+    const projection = initialProjection({
+      sessionId: "00000000-0000-0000-0000-000000000000",
+      form,
+      location,
+    });
+
+    let calls = 0;
+    let repairPrompt = "";
+    let repairTools: CompleteArgs["tools"];
+    const provider: AIProvider = {
+      providerName: "test",
+      async complete(args: CompleteArgs): Promise<CompleteResponse> {
+        calls += 1;
+        if (calls === 2) {
+          repairPrompt = args.messages[0]?.content ?? "";
+          repairTools = args.tools;
+          return {
+            text: "You settle low against the stone and learn the room by pressure.",
+            toolUses: [],
+            usage: {
+              inputTokens: 10,
+              outputTokens: 8,
+              cacheReadTokens: 0,
+              cacheCreateTokens: 0,
+            },
+            stopReason: "stop",
+            rawModel: "test",
+          };
+        }
+        return {
+          text: "",
+          toolUses: [{ id: "t1", name: "pass_time", input: { ticks: 1 } }],
+          usage: {
+            inputTokens: 1,
+            outputTokens: 1,
+            cacheReadTokens: 0,
+            cacheCreateTokens: 0,
+          },
+          stopReason: "tool_calls",
+          rawModel: "test",
+        };
+      },
+    };
+
+    const narrator = new RemoteNarrator({ form, location, provider });
+    const out = await narrator.narrate({
+      projection,
+      lastEvents: [],
+      playerInputSanitized: "barley malt, rye meal",
+      roll: { d1: 2, d2: 5, mod: 0, total: 7, band: "partial", seed: 1 },
+      intent: "wait",
+      relevantMemories: [],
+    });
+
+    expect(calls).toBe(2);
+    expect(out.text).toContain("pressure");
+    expect(out.toolCalls).toEqual([{ name: "pass_time", ticks: 1 }]);
+    expect(repairPrompt).toContain("<empty_narration_repair>");
+    expect(repairPrompt).toContain('"name":"pass_time"');
+    expect(repairTools).toBeUndefined();
+  });
+
+  test("rejects empty prose only after the repair also fails", async () => {
     const form = loadForm("lesser-slime");
     const location = loadLocation("collapsed-tunnel");
     const projection = initialProjection({
