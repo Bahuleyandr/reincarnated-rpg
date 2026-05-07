@@ -49,6 +49,9 @@ ENV HOSTNAME=0.0.0.0
 #     copied below (no dev dependencies required in the runtime image)
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
+# The standalone output only includes dependencies traced from Next's server.
+# Production maintenance scripts below import postgres directly.
+COPY --from=deps /app/node_modules/postgres ./node_modules/postgres
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/content ./content
 COPY --from=builder /app/src/lib/db/migrations ./src/lib/db/migrations
