@@ -37,6 +37,13 @@ export interface RollResult {
   modSources?: Array<{ source: string; delta: number }>;
 }
 
+export type TurnRiskLevel = "safe" | "risky";
+
+export interface TurnRisk {
+  level: TurnRiskLevel;
+  reason: string;
+}
+
 export type SessionStatus = "active" | "dead" | "won" | "capped";
 
 export type EntityKind = "npc" | "location" | "item" | "faction";
@@ -543,6 +550,10 @@ export interface NarrateInput {
    * player actually typed. */
   playerInputSanitized: string;
   roll: RollResult;
+  /** Ordinary turns resolve as clean progress without displaying dice.
+   * Risky / extreme turns emit roll.resolved and let the band drive
+   * costs or misses. */
+  risk?: TurnRisk;
   intent: string;
   relevantMemories: Memory[];
   /** Set on the second pass (one-shot retry per ADR-011 / day-9 tone). */

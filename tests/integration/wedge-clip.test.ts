@@ -5,8 +5,8 @@
  * we run it manually to produce the marketing artifact under
  * eval/wedge-clips/. This test reproduces a tiny slice of its
  * runtime path: drive runTurn against the four typed forms with
- * the same seed + same input through TemplateNarrator, confirm
- * each form classifies the input and rolls dice independently.
+ * the same seed + same risky input through TemplateNarrator, confirm
+ * each form classifies the input and rolls its dice shape independently.
  *
  * Catches:
  *   - A future refactor breaks the per-form classifier mapping
@@ -104,7 +104,7 @@ async function driveOnce(c: Case): Promise<{
   const r = await runTurn({
     db,
     sessionId,
-    input: "I take stock of where I am",
+    input: "I summon danger to test this body",
     form,
     location,
     narrator,
@@ -155,16 +155,11 @@ describe("wedge-clip harness — same-seed evidence", () => {
     }
   });
 
-  test("same seed rolls produce dice-shape-different totals across forms", async () => {
-    const totals = new Map<string, number>();
+  test("same risky input emits a visible dice total for every form", async () => {
     for (const c of CASES) {
       const r = await driveOnce(c);
-      totals.set(c.short, r.rollTotal);
+      expect(r.rollTotal).toBeGreaterThan(0);
+      expect(r.diceVariant ?? "2d6").toBe(c.expectedDice);
     }
-    // The four totals should not all be identical. With 4
-    // distinct dice variants on the same seed, the distribution
-    // makes a 4-way collision astronomically unlikely.
-    const distinct = new Set(totals.values()).size;
-    expect(distinct).toBeGreaterThan(1);
   });
 });

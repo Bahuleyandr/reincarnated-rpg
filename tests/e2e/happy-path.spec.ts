@@ -57,6 +57,7 @@ test("anon player begins, plays 3 turns via verb buttons", async ({ page }) => {
     timeout: 30_000,
   });
   await expect(page.getByText(/constructor/i)).toHaveCount(0);
+  await expect(page.getByTestId("roll")).toHaveCount(0);
 
   for (let turn = 1; turn <= 3; turn++) {
     // The preset-button grid lives above the "say something else..."

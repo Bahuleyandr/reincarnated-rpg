@@ -5,6 +5,7 @@ import { db } from "@/lib/db/client";
 import { refundEnergy, trySpend } from "@/lib/energy/state";
 import { resolveSessionContext } from "@/lib/game/campaign-context";
 import { loadBeatPack, loadForm, loadLocation } from "@/lib/game/content";
+import { rollForLatestTurn } from "@/lib/game/current-turn-roll";
 import { runTurn } from "@/lib/game/turn";
 import { acquireTurnLock, releaseTurnLock } from "@/lib/game/turn-lock";
 import { getCurrentArc, phaseForProgress } from "@/lib/meta/long-wyrm";
@@ -382,11 +383,11 @@ export async function POST(req: NextRequest) {
     turnCommitted = true;
 
     // Pull the just-emitted roll.resolved event so the UI can show
-    // the dice. Avoids re-running the rules engine on the client.
+    // the dice. Safe turns have no roll event, so this must only
+    // inspect the latest turn slice rather than the whole log.
     const { readLog, rowToEvent } = await import("@/lib/game/events");
     const events = (await readLog(db, sessionId)).map(rowToEvent);
-    const lastRoll = [...events].reverse().find((e) => e.kind === "roll.resolved");
-    const roll = lastRoll && lastRoll.kind === "roll.resolved" ? lastRoll.roll : null;
+    const roll = rollForLatestTurn(events);
 
     return NextResponse.json({
       narration: result.narration,

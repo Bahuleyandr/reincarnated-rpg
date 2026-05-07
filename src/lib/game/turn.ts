@@ -1,7 +1,7 @@
 /**
  * Turn orchestrator — wires the per-turn pipeline:
  *
- *   sanitize → classify → roll → load projection → narrate →
+ *   sanitize → classify → risk-gate dice → load projection → narrate →
  *   validate tools (atomic) → append narration → match beats →
  *   write snapshot → return narration + final projection.
  *
@@ -26,7 +26,8 @@ import { classifyHaiku } from "./classify-haiku";
 import { appendEvents, readLog, rowToEvent } from "./events";
 import { applyEvents, loadProjection, writeSnapshot } from "./projection";
 import { classify } from "./classify";
-import { rollDice, rollFromDice } from "./rules";
+import { rollDice, rollFromDice, SUCCESS_THRESHOLD } from "./rules";
+import { classifyTurnRisk } from "./risk";
 import { sanitizePlayerInput } from "./sanitize";
 import { checkTone, checkToneFast } from "./tone";
 import { validateToolsToEvents } from "./tools";
@@ -283,6 +284,14 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
 
   const sessionSeed = await getSessionSeed(db, sessionId);
   const seed = deriveSeed(sessionSeed, turnNumber);
+  const risk = classifyTurnRisk({
+    input: sanitized,
+    intent: intent.verb,
+    form,
+    presetVerb: args.presetVerb ?? null,
+    hasRollOverride: args.rollOverride !== undefined,
+  });
+  const shouldRoll = risk.level === "risky";
   const rollStat = form.verbMappings?.[intent.verb]?.rollStat ?? null;
   const baseMod = rollStat ? (form.stats[rollStat] ?? 0) : 0;
   const luckPenalty = badLuckRollPenalty(activeBadLuck);
@@ -363,7 +372,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       delta: raceMod,
     });
   }
-  if (raceMod !== 0) {
+  if (raceMod !== 0 && shouldRoll) {
     log.info("turn.race.mod_applied", {
       sessionId,
       raceId: args.raceId,
@@ -374,21 +383,27 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
   // Phase 9: form-specific dice variants. Defaults to 2d6 when
   // the form doesn't opt in.
   const diceVariant = form.dice ?? "2d6";
-  const rollBase: RollResult = args.rollOverride
-    ? {
-        ...rollFromDice(args.rollOverride.d1, args.rollOverride.d2, args.rollOverride.mod ?? mod),
-        seed,
-      }
-    : rollDice(diceVariant, seed, mod);
+  const rollBase: RollResult = shouldRoll
+    ? args.rollOverride
+      ? {
+          ...rollFromDice(args.rollOverride.d1, args.rollOverride.d2, args.rollOverride.mod ?? mod),
+          seed,
+        }
+      : rollDice(diceVariant, seed, mod)
+    : cleanSuccessRoll(seed, diceVariant);
   const roll: RollResult =
-    modSources.length > 0 ? { ...rollBase, modSources } : rollBase;
-  const rollEvent: Event = {
-    kind: "roll.resolved",
-    roll,
-    against: rollStat ?? "default",
-  };
-  pendingEvents.push(rollEvent);
-  if (luckPenalty < 0) {
+    shouldRoll && modSources.length > 0 ? { ...rollBase, modSources } : rollBase;
+  const rollEvent: Event | null = shouldRoll
+    ? {
+        kind: "roll.resolved",
+        roll,
+        against: rollStat ?? "default",
+      }
+    : null;
+  if (rollEvent) {
+    pendingEvents.push(rollEvent);
+  }
+  if (luckPenalty < 0 && shouldRoll) {
     log.info("turn.moderation.luck_penalty", {
       sessionId,
       activeBadLuck,
@@ -397,7 +412,7 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       finalMod: mod,
     });
   }
-  if (adaptiveBonus > 0) {
+  if (adaptiveBonus > 0 && shouldRoll) {
     log.info("turn.adaptive_difficulty.bonus", {
       sessionId,
       userId: world?.userId,
@@ -405,6 +420,13 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
       finalMod: mod,
     });
   }
+  log.info("turn.risk.classified", {
+    sessionId,
+    turn: turnNumber,
+    verb: intent.verb,
+    risk: risk.level,
+    reason: risk.reason,
+  });
 
   speculativeProjection = applyEvents(projection, pendingEvents);
 
@@ -703,9 +725,12 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
 
   const baseInput = {
     projection: speculativeProjection,
-    lastEvents: [turnBegunEvent, intentEvent, rollEvent],
+    lastEvents: rollEvent
+      ? [turnBegunEvent, intentEvent, rollEvent]
+      : [turnBegunEvent, intentEvent],
     playerInputSanitized: sanitized,
     roll,
+    risk,
     intent: intent.verb,
     relevantMemories,
   };
@@ -1411,6 +1436,8 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     turn: turnNumber,
     verb: intent.verb,
     band: roll.band,
+    risk: risk.level,
+    riskReason: risk.reason,
     toolEvents,
     beatsFired: beatsFired.length,
     durationMs: Date.now() - t0,
@@ -1440,6 +1467,21 @@ export async function runTurn(args: RunTurnArgs): Promise<TurnResult | TurnError
     toolEvents,
     beatsFired,
     ...(narratorFallback ? { narratorFallback: true, narratorFallbackReason } : {}),
+  };
+}
+
+function cleanSuccessRoll(
+  seed: number,
+  variant: FormTemplate["dice"] = "2d6",
+): RollResult {
+  return {
+    d1: 0,
+    d2: 0,
+    mod: 0,
+    total: SUCCESS_THRESHOLD,
+    band: "success",
+    seed,
+    variant,
   };
 }
 

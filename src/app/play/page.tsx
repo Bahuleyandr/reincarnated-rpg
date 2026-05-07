@@ -652,8 +652,8 @@ export default function Play() {
                   </p>
                 )}
                 <p className="text-sm text-stone-500 italic">
-                  describe what you do — anything from a single verb to a whole sentence. the dice
-                  will be rolled against your intent.
+                  describe what you do — anything from a single verb to a whole sentence. ordinary
+                  actions move the scene forward; dice appear when you push danger.
                 </p>
               </div>
             )
