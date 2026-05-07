@@ -51,6 +51,18 @@ interface SlimeFormJson extends FormTemplate {
   hardMoves: { rule: string; moves: HardMove[] };
 }
 
+type RoomWithFlavor = LocationTemplate["rooms"][number] & {
+  displayName?: string;
+  summary?: string;
+  ambientPool?: string[];
+};
+
+type LocationWithFlavor = LocationTemplate & {
+  displayName?: string;
+  tagline?: string;
+  ambientPool?: string[];
+};
+
 // Form-specific phrase banks now live in the form JSON's `phraseBank`
 // field (see content/forms/<form>.json and FormTemplate.phraseBank).
 // `pickPhrase` reads from the form template at runtime and falls
@@ -113,12 +125,28 @@ export class TemplateNarrator implements Narrator {
     // path) or rolled them back (tool-validation path).
     if (input.previousAttempt) {
       return {
-        text: pickPhrase(this.form, verb, band, input.roll.seed ^ 0x1),
+        text: pickPhrase(
+          this.form,
+          verb,
+          band,
+          input.roll.seed ^ 0x1,
+          input.projection,
+          this.location,
+          input.risk?.level === "safe",
+        ),
         toolCalls: [{ name: "narrate_only" }],
       };
     }
 
-    const text = pickPhrase(this.form, verb, band, input.roll.seed);
+    const text = pickPhrase(
+      this.form,
+      verb,
+      band,
+      input.roll.seed,
+      input.projection,
+      this.location,
+      input.risk?.level === "safe",
+    );
     const toolCalls = toolsFor(
       verb,
       band,
@@ -136,7 +164,20 @@ function pickPhrase(
   verb: string,
   band: RollBand,
   seed: number,
+  projection?: Projection,
+  location?: LocationTemplate,
+  contextualSafe = false,
 ): string {
+  if (
+    form.id === "generic-creature" &&
+    band === "success" &&
+    contextualSafe &&
+    projection &&
+    location
+  ) {
+    return genericContextPhrase(verb, seed, projection, location);
+  }
+
   // 1. The form's own phraseBank is preferred. Each verb has up to
   //    3 lists (success / partial / miss). A `wait` entry doubles
   //    as the "no specific verb match" fallback within the form.
@@ -155,6 +196,108 @@ function pickPhrase(
   const generic = GENERIC_FALLBACKS[band];
   const idx = Math.abs(seed | 0) % generic.length;
   return generic[idx].replace("{verb}", normaliseVerb(verb));
+}
+
+function genericContextPhrase(
+  verb: string,
+  seed: number,
+  projection: Projection,
+  location: LocationTemplate,
+): string {
+  const loc = location as LocationWithFlavor;
+  const room = currentRoom(projection, location);
+  const roomName = room?.displayName ?? humanize(projection.location.roomId);
+  const locationName = loc.displayName ?? humanize(location.id);
+  const summary = room?.summary ?? loc.tagline ?? `You are in ${roomName}.`;
+  const ambient = pickAmbient(seed, room, loc);
+  const exits = exitPhrase(room, location);
+  const identity = projection.reincarnatedAs?.trim();
+  const body = identity ? `as ${withArticle(identity)}` : "in this new shape";
+
+  switch (verb) {
+    case "sense":
+      return `${ambient} ${senseSubject(body)} ${roomName} through pressure, salt, distance, and motion. ${exits}`;
+    case "examine":
+      return `You study ${roomName} in ${locationName}: ${summary} ${ambient}`;
+    case "act":
+      return `You test what you can do ${body} without forcing danger. ${ambient} The place answers with enough detail to make the next choice less blind.`;
+    case "move": {
+      const exit = room?.exits[0];
+      const dest = exit
+        ? location.rooms.find((r) => r.id === exit.toRoomId)
+        : undefined;
+      if (!exit) {
+        return `${roomName} gives you no clean route out. ${ambient}`;
+      }
+      const destRoom = (dest as RoomWithFlavor | undefined)?.displayName ?? humanize(exit.toRoomId);
+      return `${(exit as { narrative?: string }).narrative ?? `You move toward ${destRoom}.`} The route carries you from ${roomName} toward ${destRoom}.`;
+    }
+    case "wait":
+      return `You hold still ${body}. ${ambient} ${exits}`;
+    default:
+      return `You try ${normaliseVerb(verb)} ${body}. ${summary} ${ambient}`;
+  }
+}
+
+function currentRoom(
+  projection: Projection,
+  location: LocationTemplate,
+): RoomWithFlavor | undefined {
+  return location.rooms.find((r) => r.id === projection.location.roomId) as
+    | RoomWithFlavor
+    | undefined;
+}
+
+function pickAmbient(
+  seed: number,
+  room: RoomWithFlavor | undefined,
+  location: LocationWithFlavor,
+): string {
+  const pool = room?.ambientPool?.length
+    ? room.ambientPool
+    : location.ambientPool?.length
+      ? location.ambientPool
+      : [];
+  if (pool.length === 0) {
+    return room?.summary ?? location.tagline ?? "The place gives back a few usable facts.";
+  }
+  return pool[Math.abs(seed | 0) % pool.length];
+}
+
+function exitPhrase(
+  room: RoomWithFlavor | undefined,
+  location: LocationTemplate,
+): string {
+  if (!room || room.exits.length === 0) return "There is no obvious exit from here.";
+  const names = room.exits
+    .slice(0, 3)
+    .map((exit) => {
+      const dest = location.rooms.find((r) => r.id === exit.toRoomId) as
+        | RoomWithFlavor
+        | undefined;
+      return dest?.displayName ?? humanize(exit.toRoomId);
+    });
+  if (names.length === 1) return `One route leads toward ${names[0]}.`;
+  return `Routes lead toward ${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}.`;
+}
+
+function senseSubject(body: string): string {
+  return body.startsWith("as ")
+    ? `You, ${body}, read`
+    : "Your awareness reads";
+}
+
+function withArticle(value: string): string {
+  if (/^(?:a|an|the|your)\s+/i.test(value)) return value;
+  return /^[aeiou]/i.test(value) ? `an ${value}` : `a ${value}`;
+}
+
+function humanize(value: string): string {
+  return value
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 /** Strip noise from raw input verbs so they read in prose. The
@@ -225,7 +368,7 @@ function primaryToolsFor(
         out.push({
           name: "sense",
           modality: "vibration",
-          detail: "the deep, slow weight of stone",
+          detail: senseDetailFor(projection, location),
         });
         break;
       case "absorb": {
@@ -261,6 +404,15 @@ function primaryToolsFor(
     }
   }
   return out;
+}
+
+function senseDetailFor(
+  projection: Projection,
+  location: LocationTemplate,
+): string {
+  const room = currentRoom(projection, location);
+  const loc = location as LocationWithFlavor;
+  return room?.summary ?? loc.tagline ?? "the immediate shape of this room";
 }
 
 function pickHardMove(form: SlimeFormJson, seed: number): HardMove | null {
