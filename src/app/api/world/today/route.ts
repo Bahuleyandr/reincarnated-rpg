@@ -32,12 +32,12 @@ interface TickerEntry {
 const HORIZON_HOURS = 24;
 const MAX_ENTRIES = 25;
 
+function toIso(value: Date | string): string {
+  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+}
+
 export async function GET() {
-  const payload = await cached(
-    "world:today:v1",
-    5 * 60 * 1000,
-    async () => buildTicker(),
-  );
+  const payload = await cached("world:today:v1", 5 * 60 * 1000, async () => buildTicker());
   return NextResponse.json(payload);
 }
 
@@ -65,7 +65,7 @@ async function buildTicker(): Promise<{ entries: TickerEntry[]; horizonHours: nu
   `) as Array<{
     event_id: string;
     session_id: string;
-    at: Date;
+    at: Date | string;
     kind: string;
     payload: unknown;
     form_id: string | null;
@@ -83,21 +83,21 @@ async function buildTicker(): Promise<{ entries: TickerEntry[]; horizonHours: nu
       if (reason === "death") {
         entries.push({
           id: `e-${row.event_id}`,
-          at: row.at.toISOString(),
+          at: toIso(row.at),
           kind: "death",
           text: `${subject} fell.`,
         });
       } else if (reason === "won") {
         entries.push({
           id: `e-${row.event_id}`,
-          at: row.at.toISOString(),
+          at: toIso(row.at),
           kind: "win",
           text: `${subject} survived the night.`,
         });
       } else if (reason === "cap") {
         entries.push({
           id: `e-${row.event_id}`,
-          at: row.at.toISOString(),
+          at: toIso(row.at),
           kind: "cap",
           text: `${subject} reached the turn cap, no verdict.`,
         });
@@ -110,14 +110,14 @@ async function buildTicker(): Promise<{ entries: TickerEntry[]; horizonHours: nu
       if (band === "success" && total >= 12) {
         entries.push({
           id: `e-${row.event_id}`,
-          at: row.at.toISOString(),
+          at: toIso(row.at),
           kind: "roll-success",
           text: `${subject} rolled a ${total} — the world bends.`,
         });
       } else if (band === "miss" && total <= 3) {
         entries.push({
           id: `e-${row.event_id}`,
-          at: row.at.toISOString(),
+          at: toIso(row.at),
           kind: "roll-miss",
           text: `${subject} rolled a ${total} — the world refuses.`,
         });

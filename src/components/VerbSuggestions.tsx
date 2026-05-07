@@ -22,6 +22,8 @@
  */
 import { useState } from "react";
 
+import { ManualHelpButton } from "./InstructionManual";
+
 export interface VerbSuggestionData {
   verb: string;
   label: string;
@@ -56,9 +58,13 @@ export function VerbSuggestions({
   // The three preset buttons. Hidden when free-text is open so
   // the player isn't choosing between two surfaces at once.
   return (
-    <div className="px-4 py-3 border-t border-stone-800 space-y-2">
+    <div className="space-y-2 border-t border-stone-800 px-4 py-3">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] tracking-widest text-stone-600 uppercase">choices</div>
+        <ManualHelpButton topicId="actions" compact />
+      </div>
       {!freeTextOpen && suggestions.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3" data-testid="verb-suggestions">
           {suggestions.map((s) => (
             <PresetButton
               key={s.verb}
@@ -73,7 +79,7 @@ export function VerbSuggestions({
         <button
           type="button"
           onClick={onOpenFreeText}
-          className="w-full text-[10px] text-stone-500 hover:text-stone-300 underline underline-offset-2 text-left"
+          className="w-full text-left text-[10px] text-stone-500 underline underline-offset-2 hover:text-stone-300"
           disabled={disabled}
         >
           ← back to preset choices
@@ -82,7 +88,7 @@ export function VerbSuggestions({
         <button
           type="button"
           onClick={onOpenFreeText}
-          className="w-full text-left px-3 py-3 sm:py-2 min-h-[44px] sm:min-h-0 border border-dashed border-stone-700 rounded text-[11px] text-stone-500 hover:text-stone-300 hover:border-stone-500 transition-colors"
+          className="min-h-[44px] w-full rounded border border-dashed border-stone-700 px-3 py-3 text-left text-[11px] text-stone-500 transition-colors hover:border-stone-500 hover:text-stone-300 sm:min-h-0 sm:py-2"
           disabled={disabled}
           aria-label="open the free-text input to say something else"
         >
@@ -108,8 +114,7 @@ function PresetButton({
   const [hover, setHover] = useState(false);
   const advances = suggestion.advancesArc === true;
   const branches =
-    typeof suggestion.advancesArc === "string" &&
-    suggestion.advancesArc.startsWith("branch:");
+    typeof suggestion.advancesArc === "string" && suggestion.advancesArc.startsWith("branch:");
 
   return (
     <button
@@ -118,38 +123,29 @@ function PresetButton({
       disabled={disabled}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      className={`text-left px-3 py-3 sm:py-2 min-h-[44px] sm:min-h-0 border rounded transition-colors ${
+      className={`min-h-[44px] rounded border px-3 py-3 text-left transition-colors sm:min-h-0 sm:py-2 ${
         disabled
-          ? "border-stone-800 text-stone-700 cursor-not-allowed"
+          ? "cursor-not-allowed border-stone-800 text-stone-700"
           : "border-stone-700 hover:border-[var(--form-accent-border)] hover:bg-[var(--form-accent-bg)] active:bg-[var(--form-accent-bg)]"
       }`}
+      data-testid="preset-verb"
     >
-      <div className="flex items-baseline gap-1.5 mb-0.5">
+      <div className="mb-0.5 flex items-baseline gap-1.5">
         {(advances || branches) && (
           <span
             className="text-[10px]"
             style={{ color: "var(--form-accent)" }}
-            title={
-              branches
-                ? `branches the arc (${suggestion.advancesArc})`
-                : "advances the arc"
-            }
+            title={branches ? `branches the arc (${suggestion.advancesArc})` : "advances the arc"}
           >
             {branches ? "↳" : "▸"}
           </span>
         )}
-        <span
-          className={`text-xs ${
-            hover && !disabled ? "text-stone-100" : "text-stone-200"
-          }`}
-        >
+        <span className={`text-xs ${hover && !disabled ? "text-stone-100" : "text-stone-200"}`}>
           {suggestion.label}
         </span>
       </div>
       {suggestion.description && (
-        <p className="text-[10px] text-stone-500 italic leading-4">
-          {suggestion.description}
-        </p>
+        <p className="text-[10px] leading-4 text-stone-500 italic">{suggestion.description}</p>
       )}
     </button>
   );

@@ -47,9 +47,18 @@ async function getVoyage(): Promise<VoyageAIClient> {
     const apiKey = env().VOYAGE_API_KEY;
     if (!apiKey) throw new Error("VOYAGE_API_KEY required");
     const mod = (await import("voyageai")) as unknown as {
-      VoyageAIClient: new (a: { apiKey: string }) => VoyageAIClient;
+      VoyageAIClient?: new (a: { apiKey: string }) => VoyageAIClient;
+      default?:
+        | (new (a: { apiKey: string }) => VoyageAIClient)
+        | { VoyageAIClient?: new (a: { apiKey: string }) => VoyageAIClient };
     };
-    voyage = new mod.VoyageAIClient({ apiKey });
+    const Client =
+      mod.VoyageAIClient ??
+      (typeof mod.default === "function" ? mod.default : mod.default?.VoyageAIClient);
+    if (typeof Client !== "function") {
+      throw new Error("voyageai client export missing");
+    }
+    voyage = new Client({ apiKey });
   }
   return voyage;
 }
@@ -86,10 +95,7 @@ export function mockEmbedding(text: string): number[] {
   // Stretch the SHA-256 digest across all 512 dims by repeated
   // hashing with an incrementing salt.
   for (let block = 0; block < EMBEDDING_DIM / 16; block++) {
-    const h = createHash("sha256")
-      .update(text)
-      .update(String(block))
-      .digest();
+    const h = createHash("sha256").update(text).update(String(block)).digest();
     for (let i = 0; i < 16; i++) {
       // Map byte (0-255) to a roughly-unit-norm component.
       out[block * 16 + i] = (h[i] - 128) / 128;
@@ -125,9 +131,7 @@ export async function createMemory(
     embedding,
     eventSeqRange: args.eventSeqRange,
     salience: args.salience ?? 0.5,
-    ...(args.surfaceAfterTurn !== undefined
-      ? { surfaceAfterTurn: args.surfaceAfterTurn }
-      : {}),
+    ...(args.surfaceAfterTurn !== undefined ? { surfaceAfterTurn: args.surfaceAfterTurn } : {}),
     ...(args.echoHint !== undefined ? { echoHint: args.echoHint } : {}),
   });
   return id;

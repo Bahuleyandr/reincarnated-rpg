@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { ManualHelpButton } from "./InstructionManual";
+
 interface DailyGrant {
   streakBefore: number;
   streakAfter: number;
@@ -46,9 +48,7 @@ function formatBlessingTime(expiresAtMs: number, now: number): string {
   const remaining = expiresAtMs - now;
   if (remaining <= 0) return "ending now";
   const days = Math.floor(remaining / (24 * 60 * 60 * 1000));
-  const hours = Math.floor(
-    (remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000),
-  );
+  const hours = Math.floor((remaining % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
   if (days >= 1) {
     return `${days}d ${hours}h`;
   }
@@ -140,29 +140,26 @@ export function EnergyBar() {
   const streakMax = view.streak?.max ?? 5;
 
   return (
-    <section className="px-4 py-2 border-b border-stone-800 bg-stone-900/40 text-xs space-y-1">
+    <section className="space-y-1 border-b border-stone-800 bg-stone-900/40 px-4 py-2 text-xs">
       {grantFlash && (
         <div
-          className="text-[10px] text-orange-300 leading-4 pb-1 border-b border-orange-900/40 mb-1 animate-pulse"
+          className="mb-1 animate-pulse border-b border-orange-900/40 pb-1 text-[10px] leading-4 text-orange-300"
           title="Daily streak bonus"
         >
-          🔥 Day {grantFlash.streakAfter} streak — +{grantFlash.bonusEnergy}{" "}
-          energy
+          🔥 Day {grantFlash.streakAfter} streak — +{grantFlash.bonusEnergy} energy
           {grantFlash.reachedCap && (
-            <span className="text-orange-200/80 ml-1">
-              · max streak reached!
-            </span>
+            <span className="ml-1 text-orange-200/80">· max streak reached!</span>
           )}
         </div>
       )}
       {view.blessing && (
         <div
-          className="text-[10px] text-amber-300 leading-4 pb-1 border-b border-amber-900/40 mb-1"
+          className="mb-1 border-b border-amber-900/40 pb-1 text-[10px] leading-4 text-amber-300"
           title={view.blessing.description}
         >
           ✦ {view.blessing.label}
           {view.blessing.expiresAtMs && (
-            <span className="text-amber-500/70 ml-1">
+            <span className="ml-1 text-amber-500/70">
               · {formatBlessingTime(view.blessing.expiresAtMs, now)} left
             </span>
           )}
@@ -173,7 +170,7 @@ export function EnergyBar() {
         <span className="text-stone-600">/ {view.max}</span>
         {streakCount > 0 && (
           <span
-            className="text-[10px] text-orange-400/80 ml-1"
+            className="ml-1 text-[10px] text-orange-400/80"
             title={`${streakCount}-day login streak (max ${streakMax}). +${streakCount} energy each new UTC day.`}
           >
             🔥 {streakCount}
@@ -181,7 +178,7 @@ export function EnergyBar() {
           </span>
         )}
         <span
-          className={`ml-auto text-[10px] uppercase tracking-widest ${
+          className={`ml-auto text-[10px] tracking-widest uppercase ${
             view.blessing ? "text-amber-400" : "text-stone-600"
           }`}
           title={`${view.turnsPerDay} turns/day${view.blessing ? " (blessed)" : ""}`}
@@ -189,37 +186,25 @@ export function EnergyBar() {
           {view.tierLabel}
           {view.blessing && " +"}
         </span>
+        <ManualHelpButton topicId="energy" compact />
       </div>
-      <div className="h-1 bg-stone-900 border border-stone-800 relative overflow-hidden">
+      <div className="relative h-1 overflow-hidden border border-stone-800 bg-stone-900">
         <div
           className={`absolute inset-y-0 left-0 transition-all ${
-            empty
-              ? "bg-red-700"
-              : low
-                ? "bg-amber-700"
-                : atMax
-                  ? "bg-emerald-600"
-                  : "bg-stone-500"
+            empty ? "bg-red-700" : low ? "bg-amber-700" : atMax ? "bg-emerald-600" : "bg-stone-500"
           }`}
           style={{ width: `${Math.min(100, pct)}%` }}
         />
       </div>
-      <div className="text-[10px] text-stone-600 leading-3">
+      <div className="text-[10px] leading-3 text-stone-600">
         {atMax ? (
           "full"
         ) : empty ? (
-          <span className="text-red-400">
-            out of energy — refill in {formatMs(localNextRegen)}
-          </span>
+          <span className="text-red-400">out of energy — refill in {formatMs(localNextRegen)}</span>
         ) : (
           <>
             +1 in {formatMs(localNextRegen)} · full in{" "}
-            {formatMs(
-              Math.max(
-                0,
-                (view.fullAtMs ?? now) - now - tick * 1000,
-              ),
-            )}
+            {formatMs(Math.max(0, (view.fullAtMs ?? now) - now - tick * 1000))}
           </>
         )}
       </div>

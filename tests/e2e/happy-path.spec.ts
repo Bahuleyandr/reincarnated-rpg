@@ -19,15 +19,11 @@ import { test, expect } from "@playwright/test";
  * the verb-button surface.
  */
 
-test("anon player begins, plays 3 turns via verb buttons", async ({
-  page,
-}) => {
+test("anon player begins, plays 3 turns via verb buttons", async ({ page }) => {
   test.setTimeout(60_000);
 
   await page.goto("/");
-  await expect(
-    page.getByRole("heading", { name: /reincarnated/i }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /reincarnated/i })).toBeVisible();
 
   // Click the canonical Begin button (covers "Begin" and
   // "Begin (anon run)" via partial regex).
@@ -40,16 +36,28 @@ test("anon player begins, plays 3 turns via verb buttons", async ({
 
   // The verb-button surface should render 3 preset buttons. Their
   // exact labels depend on the form, but every button has a
-  // <button type="button"> with a verb label.  Find all preset
-  // buttons by walking the verb-suggestions region.  We click 3
-  // turns in sequence and wait for the transcript to grow between
-  // turns.
+  // stable preset-verb test id. We click 3 turns in sequence and
+  // wait for the transcript to grow between turns.
+  await page.getByTestId("manual-open").click();
+  await expect(page.getByTestId("instruction-manual")).toBeVisible();
+  await page.getByRole("button", { name: "Dice" }).click();
+  await expect(page.getByText(/10\+ is success/i)).toBeVisible();
+  await page.getByRole("button", { name: /close manual/i }).click();
+  await expect(page.getByTestId("instruction-manual")).toBeHidden();
+
+  await page.getByRole("button", { name: /say something else/i }).click();
+  await page.getByTestId("input").fill("barley malt, rye meal");
+  await page.getByRole("button", { name: "send" }).click();
+  await expect(page.getByText(/turn 1 ·/)).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("preset-verb").first()).toBeEnabled({
+    timeout: 30_000,
+  });
+  await expect(page.getByText(/constructor/i)).toHaveCount(0);
+
   for (let turn = 1; turn <= 3; turn++) {
-    // The preset-button grid lives in a 3-column grid above the
-    // "say something else…" tile.  Pick the first available.
-    const buttons = page
-      .locator('button[type="button"]')
-      .filter({ hasNotText: /say something else|back to preset/i });
+    // The preset-button grid lives above the "say something else..."
+    // tile. Pick the first available.
+    const buttons = page.getByTestId("preset-verb");
     const targetCount = await buttons.count();
     expect(targetCount).toBeGreaterThan(0);
     // Click the first that's enabled.
@@ -64,10 +72,9 @@ test("anon player begins, plays 3 turns via verb buttons", async ({
     }
     expect(clicked).toBe(true);
 
-    // Wait for narration to land — transcript text grows.
-    await expect(async () => {
-      const text = await transcript.innerText();
-      expect(text.length).toBeGreaterThan(turn * 30); // crude growth check
-    }).toPass({ timeout: 30_000 });
+    await expect(page.getByText(new RegExp(`turn ${turn + 1} ·`))).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("preset-verb").first()).toBeEnabled({
+      timeout: 30_000,
+    });
   }
 });

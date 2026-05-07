@@ -18,6 +18,7 @@ import { EnergyBar } from "@/components/EnergyBar";
 import { LocationNotes } from "@/components/LocationNotes";
 import { ObjectiveRibbon } from "@/components/ObjectiveRibbon";
 import { InputBox } from "@/components/InputBox";
+import { InstructionManual, ManualHelpButton } from "@/components/InstructionManual";
 import { InventoryPanel } from "@/components/InventoryPanel";
 import { NearbyBox } from "@/components/NearbyBox";
 import { QuestLog } from "@/components/QuestLog";
@@ -27,16 +28,9 @@ import { StatusSidebar } from "@/components/StatusSidebar";
 import { InRunCompanions } from "@/components/InRunCompanions";
 import { Transcript, type TranscriptEntry } from "@/components/Transcript";
 import { TutorialHint } from "@/components/TutorialHint";
-import {
-  VerbSuggestions,
-  type VerbSuggestionData,
-} from "@/components/VerbSuggestions";
+import { VerbSuggestions, type VerbSuggestionData } from "@/components/VerbSuggestions";
 import { WhereAmI } from "@/components/WhereAmI";
-import {
-  diffProjection,
-  EMPTY_DIFF,
-  type ProjectionDiff,
-} from "@/lib/game/diff-projection";
+import { diffProjection, EMPTY_DIFF, type ProjectionDiff } from "@/lib/game/diff-projection";
 import type { Projection, RollResult } from "@/lib/game/types";
 
 export default function Play() {
@@ -73,9 +67,7 @@ export default function Play() {
     prose: string;
   } | null>(null);
   // P10 — verb-button presets + escape hatch state.
-  const [verbSuggestions, setVerbSuggestions] = useState<VerbSuggestionData[]>(
-    [],
-  );
+  const [verbSuggestions, setVerbSuggestions] = useState<VerbSuggestionData[]>([]);
   const [freeTextOpen, setFreeTextOpen] = useState(false);
   // POLISH_PLAN G.2 — minimal map data for the MapPanel sidebar.
   // Loaded once on /api/state response; doesn't change mid-session
@@ -92,12 +84,15 @@ export default function Play() {
     locationId: string;
     width: number;
     height: number;
-    legend: Record<string, {
-      label: string;
-      fill: string;
-      glyph?: string;
-      walkable: boolean;
-    }>;
+    legend: Record<
+      string,
+      {
+        label: string;
+        fill: string;
+        glyph?: string;
+        walkable: boolean;
+      }
+    >;
     grid: string[];
     roomAnchors: Record<string, { x: number; y: number }>;
   } | null>(null);
@@ -165,8 +160,7 @@ export default function Play() {
           })),
         );
       } catch (e) {
-        if (!cancelled)
-          setError(`network: ${e instanceof Error ? e.message : "?"}`);
+        if (!cancelled) setError(`network: ${e instanceof Error ? e.message : "?"}`);
       }
     }
     load();
@@ -182,19 +176,14 @@ export default function Play() {
     // Active weekly theme.
     fetch("/api/world")
       .then((r) => r.json())
-      .then(
-        (d: {
-          activeTheme?: { label: string };
-          overrideActive?: boolean;
-        }) => {
-          if (!cancelled && d.activeTheme) {
-            setTheme({
-              label: d.activeTheme.label,
-              overrideActive: !!d.overrideActive,
-            });
-          }
-        },
-      )
+      .then((d: { activeTheme?: { label: string }; overrideActive?: boolean }) => {
+        if (!cancelled && d.activeTheme) {
+          setTheme({
+            label: d.activeTheme.label,
+            overrideActive: !!d.overrideActive,
+          });
+        }
+      })
       .catch(() => {});
 
     // Presence: bump heartbeat every 30s; refresh nearby every 10s.
@@ -249,17 +238,15 @@ export default function Play() {
     });
 
     let streamedText = "";
-    let final:
-      | {
-          narration: string;
-          projection: Projection;
-          roll: RollResult | null;
-          narratorFallback?: boolean;
-          narratorFallbackReason?: string;
-          wyrmRunning?: { delta: number; prose: string };
-          verbSuggestions?: VerbSuggestionData[];
-        }
-      | null = null;
+    let final: {
+      narration: string;
+      projection: Projection;
+      roll: RollResult | null;
+      narratorFallback?: boolean;
+      narratorFallbackReason?: string;
+      wyrmRunning?: { delta: number; prose: string };
+      verbSuggestions?: VerbSuggestionData[];
+    } | null = null;
     let errorMsg: string | null = null;
 
     try {
@@ -286,12 +273,9 @@ export default function Play() {
               energy?: unknown;
             };
             if (j.energy) {
-              window.dispatchEvent(
-                new CustomEvent("energy:update", { detail: j.energy }),
-              );
+              window.dispatchEvent(new CustomEvent("energy:update", { detail: j.energy }));
             }
-            errorMsg =
-              j.error ?? "out of energy — wait for the next refill";
+            errorMsg = j.error ?? "out of energy — wait for the next refill";
           } catch {
             errorMsg = "out of energy";
           }
@@ -311,11 +295,14 @@ export default function Play() {
             const jitter = Math.random() * 750;
             setEntries((prev) => prev.filter((_, i) => i !== streamIdx));
             setSettling(true);
-            setTimeout(() => {
-              setSettling(false);
-              setBusy(false);
-              handleInput(text); // retry once
-            }, remaining + 250 + jitter);
+            setTimeout(
+              () => {
+                setSettling(false);
+                setBusy(false);
+                handleInput(text); // retry once
+              },
+              remaining + 250 + jitter,
+            );
             return;
           } catch {
             errorMsg = "previous turn is still settling — try again";
@@ -452,28 +439,32 @@ export default function Play() {
       // CSS attribute selector in globals.css so the goal ribbon,
       // meta-arc strip, and dice display can read --form-accent.
       data-form={projection?.form.id ?? null}
-      className="min-h-screen bg-stone-950 text-stone-200 font-mono grid md:grid-cols-[260px_1fr_260px] grid-rows-[1fr] md:min-h-0"
+      className="grid min-h-screen grid-rows-[1fr] bg-stone-950 font-mono text-stone-200 md:min-h-0 md:grid-cols-[260px_1fr_260px]"
     >
+      <InstructionManual />
       <aside
-        className="border-r border-stone-800 flex flex-col overflow-y-auto md:order-1 order-2"
+        className="order-2 flex flex-col overflow-y-auto border-r border-stone-800 md:order-1"
         data-testid="left-sidebar"
       >
         <EnergyBar />
-        <div className="px-4 py-1 border-b border-stone-800 bg-stone-900/40 flex items-center gap-2 min-h-[28px]">
+        <div className="flex min-h-[28px] items-center gap-2 border-b border-stone-800 bg-stone-900/40 px-4 py-1">
           <CoinBadge />
         </div>
         <ObjectiveRibbon />
         <StatusSidebar projection={projection} />
         {projection && (mapView || tileMap) && (
-          <div className="px-4 py-3 border-t border-stone-800">
-            <div className="text-[10px] uppercase tracking-widest text-stone-600 mb-2">
-              map · {projection.location.id.replace(/-/g, " ")}
+          <div className="border-t border-stone-800 px-4 py-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="text-[10px] tracking-widest text-stone-600 uppercase">
+                map · {projection.location.id.replace(/-/g, " ")}
+              </div>
+              <ManualHelpButton topicId="map" compact />
             </div>
             {/* Mobile UX (POLISH_PLAN Day 67) — let the map fill the
                 full-width sidebar on mobile (single column below md).
                 Desktop column is fixed at 260px so the SVG settles
                 into ~228px / ~180px there. */}
-            <div className="flex items-center justify-center [&>svg]:w-full [&>svg]:max-w-[420px] md:[&>svg]:max-w-none [&>svg]:h-auto">
+            <div className="flex items-center justify-center [&>svg]:h-auto [&>svg]:w-full [&>svg]:max-w-[420px] md:[&>svg]:max-w-none">
               {tileMap ? (
                 <TileMapView
                   map={tileMap}
@@ -492,23 +483,19 @@ export default function Play() {
                 />
               ) : null}
             </div>
-            <div className="text-[10px] text-stone-500 mt-2 leading-snug">
+            <div className="mt-2 text-[10px] leading-snug text-stone-500">
               {projection.location.discovered.length} of{" "}
-              {mapView?.rooms.length ??
-                Object.keys(tileMap?.roomAnchors ?? {}).length}{" "}
-              rooms discovered
+              {mapView?.rooms.length ?? Object.keys(tileMap?.roomAnchors ?? {}).length} rooms
+              discovered
             </div>
           </div>
         )}
       </aside>
 
-      <section className="flex flex-col min-h-screen md:min-h-0 md:order-2 order-1">
+      <section className="order-1 flex min-h-screen flex-col md:order-2 md:min-h-0">
         {projection && (
-          <div className="md:hidden px-4 py-2 border-b border-stone-800 bg-stone-900/60 text-[11px] text-stone-400 flex items-center gap-3 flex-wrap">
-            <span
-              className="flex items-center gap-1.5"
-              style={{ color: "var(--form-accent)" }}
-            >
+          <div className="flex flex-wrap items-center gap-3 border-b border-stone-800 bg-stone-900/60 px-4 py-2 text-[11px] text-stone-400 md:hidden">
+            <span className="flex items-center gap-1.5" style={{ color: "var(--form-accent)" }}>
               <Avatar formId={projection.form.id} size={18} />
               <span className="text-stone-200">{projection.form.id}</span>
             </span>
@@ -524,32 +511,20 @@ export default function Play() {
                 </span>
               );
             })}
-            <span className="ml-auto text-stone-600">
-              ↓ inventory + presence below
-            </span>
+            <span className="ml-auto text-stone-600">↓ inventory + presence below</span>
           </div>
         )}
         {metaArc && (
           <Link
             href="/meta"
-            className="px-6 py-1.5 border-b border-stone-800 bg-stone-900/60 text-[10px] flex items-center justify-between text-stone-500 hover:text-stone-300 hover:bg-stone-900"
+            className="flex items-center justify-between border-b border-stone-800 bg-stone-900/60 px-6 py-1.5 text-[10px] text-stone-500 hover:bg-stone-900 hover:text-stone-300"
           >
             <span>
-              the long wyrm:{" "}
-              <span className="text-amber-400">{metaArc.phaseLabel}</span>
+              the long wyrm: <span className="text-amber-400">{metaArc.phaseLabel}</span>
               {wyrmRunning && wyrmRunning.delta !== 0 && (
-                <span
-                  className="ml-2"
-                  title={wyrmRunning.prose}
-                >
+                <span className="ml-2" title={wyrmRunning.prose}>
                   · this run:{" "}
-                  <span
-                    className={
-                      wyrmRunning.delta > 0
-                        ? "text-red-400"
-                        : "text-emerald-400"
-                    }
-                  >
+                  <span className={wyrmRunning.delta > 0 ? "text-red-400" : "text-emerald-400"}>
                     {wyrmRunning.delta > 0 ? "+" : ""}
                     {wyrmRunning.delta} {wyrmRunning.delta > 0 ? "feed" : "starve"}
                   </span>
@@ -557,9 +532,8 @@ export default function Play() {
               )}
               {theme && (
                 <>
-                  <span className="text-stone-700 mx-2">·</span>
-                  this week:{" "}
-                  <span className="text-emerald-400">{theme.label}</span>
+                  <span className="mx-2 text-stone-700">·</span>
+                  this week: <span className="text-emerald-400">{theme.label}</span>
                   {theme.overrideActive && (
                     <span
                       className="ml-1 text-stone-600"
@@ -571,15 +545,14 @@ export default function Play() {
                 </>
               )}
             </span>
-            <span className="text-stone-600 group-hover:text-stone-400">
-              meta →
-            </span>
+            <span className="text-stone-600 group-hover:text-stone-400">meta →</span>
           </Link>
         )}
         {/* P7.B — opt-in narration voice. Toggle persists in
          *  localStorage; the component is a no-op when the browser
          *  doesn't expose SpeechSynthesis. */}
-        <div className="px-6 py-1 border-b border-stone-800 bg-stone-900/30 flex justify-end">
+        <div className="flex items-center justify-between gap-3 border-b border-stone-800 bg-stone-900/30 px-6 py-1">
+          <ManualHelpButton topicId="basics" label="manual" testId="manual-open" />
           <NarrationVoice
             latestNarration={(() => {
               const last = entries[entries.length - 1];
@@ -589,74 +562,59 @@ export default function Play() {
           />
         </div>
         {arcTagline && entries.length === 0 && (
-          <div className="px-6 py-3 border-b border-stone-800 bg-stone-900/40">
-            <div className="text-[10px] uppercase tracking-widest text-stone-600 mb-1">
+          <div className="border-b border-stone-800 bg-stone-900/40 px-6 py-3">
+            <div className="mb-1 text-[10px] tracking-widest text-stone-600 uppercase">
               your arc
             </div>
-            <div className="text-sm text-stone-300 leading-6">{arcTagline}</div>
+            <div className="text-sm leading-6 text-stone-300">{arcTagline}</div>
           </div>
         )}
         {firstGoal && projection && projection.status === "active" && (
           <div
-            className={`px-6 py-2.5 border-b border-stone-800 text-xs flex items-baseline gap-3 ${
+            className={`flex items-baseline gap-3 border-b border-stone-800 px-6 py-2.5 text-xs ${
               firstGoal.completed ? "animate-goal-pulse" : ""
             }`}
             style={{
-              background: firstGoal.completed
-                ? "var(--form-accent-bg)"
-                : "rgba(28, 25, 23, 0.3)",
+              background: firstGoal.completed ? "var(--form-accent-bg)" : "rgba(28, 25, 23, 0.3)",
             }}
           >
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-[10px] uppercase tracking-widest text-stone-600">
+                <span className="text-[10px] tracking-widest text-stone-600 uppercase">
                   first goal
                 </span>
-                <span className="text-stone-200 truncate">
-                  {firstGoal.label}
-                </span>
+                <span className="truncate text-stone-200">{firstGoal.label}</span>
                 {firstGoal.completed ? (
-                  <span
-                    className="text-[10px]"
-                    style={{ color: "var(--form-accent)" }}
-                  >
+                  <span className="text-[10px]" style={{ color: "var(--form-accent)" }}>
                     ✓ complete
                   </span>
                 ) : (
-                  <span className="text-stone-500 text-[10px]">
+                  <span className="text-[10px] text-stone-500">
                     {firstGoal.current}/{firstGoal.target}
                   </span>
                 )}
               </div>
-              <p className="text-stone-500 italic text-[11px] leading-5 mt-0.5">
+              <p className="mt-0.5 text-[11px] leading-5 text-stone-500 italic">
                 {firstGoal.description}
               </p>
             </div>
-            <div className="w-24 h-1 bg-stone-800 rounded overflow-hidden shrink-0">
+            <div className="h-1 w-24 shrink-0 overflow-hidden rounded bg-stone-800">
               <div
                 className="h-full transition-all"
                 style={{
                   background: firstGoal.completed
                     ? "var(--form-accent)"
                     : "var(--form-accent-soft)",
-                  width: `${
-                    Math.min(
-                      100,
-                      (firstGoal.current / firstGoal.target) * 100,
-                    )
-                  }%`,
+                  width: `${Math.min(100, (firstGoal.current / firstGoal.target) * 100)}%`,
                 }}
               />
             </div>
           </div>
         )}
         {llmBanner && (
-          <div className="px-4 py-2 border-b border-amber-900/60 bg-amber-950/40 text-amber-300 text-xs flex items-center gap-3">
+          <div className="flex items-center gap-3 border-b border-amber-900/60 bg-amber-950/40 px-4 py-2 text-xs text-amber-300">
             <span className="flex-1">{llmBanner}</span>
-            <Link
-              href="/settings"
-              className="underline underline-offset-2 hover:text-amber-200"
-            >
+            <Link href="/settings" className="underline underline-offset-2 hover:text-amber-200">
               open settings →
             </Link>
             <button
@@ -673,51 +631,39 @@ export default function Play() {
           entries={entries}
           emptyHint={
             projection && (
-              <div className="space-y-3 text-stone-300 leading-7">
+              <div className="space-y-3 leading-7 text-stone-300">
                 {formOpening ? (
                   <>
                     <div className="flex items-center gap-3">
                       <span style={{ color: "var(--form-accent)" }}>
                         <Avatar formId={projection.form.id} size={36} />
                       </span>
-                      <div className="text-[10px] uppercase tracking-widest text-stone-600">
-                        {formDisplayName ?? projection.form.id} ·{" "}
-                        {projection.location.id}
+                      <div className="text-[10px] tracking-widest text-stone-600 uppercase">
+                        {formDisplayName ?? projection.form.id} · {projection.location.id}
                       </div>
                     </div>
-                    <p className="text-stone-100 italic leading-7">
-                      {formOpening}
-                    </p>
+                    <p className="leading-7 text-stone-100 italic">{formOpening}</p>
                   </>
                 ) : (
                   <p className="text-stone-100">
                     you wake as{" "}
-                    <span className="text-amber-300">
-                      {formDisplayName ?? projection.form.id}
-                    </span>{" "}
-                    in{" "}
-                    <span className="text-amber-300">
-                      {projection.location.id}
-                    </span>
-                    .
+                    <span className="text-amber-300">{formDisplayName ?? projection.form.id}</span>{" "}
+                    in <span className="text-amber-300">{projection.location.id}</span>.
                   </p>
                 )}
-                <p className="text-stone-500 text-sm italic">
-                  describe what you do — anything from a single verb to a
-                  whole sentence. the dice will be rolled against your
-                  intent.
+                <p className="text-sm text-stone-500 italic">
+                  describe what you do — anything from a single verb to a whole sentence. the dice
+                  will be rolled against your intent.
                 </p>
               </div>
             )
           }
         />
-        <div className="px-4 py-1 space-y-2">
+        <div className="space-y-2 px-4 py-1">
           <WhereAmI />
           <InRunCompanions />
         </div>
-        {error && (
-          <p className="px-4 py-1 text-red-400 text-xs">{error}</p>
-        )}
+        {error && <p className="px-4 py-1 text-xs text-red-400">{error}</p>}
         {ended ? (
           <Recap
             projection={projection!}
@@ -728,12 +674,7 @@ export default function Play() {
           />
         ) : (
           <>
-            {projection && (
-              <StateDiffToast
-                diff={stateDiff}
-                resetKey={projection.upToSeq}
-              />
-            )}
+            {projection && <StateDiffToast diff={stateDiff} resetKey={projection.upToSeq} />}
             {isTutorial && projection && (
               <TutorialHint
                 turn={projection.turn + 1}
@@ -757,8 +698,7 @@ export default function Play() {
                 // label (so the transcript shows "> shape a new
                 // room" rather than "> shape_room"). The orchestrator
                 // uses the explicit presetVerb for routing/classification.
-                const label =
-                  verbSuggestions.find((s) => s.verb === verb)?.label ?? verb;
+                const label = verbSuggestions.find((s) => s.verb === verb)?.label ?? verb;
                 setFreeTextOpen(false);
                 void handleInput(label, { presetVerb: verb });
               }}
@@ -779,7 +719,7 @@ export default function Play() {
         )}
       </section>
 
-      <aside className="border-l border-stone-800 bg-stone-900/40 flex flex-col overflow-y-auto md:order-3 order-3">
+      <aside className="order-3 flex flex-col overflow-y-auto border-l border-stone-800 bg-stone-900/40 md:order-3">
         <QuestLog projection={projection} />
         {projection && (
           <LocationNotes
@@ -801,10 +741,7 @@ export default function Play() {
           />
         )}
         {nearby?.room.roomId && projection && (
-          <ChatPanel
-            room={nearby.room}
-            canSpeak={projection.status === "active"}
-          />
+          <ChatPanel room={nearby.room} canSpeak={projection.status === "active"} />
         )}
       </aside>
     </main>
@@ -826,9 +763,9 @@ function EpitaphForm({ campaignId }: { campaignId: string }) {
 
   if (submitted) {
     return (
-      <p className="text-stone-500 text-xs italic leading-5 border-t border-stone-800/60 pt-3">
-        ✦ your last words have been carved into the stone here. another
-        soul will read them tomorrow.
+      <p className="border-t border-stone-800/60 pt-3 text-xs leading-5 text-stone-500 italic">
+        ✦ your last words have been carved into the stone here. another soul will read them
+        tomorrow.
       </p>
     );
   }
@@ -860,11 +797,8 @@ function EpitaphForm({ campaignId }: { campaignId: string }) {
   }
 
   return (
-    <form
-      onSubmit={submit}
-      className="space-y-2 border-t border-stone-800/60 pt-3"
-    >
-      <label className="block text-stone-400 text-xs leading-5">
+    <form onSubmit={submit} className="space-y-2 border-t border-stone-800/60 pt-3">
+      <label className="block text-xs leading-5 text-stone-400">
         ✦ your last words?{" "}
         <span className="text-stone-600 italic">
           (visible to others passing through here, in 24h)
@@ -877,7 +811,7 @@ function EpitaphForm({ campaignId }: { campaignId: string }) {
         maxLength={max}
         disabled={busy}
         placeholder="i was almost something"
-        className="w-full bg-stone-950 border border-stone-800 px-3 py-2 text-sm text-stone-200 placeholder-stone-700 focus:outline-none focus:border-stone-600"
+        className="w-full border border-stone-800 bg-stone-950 px-3 py-2 text-sm text-stone-200 placeholder-stone-700 focus:border-stone-600 focus:outline-none"
       />
       <div className="flex items-center justify-between text-[10px] text-stone-600">
         <span className="tabular-nums">
@@ -886,14 +820,12 @@ function EpitaphForm({ campaignId }: { campaignId: string }) {
         <button
           type="submit"
           disabled={busy || text.trim().length === 0}
-          className="text-stone-300 hover:text-stone-100 underline underline-offset-4 text-xs disabled:opacity-50"
+          className="text-xs text-stone-300 underline underline-offset-4 hover:text-stone-100 disabled:opacity-50"
         >
           carve it
         </button>
       </div>
-      {error && (
-        <p className="text-red-400 text-[10px]">{error.replace(/_/g, " ")}</p>
-      )}
+      {error && <p className="text-[10px] text-red-400">{error.replace(/_/g, " ")}</p>}
     </form>
   );
 }
@@ -915,11 +847,7 @@ function Recap({
   const turn = projection.turn;
   const room = projection.location.roomId;
   const tone =
-    status === "won"
-      ? "text-amber-300"
-      : status === "dead"
-        ? "text-red-400"
-        : "text-stone-300";
+    status === "won" ? "text-amber-300" : status === "dead" ? "text-red-400" : "text-stone-300";
   const verdict =
     status === "won"
       ? "the night ends. you survived."
@@ -944,17 +872,17 @@ function Recap({
 
   return (
     <section
-      className={`border-t border-stone-800 px-4 py-6 space-y-4 ${scrim}`}
+      className={`space-y-4 border-t border-stone-800 px-4 py-6 ${scrim}`}
       data-testid="recap"
     >
       <div
-        className={`${tone} text-base tracking-widest uppercase font-light`}
+        className={`${tone} text-base font-light tracking-widest uppercase`}
         data-testid="end-banner"
       >
         {status === "won" ? "✦ survived" : status === "dead" ? "✦ ended" : "✦ silence"}
       </div>
       <p className={`${tone} text-base leading-7 italic`}>{verdict}</p>
-      <ul className="text-xs text-stone-500 space-y-1 grid grid-cols-2 sm:grid-cols-3 gap-x-4">
+      <ul className="grid grid-cols-2 space-y-1 gap-x-4 text-xs text-stone-500 sm:grid-cols-3">
         <li>
           <span className="text-stone-600">turns</span>{" "}
           <span className="text-stone-300">{turn}</span>
@@ -977,20 +905,16 @@ function Recap({
         </li>
         <li className="col-span-2 sm:col-span-3">
           <span className="text-stone-600">discovered</span>{" "}
-          <span className="text-stone-400">
-            {projection.location.discovered.join(", ")}
-          </span>
+          <span className="text-stone-400">{projection.location.discovered.join(", ")}</span>
         </li>
       </ul>
-      {status === "dead" && hasAccount && campaignId && (
-        <EpitaphForm campaignId={campaignId} />
-      )}
-      <div className="flex items-baseline gap-4 flex-wrap pt-1">
+      {status === "dead" && hasAccount && campaignId && <EpitaphForm campaignId={campaignId} />}
+      <div className="flex flex-wrap items-baseline gap-4 pt-1">
         <button
           type="button"
           onClick={onRestart}
           disabled={busy}
-          className="text-stone-300 hover:text-stone-100 underline underline-offset-4 text-sm disabled:opacity-50"
+          className="text-sm text-stone-300 underline underline-offset-4 hover:text-stone-100 disabled:opacity-50"
           data-testid="restart"
         >
           begin again
@@ -998,7 +922,7 @@ function Recap({
         {!hasAccount && (
           <Link
             href="/register"
-            className="text-amber-300 hover:text-amber-200 underline underline-offset-4 text-sm"
+            className="text-sm text-amber-300 underline underline-offset-4 hover:text-amber-200"
             data-testid="claim-link"
           >
             save this run to your library →
@@ -1007,7 +931,7 @@ function Recap({
         {hasAccount && (
           <Link
             href="/character"
-            className="text-stone-500 hover:text-stone-300 underline underline-offset-4 text-sm"
+            className="text-sm text-stone-500 underline underline-offset-4 hover:text-stone-300"
           >
             view your character →
           </Link>
