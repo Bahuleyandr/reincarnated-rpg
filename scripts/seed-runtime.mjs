@@ -15,13 +15,30 @@ const contentDir = join(process.cwd(), "content");
 function readTemplateDir(name) {
   const dir = join(contentDir, name);
   if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((file) => file.endsWith(".json"))
-    .map((file) => {
-      const parsed = JSON.parse(readFileSync(join(dir, file), "utf8"));
-      if (!parsed.id) throw new Error(`${name}/${file} missing id`);
-      return parsed;
-    });
+  const out = [];
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith(".json")) continue;
+    const parsed = JSON.parse(readFileSync(join(dir, file), "utf8"));
+    const list =
+      (Array.isArray(parsed.items) && parsed.items) ||
+      (Array.isArray(parsed.npcs) && parsed.npcs) ||
+      (Array.isArray(parsed.entries) && parsed.entries) ||
+      null;
+
+    if (list) {
+      for (const template of list) {
+        if (!template.id) {
+          throw new Error(`${name}/${file} bundle entry missing id`);
+        }
+        out.push(template);
+      }
+      continue;
+    }
+
+    if (!parsed.id) throw new Error(`${name}/${file} missing id`);
+    out.push(parsed);
+  }
+  return out;
 }
 
 async function upsert(table, template) {
