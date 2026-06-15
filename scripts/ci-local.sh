@@ -3,13 +3,14 @@
 #
 # Why this script exists: GitHub-hosted CI is currently billing-blocked
 # on this account, so red checks on PRs are not a code signal. This
-# script runs the same nine jobs the GHA workflow runs, in the same
+# script runs the same jobs the GHA workflow runs, in the same
 # order, against the same inputs, so we can verify a branch locally
 # before merging.
 #
 # Coverage map vs. .github/workflows/ci.yml
 # -----------------------------------------
 # content:validate   ✓  npm run content:validate
+# test:risk          ✓  npm run test:risk
 # lint               ✓  npm run lint
 # typecheck          ✓  npm run typecheck
 # test:unit          ✓  npm run test:unit
@@ -37,7 +38,7 @@
 # Usage
 # -----
 #   scripts/ci-local.sh                 # run every job
-#   scripts/ci-local.sh --fast          # skip db/integration/build (unit + lint + typecheck only; ~15s)
+#   scripts/ci-local.sh --fast          # skip db/integration/build (content + risk + unit + lint + typecheck + audit only; ~15s)
 #   scripts/ci-local.sh --skip-integration   # skip integration leg (no WSL)
 #   scripts/ci-local.sh --only <job>    # run one job by id
 #   scripts/ci-local.sh --help          # this banner
@@ -119,7 +120,7 @@ should_run() {
     fi
     if [[ "$FAST" -eq 1 ]]; then
         case "$id" in
-            content|lint|typecheck|unit|audit) return 0 ;;
+            content|risk|lint|typecheck|unit|audit) return 0 ;;
             *) return 1 ;;
         esac
     fi
@@ -272,6 +273,7 @@ ensure_db_reachable() {
 # --- Jobs ------------------------------------------------------------
 
 job_content()   { npm run content:validate; }
+job_risk()      { npm run test:risk; }
 job_lint()      { npm run lint; }
 job_typecheck() { npm run typecheck; }
 job_unit()      { npm run test:unit; }
@@ -342,6 +344,29 @@ job_e2e() {
         skip_job "e2e skipped: npx not on PATH"
         return "$JOB_SKIP_RC"
     fi
+    local keepalive_pid=""
+    local server_pid=""
+    local distro="${WSL_DISTRO:-Ubuntu-24.04}"
+    # Keep WSL awake while Windows-side `next start` talks to the
+    # Docker Postgres port. Without a long-lived WSL process, the
+    # distro can idle out between the DB probe and Playwright turn
+    # submission, which silently stops the container mid-smoke.
+    if command -v wsl.exe >/dev/null 2>&1 && wsl.exe -l -v 2>/dev/null | tr -d '\000' | grep -qi "$distro"; then
+        wsl.exe -d "$distro" -e bash -lc "sleep 900" &
+        keepalive_pid=$!
+    fi
+    cleanup_e2e() {
+        if [[ -n "${server_pid:-}" ]]; then
+            kill "$server_pid" 2>/dev/null || true
+        fi
+        if [[ -n "${keepalive_pid:-}" ]]; then
+            kill "$keepalive_pid" 2>/dev/null || true
+        fi
+    }
+    trap cleanup_e2e RETURN
+
+    if ! ensure_db_reachable; then return 1; fi
+    local e2e_database_url="$DATABASE_URL"
     # Browser must be installed. We don't auto-install here —
     # too slow + needs sudo on Linux. Soft-skip with a hint.
     if ! npx --yes playwright --version >/dev/null 2>&1; then
@@ -358,13 +383,11 @@ job_e2e() {
     # running `next dev` (port 3000) doesn't collide.
     local port=3100
     NODE_ENV=test \
-    DATABASE_URL="$CI_DATABASE_URL" \
+    DATABASE_URL="$e2e_database_url" \
     SESSION_SECRET="ci-local-session-secret-pad-to-32-bytes" \
     NARRATOR=template EMBEDDINGS=mock NEXT_TELEMETRY_DISABLED=1 \
     npx --yes next start -p "$port" >/tmp/next-e2e.log 2>&1 &
-    local server_pid=$!
-    # Cleanup on any exit path.
-    trap "kill $server_pid 2>/dev/null || true" RETURN
+    server_pid=$!
     # Wait up to 30s for the server to start serving.
     local ready=0
     for _ in {1..30}; do
@@ -400,6 +423,7 @@ echo "${C_DIM}DATABASE_URL: ${DATABASE_URL:-<unset>}${C_RESET}"
 echo
 
 run_job content     "Validate content/"           job_content
+run_job risk        "Risk playtest harness"        job_risk
 run_job lint        "ESLint"                       job_lint
 run_job typecheck   "tsc --noEmit"                 job_typecheck
 run_job unit        "Jest unit"                    job_unit
